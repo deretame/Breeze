@@ -108,8 +108,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
               socks5ProxyEdit(context, state.socks5Proxy),
-              if (!Platform.isIOS)
-                _customExportPath(state, globalSettingCubit),
+              if (!Platform.isIOS) _customExportPath(state, globalSettingCubit),
               _updateAccelerate(state, globalSettingCubit),
 
               const SizedBox(height: 8),
@@ -528,10 +527,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     );
   }
 
-  Widget _customExportPath(
-    GlobalSettingState state,
-    GlobalSettingCubit cubit,
-  ) {
+  Widget _customExportPath(GlobalSettingState state, GlobalSettingCubit cubit) {
     final exportPath = state.customExportPath.trim();
     return ListTile(
       leading: const Icon(Icons.folder_outlined),

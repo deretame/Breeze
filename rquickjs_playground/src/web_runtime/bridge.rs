@@ -1,4 +1,5 @@
 use super::*;
+use tracing::{debug, warn};
 
 pub(crate) type BridgeRouteFuture = Pin<Box<dyn Future<Output = AnyResult<Value>> + Send + 'static>>;
 pub(crate) type BridgeRouteSyncHandler =
@@ -42,6 +43,12 @@ fn bridge_route_async_handler_cell() -> &'static Mutex<HashMap<String, BridgeRou
 fn bridge_route_blocking_handler_cell()
 -> &'static Mutex<HashMap<String, BridgeRouteBlockingHandler>> {
     BRIDGE_ROUTE_BLOCKING_HANDLERS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+static BRIDGE_TRY_TAKE_COUNT: OnceLock<Mutex<HashMap<u64, u64>>> = OnceLock::new();
+
+fn bridge_try_take_count_cell() -> &'static Mutex<HashMap<u64, u64>> {
+    BRIDGE_TRY_TAKE_COUNT.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 fn bridge_runtime_config_cell() -> &'static Mutex<BridgeRuntimeConfig> {
@@ -626,7 +633,10 @@ pub fn host_call(runtime_name: String, name: String, args_json: Option<String>) 
 }
 
 pub fn host_call_start(runtime_name: String, name: String, args_json: Option<String>) -> String {
+    debug!(name, has_args = args_json.is_some(), "host_call_start: bridge call initiated");
+
     if !is_bridge_route_allowed(&name) {
+        warn!(name, "host_call_start: route denied");
         BRIDGE_DENIED.fetch_add(1, Ordering::Relaxed);
         return bridge_error_json(
             "BRIDGE_ROUTE_DENIED",
@@ -638,6 +648,7 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
         let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
         cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
         if pool.len() >= BRIDGE_MAX_PENDING {
+            warn!(name, pool_len = pool.len(), "host_call_start: pending queue full");
             return bridge_error_json(
                 "BRIDGE_PENDING_FULL",
                 "bridge pending 队列已满",
@@ -648,15 +659,81 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
 
     let id = BRIDGE_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
+    let log_name = name.clone();
+
+    let sync_handler = bridge_route_sync_handler_cell()
+        .lock()
+        .ok()
+        .and_then(|guard| guard.get(&name).cloned());
+
+    if let Some(handler) = sync_handler {
+        let args = match parse_bridge_args(args_json) {
+            Ok(args) => args,
+            Err(e) => {
+                let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
+                let payload = bridge_error_json(
+                    "BRIDGE_CALL_FAILED",
+                    format!("{e:#}"),
+                    Some(json!({"name": log_name})),
+                );
+                let _ = tx.send(payload);
+                pool.insert(id, PendingTask {
+                    rx,
+                    task: None,
+                    created_at: Instant::now(),
+                });
+                return json!({ "ok": true, "data": { "id": id } }).to_string();
+            }
+        };
+
+        let t0 = Instant::now();
+        let payload = match handler(runtime_name, args) {
+            Ok(data) => {
+                debug!(id, "host_call_start: sync handler resolved in {:?}", t0.elapsed());
+                json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string()
+            }
+            Err(error) => {
+                warn!(id, error = %error, "host_call_start: sync handler failed in {:?}", t0.elapsed());
+                bridge_error_json(
+                    "BRIDGE_CALL_FAILED",
+                    format!("{error:#}"),
+                    Some(json!({"name": log_name})),
+                )
+            }
+        };
+        let _ = tx.send(payload);
+
+        {
+            let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
+            pool.insert(id, PendingTask {
+                rx,
+                task: None,
+                created_at: Instant::now(),
+            });
+        }
+
+        debug!(id, name = log_name, "host_call_start: sync route — returning id={id}");
+        return json!({ "ok": true, "data": { "id": id } }).to_string();
+    }
+
     let call_name = name.clone();
+    let err_name = name;
     let task = host_async_runtime().spawn(async move {
+        let t0 = Instant::now();
+        debug!(id, call_name, "host_call_start: tokio task started");
         let payload = match bridge_call_inner_async(runtime_name, call_name, args_json).await {
-            Ok(data) => json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string(),
-            Err(error) => bridge_error_json(
-                "BRIDGE_CALL_FAILED",
-                format!("{error:#}"),
-                Some(json!({"name": name})),
-            ),
+            Ok(data) => {
+                debug!(id, "host_call_start: bridge resolved in {:?}", t0.elapsed());
+                json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string()
+            }
+            Err(error) => {
+                warn!(id, error = %error, "host_call_start: bridge failed in {:?}", t0.elapsed());
+                bridge_error_json(
+                    "BRIDGE_CALL_FAILED",
+                    format!("{error:#}"),
+                    Some(json!({"name": err_name})),
+                )
+            }
         };
         let _ = tx.send(payload);
     });
@@ -667,12 +744,13 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
             id,
             PendingTask {
                 rx,
-                task,
+                task: Some(task),
                 created_at: Instant::now(),
             },
         );
     }
 
+    debug!(id, name = log_name, "host_call_start: returning id={id}");
     json!({ "ok": true, "data": { "id": id } }).to_string()
 }
 
@@ -680,16 +758,55 @@ pub fn host_call_try_take(id: u64) -> String {
     let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
     cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
     let Some(pending) = pool.get_mut(&id) else {
+        debug!(id, "host_call_try_take: request id not found");
         return json!({ "ok": false, "error": "request id 不存在" }).to_string();
     };
 
     match pending.rx.try_recv() {
         Ok(result) => {
+            let elapsed = pending.created_at.elapsed();
+            if let Ok(mut guard) = bridge_try_take_count_cell().lock() {
+                if let Some(&count) = guard.get(&id) {
+                    debug!(id, count, "host_call_try_take: result ready in {:?} after {} polls", elapsed, count);
+                } else {
+                    debug!(id, "host_call_try_take: result ready in {:?}", elapsed);
+                }
+                guard.remove(&id);
+            }
             pool.remove(&id);
             json!({ "ok": true, "done": true, "result": result }).to_string()
         }
-        Err(TryRecvError::Empty) => json!({ "ok": true, "done": false }).to_string(),
+        Err(TryRecvError::Empty) => {
+            let count = bridge_try_take_count_cell()
+                .lock()
+                .map(|mut guard| {
+                    let c = guard.entry(id).or_insert(0);
+                    *c += 1;
+                    *c
+                })
+                .unwrap_or(0);
+            let elapsed = pending.created_at.elapsed();
+            if count == 1
+                || count == 2
+                || count == 3
+                || (count <= 64 && count.is_power_of_two())
+                || count % 1024 == 0
+            {
+                warn!(
+                    id,
+                    count,
+                    "host_call_try_take: NOT READY after {} polls ({:?})",
+                    count,
+                    elapsed
+                );
+            }
+            json!({ "ok": true, "done": false }).to_string()
+        }
         Err(TryRecvError::Disconnected) => {
+            if let Ok(mut guard) = bridge_try_take_count_cell().lock() {
+                guard.remove(&id);
+            }
+            warn!(id, "host_call_try_take: channel disconnected — task crashed");
             pool.remove(&id);
             json!({ "ok": false, "error": "request 执行线程异常退出" }).to_string()
         }
@@ -699,7 +816,9 @@ pub fn host_call_try_take(id: u64) -> String {
 pub fn host_call_drop(id: u64) -> String {
     let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
     let existed = if let Some(pending) = pool.remove(&id) {
-        pending.task.abort();
+        if let Some(task) = pending.task {
+            task.abort();
+        }
         true
     } else {
         false

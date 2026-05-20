@@ -2,8 +2,8 @@ use crate::compressed;
 use crate::decode;
 use crate::frb_generated::StreamSink;
 use anyhow::{Result, anyhow};
-use flutter_rust_bridge::frb;
-use rquickjs_playground::{configure_http_client, current_http_client_config};
+use flutter_rust_bridge::{frb, DartFnFuture};
+use rquickjs_playground::{configure_http_client, current_http_client_config, poke_host_async_runtime};
 use std::sync::Once;
 
 static ENABLE_STACKTRACE: Once = Once::new();
@@ -79,6 +79,19 @@ pub fn enable_stacktrace(enabled: bool) {
     ENABLE_STACKTRACE.call_once(|| unsafe {
         std::env::set_var("RUST_LIB_BACKTRACE", if enabled { "1" } else { "0" });
     });
+}
+
+#[frb(sync)]
+pub fn keepalive() -> bool {
+    true
+}
+
+#[frb]
+pub async fn keepalive_roundtrip(
+    callback: impl Fn(bool) -> DartFnFuture<()>,
+) {
+    poke_host_async_runtime();
+    callback(true).await;
 }
 
 #[frb]

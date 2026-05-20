@@ -53,6 +53,12 @@ Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
 void enableStacktrace({required bool enabled}) =>
     RustLib.instance.api.crateApiSimpleEnableStacktrace(enabled: enabled);
 
+bool keepalive() => RustLib.instance.api.crateApiSimpleKeepalive();
+
+Future<void> keepaliveRoundtrip({
+  required FutureOr<void> Function(bool) callback,
+}) => RustLib.instance.api.crateApiSimpleKeepaliveRoundtrip(callback: callback);
+
 Future<Uint8List> compressExtreme({required List<int> data}) =>
     RustLib.instance.api.crateApiSimpleCompressExtreme(data: data);
 

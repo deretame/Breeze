@@ -1614,8 +1614,12 @@ pub fn register_load_plugin_config(
                 .map_err(|_| anyhow!("load_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("load_plugin_config 回调未注册"))?;
-            let out = callback(runtime, key, value).await;
-            Ok(json!(out))
+            match time::timeout(Duration::from_secs(30), callback(runtime, key, value)).await {
+                Ok(out) => Ok(json!(out)),
+                Err(_elapsed) => Err(anyhow!(
+                    "load_plugin_config 超时 (30s)，Dart 通道可能已断开"
+                )),
+            }
         },
     )?;
     Ok(())

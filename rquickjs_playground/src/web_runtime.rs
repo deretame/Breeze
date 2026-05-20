@@ -44,6 +44,7 @@ use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
+use tracing::warn;
 use url::form_urlencoded;
 use uuid::Uuid;
 #[cfg(feature = "wasi")]
@@ -405,7 +406,7 @@ const BRIDGE_RETURN_BINARY_MAX_BYTES_DEFAULT: usize = 32 * 1024 * 1024;
 
 struct PendingTask {
     rx: mpsc::Receiver<String>,
-    task: JoinHandle<()>,
+    task: Option<JoinHandle<()>>,
     created_at: Instant,
 }
 
@@ -744,8 +745,12 @@ fn host_async_runtime() -> &'static TokioRuntime {
             .enable_all()
             .thread_name("rquickjs-host-async")
             .build()
-            .expect("创建 Host Tokio runtime 失败")
+            .expect("tokio runtime 创建失败")
     })
+}
+
+pub fn poke_host_async_runtime() {
+    let _ = host_async_runtime().spawn(async {});
 }
 
 pub fn configure_native_buffer_gc_ttl_seconds(ttl_seconds: u64) {
@@ -767,12 +772,14 @@ where
             .expect("timer event 请求池加锁失败");
         cleanup_stale_pending_abort(&mut pool, &TIMER_STALE_DROPS);
         if pool.len() >= TIMER_MAX_PENDING {
+            warn!("timer_start: pending queue full ({TIMER_MAX_PENDING})");
             return json!({ "ok": false, "error": "timer pending 队列已满" }).to_string();
         }
     }
 
     let id = TIMER_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let normalized_delay_ms = delay_ms.clamp(0, 24 * 60 * 60 * 1000) as u64;
+
     let on_complete = Arc::new(on_complete);
 
     let task = host_async_runtime().spawn(async move {
@@ -869,7 +876,7 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
             id,
             PendingTask {
                 rx,
-                task,
+                task: Some(task),
                 created_at: Instant::now(),
             },
         );
@@ -901,7 +908,9 @@ pub fn fs_task_try_take(id: u64) -> String {
 pub fn fs_task_drop(id: u64) -> String {
     let mut pool = fs_req_pool().lock().expect("fs 请求池加锁失败");
     let existed = if let Some(pending) = pool.remove(&id) {
-        pending.task.abort();
+        if let Some(task) = pending.task {
+            task.abort();
+        }
         true
     } else {
         false

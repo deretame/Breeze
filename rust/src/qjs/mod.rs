@@ -517,7 +517,8 @@ async fn tracked_task_debug_items(runtime_name: &str) -> Vec<Value> {
         return Vec::new();
     };
 
-    tasks.iter()
+    tasks
+        .iter()
         .map(|(task_id, task)| {
             let elapsed_ms = task.meta.started_at.elapsed().as_millis() as u64;
             json!({
@@ -1439,11 +1440,14 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
         })
     };
 
-    let web_runtime_stats = serde_json::from_str::<Value>(&rquickjs_playground::web_runtime::runtime_stats())
-        .unwrap_or_else(|err| json!({
-            "ok": false,
-            "error": format!("parse runtime_stats failed: {err}"),
-        }));
+    let web_runtime_stats =
+        serde_json::from_str::<Value>(&rquickjs_playground::web_runtime::runtime_stats())
+            .unwrap_or_else(|err| {
+                json!({
+                    "ok": false,
+                    "error": format!("parse runtime_stats failed: {err}"),
+                })
+            });
 
     let http_client_config = current_http_client_config();
 
@@ -1774,13 +1778,6 @@ pub fn register_load_plugin_config(
                 .map_err(|_| anyhow!("load_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("load_plugin_config 回调未注册"))?;
-            let started_at = Instant::now();
-            tracing::info!(
-                "load_plugin_config start: runtime={}, key={}, fallback_len={}",
-                runtime,
-                key,
-                value.len()
-            );
             let out = time::timeout(
                 PLUGIN_CONFIG_CALLBACK_TIMEOUT,
                 callback(runtime.clone(), key.clone(), value.clone()),
@@ -1794,12 +1791,6 @@ pub fn register_load_plugin_config(
                     PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
                 )
             })?;
-            tracing::info!(
-                "load_plugin_config done: runtime={}, key={}, elapsed_ms={}",
-                runtime,
-                key,
-                started_at.elapsed().as_millis()
-            );
             Ok(json!(out))
         },
     )?;
@@ -1835,13 +1826,6 @@ pub fn register_save_plugin_config(
                 .map_err(|_| anyhow!("save_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("save_plugin_config 回调未注册"))?;
-            let started_at = Instant::now();
-            tracing::info!(
-                "save_plugin_config start: runtime={}, key={}, value_len={}",
-                runtime,
-                key,
-                value.len()
-            );
             let out = time::timeout(
                 PLUGIN_CONFIG_CALLBACK_TIMEOUT,
                 callback(runtime.clone(), key.clone(), value.clone()),
@@ -1855,12 +1839,6 @@ pub fn register_save_plugin_config(
                     PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
                 )
             })?;
-            tracing::info!(
-                "save_plugin_config done: runtime={}, key={}, elapsed_ms={}",
-                runtime,
-                key,
-                started_at.elapsed().as_millis()
-            );
             Ok(json!(out))
         },
     )?;

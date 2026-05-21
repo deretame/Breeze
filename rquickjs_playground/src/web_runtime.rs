@@ -408,11 +408,25 @@ struct PendingTask {
     rx: mpsc::Receiver<String>,
     task: JoinHandle<()>,
     created_at: Instant,
+    meta: PendingTaskMeta,
 }
 
 struct PendingAbortTask {
     task: JoinHandle<()>,
     created_at: Instant,
+    meta: PendingAbortTaskMeta,
+}
+
+#[derive(Debug, Clone)]
+struct PendingTaskMeta {
+    kind: &'static str,
+    label: String,
+}
+
+#[derive(Debug, Clone)]
+struct PendingAbortTaskMeta {
+    kind: &'static str,
+    label: String,
 }
 
 struct NativeBufferEntry {
@@ -494,6 +508,24 @@ const WASI_MAX_PENDING: usize = 1024;
 const PENDING_TASK_TTL: Duration = Duration::from_secs(120);
 const NATIVE_BUFFER_GC_INTERVAL: Duration = Duration::from_secs(60);
 const DEFAULT_NATIVE_BUFFER_GC_TTL_SECS: u64 = 15 * 60;
+
+fn pending_task_debug_item(id: u64, pending: &PendingTask) -> Value {
+    json!({
+        "id": id,
+        "kind": pending.meta.kind,
+        "label": pending.meta.label,
+        "elapsedMs": pending.created_at.elapsed().as_millis() as u64,
+    })
+}
+
+fn pending_abort_task_debug_item(id: u64, pending: &PendingAbortTask) -> Value {
+    json!({
+        "id": id,
+        "kind": pending.meta.kind,
+        "label": pending.meta.label,
+        "elapsedMs": pending.created_at.elapsed().as_millis() as u64,
+    })
+}
 
 fn fs_io_sem() -> &'static Arc<Semaphore> {
     FS_IO_SEM.get_or_init(|| Arc::new(Semaphore::new(FS_MAX_IN_FLIGHT)))
@@ -775,6 +807,10 @@ where
     let id = TIMER_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let normalized_delay_ms = delay_ms.clamp(0, 24 * 60 * 60 * 1000) as u64;
     let on_complete = Arc::new(on_complete);
+    let timer_label = format!(
+        "repeat={} delayMs={}",
+        repeat, normalized_delay_ms
+    );
 
     let task = host_async_runtime().spawn(async move {
         if repeat {
@@ -812,6 +848,10 @@ where
             PendingAbortTask {
                 task,
                 created_at: Instant::now(),
+                meta: PendingAbortTaskMeta {
+                    kind: "timer_evented",
+                    label: timer_label,
+                },
             },
         );
     }
@@ -844,6 +884,7 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
     let id = FS_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
     let sem = Arc::clone(fs_io_sem());
+    let request_label = format!("op={}", op);
 
     let task = host_async_runtime().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
@@ -872,6 +913,10 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
                 rx,
                 task,
                 created_at: Instant::now(),
+                meta: PendingTaskMeta {
+                    kind: "fs",
+                    label: request_label,
+                },
             },
         );
     }
@@ -924,6 +969,7 @@ where
 
     let id = FS_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let sem = Arc::clone(fs_io_sem());
+    let request_label = format!("op={}", op);
 
     let task = host_async_runtime().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
@@ -958,6 +1004,10 @@ where
             PendingAbortTask {
                 task,
                 created_at: Instant::now(),
+                meta: PendingAbortTaskMeta {
+                    kind: "fs_evented",
+                    label: request_label,
+                },
             },
         );
     }
@@ -1039,18 +1089,48 @@ pub fn log_emit(level: String, message: String) -> String {
 pub fn runtime_stats() -> String {
     let mut http_pending = http_req_pool().lock().map(|m| m.len()).unwrap_or_default();
     let mut fs_pending = fs_req_pool().lock().map(|m| m.len()).unwrap_or_default();
+    let mut http_pending_debug = Vec::new();
+    let mut fs_pending_debug = Vec::new();
+    let mut bridge_pending_debug = Vec::new();
+    let mut timer_pending_debug = Vec::new();
     #[cfg(feature = "wasi")]
     let mut wasi_pending = wasi_req_pool().lock().map(|m| m.len()).unwrap_or_default();
     #[cfg(not(feature = "wasi"))]
     let wasi_pending = 0usize;
+    #[cfg(feature = "wasi")]
+    let mut wasi_pending_debug = Vec::new();
+    #[cfg(not(feature = "wasi"))]
+    let wasi_pending_debug: Vec<Value> = Vec::new();
 
     if let Ok(mut pool) = http_req_pool().lock() {
         cleanup_stale_pending(&mut pool, &HTTP_STALE_DROPS);
         http_pending = pool.len();
+        http_pending_debug = pool
+            .iter()
+            .map(|(id, pending)| pending_task_debug_item(*id, pending))
+            .collect();
     }
     if let Ok(mut pool) = fs_req_pool().lock() {
         cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
         fs_pending = pool.len();
+        fs_pending_debug = pool
+            .iter()
+            .map(|(id, pending)| pending_task_debug_item(*id, pending))
+            .collect();
+    }
+    if let Ok(mut pool) = BRIDGE_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new())).lock() {
+        cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
+        bridge_pending_debug = pool
+            .iter()
+            .map(|(id, pending)| pending_task_debug_item(*id, pending))
+            .collect();
+    }
+    if let Ok(mut pool) = timer_req_event_pool().lock() {
+        cleanup_stale_pending_abort(&mut pool, &TIMER_STALE_DROPS);
+        timer_pending_debug = pool
+            .iter()
+            .map(|(id, pending)| pending_abort_task_debug_item(*id, pending))
+            .collect();
     }
     if let Ok(mut pool) = body_state_pool().lock() {
         cleanup_stale_body_state(&mut pool);
@@ -1062,6 +1142,10 @@ pub fn runtime_stats() -> String {
     if let Ok(mut pool) = wasi_req_pool().lock() {
         cleanup_stale_pending(&mut pool, &WASI_STALE_DROPS);
         wasi_pending = pool.len();
+        wasi_pending_debug = pool
+            .iter()
+            .map(|(id, pending)| pending_task_debug_item(*id, pending))
+            .collect();
     }
 
     #[cfg(feature = "wasi")]
@@ -1124,6 +1208,13 @@ pub fn runtime_stats() -> String {
             "fs": fs_pending,
             "wasi": wasi_pending,
             "bridge": bridge_pending_count(),
+        },
+        "pendingDebug": {
+            "http": http_pending_debug,
+            "fs": fs_pending_debug,
+            "bridge": bridge_pending_debug,
+            "timer": timer_pending_debug,
+            "wasi": wasi_pending_debug,
         },
         "permits": {
             "httpAvailable": http_available,

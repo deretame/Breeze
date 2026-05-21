@@ -153,6 +153,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                             as Map<String, dynamic>;
                     final trackedTasks =
                         result['qjs']['trackedTasks'] as List<dynamic>;
+                    logger.d('result: ${result.let(jsonEncode)}');
                     logger.d('trackedTasks: ${trackedTasks.let(jsonEncode)}');
                     // AutoRouter.of(context).push(ShowColorRoute());
                   },

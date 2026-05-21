@@ -344,6 +344,14 @@ pub fn wasi_run_start(
     let id = WASI_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
     let sem = Arc::clone(wasi_io_sem());
+    let request_label = format!(
+        "moduleId={} stdinId={} consumeModule={}",
+        module_id,
+        stdin_id
+            .map(|value| value.to_string())
+            .unwrap_or_else(|| "null".to_string()),
+        consume_module
+    );
 
     let task = host_async_runtime().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
@@ -376,6 +384,10 @@ pub fn wasi_run_start(
                 rx,
                 task,
                 created_at: Instant::now(),
+                meta: PendingTaskMeta {
+                    kind: "wasi",
+                    label: request_label,
+                },
             },
         );
     }
@@ -439,6 +451,14 @@ where
 
     let id = WASI_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let sem = Arc::clone(wasi_io_sem());
+    let request_label = format!(
+        "moduleId={} stdinId={} consumeModule={}",
+        module_id,
+        stdin_id
+            .map(|value| value.to_string())
+            .unwrap_or_else(|| "null".to_string()),
+        consume_module
+    );
 
     let task = host_async_runtime().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
@@ -479,6 +499,10 @@ where
             PendingAbortTask {
                 task,
                 created_at: Instant::now(),
+                meta: PendingAbortTaskMeta {
+                    kind: "wasi_evented",
+                    label: request_label,
+                },
             },
         );
     }

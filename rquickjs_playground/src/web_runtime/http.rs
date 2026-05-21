@@ -58,21 +58,32 @@ pub(crate) fn cleanup_stale_pending(
     dropped_counter: &AtomicU64,
 ) {
     let now = Instant::now();
-    let stale_ids: Vec<u64> = pool
+    let stale_items: Vec<(u64, PendingTaskMeta, u64)> = pool
         .iter()
         .filter_map(|(id, pending)| {
             if now.duration_since(pending.created_at) > PENDING_TASK_TTL {
-                Some(*id)
+                Some((
+                    *id,
+                    pending.meta.clone(),
+                    now.duration_since(pending.created_at).as_millis() as u64,
+                ))
             } else {
                 None
             }
         })
         .collect();
 
-    for id in stale_ids {
+    for (id, meta, elapsed_ms) in stale_items {
         if let Some(pending) = pool.remove(&id) {
             pending.task.abort();
             dropped_counter.fetch_add(1, Ordering::Relaxed);
+            tracing::warn!(
+                "cleanup stale pending task: kind={}, id={}, elapsed_ms={}, label={}",
+                meta.kind,
+                id,
+                elapsed_ms,
+                meta.label
+            );
         }
     }
 }
@@ -82,21 +93,32 @@ pub(crate) fn cleanup_stale_pending_abort(
     dropped_counter: &AtomicU64,
 ) {
     let now = Instant::now();
-    let stale_ids: Vec<u64> = pool
+    let stale_items: Vec<(u64, PendingAbortTaskMeta, u64)> = pool
         .iter()
         .filter_map(|(id, pending)| {
             if now.duration_since(pending.created_at) > PENDING_TASK_TTL {
-                Some(*id)
+                Some((
+                    *id,
+                    pending.meta.clone(),
+                    now.duration_since(pending.created_at).as_millis() as u64,
+                ))
             } else {
                 None
             }
         })
         .collect();
 
-    for id in stale_ids {
+    for (id, meta, elapsed_ms) in stale_items {
         if let Some(pending) = pool.remove(&id) {
             pending.task.abort();
             dropped_counter.fetch_add(1, Ordering::Relaxed);
+            tracing::warn!(
+                "cleanup stale pending abort task: kind={}, id={}, elapsed_ms={}, label={}",
+                meta.kind,
+                id,
+                elapsed_ms,
+                meta.label
+            );
         }
     }
 }
@@ -457,6 +479,7 @@ pub fn http_request_start(
     let id = HTTP_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
     let sem = Arc::clone(http_io_sem());
+    let request_label = format!("method={} url={}", method, url);
 
     let task = host_async_runtime().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
@@ -488,6 +511,10 @@ pub fn http_request_start(
                 rx,
                 task,
                 created_at: Instant::now(),
+                meta: PendingTaskMeta {
+                    kind: "http",
+                    label: request_label,
+                },
             },
         );
     }
@@ -549,6 +576,7 @@ where
 
     let id = HTTP_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let sem = Arc::clone(http_io_sem());
+    let request_label = format!("method={} url={}", method, url);
 
     let task = host_async_runtime().spawn(async move {
         let finish = |payload: String| {
@@ -594,6 +622,10 @@ where
             PendingAbortTask {
                 task,
                 created_at: Instant::now(),
+                meta: PendingAbortTaskMeta {
+                    kind: "http_evented",
+                    label: request_label,
+                },
             },
         );
     }

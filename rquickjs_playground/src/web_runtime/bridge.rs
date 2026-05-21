@@ -27,7 +27,7 @@ impl Default for BridgeRuntimeConfig {
 
 static BRIDGE_RUNTIME_CONFIG: OnceLock<Mutex<BridgeRuntimeConfig>> = OnceLock::new();
 
-fn bridge_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
+pub(crate) fn bridge_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
     BRIDGE_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
@@ -659,6 +659,7 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
     let id = BRIDGE_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
     let call_name = name.clone();
+    let request_label = format!("route={name}");
     let task = host_async_runtime().spawn(async move {
         let payload = match bridge_call_inner_async(runtime_name, call_name, args_json).await {
             Ok(data) => json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string(),
@@ -679,6 +680,10 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
                 rx,
                 task,
                 created_at: Instant::now(),
+                meta: PendingTaskMeta {
+                    kind: "bridge",
+                    label: request_label,
+                },
             },
         );
     }

@@ -9,6 +9,12 @@ body:
     attributes:
       value: |
         如果你不确定这是 Bug 还是使用问题，请先按本模板提交，我们会协助判断。
+    
+  - type: markdown
+    attributes:
+      value: |
+        > **注意**：Issue 并非许愿区。请确保所提需求有真实的使用场景、明确的逻辑和可评估的价值。  
+        > 作者保留对**不合理、无法实现、与项目方向不符**或**暂无意向**的需求直接关闭的权利，恕不另行讨论。
 
   - type: checkboxes
     id: precheck

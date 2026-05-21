@@ -10,6 +10,12 @@ body:
       value: |
         感谢你的建议。请描述「为什么需要」以及「期望如何工作」，便于评估优先级。
 
+  - type: markdown
+    attributes:
+      value: |
+        > **注意**：Issue 并非许愿区。请确保所提需求有真实的使用场景、明确的逻辑和可评估的价值。  
+        > 作者保留对**不合理、无法实现、与项目方向不符**或**暂无意向**的需求直接关闭的权利，恕不另行讨论。
+
   - type: textarea
     id: problem
     attributes:

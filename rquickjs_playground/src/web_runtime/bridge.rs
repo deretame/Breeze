@@ -31,6 +31,16 @@ fn bridge_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
     BRIDGE_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+pub fn bridge_pending_count() -> usize {
+    bridge_req_pool()
+        .lock()
+        .map(|mut guard| {
+            cleanup_stale_pending(&mut guard, &BRIDGE_STALE_DROPS);
+            guard.len()
+        })
+        .unwrap_or_default()
+}
+
 fn bridge_route_sync_handler_cell() -> &'static Mutex<HashMap<String, BridgeRouteSyncHandler>> {
     BRIDGE_ROUTE_SYNC_HANDLERS.get_or_init(|| Mutex::new(HashMap::new()))
 }

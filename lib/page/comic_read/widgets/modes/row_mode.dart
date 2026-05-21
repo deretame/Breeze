@@ -381,9 +381,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       alignment: Alignment.center,
       child: SizedBox(
         width: contentWidth,
-        child: Row(
-          children: children,
-        ),
+        child: Row(children: children),
       ),
     );
   }

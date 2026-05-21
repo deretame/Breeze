@@ -46,6 +46,7 @@ const BRIDGE_ROUTE_RUNTIME_GC: &str = "runtime.gc";
 const BRIDGE_ROUTE_RUNTIME_IS_TASK_GROUP_CANCELLED: &str = "runtime.is_task_group_cancelled";
 const HOST_CACHE_VALUE_MAX_BYTES: usize = 500 * 1024;
 const CANCELLED_GROUP_TTL: Duration = Duration::from_secs(120);
+const PLUGIN_CONFIG_CALLBACK_TIMEOUT: Duration = Duration::from_secs(15);
 
 static SAVE_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback>>> =
     OnceLock::new();
@@ -158,7 +159,17 @@ struct TrackedQjsTask {
     kind: TrackedQjsTaskKind,
     group_key: String,
     cancel_runtime_name: String,
+    meta: TrackedQjsTaskMeta,
     state: Arc<TrackedQjsTaskState>,
+}
+
+#[derive(Clone)]
+struct TrackedQjsTaskMeta {
+    source: String,
+    bundle_name: Option<String>,
+    fn_path: String,
+    args_preview: String,
+    started_at: Instant,
 }
 
 #[derive(Debug, Clone)]
@@ -290,6 +301,18 @@ fn cache_value_size_exceeds_limit(value: &Value) -> bool {
     serde_json::to_vec(value)
         .map(|bytes| bytes.len() > HOST_CACHE_VALUE_MAX_BYTES)
         .unwrap_or(true)
+}
+
+fn truncate_preview(input: &str, max_chars: usize) -> String {
+    let trimmed = input.trim();
+    let mut out = String::new();
+    for ch in trimmed.chars().take(max_chars) {
+        out.push(ch);
+    }
+    if trimmed.chars().count() > max_chars {
+        out.push_str("...");
+    }
+    out
 }
 
 fn new_host_cache_entry(value: Value) -> HostCacheEntry {
@@ -484,6 +507,34 @@ async fn tracked_task_ids_by_group(runtime_name: &str, group_key: &str) -> Vec<u
             } else {
                 None
             }
+        })
+        .collect()
+}
+
+async fn tracked_task_debug_items(runtime_name: &str) -> Vec<Value> {
+    let map = qjs_tracked_task_map().read().await;
+    let Some(tasks) = map.get(runtime_name) else {
+        return Vec::new();
+    };
+
+    tasks.iter()
+        .map(|(task_id, task)| {
+            let elapsed_ms = task.meta.started_at.elapsed().as_millis() as u64;
+            json!({
+                "taskId": *task_id,
+                "kind": match task.kind {
+                    TrackedQjsTaskKind::Call => "call",
+                    TrackedQjsTaskKind::CallBytes => "call_bytes",
+                },
+                "groupKey": task.group_key,
+                "cancelRuntimeName": task.cancel_runtime_name,
+                "ready": task.state.is_ready(),
+                "source": task.meta.source,
+                "bundleName": task.meta.bundle_name,
+                "fnPath": task.meta.fn_path,
+                "argsPreview": task.meta.args_preview,
+                "elapsedMs": elapsed_ms,
+            })
         })
         .collect()
 }
@@ -883,6 +934,13 @@ async fn call_loaded_bundle_start(
         kind: kind.clone(),
         group_key: task_group_key.to_owned(),
         cancel_runtime_name: runtime_name.to_owned(),
+        meta: TrackedQjsTaskMeta {
+            source: "current_bundle".to_string(),
+            bundle_name: Some(name.to_string()),
+            fn_path: fn_path.to_string(),
+            args_preview: truncate_preview(&args.to_string(), 256),
+            started_at: Instant::now(),
+        },
         state: Arc::clone(&state),
     });
     insert_tracked_task(runtime_name, task_id, task).await;
@@ -915,6 +973,13 @@ async fn call_bundle_once_start_by_json(
         kind: kind.clone(),
         group_key: task_group_key.to_owned(),
         cancel_runtime_name: runtime_name.to_owned(),
+        meta: TrackedQjsTaskMeta {
+            source: "bundle_once".to_string(),
+            bundle_name: None,
+            fn_path: fn_path.to_string(),
+            args_preview: truncate_preview(args_json, 256),
+            started_at: Instant::now(),
+        },
         state: Arc::clone(&state),
     });
 
@@ -1318,6 +1383,101 @@ pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
     Ok(runtime.is_some())
 }
 
+pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
+    let runtime_name = runtime_name.trim().to_string();
+    let runtime = {
+        let map = qjs_runtime_map().read().await;
+        map.get(&runtime_name).cloned()
+    };
+
+    let in_flight_task_ids = {
+        let map = qjs_in_flight_task_map().read().await;
+        map.get(&runtime_name)
+            .map(|ids| ids.iter().copied().collect::<Vec<_>>())
+            .unwrap_or_default()
+    };
+    let tracked_tasks = tracked_task_debug_items(&runtime_name).await;
+    let cancelled_groups = cancelled_task_groups_cell()
+        .iter()
+        .filter_map(|entry| {
+            let key = entry.key();
+            if !key.starts_with(&format!("{runtime_name}::")) {
+                return None;
+            }
+            Some(json!({
+                "key": key.clone(),
+                "expiresInMs": entry.value().saturating_duration_since(Instant::now()).as_millis() as u64,
+            }))
+        })
+        .collect::<Vec<_>>();
+    let host_cache_entries = host_cache_store_cell()
+        .iter()
+        .filter(|entry| entry.key().starts_with(&format!("{runtime_name}::")))
+        .count();
+
+    let runtime_json = if let Some(runtime) = runtime {
+        let stats = runtime.stats();
+        let current_bundle = current_bundle_name(&runtime).await.unwrap_or(None);
+        json!({
+            "initialized": true,
+            "cacheScopeId": runtime.cache_scope_id(),
+            "options": {
+                "fs": runtime.options().fs,
+                "wasi": runtime.options().wasi,
+            },
+            "taskStats": {
+                "pending": stats.pending,
+                "running": stats.running,
+                "done": stats.done,
+                "dropped": stats.dropped,
+            },
+            "currentBundle": current_bundle,
+        })
+    } else {
+        json!({
+            "initialized": false,
+        })
+    };
+
+    let web_runtime_stats = serde_json::from_str::<Value>(&rquickjs_playground::web_runtime::runtime_stats())
+        .unwrap_or_else(|err| json!({
+            "ok": false,
+            "error": format!("parse runtime_stats failed: {err}"),
+        }));
+
+    let http_client_config = current_http_client_config();
+
+    serde_json::to_string_pretty(&json!({
+        "runtimeName": runtime_name,
+        "capturedAtEpochMs": chrono::Utc::now().timestamp_millis(),
+        "pluginConfigCallbackTimeoutMs": PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis() as u64,
+        "runtime": runtime_json,
+        "qjs": {
+            "inFlightTaskCount": in_flight_task_ids.len(),
+            "inFlightTaskIds": in_flight_task_ids,
+            "trackedTaskCount": tracked_tasks.len(),
+            "trackedTasks": tracked_tasks,
+            "cancelledTaskGroupCount": cancelled_groups.len(),
+            "cancelledTaskGroups": cancelled_groups,
+            "hostCacheEntriesForRuntime": host_cache_entries,
+            "hostCacheGcEnabled": is_host_cache_gc_enabled(),
+            "jsErrorStackEnabled": js_error_stack_enabled(),
+        },
+        "webRuntime": web_runtime_stats,
+        "httpClient": {
+            "config": {
+                "useHttpProxy": http_client_config.use_http_proxy,
+                "useSocks5Proxy": http_client_config.use_socks5_proxy,
+                "httpProxy": http_client_config.http_proxy,
+                "socks5Proxy": http_client_config.socks5_proxy,
+                "disableTlsVerify": http_client_config.disable_tls_verify,
+                "allowPrivateNetwork": http_client_config.allow_private_network,
+            },
+        }
+    }))
+    .context("序列化 qjs 调试快照失败")
+}
+
 pub async fn qjs_cancel_task(runtime_name: String, task_id: u64) -> Result<QjsCancelTaskResult> {
     let Some(task) = get_tracked_task(&runtime_name, task_id).await else {
         return Ok(QjsCancelTaskResult {
@@ -1614,7 +1774,32 @@ pub fn register_load_plugin_config(
                 .map_err(|_| anyhow!("load_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("load_plugin_config 回调未注册"))?;
-            let out = callback(runtime, key, value).await;
+            let started_at = Instant::now();
+            tracing::info!(
+                "load_plugin_config start: runtime={}, key={}, fallback_len={}",
+                runtime,
+                key,
+                value.len()
+            );
+            let out = time::timeout(
+                PLUGIN_CONFIG_CALLBACK_TIMEOUT,
+                callback(runtime.clone(), key.clone(), value.clone()),
+            )
+            .await
+            .map_err(|_| {
+                anyhow!(
+                    "load_plugin_config 回调超时: runtime={}, key={}, timeout_ms={}",
+                    runtime,
+                    key,
+                    PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
+                )
+            })?;
+            tracing::info!(
+                "load_plugin_config done: runtime={}, key={}, elapsed_ms={}",
+                runtime,
+                key,
+                started_at.elapsed().as_millis()
+            );
             Ok(json!(out))
         },
     )?;
@@ -1650,7 +1835,32 @@ pub fn register_save_plugin_config(
                 .map_err(|_| anyhow!("save_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("save_plugin_config 回调未注册"))?;
-            let out = callback(runtime, key, value).await;
+            let started_at = Instant::now();
+            tracing::info!(
+                "save_plugin_config start: runtime={}, key={}, value_len={}",
+                runtime,
+                key,
+                value.len()
+            );
+            let out = time::timeout(
+                PLUGIN_CONFIG_CALLBACK_TIMEOUT,
+                callback(runtime.clone(), key.clone(), value.clone()),
+            )
+            .await
+            .map_err(|_| {
+                anyhow!(
+                    "save_plugin_config 回调超时: runtime={}, key={}, timeout_ms={}",
+                    runtime,
+                    key,
+                    PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
+                )
+            })?;
+            tracing::info!(
+                "save_plugin_config done: runtime={}, key={}, elapsed_ms={}",
+                runtime,
+                key,
+                started_at.elapsed().as_millis()
+            );
             Ok(json!(out))
         },
     )?;

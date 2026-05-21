@@ -60,9 +60,10 @@ mod url_headers;
 mod wasi;
 
 pub use self::bridge::{
-    BridgeRuntimeConfig, configure_bridge_runtime, current_bridge_runtime_config, host_call,
-    host_call_drop, host_call_start, host_call_try_take, register_bridge_route_async_handler,
-    register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
+    BridgeRuntimeConfig, bridge_pending_count, configure_bridge_runtime,
+    current_bridge_runtime_config, host_call, host_call_drop, host_call_start, host_call_try_take,
+    register_bridge_route_async_handler, register_bridge_route_blocking_handler,
+    register_bridge_route_sync_handler,
     unregister_bridge_route_handler,
 };
 pub use self::http::{
@@ -1122,6 +1123,7 @@ pub fn runtime_stats() -> String {
             "http": http_pending,
             "fs": fs_pending,
             "wasi": wasi_pending,
+            "bridge": bridge_pending_count(),
         },
         "permits": {
             "httpAvailable": http_available,
@@ -1132,6 +1134,7 @@ pub fn runtime_stats() -> String {
             "http": HTTP_STALE_DROPS.load(Ordering::Relaxed),
             "fs": FS_STALE_DROPS.load(Ordering::Relaxed),
             "wasi": wasi_stale_drops,
+            "bridge": BRIDGE_STALE_DROPS.load(Ordering::Relaxed),
         },
         "httpEvented": {
             "completed": HTTP_EVENT_COMPLETED.load(Ordering::Relaxed),

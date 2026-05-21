@@ -288,6 +288,11 @@ pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
     crate::qjs::build_qjs_runtime(request).await
 }
 
+#[frb]
+pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
+    crate::qjs::qjs_debug_snapshot(runtime_name).await
+}
+
 #[frb(sync)]
 pub fn register_function(
     function_name: String,

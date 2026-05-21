@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -9,6 +10,8 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -108,8 +111,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
               socks5ProxyEdit(context, state.socks5Proxy),
-              if (!Platform.isIOS)
-                _customExportPath(state, globalSettingCubit),
+              if (!Platform.isIOS) _customExportPath(state, globalSettingCubit),
               _updateAccelerate(state, globalSettingCubit),
 
               const SizedBox(height: 8),
@@ -142,8 +144,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   title: const Text('整点颜色看看'),
                   subtitle: const Text('打开调色页，快速预览主题色'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    AutoRouter.of(context).push(ShowColorRoute());
+                  onTap: () async {
+                    final result =
+                        await qjsDebugSnapshot(
+                              runtimeName:
+                                  "0a0e5858-a467-4702-994a-79e608a4589d",
+                            ).let(jsonDecode)
+                            as Map<String, dynamic>;
+                    final trackedTasks =
+                        result['qjs']['trackedTasks'] as List<dynamic>;
+                    logger.d('trackedTasks: ${trackedTasks.let(jsonEncode)}');
+                    // AutoRouter.of(context).push(ShowColorRoute());
                   },
                 ),
               ],
@@ -528,10 +539,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     );
   }
 
-  Widget _customExportPath(
-    GlobalSettingState state,
-    GlobalSettingCubit cubit,
-  ) {
+  Widget _customExportPath(GlobalSettingState state, GlobalSettingCubit cubit) {
     final exportPath = state.customExportPath.trim();
     return ListTile(
       leading: const Icon(Icons.folder_outlined),

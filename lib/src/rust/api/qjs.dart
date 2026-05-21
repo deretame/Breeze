@@ -273,6 +273,9 @@ Future<bool> isQjsRuntimeInitialized({required String name}) =>
 Future<void> buildQjsRuntime({required QjsRuntimeBuildRequest request}) =>
     RustLib.instance.api.crateApiQjsBuildQjsRuntime(request: request);
 
+Future<String> qjsDebugSnapshot({required String runtimeName}) =>
+    RustLib.instance.api.crateApiQjsQjsDebugSnapshot(runtimeName: runtimeName);
+
 void registerFunction({
   required String functionName,
   required FutureOr<String> Function(String) dartCallback,

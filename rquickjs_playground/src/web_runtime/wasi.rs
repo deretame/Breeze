@@ -374,7 +374,7 @@ pub fn wasi_run_start(
             id,
             PendingTask {
                 rx,
-                task: Some(task),
+                task,
                 created_at: Instant::now(),
             },
         );
@@ -408,9 +408,7 @@ pub fn wasi_run_try_take(id: u64) -> String {
 pub fn wasi_run_drop(id: u64) -> String {
     let mut pool = wasi_req_pool().lock().expect("wasi 请求池加锁失败");
     let existed = if let Some(pending) = pool.remove(&id) {
-        if let Some(task) = pending.task {
-            task.abort();
-        }
+        pending.task.abort();
         true
     } else {
         false

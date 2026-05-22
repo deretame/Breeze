@@ -69,14 +69,9 @@ pub(crate) fn cleanup_stale_pending(
         })
         .collect();
 
-    if !stale_ids.is_empty() {
-        warn!(count = stale_ids.len(), "cleanup_stale_pending: removing {} stale tasks (TTL={:?})", stale_ids.len(), PENDING_TASK_TTL);
-    }
     for id in stale_ids {
         if let Some(pending) = pool.remove(&id) {
-            if let Some(task) = pending.task {
-                task.abort();
-            }
+            pending.task.abort();
             dropped_counter.fetch_add(1, Ordering::Relaxed);
         }
     }
@@ -98,9 +93,6 @@ pub(crate) fn cleanup_stale_pending_abort(
         })
         .collect();
 
-    if !stale_ids.is_empty() {
-        warn!(count = stale_ids.len(), "cleanup_stale_pending_abort: removing {} stale abort tasks (TTL={:?})", stale_ids.len(), PENDING_TASK_TTL);
-    }
     for id in stale_ids {
         if let Some(pending) = pool.remove(&id) {
             pending.task.abort();
@@ -494,7 +486,7 @@ pub fn http_request_start(
             id,
             PendingTask {
                 rx,
-                task: Some(task),
+                task,
                 created_at: Instant::now(),
             },
         );
@@ -526,9 +518,7 @@ pub fn http_request_try_take(id: u64) -> String {
 pub fn http_request_drop(id: u64) -> String {
     let mut pool = http_req_pool().lock().expect("http 请求池加锁失败");
     let existed = if let Some(pending) = pool.remove(&id) {
-        if let Some(task) = pending.task {
-            task.abort();
-        }
+        pending.task.abort();
         true
     } else {
         false

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -14,22 +13,12 @@ void _register(
 }
 
 Future<void> registerDartTools() async {
-  Timer.periodic(const Duration(seconds: 5), (_) async {
-    try {
-      keepalive(); // Dart → Rust
-      await keepaliveRoundtrip(callback: (_) {}); // Dart → Rust → Dart
-    } catch (_) {}
-  });
-
   _register("dart.getAppVersion", (_) async {
     return await getAppVersion();
   });
 
   _register('flutter.showToast', (String data) async {
-    final json = jsonDecode(data);
-    if (json is! Map<String, dynamic>) {
-      return 'must be a json object';
-    }
+    final json = jsonDecode(data) as Map<String, dynamic>;
     final message = json['message'] as String? ?? '';
     final title = json['title'] as String?;
     final level = json['level'] as String? ?? 'info';

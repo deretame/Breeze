@@ -127,9 +127,7 @@ extension _ComicReadInitPart on _ComicReadPageState {
     _systemUiSyncTimer?.cancel();
 
     if (_isAndroid) {
-      await const MethodChannel(
-        'system_ui_control',
-      ).invokeMethod('showSystemBars');
+      await const MethodChannel('system_ui_control').invokeMethod('showSystemBars');
     } else {
       await SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,

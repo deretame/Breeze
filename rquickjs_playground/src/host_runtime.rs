@@ -10,9 +10,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
-use std::time::Instant;
 use tokio::sync::oneshot;
-use tracing::{debug, error, info, warn};
 
 use crate::web_runtime::{
     WebRuntimeOptions, http_request_drop_evented, http_request_start_evented,
@@ -306,17 +304,6 @@ struct OnceTaskSubmission {
     args_json: String,
 }
 
-impl std::fmt::Debug for OnceTaskSubmission {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("OnceTaskSubmission")
-            .field("source_hash", &self.source_hash)
-            .field("source_len", &self.source.len())
-            .field("fn_path", &self.fn_path)
-            .field("args_json_len", &self.args_json.len())
-            .finish()
-    }
-}
-
 pub struct HostRuntime {
     runtime: Runtime,
     context: Context,
@@ -527,20 +514,13 @@ impl HostRuntime {
         task_id: u64,
         script: &str,
     ) -> Result<(), String> {
-        debug!(runtime_id, task_id, "submit_async_task: calling JS dispatch");
-        let t0 = Instant::now();
-        let result = self
-            .context
+        self.context
             .with(|ctx| {
                 let globals = ctx.globals();
                 let dispatch: Function = globals.get("__host_runtime_dispatch_task")?;
                 dispatch.call::<_, ()>((runtime_id, task_id, script))
             })
-            .map_err(|e| format!("任务提交到 JS 失败: {e}"));
-        if result.is_ok() {
-            debug!(runtime_id, task_id, "submit_async_task: JS dispatch returned in {:?}", t0.elapsed());
-        }
-        result
+            .map_err(|e| format!("任务提交到 JS 失败: {e}"))
     }
 
     fn set_worker_signal_tx(&mut self, tx: mpsc::Sender<WorkerSignal>) {
@@ -786,17 +766,12 @@ impl HostRuntime {
 
     pub fn pump_jobs(&self, max_jobs: usize) -> Result<usize, String> {
         let mut executed = 0usize;
-        let t0 = Instant::now();
         while executed < max_jobs && self.runtime.is_job_pending() {
             match self.runtime.execute_pending_job() {
                 Ok(true) => executed += 1,
                 Ok(false) => break,
                 Err(err) => return Err(format!("执行 JS event loop job 失败: {err}")),
             }
-        }
-        let elapsed = t0.elapsed();
-        if executed > 0 && elapsed.as_millis() > 50 {
-            warn!(executed, "pump_jobs: {executed} jobs took {:?} (slow)", elapsed);
         }
         Ok(executed)
     }
@@ -867,22 +842,12 @@ impl AsyncHostRuntime {
         let (init_tx, init_rx) = mpsc::channel::<Result<(), String>>();
 
         thread::spawn(move || {
-            info!(
-                runtime_id,
-                "Worker thread starting: runtime_id={runtime_id}, scope={cache_scope_id_for_worker}"
-            );
-            let t0 = Instant::now();
-
             let mut host = match HostRuntime::new_with_options(
                 cache_scope_id_for_worker,
                 options_for_worker,
             ) {
-                Ok(host) => {
-                    info!(runtime_id, "HostRuntime created in {:?}", t0.elapsed());
-                    host
-                }
+                Ok(host) => host,
                 Err(err) => {
-                    error!(runtime_id, "HostRuntime creation failed: {err}");
                     let _ = init_tx.send(Err(format!("初始化 HostRuntime 失败: {err}")));
                     return;
                 }
@@ -890,42 +855,18 @@ impl AsyncHostRuntime {
 
             host.set_worker_signal_tx(tx_for_worker.clone());
 
-            let t1 = Instant::now();
             if let Err(err) = install_async_runtime_bindings(&host, tx_for_worker.clone()) {
-                error!(runtime_id, "async runtime bindings install failed: {err}");
                 let _ = init_tx.send(Err(err));
                 return;
             }
-            info!(
-                runtime_id,
-                "Async bindings installed in {:?}",
-                t1.elapsed()
-            );
 
             let _ = init_tx.send(Ok(()));
 
             let mut running = true;
-            let mut loop_count: u64 = 0;
-            let mut idle_since: Option<Instant> = None;
             while running {
-                loop_count += 1;
-
-                // Phase 1: drain pending signals
-                let drain_start = Instant::now();
-                let mut signals_drained = 0u32;
                 loop {
                     match rx.try_recv() {
                         Ok(signal) => {
-                            signals_drained += 1;
-                            let prev_idle = idle_since.take();
-                            if let Some(idle_at) = prev_idle {
-                                info!(
-                                    runtime_id,
-                                    loop_count,
-                                    "WOKE UP after idle {:?} — signal #{signals_drained}",
-                                    idle_at.elapsed()
-                                );
-                            }
                             running = handle_worker_signal(
                                 signal,
                                 &mut host,
@@ -939,49 +880,20 @@ impl AsyncHostRuntime {
                         }
                         Err(mpsc::TryRecvError::Empty) => break,
                         Err(mpsc::TryRecvError::Disconnected) => {
-                            warn!(runtime_id, "mpsc disconnected during try_recv drain");
                             running = false;
                             break;
                         }
                     }
-                }
-                if signals_drained > 0 && drain_start.elapsed().as_millis() > 50 {
-                    debug!(
-                        runtime_id,
-                        loop_count,
-                        signals_drained,
-                        "Drain phase: {} signals in {:?}",
-                        signals_drained,
-                        drain_start.elapsed()
-                    );
                 }
 
                 if !running {
                     break;
                 }
 
-                // Phase 2: pump JS jobs
-                let pump_start = Instant::now();
                 match host.pump_jobs(2048) {
-                    Ok(jobs) if jobs > 0 => {
-                        let elapsed = pump_start.elapsed();
-                        if elapsed.as_millis() > 50 {
-                            warn!(runtime_id, loop_count, jobs, "Pump phase: {jobs} JS jobs took {:?} (slow)", elapsed);
-                        }
-                        continue;
-                    }
-                    Ok(_) => {
-                        // No jobs executed — check if there might be stale promise jobs
-                        if host.runtime.is_job_pending() {
-                            warn!(
-                                runtime_id,
-                                loop_count,
-                                "pump_jobs returned 0 but is_job_pending()=true — POTENTIAL BUG"
-                            );
-                        }
-                    }
+                    Ok(jobs) if jobs > 0 => continue,
+                    Ok(_) => {}
                     Err(err) => {
-                        error!(runtime_id, loop_count, "pump_jobs error: {err}");
                         fail_all_active_tasks(&states_for_worker, &waiters_for_worker, err);
                         break;
                     }
@@ -991,20 +903,8 @@ impl AsyncHostRuntime {
                     break;
                 }
 
-                // Phase 3: block waiting for next signal
-                idle_since = Some(Instant::now());
-                let recv_start = Instant::now();
                 match rx.recv() {
                     Ok(signal) => {
-                        let waited = recv_start.elapsed();
-                        if waited.as_secs() > 5 {
-                            info!(
-                                runtime_id,
-                                loop_count,
-                                "rx.recv() unblocked after {:?}",
-                                waited
-                            );
-                        }
                         running = handle_worker_signal(
                             signal,
                             &mut host,
@@ -1013,44 +913,26 @@ impl AsyncHostRuntime {
                             &waiters_for_worker,
                         );
                     }
-                    Err(_) => {
-                        warn!(
-                            runtime_id,
-                            loop_count,
-                            "mpsc recv error — channel disconnected, exiting"
-                        );
-                        break;
-                    }
+                    Err(_) => break,
                 }
             }
-            info!(
-                runtime_id,
-                loop_count,
-                "Worker thread exiting after {} loop iterations",
-                loop_count
-            );
         });
 
         match init_rx.recv() {
-            Ok(Ok(())) => {
-                info!(runtime_id, cache_scope_id, "AsyncHostRuntime build_inner: worker initialized successfully");
-                Ok(Self {
-                    runtime_id,
-                    cache_scope_id,
-                    options,
-                    tx,
-                    states,
-                    waiters,
-                    next_id: AtomicU64::new(1),
-                })
-            }
+            Ok(Ok(())) => Ok(Self {
+                runtime_id,
+                cache_scope_id,
+                options,
+                tx,
+                states,
+                waiters,
+                next_id: AtomicU64::new(1),
+            }),
             Ok(Err(err)) => {
-                error!(runtime_id, "AsyncHostRuntime build_inner: worker init failed: {err}");
                 unregister_runtime_shared(runtime_id);
                 Err(err)
             }
             Err(_) => {
-                error!(runtime_id, "AsyncHostRuntime build_inner: worker exited before init");
                 unregister_runtime_shared(runtime_id);
                 Err("初始化 HostRuntime 失败: worker 提前退出".to_string())
             }
@@ -1059,9 +941,6 @@ impl AsyncHostRuntime {
 
     pub fn spawn(&self, script: impl Into<String>) -> Result<RuntimeTaskHandle, String> {
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
-        let script = script.into();
-        debug!(self.runtime_id, id, script_len = script.len(), "spawn: creating task");
-
         let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
 
         {
@@ -1080,16 +959,14 @@ impl AsyncHostRuntime {
             guard.insert(id, result_tx);
         }
 
-        let send_start = Instant::now();
         if self
             .tx
             .send(WorkerSignal::Command(AsyncCommand::Submit {
                 id,
-                script,
+                script: script.into(),
             }))
             .is_err()
         {
-            error!(self.runtime_id, id, "spawn: mpsc send failed — worker unavailable");
             if let Ok(mut guard) = self.states.lock() {
                 guard.remove(&id);
             }
@@ -1098,7 +975,6 @@ impl AsyncHostRuntime {
             }
             return Err("提交任务失败: worker 不可用".to_string());
         }
-        debug!(self.runtime_id, id, "spawn: mpsc send took {:?}", send_start.elapsed());
 
         Ok(RuntimeTaskHandle {
             id,
@@ -1395,8 +1271,6 @@ impl AsyncHostRuntime {
     }
 
     async fn bundle_ensure_dispatcher(&self) -> Result<(), String> {
-        let t0 = Instant::now();
-        debug!(self.runtime_id, "bundle_ensure_dispatcher: spawning BUNDLE_DISPATCHER_JS");
         let raw = self
             .spawn(BUNDLE_DISPATCHER_JS)
             .map_err(|e| format!("初始化 bundle dispatcher 失败: {e}"))?
@@ -1404,7 +1278,6 @@ impl AsyncHostRuntime {
             .await
             .map_err(|e| format!("初始化 bundle dispatcher 失败: {e}"))?;
         let _ = parse_ok_json_payload(&raw)?;
-        debug!(self.runtime_id, "bundle_ensure_dispatcher: completed in {:?}", t0.elapsed());
         Ok(())
     }
 
@@ -1415,19 +1288,14 @@ impl AsyncHostRuntime {
         args: &Value,
     ) -> Result<RuntimeTaskHandle, String> {
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
-        debug!(self.runtime_id, id, fn_path, source_len = source.len(), "spawn_once: creating SubmitOnce task");
-
         let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
         let source_owned = source.to_string();
-        let hash_start = Instant::now();
         let source_hash = tokio::task::spawn_blocking({
             let source_for_hash = source_owned.clone();
             move || fast_u64_hash(&source_for_hash)
         })
         .await
         .map_err(|e| format!("计算一次性 bundle 哈希失败: {e}"))?;
-        debug!(self.runtime_id, id, source_hash, "spawn_once: hash computed in {:?}", hash_start.elapsed());
-
         let submission = OnceTaskSubmission {
             source: source_owned,
             source_hash,
@@ -1452,7 +1320,6 @@ impl AsyncHostRuntime {
             guard.insert(id, result_tx);
         }
 
-        let send_start = Instant::now();
         if self
             .tx
             .send(WorkerSignal::Command(AsyncCommand::SubmitOnce {
@@ -1461,7 +1328,6 @@ impl AsyncHostRuntime {
             }))
             .is_err()
         {
-            error!(self.runtime_id, id, "spawn_once: mpsc send failed — worker unavailable");
             if let Ok(mut guard) = self.states.lock() {
                 guard.remove(&id);
             }
@@ -1470,7 +1336,6 @@ impl AsyncHostRuntime {
             }
             return Err("提交任务失败: worker 不可用".to_string());
         }
-        debug!(self.runtime_id, id, "spawn_once: mpsc send took {:?}", send_start.elapsed());
 
         Ok(RuntimeTaskHandle {
             id,
@@ -1485,7 +1350,6 @@ impl AsyncHostRuntime {
 
 impl Drop for AsyncHostRuntime {
     fn drop(&mut self) {
-        info!(self.runtime_id, "AsyncHostRuntime::drop — shutting down runtime");
         fail_all_active_tasks(
             &self.states,
             &self.waiters,
@@ -1508,17 +1372,12 @@ impl RuntimeTaskHandle {
             return Err("等待任务结果失败: 任务句柄已失效".to_string());
         };
 
-        debug!("wait blocking: task_id={}", self.id);
-        let wait_start = Instant::now();
         let out = match rx.blocking_recv() {
             Ok(result) => {
-                let elapsed = wait_start.elapsed();
-                debug!("wait done: task_id={} elapsed={:?} ok={}", self.id, elapsed, result.is_ok());
                 clear_task_state(&self.states, self.id);
                 result
             }
             Err(_) => {
-                warn!("wait failed: task_id={} oneshot sender dropped", self.id);
                 clear_task_state(&self.states, self.id);
                 Err("等待任务结果失败: runtime 已关闭".to_string())
             }
@@ -1535,17 +1394,12 @@ impl RuntimeTaskHandle {
             return Err("等待任务结果失败: 任务句柄已失效".to_string());
         };
 
-        debug!("wait_async: task_id={}", self.id);
-        let wait_start = Instant::now();
         let out = match rx.await {
             Ok(result) => {
-                let elapsed = wait_start.elapsed();
-                debug!("wait_async done: task_id={} elapsed={:?} ok={}", self.id, elapsed, result.is_ok());
                 clear_task_state(&self.states, self.id);
                 result
             }
             Err(_) => {
-                warn!("wait_async failed: task_id={} oneshot sender dropped", self.id);
                 clear_task_state(&self.states, self.id);
                 Err("等待任务结果失败: runtime 已关闭".to_string())
             }
@@ -1570,17 +1424,14 @@ impl Drop for RuntimeTaskHandle {
             return;
         }
 
-        debug!(self.id, "RuntimeTaskHandle::drop — cleaning up task if still active");
         remove_waiter(&self.waiters, self.id);
 
         if is_task_active(&self.states, self.id) {
-            debug!(self.id, "drop: sending Drop command to worker");
             if self
                 .tx
                 .send(WorkerSignal::Command(AsyncCommand::Drop { id: self.id }))
                 .is_err()
             {
-                warn!(self.id, "drop: mpsc send failed, clearing state directly");
                 clear_task_state(&self.states, self.id);
             }
         } else {
@@ -1961,7 +1812,6 @@ where
 }
 
 fn async_runtime_task_complete(runtime_id: u64, task_id: u64, ok: bool, payload: String) {
-    debug!(runtime_id, task_id, ok, "JS __host_runtime_task_complete called");
     let outcome = if ok { Ok(payload) } else { Err(payload) };
     with_runtime_shared(runtime_id, |shared| {
         finalize_task_and_notify(shared, task_id, outcome);
@@ -2097,17 +1947,7 @@ fn handle_worker_signal(
     waiters: &Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
 ) -> bool {
     match signal {
-        WorkerSignal::Command(cmd) => {
-            match &cmd {
-                AsyncCommand::Submit { id, script } => debug!(runtime_id, id, script_len = script.len(), "WorkerSignal::Command::Submit"),
-                AsyncCommand::SubmitOnce { id, submission } => debug!(runtime_id, id, ?submission, "WorkerSignal::Command::SubmitOnce"),
-                AsyncCommand::Drop { id } => debug!(runtime_id, id, "WorkerSignal::Command::Drop"),
-                AsyncCommand::DropMany { ids } => debug!(runtime_id, count = ids.len(), "WorkerSignal::Command::DropMany"),
-                AsyncCommand::RunGc { .. } => debug!(runtime_id, "WorkerSignal::Command::RunGc"),
-                AsyncCommand::Shutdown => info!(runtime_id, "WorkerSignal::Command::Shutdown"),
-            }
-            handle_worker_command(cmd, host, runtime_id, states, waiters)
-        }
+        WorkerSignal::Command(cmd) => handle_worker_command(cmd, host, runtime_id, states, waiters),
         WorkerSignal::HostEvent(event) => {
             handle_host_event(host, event);
             true
@@ -2128,51 +1968,33 @@ fn handle_worker_command(
 ) -> bool {
     match cmd {
         AsyncCommand::Submit { id, script } => {
-            let t0 = Instant::now();
             if !mark_running_if_available(states, id) {
-                warn!(runtime_id, id, "Submit: task was already Dropped or absent, skipping");
                 return true;
             }
 
             if let Err(err) = host.submit_async_task(runtime_id, id, &script) {
-                error!(runtime_id, id, "Submit: submit_async_task failed: {err}");
                 finalize_task_with_waiter(states, waiters, id, Err(err));
-            } else {
-                debug!(runtime_id, id, "Submit: dispatched to JS in {:?}", t0.elapsed());
             }
             true
         }
         AsyncCommand::SubmitOnce { id, submission } => {
-            let t0 = Instant::now();
             if !mark_running_if_available(states, id) {
-                warn!(runtime_id, id, "SubmitOnce: task already Dropped or absent, skipping");
                 return true;
             }
 
             match host.acquire_once_slot_for_task(id, MAX_BUNDLE_CALL_ONCE_CONTEXTS) {
                 Ok(Some(slot_index)) => {
-                    debug!(runtime_id, id, slot_index, "SubmitOnce: acquired slot {slot_index}");
                     if let Err(err) =
                         host.submit_once_task_on_slot(runtime_id, id, slot_index, &submission)
                     {
-                        error!(runtime_id, id, slot_index, "SubmitOnce: submit failed: {err}");
                         let _ = host.release_once_slot(id);
                         finalize_task_with_waiter(states, waiters, id, Err(err));
-                    } else {
-                        debug!(runtime_id, id, slot_index, "SubmitOnce: dispatched in {:?}", t0.elapsed());
                     }
                 }
                 Ok(None) => {
-                    let pending_count = host.pending_once_submissions.len() + 1;
-                    warn!(
-                        runtime_id, id, pending_count,
-                        "SubmitOnce: all {} once slots busy, queued as pending (#{pending_count})",
-                        MAX_BUNDLE_CALL_ONCE_CONTEXTS,
-                    );
                     host.queue_pending_once_submission(id, submission);
                 }
                 Err(err) => {
-                    error!(runtime_id, id, "SubmitOnce: slot acquire failed: {err}");
                     finalize_task_with_waiter(states, waiters, id, Err(err));
                 }
             }
@@ -2180,19 +2002,16 @@ fn handle_worker_command(
         }
         AsyncCommand::Drop { id } => {
             if host.remove_pending_once_submission(id) {
-                debug!(runtime_id, id, "Drop: removed pending once submission");
                 clear_task_state(states, id);
                 remove_waiter(waiters, id);
                 return true;
             }
-            debug!(runtime_id, id, "Drop: marking as dropped");
             mark_dropped_and_notify(states, waiters, id);
             let _ = host.release_once_slot(id);
             host.try_schedule_pending_once_submissions(runtime_id, states, waiters);
             true
         }
         AsyncCommand::DropMany { ids } => {
-            debug!(runtime_id, count = ids.len(), "DropMany: cancelling {} tasks", ids.len());
             for id in ids {
                 if host.remove_pending_once_submission(id) {
                     clear_task_state(states, id);
@@ -2206,17 +2025,11 @@ fn handle_worker_command(
             true
         }
         AsyncCommand::RunGc { tx } => {
-            let t0 = Instant::now();
             host.run_gc();
-            let elapsed = t0.elapsed();
-            info!(runtime_id, "RunGc: completed in {:?}", elapsed);
             let _ = tx.send(Ok(()));
             true
         }
-        AsyncCommand::Shutdown => {
-            info!(runtime_id, "Shutdown command received, exiting event loop");
-            false
-        }
+        AsyncCommand::Shutdown => false,
     }
 }
 
@@ -2229,9 +2042,8 @@ fn handle_host_event(host: &HostRuntime, event: HostEvent) {
         HostEvent::TimerCompleted { route, .. } => *route,
     };
     let result = host.with_context_route(route, |ctx| handle_host_event_in_ctx(ctx, event));
-    if let Err(e) = &result {
-        error!("handle_host_event: failed to invoke JS callback: {e}");
-    }
+
+    let _ = result;
 }
 
 fn handle_host_event_in_ctx(
@@ -2292,9 +2104,6 @@ fn fail_all_active_tasks(
     }
 
     drop(guard);
-    if !failed_ids.is_empty() {
-        warn!(count = failed_ids.len(), "fail_all_active_tasks: failing {} active tasks", failed_ids.len());
-    }
     for id in failed_ids {
         let notified = notify_waiter(waiters, id, Err(message.clone()));
         if !notified {
@@ -2322,7 +2131,6 @@ fn mark_dropped_and_notify(
 
     guard.insert(id, TaskState::Dropped);
     drop(guard);
-    debug!(id, "task state: → Dropped");
     let notified = notify_waiter(waiters, id, Err("task dropped".to_string()));
     if !notified {
         clear_task_state(states, id);
@@ -2354,19 +2162,9 @@ fn notify_waiter(
 ) -> bool {
     let sender = waiters.lock().ok().and_then(|mut guard| guard.remove(&id));
     if let Some(tx) = sender {
-        let ok = outcome.is_ok();
-        match tx.send(outcome) {
-            Ok(_) => {
-                debug!(id, ok, "notify_waiter: oneshot sent successfully");
-                true
-            }
-            Err(_) => {
-                warn!(id, ok, "notify_waiter: oneshot receiver already dropped");
-                false
-            }
-        }
+        let _ = tx.send(outcome);
+        true
     } else {
-        warn!(id, "notify_waiter: no waiter found for task");
         false
     }
 }
@@ -2418,18 +2216,13 @@ fn is_task_active(states: &Arc<Mutex<HashMap<u64, TaskState>>>, id: u64) -> bool
 
 fn mark_running_if_available(states: &Arc<Mutex<HashMap<u64, TaskState>>>, id: u64) -> bool {
     let Ok(mut guard) = states.lock() else {
-        error!(id, "mark_running_if_available: states lock poisoned");
         return false;
     };
 
     match guard.get(&id) {
-        Some(TaskState::Dropped) | None => {
-            warn!(id, "mark_running_if_available: task already Dropped or absent");
-            false
-        }
+        Some(TaskState::Dropped) | None => false,
         _ => {
             guard.insert(id, TaskState::Running);
-            debug!(id, "task state: Pending → Running");
             true
         }
     }
@@ -2441,20 +2234,16 @@ fn finalize_task(
     outcome: Result<String, String>,
 ) -> bool {
     let Ok(mut guard) = states.lock() else {
-        error!(id, "finalize_task: states lock poisoned");
         return false;
     };
 
     match guard.get(&id) {
         Some(TaskState::Dropped) | None => {
-            warn!(id, "finalize_task: already Dropped or absent, discarding outcome");
             let _ = guard.remove(&id);
             false
         }
         _ => {
-            let ok = outcome.is_ok();
             guard.insert(id, TaskState::Done(outcome));
-            debug!(id, ok, "task state: → Done");
             true
         }
     }

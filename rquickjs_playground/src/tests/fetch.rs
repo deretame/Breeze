@@ -659,7 +659,12 @@ fn fetch_offloaded_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
     let result = run_async_script(&script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert!(parsed["firstLen"].as_u64().unwrap_or(0) > 0);
-    assert!(parsed["secondError"].as_str().unwrap_or("").contains("Body 已被读取"));
+    assert!(
+        parsed["secondError"]
+            .as_str()
+            .unwrap_or("")
+            .contains("Body 已被读取")
+    );
 
     let _ = tx.send(());
     let _ = handle.join();

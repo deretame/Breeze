@@ -1,12 +1,20 @@
 use super::*;
 
-pub(crate) type BridgeRouteFuture = Pin<Box<dyn Future<Output = AnyResult<Value>> + Send + 'static>>;
+pub(crate) type BridgeRouteFuture =
+    Pin<Box<dyn Future<Output = AnyResult<Value>> + Send + 'static>>;
 pub(crate) type BridgeRouteSyncHandler =
     Arc<dyn Fn(String, Vec<Value>) -> AnyResult<Value> + Send + Sync + 'static>;
 pub(crate) type BridgeRouteAsyncHandler =
     Arc<dyn Fn(String, Vec<Value>) -> BridgeRouteFuture + Send + Sync + 'static>;
 pub(crate) type BridgeRouteBlockingHandler =
     Arc<dyn Fn(String, Vec<Value>) -> AnyResult<Value> + Send + Sync + 'static>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BridgeRouteMode {
+    Sync,
+    Async,
+    Blocking,
+}
 
 #[derive(Debug, Clone)]
 pub struct BridgeRuntimeConfig {
@@ -39,6 +47,38 @@ pub fn bridge_pending_count() -> usize {
             guard.len()
         })
         .unwrap_or_default()
+}
+
+pub fn bridge_route_mode(name: &str) -> Option<BridgeRouteMode> {
+    if let Ok(handlers) = bridge_route_sync_handler_cell().lock() {
+        if handlers.contains_key(name) {
+            return Some(BridgeRouteMode::Sync);
+        }
+    }
+
+    if let Ok(handlers) = bridge_route_async_handler_cell().lock() {
+        if handlers.contains_key(name) {
+            return Some(BridgeRouteMode::Async);
+        }
+    }
+
+    if let Ok(handlers) = bridge_route_blocking_handler_cell().lock() {
+        if handlers.contains_key(name) {
+            return Some(BridgeRouteMode::Blocking);
+        }
+    }
+
+    match name {
+        "math.add"
+        | "native.put"
+        | "native.take"
+        | "native.exec"
+        | "crypto.md5_hex"
+        | "crypto.aes_ecb_pkcs7_decrypt_b64"
+        | "compression.gzip_decompress"
+        | "compression.gzip_compress" => Some(BridgeRouteMode::Sync),
+        _ => None,
+    }
 }
 
 fn bridge_route_sync_handler_cell() -> &'static Mutex<HashMap<String, BridgeRouteSyncHandler>> {

@@ -157,8 +157,7 @@ pub async fn qjs_fetch_bytes_auto_once_by_url(
     fn_path: String,
     args_json: String,
 ) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_bytes_auto_once_by_url(runtime_name, bundle_url, fn_path, args_json)
-        .await
+    crate::qjs::qjs_fetch_bytes_auto_once_by_url(runtime_name, bundle_url, fn_path, args_json).await
 }
 
 #[frb]

@@ -133,12 +133,25 @@
 
   async function call(name, ...args) {
     const normalizedArgs = args.map((arg) => normalizeArg(arg));
+    const routeName = String(name);
+
+    if (typeof globalThis.__host_call_route_mode === "function") {
+      try {
+        const mode = globalThis.__host_call_route_mode(routeName);
+        if (mode === "sync") {
+          const raw = globalThis.__host_call(routeName, JSON.stringify(normalizedArgs));
+          return parseHost(raw);
+        }
+      } catch (_) {
+      }
+    }
+
     if (
       typeof globalThis.__host_call_start === "function"
       && typeof globalThis.__host_call_try_take === "function"
     ) {
       const started = await parseHost(
-        globalThis.__host_call_start(String(name), JSON.stringify(normalizedArgs)),
+        globalThis.__host_call_start(routeName, JSON.stringify(normalizedArgs)),
       );
       const id = Number(started && started.id);
       if (!Number.isFinite(id) || id <= 0) {
@@ -167,7 +180,7 @@
       }
     }
 
-    const raw = globalThis.__host_call(String(name), JSON.stringify(normalizedArgs));
+    const raw = globalThis.__host_call(routeName, JSON.stringify(normalizedArgs));
     return parseHost(raw);
   }
 

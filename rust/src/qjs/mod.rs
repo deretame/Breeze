@@ -331,11 +331,7 @@ fn handle_cache_get(runtime: &str, args: &[Value]) -> Result<Value> {
     let scoped_key = scoped_route_key(runtime, key);
     let cache = host_cache_store_cell();
     let out = match cache.get(&scoped_key) {
-        Some(entry) if entry.expires_at > Instant::now() => entry.value.clone(),
-        Some(_) => {
-            cache.remove(&scoped_key);
-            fallback
-        }
+        Some(entry) => entry.value.clone(),
         None => fallback,
     };
     Ok(out)
@@ -359,6 +355,61 @@ fn handle_cache_set(runtime: &str, args: &[Value]) -> Result<Value> {
     let scoped_key = scoped_route_key(runtime, key);
     host_cache_store_cell().insert(scoped_key, new_host_cache_entry(value));
     Ok(json!(true))
+}
+
+fn handle_cache_set_if_absent(runtime: &str, args: &[Value]) -> Result<Value> {
+    let key = args
+        .first()
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
+    let value = args.get(1).cloned().unwrap_or(Value::Null);
+    if cache_value_size_exceeds_limit(&value) {
+        tracing::warn!(
+            "cache.set_if_absent 跳过超限写入: runtime={}, key={}, max_bytes={}",
+            runtime,
+            key,
+            HOST_CACHE_VALUE_MAX_BYTES
+        );
+        return Ok(json!(false));
+    }
+    let scoped_key = scoped_route_key(runtime, key);
+    let cache = host_cache_store_cell();
+    let updated = match cache.entry(scoped_key) {
+        dashmap::mapref::entry::Entry::Vacant(entry) => {
+            entry.insert(new_host_cache_entry(value));
+            true
+        }
+        dashmap::mapref::entry::Entry::Occupied(_) => false,
+    };
+    Ok(json!(updated))
+}
+
+fn handle_cache_compare_and_set(runtime: &str, args: &[Value]) -> Result<Value> {
+    let key = args
+        .first()
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
+    let expected = args.get(1).cloned().unwrap_or(Value::Null);
+    let next = args.get(2).cloned().unwrap_or(Value::Null);
+    if cache_value_size_exceeds_limit(&next) {
+        tracing::warn!(
+            "cache.compare_and_set 跳过超限写入: runtime={}, key={}, max_bytes={}",
+            runtime,
+            key,
+            HOST_CACHE_VALUE_MAX_BYTES
+        );
+        return Ok(json!(false));
+    }
+    let scoped_key = scoped_route_key(runtime, key);
+    let cache = host_cache_store_cell();
+    let updated = match cache.get_mut(&scoped_key) {
+        Some(mut current) if current.value == expected => {
+            *current = new_host_cache_entry(next);
+            true
+        }
+        _ => false,
+    };
+    Ok(json!(updated))
 }
 
 fn ensure_host_cache_gc_started() {
@@ -1931,67 +1982,11 @@ pub fn init_rust_functions() -> Result<()> {
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET_IF_ABSENT, |runtime, args| {
-        let key = args
-            .first()
-            .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
-        let value = args.get(1).cloned().unwrap_or(Value::Null);
-        if cache_value_size_exceeds_limit(&value) {
-            tracing::warn!(
-                "cache.set_if_absent 跳过超限写入: runtime={}, key={}, max_bytes={}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
-            );
-            return Ok(json!(false));
-        }
-        let scoped_key = scoped_route_key(&runtime, key);
-        let cache = host_cache_store_cell();
-        let now = Instant::now();
-        match cache.entry(scoped_key) {
-            dashmap::mapref::entry::Entry::Vacant(entry) => {
-                entry.insert(new_host_cache_entry(value));
-                Ok(json!(true))
-            }
-            dashmap::mapref::entry::Entry::Occupied(mut entry) => {
-                if entry.get().expires_at <= now {
-                    entry.insert(new_host_cache_entry(value));
-                    Ok(json!(true))
-                } else {
-                    Ok(json!(false))
-                }
-            }
-        }
+        handle_cache_set_if_absent(&runtime, &args)
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_COMPARE_AND_SET, |runtime, args| {
-        let key = args
-            .first()
-            .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
-        let expected = args.get(1).cloned().unwrap_or(Value::Null);
-        let next = args.get(2).cloned().unwrap_or(Value::Null);
-        if cache_value_size_exceeds_limit(&next) {
-            tracing::warn!(
-                "cache.compare_and_set 跳过超限写入: runtime={}, key={}, max_bytes={}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
-            );
-            return Ok(json!(false));
-        }
-        let scoped_key = scoped_route_key(&runtime, key);
-        let cache = host_cache_store_cell();
-        let updated = match cache.get_mut(&scoped_key) {
-            Some(mut current)
-                if current.expires_at > Instant::now() && current.value == expected =>
-            {
-                *current = new_host_cache_entry(next);
-                true
-            }
-            _ => false,
-        };
-        Ok(json!(updated))
+        handle_cache_compare_and_set(&runtime, &args)
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_DELETE, |runtime, args| {
@@ -2030,7 +2025,12 @@ pub fn opencc_convert(text: String, config: String) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::is_cancelled_error_text;
+    use super::{
+        HostCacheEntry, handle_cache_compare_and_set, handle_cache_get, handle_cache_set_if_absent,
+        host_cache_store_cell, is_cancelled_error_text, scoped_route_key,
+    };
+    use serde_json::json;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn cancelled_detection_should_not_match_timeout_diagnostics() {
@@ -2043,5 +2043,76 @@ mod tests {
         assert!(is_cancelled_error_text("__QJS_RUNTIME_CANCELLED__"));
         assert!(is_cancelled_error_text("request canceled by user"));
         assert!(is_cancelled_error_text("任务已取消"));
+    }
+
+    #[test]
+    fn cache_get_should_ignore_expiration_when_gc_is_disabled() {
+        let runtime = "test-runtime-cache-get-expired";
+        let key = "expired-key";
+        let scoped_key = scoped_route_key(runtime, key);
+        let cache = host_cache_store_cell();
+        cache.remove(&scoped_key);
+        cache.insert(
+            scoped_key.clone(),
+            HostCacheEntry {
+                value: json!("stale"),
+                expires_at: Instant::now() - Duration::from_secs(1),
+            },
+        );
+
+        let out = handle_cache_get(runtime, &[json!(key), json!("fallback")]).unwrap();
+
+        assert_eq!(out, json!("stale"));
+        assert!(cache.get(&scoped_key).is_some());
+    }
+
+    #[test]
+    fn cache_set_if_absent_should_not_overwrite_expired_entry_without_gc() {
+        let runtime = "test-runtime-cache-set-if-absent";
+        let key = "set-if-absent-key";
+        let scoped_key = scoped_route_key(runtime, key);
+        let cache = host_cache_store_cell();
+        cache.remove(&scoped_key);
+        cache.insert(
+            scoped_key.clone(),
+            HostCacheEntry {
+                value: json!("stale"),
+                expires_at: Instant::now() - Duration::from_secs(1),
+            },
+        );
+
+        let updated = handle_cache_set_if_absent(runtime, &[json!(key), json!("fresh")]).unwrap();
+
+        assert_eq!(updated, json!(false));
+        assert_eq!(
+            cache.get(&scoped_key).map(|entry| entry.clone().value),
+            Some(json!("stale"))
+        );
+    }
+
+    #[test]
+    fn cache_compare_and_set_should_allow_expired_entry_without_gc() {
+        let runtime = "test-runtime-cache-compare-and-set";
+        let key = "compare-and-set-key";
+        let scoped_key = scoped_route_key(runtime, key);
+        let cache = host_cache_store_cell();
+        cache.remove(&scoped_key);
+        cache.insert(
+            scoped_key.clone(),
+            HostCacheEntry {
+                value: json!("stale"),
+                expires_at: Instant::now() - Duration::from_secs(1),
+            },
+        );
+
+        let updated =
+            handle_cache_compare_and_set(runtime, &[json!(key), json!("stale"), json!("fresh")])
+                .unwrap();
+
+        assert_eq!(updated, json!(true));
+        assert_eq!(
+            cache.get(&scoped_key).map(|entry| entry.clone().value),
+            Some(json!("fresh"))
+        );
     }
 }

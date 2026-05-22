@@ -42,17 +42,19 @@ pub(crate) fn start_native_buffer_gc_loop() {
     NATIVE_BUF_GC_LOOP_STARTED.get_or_init(|| {
         thread::Builder::new()
             .name("rquickjs-native-buf-gc".to_string())
-            .spawn(|| loop {
-                thread::sleep(NATIVE_BUFFER_GC_INTERVAL);
-                let removed = {
-                    let mut pool = match native_pool().lock() {
-                        Ok(pool) => pool,
-                        Err(_) => continue,
+            .spawn(|| {
+                loop {
+                    thread::sleep(NATIVE_BUFFER_GC_INTERVAL);
+                    let removed = {
+                        let mut pool = match native_pool().lock() {
+                            Ok(pool) => pool,
+                            Err(_) => continue,
+                        };
+                        cleanup_stale_native_buffers(&mut pool)
                     };
-                    cleanup_stale_native_buffers(&mut pool)
-                };
-                if removed > 0 {
-                    NATIVE_BUF_GC_DROPS.fetch_add(removed as u64, Ordering::Relaxed);
+                    if removed > 0 {
+                        NATIVE_BUF_GC_DROPS.fetch_add(removed as u64, Ordering::Relaxed);
+                    }
                 }
             })
             .expect("创建 native buffer gc 线程失败");
@@ -114,7 +116,11 @@ pub fn native_buffer_free(id: u64) -> String {
     json!({ "ok": true, "freed": existed }).to_string()
 }
 
-fn native_apply_op(op: &str, mut bytes: Vec<u8>, extra: Option<Vec<u8>>) -> Result<Vec<u8>, String> {
+fn native_apply_op(
+    op: &str,
+    mut bytes: Vec<u8>,
+    extra: Option<Vec<u8>>,
+) -> Result<Vec<u8>, String> {
     match op {
         "invert" => {
             for b in &mut bytes {

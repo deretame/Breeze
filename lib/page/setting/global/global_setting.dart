@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -7,11 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/debug/qjs_runtime_debug_page.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -145,17 +143,20 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   subtitle: const Text('打开调色页，快速预览主题色'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    final result =
-                        await qjsDebugSnapshot(
-                              runtimeName:
-                                  "0a0e5858-a467-4702-994a-79e608a4589d",
-                            ).let(jsonDecode)
-                            as Map<String, dynamic>;
-                    final trackedTasks =
-                        result['qjs']['trackedTasks'] as List<dynamic>;
-                    logger.d('result: ${result.let(jsonEncode)}');
-                    logger.d('trackedTasks: ${trackedTasks.let(jsonEncode)}');
-                    // AutoRouter.of(context).push(ShowColorRoute());
+                    AutoRouter.of(context).push(const ShowColorRoute());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.developer_mode_outlined),
+                  title: const Text('QJS 运行时调试'),
+                  subtitle: const Text('手动输入运行时 ID，抓取调试快照'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const QjsRuntimeDebugPage(),
+                      ),
+                    );
                   },
                 ),
               ],

@@ -55,7 +55,9 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
             (Ok(path), Ok(data_json), encoding, Ok(append)) => {
                 fs_write_file(path, data_json, encoding, append)
             }
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "writeFile 参数无效" }).to_string(),
+            _ => {
+                json!({ "ok": false, "code": "EINVAL", "error": "writeFile 参数无效" }).to_string()
+            }
         },
         "mkdir" => match (arg_str(0, "path"), arg_bool(1, "recursive")) {
             (Ok(path), Ok(recursive)) => fs_mkdir(path, recursive),
@@ -138,7 +140,9 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
             _ => json!({ "ok": false, "code": "EINVAL", "error": "chmod 参数无效" }).to_string(),
         },
         "utimes" => match (arg_str(0, "path"), arg_i64(1, "atime"), arg_i64(2, "mtime")) {
-            (Ok(path), Ok(atime_millis), Ok(mtime_millis)) => fs_utimes(path, atime_millis, mtime_millis),
+            (Ok(path), Ok(atime_millis), Ok(mtime_millis)) => {
+                fs_utimes(path, atime_millis, mtime_millis)
+            }
             _ => json!({ "ok": false, "code": "EINVAL", "error": "utimes 参数无效" }).to_string(),
         },
         "mkdtemp" => match arg_str(0, "prefix") {
@@ -198,7 +202,8 @@ pub fn fs_read_file(path: String, encoding: Option<String>) -> String {
             } else if encoding == "utf8" || encoding == "utf-8" {
                 match String::from_utf8(bytes) {
                     Ok(text) => json!({ "ok": true, "kind": "text", "data": text }).to_string(),
-                    Err(err) => json!({ "ok": false, "code": "EINVAL", "error": err.to_string() }).to_string(),
+                    Err(err) => json!({ "ok": false, "code": "EINVAL", "error": err.to_string() })
+                        .to_string(),
                 }
             } else {
                 json!({
@@ -215,10 +220,16 @@ pub fn fs_read_file(path: String, encoding: Option<String>) -> String {
 
 fn parse_fs_write_payload(data_json: String, encoding: Option<String>) -> Result<Vec<u8>, String> {
     let value: Value = serde_json::from_str(&data_json).map_err(|e| e.to_string())?;
-    let kind = value.get("kind").and_then(Value::as_str).ok_or("缺少 kind 字段")?;
+    let kind = value
+        .get("kind")
+        .and_then(Value::as_str)
+        .ok_or("缺少 kind 字段")?;
 
     if kind == "bytes" {
-        let list = value.get("data").and_then(Value::as_array).ok_or("bytes 数据格式错误")?;
+        let list = value
+            .get("data")
+            .and_then(Value::as_array)
+            .ok_or("bytes 数据格式错误")?;
         let mut out = Vec::with_capacity(list.len());
         for item in list {
             let num = item.as_u64().ok_or("bytes 数据必须是 0-255 的整数")?;
@@ -231,7 +242,10 @@ fn parse_fs_write_payload(data_json: String, encoding: Option<String>) -> Result
     }
 
     if kind == "text" {
-        let text = value.get("data").and_then(Value::as_str).ok_or("text 数据格式错误")?;
+        let text = value
+            .get("data")
+            .and_then(Value::as_str)
+            .ok_or("text 数据格式错误")?;
         let encoding = normalize_encoding(encoding);
         if encoding.is_empty() || encoding == "utf8" || encoding == "utf-8" {
             return Ok(text.as_bytes().to_vec());
@@ -242,11 +256,17 @@ fn parse_fs_write_payload(data_json: String, encoding: Option<String>) -> Result
     Err(format!("不支持的 kind: {kind}"))
 }
 
-pub fn fs_write_file(path: String, data_json: String, encoding: Option<String>, append: bool) -> String {
+pub fn fs_write_file(
+    path: String,
+    data_json: String,
+    encoding: Option<String>,
+    append: bool,
+) -> String {
     let bytes = match parse_fs_write_payload(data_json, encoding) {
         Ok(bytes) => bytes,
         Err(error) => {
-            return json!({ "ok": false, "code": "EINVAL", "error": format!("{error}") }).to_string();
+            return json!({ "ok": false, "code": "EINVAL", "error": format!("{error}") })
+                .to_string();
         }
     };
 
@@ -267,7 +287,11 @@ pub fn fs_write_file(path: String, data_json: String, encoding: Option<String>, 
 }
 
 pub fn fs_mkdir(path: String, recursive: bool) -> String {
-    let result = if recursive { fs::create_dir_all(&path) } else { fs::create_dir(&path) };
+    let result = if recursive {
+        fs::create_dir_all(&path)
+    } else {
+        fs::create_dir(&path)
+    };
     match result {
         Ok(()) => json!({ "ok": true }).to_string(),
         Err(error) => fs_error_payload(error),
@@ -347,7 +371,11 @@ pub fn fs_rm(path: String, recursive: bool, force: bool) -> String {
     }
 
     let result = if target.is_dir() {
-        if recursive { fs::remove_dir_all(target) } else { fs::remove_dir(target) }
+        if recursive {
+            fs::remove_dir_all(target)
+        } else {
+            fs::remove_dir(target)
+        }
     } else {
         fs::remove_file(target)
     };
@@ -374,7 +402,9 @@ pub fn fs_copy_file(src: String, dst: String) -> String {
 
 pub fn fs_realpath(path: String) -> String {
     match fs::canonicalize(&path) {
-        Ok(resolved) => json!({ "ok": true, "path": resolved.to_string_lossy().to_string() }).to_string(),
+        Ok(resolved) => {
+            json!({ "ok": true, "path": resolved.to_string_lossy().to_string() }).to_string()
+        }
         Err(error) => fs_error_payload(error),
     }
 }
@@ -399,7 +429,9 @@ pub fn fs_lstat(path: String) -> String {
 
 pub fn fs_readlink(path: String) -> String {
     match fs::read_link(&path) {
-        Ok(target) => json!({ "ok": true, "path": target.to_string_lossy().to_string() }).to_string(),
+        Ok(target) => {
+            json!({ "ok": true, "path": target.to_string_lossy().to_string() }).to_string()
+        }
         Err(error) => fs_error_payload(error),
     }
 }
@@ -420,7 +452,10 @@ fn create_symlink_impl(target: &str, path: &str, is_dir: bool) -> io::Result<()>
 
 #[cfg(not(any(unix, windows)))]
 fn create_symlink_impl(_target: &str, _path: &str, _is_dir: bool) -> io::Result<()> {
-    Err(io::Error::new(io::ErrorKind::Unsupported, "当前平台不支持符号链接"))
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "当前平台不支持符号链接",
+    ))
 }
 
 pub fn fs_symlink(target: String, path: String, is_dir: bool) -> String {
@@ -438,7 +473,10 @@ pub fn fs_link(existing_path: String, new_path: String) -> String {
 }
 
 pub fn fs_truncate(path: String, len: u64) -> String {
-    let result = fs::OpenOptions::new().write(true).open(&path).and_then(|file| file.set_len(len));
+    let result = fs::OpenOptions::new()
+        .write(true)
+        .open(&path)
+        .and_then(|file| file.set_len(len));
     match result {
         Ok(()) => json!({ "ok": true }).to_string(),
         Err(error) => fs_error_payload(error),
@@ -461,7 +499,10 @@ fn chmod_impl(path: &str, mode: u32) -> io::Result<()> {
 
 #[cfg(not(any(unix, windows)))]
 fn chmod_impl(_path: &str, _mode: u32) -> io::Result<()> {
-    Err(io::Error::new(io::ErrorKind::Unsupported, "当前平台不支持 chmod"))
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "当前平台不支持 chmod",
+    ))
 }
 
 pub fn fs_chmod(path: String, mode: u32) -> String {
@@ -499,13 +540,23 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
             fs::copy(&src_path, &dst_path)?;
         } else if file_type.is_symlink() {
             let target = fs::read_link(&src_path)?;
-            create_symlink_impl(&target.to_string_lossy(), &dst_path.to_string_lossy(), target.is_dir())?;
+            create_symlink_impl(
+                &target.to_string_lossy(),
+                &dst_path.to_string_lossy(),
+                target.is_dir(),
+            )?;
         }
     }
     Ok(())
 }
 
-pub fn fs_cp(src: String, dst: String, recursive: bool, force: bool, error_on_exist: bool) -> String {
+pub fn fs_cp(
+    src: String,
+    dst: String,
+    recursive: bool,
+    force: bool,
+    error_on_exist: bool,
+) -> String {
     let src_path = Path::new(&src);
     let dst_path = Path::new(&dst);
 
@@ -523,7 +574,10 @@ pub fn fs_cp(src: String, dst: String, recursive: bool, force: bool, error_on_ex
 
     let result = if src_path.is_dir() {
         if !recursive {
-            Err(io::Error::new(io::ErrorKind::InvalidInput, "复制目录时必须启用 recursive"))
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "复制目录时必须启用 recursive",
+            ))
         } else {
             copy_dir_recursive(src_path, dst_path)
         }
@@ -550,7 +604,8 @@ pub fn fs_mkdtemp(prefix: String) -> String {
         let path = PathBuf::from(candidate);
         match fs::create_dir(&path) {
             Ok(()) => {
-                return json!({ "ok": true, "path": path.to_string_lossy().to_string() }).to_string();
+                return json!({ "ok": true, "path": path.to_string_lossy().to_string() })
+                    .to_string();
             }
             Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
             Err(error) => return fs_error_payload(error),

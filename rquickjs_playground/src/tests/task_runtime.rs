@@ -360,7 +360,11 @@ fn bundle_call_once_error_contains_context_and_source_url() {
     "#;
 
     let err = rt
-        .block_on(async { runtime.bundle_call_once(bundle_source, "boom", &json!([])).await })
+        .block_on(async {
+            runtime
+                .bundle_call_once(bundle_source, "boom", &json!([]))
+                .await
+        })
         .expect_err("调用应失败");
 
     assert!(

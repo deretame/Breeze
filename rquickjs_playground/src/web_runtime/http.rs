@@ -318,7 +318,11 @@ fn normalize_socks5_proxy_url(raw: &str) -> String {
 }
 
 fn supports_auto_system_proxy() -> bool {
-    cfg!(any(target_os = "windows", target_os = "macos", target_os = "linux"))
+    cfg!(any(
+        target_os = "windows",
+        target_os = "macos",
+        target_os = "linux"
+    ))
 }
 
 fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {

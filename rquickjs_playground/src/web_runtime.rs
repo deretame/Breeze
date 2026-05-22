@@ -63,8 +63,7 @@ pub use self::bridge::{
     BridgeRuntimeConfig, bridge_pending_count, configure_bridge_runtime,
     current_bridge_runtime_config, host_call, host_call_drop, host_call_start, host_call_try_take,
     register_bridge_route_async_handler, register_bridge_route_blocking_handler,
-    register_bridge_route_sync_handler,
-    unregister_bridge_route_handler,
+    register_bridge_route_sync_handler, unregister_bridge_route_handler,
 };
 pub use self::http::{
     HttpClientConfig, configure_http_client, current_http_client_config, http_request_drop,
@@ -265,6 +264,18 @@ pub fn install_host_bindings(
                 host_call_start(runtime_name_for_host_call_start.clone(), name, args_json)
             },
         )?,
+    )?;
+    globals.set(
+        "__host_call_route_mode",
+        Function::new(ctx.clone(), move |name: String| {
+            let mode =
+                crate::web_runtime::bridge::bridge_route_mode(&name).map(|mode| match mode {
+                    crate::web_runtime::bridge::BridgeRouteMode::Sync => "sync",
+                    crate::web_runtime::bridge::BridgeRouteMode::Async => "async",
+                    crate::web_runtime::bridge::BridgeRouteMode::Blocking => "blocking",
+                });
+            Ok::<_, rquickjs::Error>(mode.map(str::to_string))
+        })?,
     )?;
     globals.set("__host_call_try_take", Func::from(host_call_try_take))?;
     globals.set("__host_call_drop", Func::from(host_call_drop))?;
@@ -807,10 +818,7 @@ where
     let id = TIMER_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let normalized_delay_ms = delay_ms.clamp(0, 24 * 60 * 60 * 1000) as u64;
     let on_complete = Arc::new(on_complete);
-    let timer_label = format!(
-        "repeat={} delayMs={}",
-        repeat, normalized_delay_ms
-    );
+    let timer_label = format!("repeat={} delayMs={}", repeat, normalized_delay_ms);
 
     let task = host_async_runtime().spawn(async move {
         if repeat {
@@ -1118,7 +1126,10 @@ pub fn runtime_stats() -> String {
             .map(|(id, pending)| pending_task_debug_item(*id, pending))
             .collect();
     }
-    if let Ok(mut pool) = BRIDGE_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new())).lock() {
+    if let Ok(mut pool) = BRIDGE_REQ_POOL
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+    {
         cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
         bridge_pending_debug = pool
             .iter()

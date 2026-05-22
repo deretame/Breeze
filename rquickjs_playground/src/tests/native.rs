@@ -3,8 +3,8 @@ use crate::tests::run_async_script;
 use crate::tests::run_async_script_with_wasi;
 use crate::{
     BridgeRuntimeConfig, configure_bridge_runtime, register_bridge_route_async_handler,
-    register_bridge_route_blocking_handler,
-    register_bridge_route_sync_handler, unregister_bridge_route_handler,
+    register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
+    unregister_bridge_route_handler,
 };
 use serde_json::{Value, json};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -687,6 +687,48 @@ fn bridge_call_with_external_sync_route_handler() {
 }
 
 #[test]
+fn bridge_call_sync_route_should_not_create_bridge_pending() {
+    let route = format!(
+        "test.custom.bridge.sync.pending.{}",
+        BRIDGE_ROUTE_SEQ.fetch_add(1, Ordering::Relaxed)
+    );
+
+    register_bridge_route_sync_handler(route.clone(), |_runtime_name, args| {
+        let first = args.first().cloned().unwrap_or(Value::Null);
+        Ok(json!({
+            "first": first,
+            "argc": args.len(),
+            "mode": "sync"
+        }))
+    })
+    .expect("注册 bridge 同步自定义路由失败");
+
+    let route_json = serde_json::to_string(&route).expect("序列化路由名失败");
+    let script = format!(
+        r#"
+      (async () => {{
+        const before = JSON.parse(__runtime_stats()).pending.bridge;
+        const out = await bridge.call({route_json}, "cache-like", 1);
+        const after = JSON.parse(__runtime_stats()).pending.bridge;
+        return JSON.stringify({{ before, after, out }});
+      }})()
+    "#
+    );
+
+    let result = run_async_script(&script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["before"], 0);
+    assert_eq!(parsed["after"], 0);
+    assert_eq!(parsed["out"]["first"], "cache-like");
+    assert_eq!(parsed["out"]["argc"], 2);
+    assert_eq!(parsed["out"]["mode"], "sync");
+
+    let removed = unregister_bridge_route_handler(&route).expect("卸载 bridge 同步自定义路由失败");
+    assert!(removed);
+}
+
+#[test]
 fn bridge_call_with_external_async_route_handler() {
     let route = format!(
         "test.custom.bridge.async.{}",
@@ -865,7 +907,12 @@ fn bridge_route_allowlist_denies_non_allowed_routes() {
     let result = run_async_script(&script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert_eq!(parsed["code"], "BRIDGE_ROUTE_DENIED");
-    assert!(parsed["message"].as_str().unwrap_or("").contains("BRIDGE_ROUTE_DENIED"));
+    assert!(
+        parsed["message"]
+            .as_str()
+            .unwrap_or("")
+            .contains("BRIDGE_ROUTE_DENIED")
+    );
 
     let _ = configure_bridge_runtime(BridgeRuntimeConfig::default());
 }
@@ -889,5 +936,10 @@ fn bridge_args_size_limit_returns_structured_error() {
     let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert_eq!(parsed["code"], "BRIDGE_CALL_FAILED");
-    assert!(parsed["message"].as_str().unwrap_or("").contains("BRIDGE_CALL_FAILED"));
+    assert!(
+        parsed["message"]
+            .as_str()
+            .unwrap_or("")
+            .contains("BRIDGE_CALL_FAILED")
+    );
 }

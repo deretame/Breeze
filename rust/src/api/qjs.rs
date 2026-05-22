@@ -157,8 +157,7 @@ pub async fn qjs_fetch_bytes_auto_once_by_url(
     fn_path: String,
     args_json: String,
 ) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_bytes_auto_once_by_url(runtime_name, bundle_url, fn_path, args_json)
-        .await
+    crate::qjs::qjs_fetch_bytes_auto_once_by_url(runtime_name, bundle_url, fn_path, args_json).await
 }
 
 #[frb]
@@ -286,6 +285,11 @@ pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
 #[frb]
 pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
     crate::qjs::build_qjs_runtime(request).await
+}
+
+#[frb]
+pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
+    crate::qjs::qjs_debug_snapshot(runtime_name).await
 }
 
 #[frb(sync)]

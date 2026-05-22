@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/debug/qjs_runtime_debug_page.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
@@ -108,8 +109,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
               socks5ProxyEdit(context, state.socks5Proxy),
-              if (!Platform.isIOS)
-                _customExportPath(state, globalSettingCubit),
+              if (!Platform.isIOS) _customExportPath(state, globalSettingCubit),
               _updateAccelerate(state, globalSettingCubit),
 
               const SizedBox(height: 8),
@@ -142,8 +142,21 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   title: const Text('整点颜色看看'),
                   subtitle: const Text('打开调色页，快速预览主题色'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    AutoRouter.of(context).push(ShowColorRoute());
+                  onTap: () async {
+                    AutoRouter.of(context).push(const ShowColorRoute());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.developer_mode_outlined),
+                  title: const Text('QJS 运行时调试'),
+                  subtitle: const Text('手动输入运行时 ID，抓取调试快照'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const QjsRuntimeDebugPage(),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -528,10 +541,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     );
   }
 
-  Widget _customExportPath(
-    GlobalSettingState state,
-    GlobalSettingCubit cubit,
-  ) {
+  Widget _customExportPath(GlobalSettingState state, GlobalSettingCubit cubit) {
     final exportPath = state.customExportPath.trim();
     return ListTile(
       leading: const Icon(Icons.folder_outlined),

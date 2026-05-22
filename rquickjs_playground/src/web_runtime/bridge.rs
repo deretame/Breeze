@@ -1,12 +1,20 @@
 use super::*;
 
-pub(crate) type BridgeRouteFuture = Pin<Box<dyn Future<Output = AnyResult<Value>> + Send + 'static>>;
+pub(crate) type BridgeRouteFuture =
+    Pin<Box<dyn Future<Output = AnyResult<Value>> + Send + 'static>>;
 pub(crate) type BridgeRouteSyncHandler =
     Arc<dyn Fn(String, Vec<Value>) -> AnyResult<Value> + Send + Sync + 'static>;
 pub(crate) type BridgeRouteAsyncHandler =
     Arc<dyn Fn(String, Vec<Value>) -> BridgeRouteFuture + Send + Sync + 'static>;
 pub(crate) type BridgeRouteBlockingHandler =
     Arc<dyn Fn(String, Vec<Value>) -> AnyResult<Value> + Send + Sync + 'static>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BridgeRouteMode {
+    Sync,
+    Async,
+    Blocking,
+}
 
 #[derive(Debug, Clone)]
 pub struct BridgeRuntimeConfig {
@@ -27,8 +35,50 @@ impl Default for BridgeRuntimeConfig {
 
 static BRIDGE_RUNTIME_CONFIG: OnceLock<Mutex<BridgeRuntimeConfig>> = OnceLock::new();
 
-fn bridge_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
+pub(crate) fn bridge_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
     BRIDGE_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+pub fn bridge_pending_count() -> usize {
+    bridge_req_pool()
+        .lock()
+        .map(|mut guard| {
+            cleanup_stale_pending(&mut guard, &BRIDGE_STALE_DROPS);
+            guard.len()
+        })
+        .unwrap_or_default()
+}
+
+pub fn bridge_route_mode(name: &str) -> Option<BridgeRouteMode> {
+    if let Ok(handlers) = bridge_route_sync_handler_cell().lock() {
+        if handlers.contains_key(name) {
+            return Some(BridgeRouteMode::Sync);
+        }
+    }
+
+    if let Ok(handlers) = bridge_route_async_handler_cell().lock() {
+        if handlers.contains_key(name) {
+            return Some(BridgeRouteMode::Async);
+        }
+    }
+
+    if let Ok(handlers) = bridge_route_blocking_handler_cell().lock() {
+        if handlers.contains_key(name) {
+            return Some(BridgeRouteMode::Blocking);
+        }
+    }
+
+    match name {
+        "math.add"
+        | "native.put"
+        | "native.take"
+        | "native.exec"
+        | "crypto.md5_hex"
+        | "crypto.aes_ecb_pkcs7_decrypt_b64"
+        | "compression.gzip_decompress"
+        | "compression.gzip_compress" => Some(BridgeRouteMode::Sync),
+        _ => None,
+    }
 }
 
 fn bridge_route_sync_handler_cell() -> &'static Mutex<HashMap<String, BridgeRouteSyncHandler>> {
@@ -649,6 +699,7 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
     let id = BRIDGE_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
     let call_name = name.clone();
+    let request_label = format!("route={name}");
     let task = host_async_runtime().spawn(async move {
         let payload = match bridge_call_inner_async(runtime_name, call_name, args_json).await {
             Ok(data) => json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string(),
@@ -669,6 +720,10 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
                 rx,
                 task,
                 created_at: Instant::now(),
+                meta: PendingTaskMeta {
+                    kind: "bridge",
+                    label: request_label,
+                },
             },
         );
     }

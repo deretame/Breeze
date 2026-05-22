@@ -556,7 +556,12 @@ fn runtime_response_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
     let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert_eq!(parsed["first"], "hello");
-    assert!(parsed["secondError"].as_str().unwrap_or("").contains("Body 已被读取"));
+    assert!(
+        parsed["secondError"]
+            .as_str()
+            .unwrap_or("")
+            .contains("Body 已被读取")
+    );
 }
 
 #[test]

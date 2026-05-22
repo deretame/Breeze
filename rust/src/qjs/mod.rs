@@ -46,6 +46,7 @@ const BRIDGE_ROUTE_RUNTIME_GC: &str = "runtime.gc";
 const BRIDGE_ROUTE_RUNTIME_IS_TASK_GROUP_CANCELLED: &str = "runtime.is_task_group_cancelled";
 const HOST_CACHE_VALUE_MAX_BYTES: usize = 500 * 1024;
 const CANCELLED_GROUP_TTL: Duration = Duration::from_secs(120);
+const PLUGIN_CONFIG_CALLBACK_TIMEOUT: Duration = Duration::from_secs(15);
 
 static SAVE_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback>>> =
     OnceLock::new();
@@ -158,7 +159,17 @@ struct TrackedQjsTask {
     kind: TrackedQjsTaskKind,
     group_key: String,
     cancel_runtime_name: String,
+    meta: TrackedQjsTaskMeta,
     state: Arc<TrackedQjsTaskState>,
+}
+
+#[derive(Clone)]
+struct TrackedQjsTaskMeta {
+    source: String,
+    bundle_name: Option<String>,
+    fn_path: String,
+    args_preview: String,
+    started_at: Instant,
 }
 
 #[derive(Debug, Clone)]
@@ -292,6 +303,18 @@ fn cache_value_size_exceeds_limit(value: &Value) -> bool {
         .unwrap_or(true)
 }
 
+fn truncate_preview(input: &str, max_chars: usize) -> String {
+    let trimmed = input.trim();
+    let mut out = String::new();
+    for ch in trimmed.chars().take(max_chars) {
+        out.push(ch);
+    }
+    if trimmed.chars().count() > max_chars {
+        out.push_str("...");
+    }
+    out
+}
+
 fn new_host_cache_entry(value: Value) -> HostCacheEntry {
     HostCacheEntry {
         value,
@@ -308,11 +331,7 @@ fn handle_cache_get(runtime: &str, args: &[Value]) -> Result<Value> {
     let scoped_key = scoped_route_key(runtime, key);
     let cache = host_cache_store_cell();
     let out = match cache.get(&scoped_key) {
-        Some(entry) if entry.expires_at > Instant::now() => entry.value.clone(),
-        Some(_) => {
-            cache.remove(&scoped_key);
-            fallback
-        }
+        Some(entry) => entry.value.clone(),
         None => fallback,
     };
     Ok(out)
@@ -336,6 +355,61 @@ fn handle_cache_set(runtime: &str, args: &[Value]) -> Result<Value> {
     let scoped_key = scoped_route_key(runtime, key);
     host_cache_store_cell().insert(scoped_key, new_host_cache_entry(value));
     Ok(json!(true))
+}
+
+fn handle_cache_set_if_absent(runtime: &str, args: &[Value]) -> Result<Value> {
+    let key = args
+        .first()
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
+    let value = args.get(1).cloned().unwrap_or(Value::Null);
+    if cache_value_size_exceeds_limit(&value) {
+        tracing::warn!(
+            "cache.set_if_absent 跳过超限写入: runtime={}, key={}, max_bytes={}",
+            runtime,
+            key,
+            HOST_CACHE_VALUE_MAX_BYTES
+        );
+        return Ok(json!(false));
+    }
+    let scoped_key = scoped_route_key(runtime, key);
+    let cache = host_cache_store_cell();
+    let updated = match cache.entry(scoped_key) {
+        dashmap::mapref::entry::Entry::Vacant(entry) => {
+            entry.insert(new_host_cache_entry(value));
+            true
+        }
+        dashmap::mapref::entry::Entry::Occupied(_) => false,
+    };
+    Ok(json!(updated))
+}
+
+fn handle_cache_compare_and_set(runtime: &str, args: &[Value]) -> Result<Value> {
+    let key = args
+        .first()
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
+    let expected = args.get(1).cloned().unwrap_or(Value::Null);
+    let next = args.get(2).cloned().unwrap_or(Value::Null);
+    if cache_value_size_exceeds_limit(&next) {
+        tracing::warn!(
+            "cache.compare_and_set 跳过超限写入: runtime={}, key={}, max_bytes={}",
+            runtime,
+            key,
+            HOST_CACHE_VALUE_MAX_BYTES
+        );
+        return Ok(json!(false));
+    }
+    let scoped_key = scoped_route_key(runtime, key);
+    let cache = host_cache_store_cell();
+    let updated = match cache.get_mut(&scoped_key) {
+        Some(mut current) if current.value == expected => {
+            *current = new_host_cache_entry(next);
+            true
+        }
+        _ => false,
+    };
+    Ok(json!(updated))
 }
 
 fn ensure_host_cache_gc_started() {
@@ -484,6 +558,35 @@ async fn tracked_task_ids_by_group(runtime_name: &str, group_key: &str) -> Vec<u
             } else {
                 None
             }
+        })
+        .collect()
+}
+
+async fn tracked_task_debug_items(runtime_name: &str) -> Vec<Value> {
+    let map = qjs_tracked_task_map().read().await;
+    let Some(tasks) = map.get(runtime_name) else {
+        return Vec::new();
+    };
+
+    tasks
+        .iter()
+        .map(|(task_id, task)| {
+            let elapsed_ms = task.meta.started_at.elapsed().as_millis() as u64;
+            json!({
+                "taskId": *task_id,
+                "kind": match task.kind {
+                    TrackedQjsTaskKind::Call => "call",
+                    TrackedQjsTaskKind::CallBytes => "call_bytes",
+                },
+                "groupKey": task.group_key,
+                "cancelRuntimeName": task.cancel_runtime_name,
+                "ready": task.state.is_ready(),
+                "source": task.meta.source,
+                "bundleName": task.meta.bundle_name,
+                "fnPath": task.meta.fn_path,
+                "argsPreview": task.meta.args_preview,
+                "elapsedMs": elapsed_ms,
+            })
         })
         .collect()
 }
@@ -883,6 +986,13 @@ async fn call_loaded_bundle_start(
         kind: kind.clone(),
         group_key: task_group_key.to_owned(),
         cancel_runtime_name: runtime_name.to_owned(),
+        meta: TrackedQjsTaskMeta {
+            source: "current_bundle".to_string(),
+            bundle_name: Some(name.to_string()),
+            fn_path: fn_path.to_string(),
+            args_preview: truncate_preview(&args.to_string(), 256),
+            started_at: Instant::now(),
+        },
         state: Arc::clone(&state),
     });
     insert_tracked_task(runtime_name, task_id, task).await;
@@ -915,6 +1025,13 @@ async fn call_bundle_once_start_by_json(
         kind: kind.clone(),
         group_key: task_group_key.to_owned(),
         cancel_runtime_name: runtime_name.to_owned(),
+        meta: TrackedQjsTaskMeta {
+            source: "bundle_once".to_string(),
+            bundle_name: None,
+            fn_path: fn_path.to_string(),
+            args_preview: truncate_preview(args_json, 256),
+            started_at: Instant::now(),
+        },
         state: Arc::clone(&state),
     });
 
@@ -1318,6 +1435,104 @@ pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
     Ok(runtime.is_some())
 }
 
+pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
+    let runtime_name = runtime_name.trim().to_string();
+    let runtime = {
+        let map = qjs_runtime_map().read().await;
+        map.get(&runtime_name).cloned()
+    };
+
+    let in_flight_task_ids = {
+        let map = qjs_in_flight_task_map().read().await;
+        map.get(&runtime_name)
+            .map(|ids| ids.iter().copied().collect::<Vec<_>>())
+            .unwrap_or_default()
+    };
+    let tracked_tasks = tracked_task_debug_items(&runtime_name).await;
+    let cancelled_groups = cancelled_task_groups_cell()
+        .iter()
+        .filter_map(|entry| {
+            let key = entry.key();
+            if !key.starts_with(&format!("{runtime_name}::")) {
+                return None;
+            }
+            Some(json!({
+                "key": key.clone(),
+                "expiresInMs": entry.value().saturating_duration_since(Instant::now()).as_millis() as u64,
+            }))
+        })
+        .collect::<Vec<_>>();
+    let host_cache_entries = host_cache_store_cell()
+        .iter()
+        .filter(|entry| entry.key().starts_with(&format!("{runtime_name}::")))
+        .count();
+
+    let runtime_json = if let Some(runtime) = runtime {
+        let stats = runtime.stats();
+        let current_bundle = current_bundle_name(&runtime).await.unwrap_or(None);
+        json!({
+            "initialized": true,
+            "cacheScopeId": runtime.cache_scope_id(),
+            "options": {
+                "fs": runtime.options().fs,
+                "wasi": runtime.options().wasi,
+            },
+            "taskStats": {
+                "pending": stats.pending,
+                "running": stats.running,
+                "done": stats.done,
+                "dropped": stats.dropped,
+            },
+            "currentBundle": current_bundle,
+        })
+    } else {
+        json!({
+            "initialized": false,
+        })
+    };
+
+    let web_runtime_stats =
+        serde_json::from_str::<Value>(&rquickjs_playground::web_runtime::runtime_stats())
+            .unwrap_or_else(|err| {
+                json!({
+                    "ok": false,
+                    "error": format!("parse runtime_stats failed: {err}"),
+                })
+            });
+
+    let http_client_config = current_http_client_config();
+
+    serde_json::to_string_pretty(&json!({
+        "runtimeName": runtime_name,
+        "capturedAtEpochMs": chrono::Utc::now().timestamp_millis(),
+        "pluginConfigCallbackTimeoutMs": PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis() as u64,
+        "runtime": runtime_json,
+        "qjs": {
+            "inFlightTaskCount": in_flight_task_ids.len(),
+            "inFlightTaskIds": in_flight_task_ids,
+            "trackedTaskCount": tracked_tasks.len(),
+            "trackedTasks": tracked_tasks,
+            "cancelledTaskGroupCount": cancelled_groups.len(),
+            "cancelledTaskGroups": cancelled_groups,
+            "hostCacheEntriesForRuntime": host_cache_entries,
+            "hostCacheGcEnabled": is_host_cache_gc_enabled(),
+            "jsErrorStackEnabled": js_error_stack_enabled(),
+        },
+        "webRuntime": web_runtime_stats,
+        "httpClient": {
+            "config": {
+                "useHttpProxy": http_client_config.use_http_proxy,
+                "useSocks5Proxy": http_client_config.use_socks5_proxy,
+                "httpProxy": http_client_config.http_proxy,
+                "socks5Proxy": http_client_config.socks5_proxy,
+                "disableTlsVerify": http_client_config.disable_tls_verify,
+                "allowPrivateNetwork": http_client_config.allow_private_network,
+            },
+        }
+    }))
+    .context("序列化 qjs 调试快照失败")
+}
+
 pub async fn qjs_cancel_task(runtime_name: String, task_id: u64) -> Result<QjsCancelTaskResult> {
     let Some(task) = get_tracked_task(&runtime_name, task_id).await else {
         return Ok(QjsCancelTaskResult {
@@ -1614,7 +1829,19 @@ pub fn register_load_plugin_config(
                 .map_err(|_| anyhow!("load_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("load_plugin_config 回调未注册"))?;
-            let out = callback(runtime, key, value).await;
+            let out = time::timeout(
+                PLUGIN_CONFIG_CALLBACK_TIMEOUT,
+                callback(runtime.clone(), key.clone(), value.clone()),
+            )
+            .await
+            .map_err(|_| {
+                anyhow!(
+                    "load_plugin_config 回调超时: runtime={}, key={}, timeout_ms={}",
+                    runtime,
+                    key,
+                    PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
+                )
+            })?;
             Ok(json!(out))
         },
     )?;
@@ -1650,7 +1877,19 @@ pub fn register_save_plugin_config(
                 .map_err(|_| anyhow!("save_plugin_config 回调锁已损坏"))?
                 .clone()
                 .ok_or_else(|| anyhow!("save_plugin_config 回调未注册"))?;
-            let out = callback(runtime, key, value).await;
+            let out = time::timeout(
+                PLUGIN_CONFIG_CALLBACK_TIMEOUT,
+                callback(runtime.clone(), key.clone(), value.clone()),
+            )
+            .await
+            .map_err(|_| {
+                anyhow!(
+                    "save_plugin_config 回调超时: runtime={}, key={}, timeout_ms={}",
+                    runtime,
+                    key,
+                    PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
+                )
+            })?;
             Ok(json!(out))
         },
     )?;
@@ -1743,67 +1982,11 @@ pub fn init_rust_functions() -> Result<()> {
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET_IF_ABSENT, |runtime, args| {
-        let key = args
-            .first()
-            .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
-        let value = args.get(1).cloned().unwrap_or(Value::Null);
-        if cache_value_size_exceeds_limit(&value) {
-            tracing::warn!(
-                "cache.set_if_absent 跳过超限写入: runtime={}, key={}, max_bytes={}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
-            );
-            return Ok(json!(false));
-        }
-        let scoped_key = scoped_route_key(&runtime, key);
-        let cache = host_cache_store_cell();
-        let now = Instant::now();
-        match cache.entry(scoped_key) {
-            dashmap::mapref::entry::Entry::Vacant(entry) => {
-                entry.insert(new_host_cache_entry(value));
-                Ok(json!(true))
-            }
-            dashmap::mapref::entry::Entry::Occupied(mut entry) => {
-                if entry.get().expires_at <= now {
-                    entry.insert(new_host_cache_entry(value));
-                    Ok(json!(true))
-                } else {
-                    Ok(json!(false))
-                }
-            }
-        }
+        handle_cache_set_if_absent(&runtime, &args)
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_COMPARE_AND_SET, |runtime, args| {
-        let key = args
-            .first()
-            .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
-        let expected = args.get(1).cloned().unwrap_or(Value::Null);
-        let next = args.get(2).cloned().unwrap_or(Value::Null);
-        if cache_value_size_exceeds_limit(&next) {
-            tracing::warn!(
-                "cache.compare_and_set 跳过超限写入: runtime={}, key={}, max_bytes={}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
-            );
-            return Ok(json!(false));
-        }
-        let scoped_key = scoped_route_key(&runtime, key);
-        let cache = host_cache_store_cell();
-        let updated = match cache.get_mut(&scoped_key) {
-            Some(mut current)
-                if current.expires_at > Instant::now() && current.value == expected =>
-            {
-                *current = new_host_cache_entry(next);
-                true
-            }
-            _ => false,
-        };
-        Ok(json!(updated))
+        handle_cache_compare_and_set(&runtime, &args)
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_DELETE, |runtime, args| {
@@ -1842,7 +2025,12 @@ pub fn opencc_convert(text: String, config: String) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::is_cancelled_error_text;
+    use super::{
+        HostCacheEntry, handle_cache_compare_and_set, handle_cache_get, handle_cache_set_if_absent,
+        host_cache_store_cell, is_cancelled_error_text, scoped_route_key,
+    };
+    use serde_json::json;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn cancelled_detection_should_not_match_timeout_diagnostics() {
@@ -1855,5 +2043,76 @@ mod tests {
         assert!(is_cancelled_error_text("__QJS_RUNTIME_CANCELLED__"));
         assert!(is_cancelled_error_text("request canceled by user"));
         assert!(is_cancelled_error_text("任务已取消"));
+    }
+
+    #[test]
+    fn cache_get_should_ignore_expiration_when_gc_is_disabled() {
+        let runtime = "test-runtime-cache-get-expired";
+        let key = "expired-key";
+        let scoped_key = scoped_route_key(runtime, key);
+        let cache = host_cache_store_cell();
+        cache.remove(&scoped_key);
+        cache.insert(
+            scoped_key.clone(),
+            HostCacheEntry {
+                value: json!("stale"),
+                expires_at: Instant::now() - Duration::from_secs(1),
+            },
+        );
+
+        let out = handle_cache_get(runtime, &[json!(key), json!("fallback")]).unwrap();
+
+        assert_eq!(out, json!("stale"));
+        assert!(cache.get(&scoped_key).is_some());
+    }
+
+    #[test]
+    fn cache_set_if_absent_should_not_overwrite_expired_entry_without_gc() {
+        let runtime = "test-runtime-cache-set-if-absent";
+        let key = "set-if-absent-key";
+        let scoped_key = scoped_route_key(runtime, key);
+        let cache = host_cache_store_cell();
+        cache.remove(&scoped_key);
+        cache.insert(
+            scoped_key.clone(),
+            HostCacheEntry {
+                value: json!("stale"),
+                expires_at: Instant::now() - Duration::from_secs(1),
+            },
+        );
+
+        let updated = handle_cache_set_if_absent(runtime, &[json!(key), json!("fresh")]).unwrap();
+
+        assert_eq!(updated, json!(false));
+        assert_eq!(
+            cache.get(&scoped_key).map(|entry| entry.clone().value),
+            Some(json!("stale"))
+        );
+    }
+
+    #[test]
+    fn cache_compare_and_set_should_allow_expired_entry_without_gc() {
+        let runtime = "test-runtime-cache-compare-and-set";
+        let key = "compare-and-set-key";
+        let scoped_key = scoped_route_key(runtime, key);
+        let cache = host_cache_store_cell();
+        cache.remove(&scoped_key);
+        cache.insert(
+            scoped_key.clone(),
+            HostCacheEntry {
+                value: json!("stale"),
+                expires_at: Instant::now() - Duration::from_secs(1),
+            },
+        );
+
+        let updated =
+            handle_cache_compare_and_set(runtime, &[json!(key), json!("stale"), json!("fresh")])
+                .unwrap();
+
+        assert_eq!(updated, json!(true));
+        assert_eq!(
+            cache.get(&scoped_key).map(|entry| entry.clone().value),
+            Some(json!("fresh"))
+        );
     }
 }

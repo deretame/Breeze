@@ -103,8 +103,3 @@ pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
 pub async fn decompress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
     compressed::decompress_extreme(data).await
 }
-
-#[frb(sync)]
-pub fn test_host_async_spawn(timeout_ms: u64) -> bool {
-    rquickjs_playground::test_host_async_spawn(timeout_ms)
-}

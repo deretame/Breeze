@@ -740,33 +740,17 @@ fn log_sender() -> &'static mpsc::Sender<LogEvent> {
 
 fn host_async_runtime() -> &'static TokioRuntime {
     HOST_ASYNC_RT.get_or_init(|| {
-        let rt = TokioRuntimeBuilder::new_multi_thread()
+        TokioRuntimeBuilder::new_multi_thread()
             .worker_threads(4)
             .enable_all()
             .thread_name("rquickjs-host-async")
             .build()
-            .expect("tokio runtime 创建失败");
-        rt.spawn(async move {
-            let mut ticker = tokio::time::interval(std::time::Duration::from_secs(1));
-            loop {
-                ticker.tick().await;
-            }
-        });
-        rt
+            .expect("tokio runtime 创建失败")
     })
 }
 
 pub fn poke_host_async_runtime() {
     let _ = host_async_runtime().spawn(async {});
-}
-
-pub fn test_host_async_spawn(timeout_ms: u64) -> bool {
-    let (tx, rx) = std::sync::mpsc::channel();
-    let _handle = host_async_runtime().spawn(async move {
-        let _ = tx.send(());
-    });
-    rx.recv_timeout(std::time::Duration::from_millis(timeout_ms))
-        .is_ok()
 }
 
 pub fn configure_native_buffer_gc_ttl_seconds(ttl_seconds: u64) {
@@ -782,14 +766,6 @@ pub fn timer_start_kind_evented<F>(delay_ms: i64, repeat: bool, on_complete: F) 
 where
     F: Fn(u64, String) + Send + Sync + 'static,
 {
-    let id = TIMER_REQ_ID.fetch_add(1, Ordering::Relaxed);
-    let normalized_delay_ms = delay_ms.clamp(0, 24 * 60 * 60 * 1000) as u64;
-
-    if normalized_delay_ms == 0 && !repeat {
-        on_complete(id, json!({ "ok": true, "kind": "timeout" }).to_string());
-        return json!({ "ok": true, "id": id }).to_string();
-    }
-
     {
         let mut pool = timer_req_event_pool()
             .lock()
@@ -800,6 +776,9 @@ where
             return json!({ "ok": false, "error": "timer pending 队列已满" }).to_string();
         }
     }
+
+    let id = TIMER_REQ_ID.fetch_add(1, Ordering::Relaxed);
+    let normalized_delay_ms = delay_ms.clamp(0, 24 * 60 * 60 * 1000) as u64;
 
     let on_complete = Arc::new(on_complete);
 

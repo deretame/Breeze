@@ -11,7 +11,7 @@ pub use web_runtime::{
     configure_http_client, configure_log_http_endpoint,
     configure_native_buffer_gc_ttl_seconds, current_http_client_config, current_log_http_endpoint,
     current_native_buffer_gc_ttl_seconds, current_bridge_runtime_config, poke_host_async_runtime,
-    polyfill_script, test_host_async_spawn,
+    polyfill_script,
     register_bridge_route_async_handler, register_bridge_route_blocking_handler,
     register_bridge_route_sync_handler, unregister_bridge_route_handler,
 };

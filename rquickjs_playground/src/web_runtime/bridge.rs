@@ -716,7 +716,6 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
         return json!({ "ok": true, "data": { "id": id } }).to_string();
     }
 
-    warn!(name = log_name, "host_call_start: no sync handler — falling back to async, may hang if tokio parked");
     let call_name = name.clone();
     let err_name = name;
     let task = host_async_runtime().spawn(async move {

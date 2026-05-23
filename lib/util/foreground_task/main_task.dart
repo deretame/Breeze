@@ -7,8 +7,8 @@ import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
-import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
+import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/util/download/platform/android_download_runner.dart';
 
 @pragma('vm:entry-point')
@@ -24,7 +24,7 @@ class MyTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     objectbox = await ObjectBox.create();
-    await RustLib.init();
+    await initRustLib();
     await workerManager.init(isolatesCount: Platform.numberOfProcessors);
     final setting = objectbox.userSettingBox.get(1);
     final globalSetting = setting?.globalSetting;

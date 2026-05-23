@@ -5,9 +5,9 @@ import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
-import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/util/sundry.dart';
 
 enum AggregateSearchStatus { initial, loading, success, failure }
@@ -230,9 +230,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
 Future<List<Map<String, dynamic>>> _filterAggregateComics(
   Map<String, dynamic> payload,
 ) async {
-  try {
-    await RustLib.init();
-  } catch (_) {}
+  await initRustLib(silent: true);
   final comics = ((payload['comics'] as List?) ?? const <dynamic>[])
       .whereType<Map>()
       .map((entry) => _asWorkerMapF(entry))

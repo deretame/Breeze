@@ -1,0 +1,27 @@
+[toolchain]
+channel = "1.90.0"
+profile = "default"
+
+targets = [
+  # Android
+  "armv7-linux-androideabi",
+  "aarch64-linux-android",
+  "x86_64-linux-android",
+
+  # iOS (device + simulator)
+  "aarch64-apple-ios",
+  "aarch64-apple-ios-sim",
+  "x86_64-apple-ios",
+
+  # Windows
+  "aarch64-pc-windows-msvc",
+  "x86_64-pc-windows-msvc",
+
+  # Linux
+  "aarch64-unknown-linux-gnu",
+  "x86_64-unknown-linux-gnu",
+
+  # macOS
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+]

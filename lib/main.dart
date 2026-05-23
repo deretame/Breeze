@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:zephyr/util/rust_loader.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -31,7 +32,6 @@ import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
-import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/desktop/custom_title_bar.dart';
 import 'package:zephyr/util/desktop/desktop_fullscreen_controller.dart';
@@ -215,9 +215,11 @@ Future<void> main(List<String> args) async {
   );
 }
 
+
+
 Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
-  await RustLib.init();
+  await initRustLib();
 
   // 初始化工作线程
   await workerManager.init(isolatesCount: Platform.numberOfProcessors);

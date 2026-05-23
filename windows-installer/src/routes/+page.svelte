@@ -48,9 +48,8 @@
       new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
-      // Step 0: Try to close running app
+      // Step 0: Try to close running app (polls every 2s, up to 30s)
       statusMessage = "正在尝试关闭运行中的软件...";
-      await delay(3000);
       await invoke("try_shutdown_app");
 
       // Step 1: Extract files

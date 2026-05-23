@@ -73,8 +73,17 @@ fn save_install_path(install_path: String) -> Result<String, String> {
     Ok("安装路径已保存".to_string())
 }
 
+fn is_zephyr_running() -> bool {
+    std::process::Command::new("tasklist")
+        .args(["/FI", "IMAGENAME eq zephyr.exe", "/NH"])
+        .output()
+        .map(|output| String::from_utf8_lossy(&output.stdout).contains("zephyr.exe"))
+        .unwrap_or(false)
+}
+
 #[tauri::command]
 fn try_shutdown_app() -> Result<String, String> {
+    use std::io::Write;
     use std::time::Duration;
 
     let pipe_path = r"\\.\pipe\zephyr_shutdown_signal";
@@ -85,15 +94,19 @@ fn try_shutdown_app() -> Result<String, String> {
         .open(pipe_path)
     {
         Ok(mut pipe) => {
-            use std::io::Write;
             let _ = pipe.write_all(b"shutdown");
             let _ = pipe.flush();
-            // Give the app a moment to close
-            std::thread::sleep(Duration::from_secs(2));
-            Ok("已发送关闭信号".to_string())
+            drop(pipe);
+
+            for _ in 0..15 {
+                std::thread::sleep(Duration::from_secs(2));
+                if !is_zephyr_running() {
+                    return Ok("软件已关闭".to_string());
+                }
+            }
+            Ok("已发送关闭信号，但软件可能仍在运行".to_string())
         }
         Err(_) => {
-            // Pipe doesn't exist = app is not running, that's fine
             Ok("软件未在运行".to_string())
         }
     }

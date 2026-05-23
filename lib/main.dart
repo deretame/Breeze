@@ -468,7 +468,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     } else {
       windowManager.hide(); // 其他桌面平台
     }
-    exit(0);
+    hardKillProcess();
   }
 
   @override

@@ -81,8 +81,9 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       return;
     }
     final updateUrl = item.manifest.updateUrl.trim();
-    if (updateUrl.isEmpty) {
-      _reportInstallFailure('该插件未提供 updateUrl，无法下载');
+    final npmName = item.manifest.npmName.trim();
+    if (updateUrl.isEmpty && npmName.isEmpty) {
+      _reportInstallFailure('该插件未提供 updateUrl 或 npmName，无法下载');
       return;
     }
 
@@ -91,32 +92,68 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     );
 
     try {
-      final release = await fetchReleaseData(updateUrl);
-      final asset = _pickPreferredPluginAsset(asJsonList(release['assets']));
-      if (asset == null) {
-        throw StateError('未找到可安装资源（仅支持 .cjs.br 或 .cjs）');
-      }
-      final assetName = asset['name']?.toString().trim() ?? '';
-      final downloadUrl =
-          asset['browser_download_url']?.toString().trim() ?? '';
-      if (downloadUrl.isEmpty) {
-        throw StateError('release 资产缺少 browser_download_url');
-      }
-
-      final response = await _downloadPluginAssetWithFallback(downloadUrl);
-      final script = await _decodeDownloadedPluginScript(
-        response: response,
-        resolvedUrl: downloadUrl,
+      final script = await _downloadFromJsdelivrOrGitHub(
+        npmName: npmName,
+        cloudVersion: item.manifest.version.trim(),
+        updateUrl: updateUrl,
       );
       await _savePluginByScript(
         script,
-        sourceLabel:
-            '云端组件: ${item.repo}${assetName.isNotEmpty ? '/$assetName' : ''}',
+        sourceLabel: '云端组件: ${item.repo}',
         allowReplaceExisting: true,
       );
     } catch (e) {
       _reportInstallFailure('云端下载失败: $e');
     }
+  }
+
+  Future<String> _downloadFromJsdelivrOrGitHub({
+    required String npmName,
+    required String cloudVersion,
+    required String updateUrl,
+  }) async {
+    if (npmName.isNotEmpty) {
+      for (final ext in ['.cjs.br', '.cjs']) {
+        final url =
+            'https://cdn.jsdelivr.net/npm/$npmName@$cloudVersion/dist/$npmName.bundle$ext';
+        try {
+          final response = await _downloadPluginAssetWithFallback(url);
+          final script = await _decodeDownloadedPluginScript(
+            response: response,
+            resolvedUrl: url,
+          );
+          final trimmed = script.trim();
+          if (trimmed.isNotEmpty) {
+            return trimmed;
+          }
+        } catch (e) {
+          logger.w('jsdelivr CDN 下载尝试失败: $url', error: e);
+        }
+      }
+      logger.w('jsdelivr CDN 下载失败，回退 GitHub release: $npmName');
+    }
+
+    final release = await fetchReleaseData(updateUrl);
+    final asset = _pickPreferredPluginAsset(asJsonList(release['assets']));
+    if (asset == null) {
+      throw StateError('未找到可安装资源（仅支持 .cjs.br 或 .cjs）');
+    }
+    // final assetName = asset['name']?.toString().trim() ?? '';
+    final downloadUrl = asset['browser_download_url']?.toString().trim() ?? '';
+    if (downloadUrl.isEmpty) {
+      throw StateError('release 资产缺少 browser_download_url');
+    }
+
+    final response = await _downloadPluginAssetWithFallback(downloadUrl);
+    final script = await _decodeDownloadedPluginScript(
+      response: response,
+      resolvedUrl: downloadUrl,
+    );
+    final trimmed = script.trim();
+    if (trimmed.isEmpty) {
+      throw StateError('下载到的插件脚本为空');
+    }
+    return trimmed;
   }
 
   Future<void> installFromLocalBytes(

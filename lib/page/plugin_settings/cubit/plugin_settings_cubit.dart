@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -101,6 +103,10 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
           actions: actions,
         ),
       );
+
+      if (canShowUserInfo) {
+        unawaited(loadUserInfo(from));
+      }
     } catch (e) {
       if (isClosed) {
         return;

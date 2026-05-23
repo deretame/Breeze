@@ -7,6 +7,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
+import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -45,9 +46,12 @@ String _normalizeMaskedText(String text) {
   }
 }
 
-Future<List<Map<String, dynamic>>> _filterShieldedComicJsonList(
+Future<List<Map<String, dynamic>>> filterShieldedComicJsonList(
   Map<String, dynamic> payload,
 ) async {
+  try {
+    await RustLib.init();
+  } catch (_) {}
   final comics = ((payload['comics'] as List?) ?? const <dynamic>[])
       .whereType<Map>()
       .map((entry) => _asWorkerMap(entry))
@@ -70,28 +74,21 @@ Future<List<Map<String, dynamic>>> _filterShieldedComicJsonList(
         .map((item) => _asWorkerMap(item))
         .toList();
 
-    final metadataNames = StringBuffer();
-    final metadataValues = StringBuffer();
-    final categories = <String>[];
-    final tags = <String>[];
-
+    final valueNames = <String>[];
     for (final meta in metadata) {
-      metadataNames.write(meta['name']?.toString() ?? '');
-      final type = meta['type']?.toString() ?? '';
-      final values = ((meta['value'] as List?) ?? const <dynamic>[])
-          .map((item) {
-            if (item is Map) {
-              return item['name']?.toString() ?? '';
-            }
-            return item.toString();
-          })
-          .where((item) => item.isNotEmpty)
-          .toList();
-      metadataValues.write(values.join());
-      if (type == 'categories') {
-        categories.addAll(values);
-      } else if (type == 'tags') {
-        tags.addAll(values);
+      final values = (meta['value'] as List?) ?? const <dynamic>[];
+      for (final val in values) {
+        if (val is Map) {
+          final name = val['name']?.toString() ?? '';
+          if (name.isNotEmpty) {
+            valueNames.add(name);
+          }
+        } else {
+          final name = val.toString().trim();
+          if (name.isNotEmpty) {
+            valueNames.add(name);
+          }
+        }
       }
     }
 
@@ -99,10 +96,7 @@ Future<List<Map<String, dynamic>>> _filterShieldedComicJsonList(
       [
         comic['title']?.toString() ?? '',
         comic['subtitle']?.toString() ?? '',
-        metadataNames.toString(),
-        metadataValues.toString(),
-        categories.join(),
-        tags.join(),
+        valueNames.join(),
       ].join(),
     );
 
@@ -224,22 +218,19 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     List<ComicNumber> comics,
     List<String> maskedKeywords,
   ) {
+    logger.d(maskedKeywords);
     if (comics.isEmpty || maskedKeywords.isEmpty) {
       return comics;
     }
     return comics.where((comic) {
       final data = comic.comic;
-      final categories = data.metadataValues('categories');
-      final tags = data.metadataValues('tags');
-
       final allText = [
         data.title,
         data.subtitle,
-        data.metadata.map((item) => item.name).join(),
         data.metadata.expand((item) => item.value).join(),
-        categories.join(),
-        tags.join(),
       ].join().toLowerCase().let(t2s);
+
+      logger.d(allText);
 
       final containsKeyword = maskedKeywords.any(allText.contains);
 
@@ -262,7 +253,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
 
     try {
       final filtered = await workerManager.execute<List<Map<String, dynamic>>>(
-        () => _filterShieldedComicJsonList(payload),
+        () => filterShieldedComicJsonList(payload),
       );
       return filtered.map(ComicNumber.fromJson).toList();
     } catch (e, s) {

@@ -1,8 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:worker_manager/worker_manager.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
+import 'package:zephyr/src/rust/frb_generated.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/util/sundry.dart';
 
 enum AggregateSearchStatus { initial, loading, success, failure }
 
@@ -167,7 +173,42 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
       searchStates: baseEvent.searchStates.copyWith(from: pluginId),
     );
     final result = await getPluginSearchResult(event, BlocState());
-    return result.comics.map((e) => e.comic).toList();
+    final comics = result.comics.map((e) => e.comic).toList();
+    final maskedKeywords = objectbox.userSettingBox
+        .get(1)!
+        .globalSetting
+        .maskedKeywords
+        .where((keyword) => keyword.trim().isNotEmpty)
+        .map((keyword) => keyword.trim().toLowerCase().let(t2s))
+        .where((keyword) => keyword.isNotEmpty)
+        .toList();
+
+    if (maskedKeywords.isEmpty) {
+      return comics;
+    }
+
+    final payload = <String, dynamic>{
+      'comics': comics.map((c) => c.toJson()).toList(),
+      'maskedKeywords': maskedKeywords,
+    };
+
+    try {
+      final filtered = await workerManager.execute<List<Map<String, dynamic>>>(
+        () => _filterAggregateComics(payload),
+      );
+      return filtered
+          .map((json) => UnifiedComicListItem.fromJson(json))
+          .toList();
+    } catch (_) {
+      return comics.where((comic) {
+        final allText = [
+          comic.title,
+          comic.subtitle,
+          comic.metadata.expand((item) => item.value).join(),
+        ].join().toLowerCase().let(t2s);
+        return !maskedKeywords.any(allText.contains);
+      }).toList();
+    }
   }
 
   Future<void> applySelectedSources(Map<String, bool> selectedSources) async {
@@ -183,5 +224,85 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
 
   void toggleShowErrors(bool value) {
     emit(state.copyWith(showErrors: value));
+  }
+}
+
+Future<List<Map<String, dynamic>>> _filterAggregateComics(
+  Map<String, dynamic> payload,
+) async {
+  try {
+    await RustLib.init();
+  } catch (_) {}
+  final comics = ((payload['comics'] as List?) ?? const <dynamic>[])
+      .whereType<Map>()
+      .map((entry) => _asWorkerMapF(entry))
+      .toList();
+  final maskedKeywords =
+      ((payload['maskedKeywords'] as List?) ?? const <dynamic>[])
+          .map((entry) => entry.toString().trim())
+          .where((entry) => entry.isNotEmpty)
+          .toList();
+
+  if (comics.isEmpty || maskedKeywords.isEmpty) {
+    return comics;
+  }
+
+  final visible = <Map<String, dynamic>>[];
+  for (final comic in comics) {
+    final metadata = ((comic['metadata'] as List?) ?? const <dynamic>[])
+        .whereType<Map>()
+        .map((item) => _asWorkerMapF(item))
+        .toList();
+
+    final valueNames = <String>[];
+    for (final meta in metadata) {
+      final values = (meta['value'] as List?) ?? const <dynamic>[];
+      for (final val in values) {
+        if (val is Map) {
+          final name = val['name']?.toString() ?? '';
+          if (name.isNotEmpty) {
+            valueNames.add(name);
+          }
+        } else {
+          final name = val.toString().trim();
+          if (name.isNotEmpty) {
+            valueNames.add(name);
+          }
+        }
+      }
+    }
+
+    final allText = _normalizeMaskedTextF(
+      [
+        comic['title']?.toString() ?? '',
+        comic['subtitle']?.toString() ?? '',
+        valueNames.join(),
+      ].join(),
+    );
+
+    final blocked = maskedKeywords.any(allText.contains);
+    if (!blocked) {
+      visible.add(comic);
+    }
+  }
+  return visible;
+}
+
+Map<String, dynamic> _asWorkerMapF(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  if (value is Map) {
+    return value.map((key, item) => MapEntry(key.toString(), item));
+  }
+  return const <String, dynamic>{};
+}
+
+String _normalizeMaskedTextF(String text) {
+  final lower = text.toLowerCase();
+  try {
+    return t2s(lower);
+  } catch (_) {
+    return lower;
   }
 }

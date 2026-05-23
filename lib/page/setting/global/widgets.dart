@@ -89,7 +89,7 @@ Widget editMaskedKeywords(BuildContext context) {
   return ListTile(
     leading: const Icon(Icons.shield_outlined),
     title: const Text('屏蔽关键词管理'),
-    subtitle: const Text('添加关键词，过滤不想看到的内容'),
+    subtitle: const Text('添加关键词，过滤不想看到的内容（仅搜索生效）'),
     trailing: const Icon(Icons.chevron_right),
     onTap: () {
       showDialog(
@@ -142,7 +142,7 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '添加过滤不喜欢的内容标签',
+                  '添加过滤不喜欢的内容标签（仅搜索生效）',
                   style: TextStyle(
                     fontSize: 13,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,

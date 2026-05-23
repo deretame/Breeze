@@ -25,6 +25,7 @@ class CloudPluginManifest {
     required this.version,
     required this.home,
     required this.updateUrl,
+    required this.npmName,
   });
 
   final String name;
@@ -36,6 +37,7 @@ class CloudPluginManifest {
   final String version;
   final String home;
   final String updateUrl;
+  final String npmName;
 
   factory CloudPluginManifest.fromJson(Map<String, dynamic> json) {
     final creator = asJsonMap(json['creator']);
@@ -49,6 +51,7 @@ class CloudPluginManifest {
       version: json['version']?.toString() ?? '',
       home: json['home']?.toString() ?? '',
       updateUrl: json['updateUrl']?.toString() ?? '',
+      npmName: json['npmName']?.toString() ?? '',
     );
   }
 }

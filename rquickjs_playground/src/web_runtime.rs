@@ -478,6 +478,7 @@ impl NativeBufferEntry {
     }
 }
 
+#[derive(Debug, Clone)]
 struct LogEvent {
     level: String,
     message: String,

@@ -153,12 +153,6 @@ class BookshelfSectionBloc
         offset: offset,
         limit: _kPageSize,
       );
-      final maskedKeywords = objectbox.userSettingBox
-          .get(1)!
-          .globalSetting
-          .maskedKeywords
-          .where((keyword) => keyword.trim().isNotEmpty)
-          .toList();
 
       final response = await workerManager.execute<Map<String, dynamic>>(
         () => _runBookshelfFilterTask({
@@ -169,7 +163,6 @@ class BookshelfSectionBloc
             'sources': event.searchEnterConst.sources,
           },
           'items': raw.items,
-          'maskedKeywords': maskedKeywords,
         }),
       );
 
@@ -496,15 +489,9 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
         .whereType<Map>()
         .map((entry) => Map<String, dynamic>.from(entry))
         .toList();
-    final maskedKeywords =
-        ((payload['maskedKeywords'] as List?) ?? const <dynamic>[])
-            .map((entry) => entry.toString().trim())
-            .where((entry) => entry.isNotEmpty)
-            .toList();
     final filtered = _filterAndSort(
       items: items,
       search: search,
-      maskedKeywords: maskedKeywords,
     );
 
     return {'items': filtered};
@@ -516,7 +503,6 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
 List<Map<String, dynamic>> _filterAndSort({
   required List<Map<String, dynamic>> items,
   required Map<String, dynamic> search,
-  required List<String> maskedKeywords,
 }) {
   final keyword = (search['keyword']?.toString() ?? '').trim().toLowerCase();
   final categories = ((search['categories'] as List?) ?? const <dynamic>[])
@@ -525,25 +511,6 @@ List<Map<String, dynamic>> _filterAndSort({
       .toList();
 
   var data = items;
-
-  if (maskedKeywords.isNotEmpty) {
-    data = data.where((item) {
-      final metadata = _decodeMetadata(item['metadata']?.toString() ?? '[]');
-      final allText = [
-        item['title']?.toString() ?? '',
-        item['description']?.toString() ?? '',
-        _creatorName(item['creator']?.toString() ?? ''),
-        metadata.map((entry) => entry['name']?.toString() ?? '').join(),
-        metadata
-            .expand((entry) => entry['value'] as List<dynamic>? ?? const [])
-            .map((entry) => (entry as Map?)?['name']?.toString() ?? '')
-            .join(),
-      ].join().toLowerCase();
-      return !maskedKeywords.any(
-        (entry) => allText.contains(entry.toLowerCase()),
-      );
-    }).toList();
-  }
 
   if (categories.isNotEmpty) {
     for (final category in categories) {

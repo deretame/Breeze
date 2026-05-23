@@ -319,7 +319,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
           pluginUuid: pluginUuid,
           pluginState: pluginState,
           title: title,
-          description: isEnabled ? description : '已关闭（功能入口已隐藏）',
+          description: isEnabled ? description : '已关闭',
           iconUrl: iconUrl,
           functions: isEnabled ? rawFunctions : const <Map<String, dynamic>>[],
         );

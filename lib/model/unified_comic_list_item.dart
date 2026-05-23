@@ -71,7 +71,7 @@ class UnifiedComicListItem {
     return (source).trim();
   }
 
-  List<String> metadataValues(String type) {
+  List<Object> metadataValues(String type) {
     for (final item in metadata) {
       if (item.type == type) {
         return item.value;
@@ -175,7 +175,7 @@ class UnifiedComicMetadata {
 
   final String type;
   final String name;
-  final List<String> value;
+  final List<Object> value;
 
   factory UnifiedComicMetadata.fromJson(Map<String, dynamic> json) {
     return UnifiedComicMetadata(

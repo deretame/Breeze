@@ -75,17 +75,6 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
   ExternalChromiumLoginSession? _externalChromiumSession;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final cubit = context.read<PluginSettingsCubit>();
-      if (cubit.state.canShowUserInfo) {
-        cubit.loadUserInfo(widget.from);
-      }
-    });
-  }
-
-  @override
   void dispose() {
     final sub = _webLoginSub;
     _webLoginSub = null;

@@ -375,6 +375,12 @@ class _PinCodeSetupDialogState extends State<_PinCodeSetupDialog> {
               ),
             ),
             const SizedBox(height: 12),
+            Text(
+              "PIN 可用于重置手势密码，遗忘手势密码与 PIN 后将无法进入软件，请妥善保管 Pin",
+              softWrap: true,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               height: 20,
               child: Text(

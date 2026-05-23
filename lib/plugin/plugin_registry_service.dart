@@ -308,6 +308,7 @@ class PluginRegistryService {
           updateUrl: updateUrl,
           expectedUuid: local.uuid,
           cloudVersion: cloud.manifest.version,
+          npmName: cloud.manifest.npmName,
         );
         await _applyPluginUpdate(local: local, payload: payload);
         updatedCount++;
@@ -487,7 +488,21 @@ class PluginRegistryService {
     required String updateUrl,
     required String expectedUuid,
     required String cloudVersion,
+    required String npmName,
   }) async {
+    if (npmName.isNotEmpty) {
+      try {
+        return await _downloadFromJsdelivr(
+          npmName: npmName,
+          cloudVersion: cloudVersion,
+          expectedUuid: expectedUuid,
+          repo: repo,
+        );
+      } catch (e) {
+        logger.w('jsdelivr CDN 下载失败，回退 GitHub release: $npmName', error: e);
+      }
+    }
+
     final release = await fetchReleaseData(updateUrl);
     final asset = _pickPreferredPluginAsset(asJsonList(release['assets']));
     if (asset == null) {
@@ -525,11 +540,56 @@ class PluginRegistryService {
     );
   }
 
+  Future<_PluginUpdatePayload> _downloadFromJsdelivr({
+    required String npmName,
+    required String cloudVersion,
+    required String expectedUuid,
+    required String repo,
+  }) async {
+    final exts = ['.cjs.br', '.cjs'];
+    Object? lastError;
+    for (final ext in exts) {
+      final url =
+          'https://cdn.jsdelivr.net/npm/$npmName@$cloudVersion/dist/$npmName.bundle$ext';
+      try {
+        final response = await _downloadPluginAssetWithFallback(url);
+        final script = await _decodeDownloadedPluginScript(
+          response: response,
+          resolvedUrl: url,
+        );
+        final trimmed = script.trim();
+        if (trimmed.isEmpty) {
+          continue;
+        }
+
+        final info = await _callGetInfoByGlobalQjs(trimmed);
+        final resolvedUuid = _readUuidFromInfo(info);
+        if (resolvedUuid != expectedUuid) {
+          continue;
+        }
+        final resolvedVersion = _readVersionFromInfo(info);
+
+        return _PluginUpdatePayload(
+          uuid: resolvedUuid,
+          version: resolvedVersion.isNotEmpty ? resolvedVersion : cloudVersion,
+          script: trimmed,
+          sourceLabel: 'CDN 更新: $repo (jsdelivr/$npmName)',
+        );
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw StateError(
+      'jsdelivr CDN 全部扩展名尝试失败: $npmName@$cloudVersion, error: $lastError',
+    );
+  }
+
   Future<_PluginUpdatePayload> _downloadCloudPluginUpdateWithRetry({
     required String repo,
     required String updateUrl,
     required String expectedUuid,
     required String cloudVersion,
+    required String npmName,
   }) async {
     const maxAttempts = 3;
     Object? lastError;
@@ -541,6 +601,7 @@ class PluginRegistryService {
           updateUrl: updateUrl,
           expectedUuid: expectedUuid,
           cloudVersion: cloudVersion,
+          npmName: npmName,
         );
       } catch (e, st) {
         lastError = e;
@@ -1123,17 +1184,20 @@ class _CloudPluginManifest {
     required this.uuid,
     required this.version,
     required this.updateUrl,
+    required this.npmName,
   });
 
   final String uuid;
   final String version;
   final String updateUrl;
+  final String npmName;
 
   factory _CloudPluginManifest.fromJson(Map<String, dynamic> json) {
     return _CloudPluginManifest(
       uuid: json['uuid']?.toString().trim() ?? '',
       version: json['version']?.toString().trim() ?? '',
       updateUrl: json['updateUrl']?.toString().trim() ?? '',
+      npmName: json['npmName']?.toString().trim() ?? '',
     );
   }
 }

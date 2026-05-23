@@ -1719,6 +1719,106 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(18, 7669847009671819367),
+    name: 'DownloadFolder',
+    lastPropertyId: const obx_int.IdUid(6, 5555215542152334516),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8331806886002302109),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 303393992497367216),
+        name: 'folderKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(13, 8315302838109110921),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5580848589883920785),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7765731357859474566),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2527597739110052821),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 5555215542152334516),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(19, 3096208290767984506),
+    name: 'DownloadFolderItem',
+    lastPropertyId: const obx_int.IdUid(7, 3729876147938331074),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7235279495055666074),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7851998514592408478),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(14, 8839680506101054869),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 8095768372851194155),
+        name: 'folderKey',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8849522082745791067),
+        name: 'downloadUniqueKey',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4298721539010437446),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 3009028334568267897),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 3729876147938331074),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1764,8 +1864,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(17, 6011038726690231230),
-    lastIndexId: const obx_int.IdUid(12, 7477328395011863297),
+    lastEntityId: const obx_int.IdUid(19, 3096208290767984506),
+    lastIndexId: const obx_int.IdUid(14, 8839680506101054869),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -3964,6 +4064,134 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    DownloadFolder: obx_int.EntityDefinition<DownloadFolder>(
+      model: _entities[14],
+      toOneRelations: (DownloadFolder object) => [],
+      toManyRelations: (DownloadFolder object) => {},
+      getId: (DownloadFolder object) => object.id,
+      setId: (DownloadFolder object, int id) {
+        object.id = id;
+      },
+      objectToFB: (DownloadFolder object, fb.Builder fbb) {
+        final folderKeyOffset = fbb.writeString(object.folderKey);
+        final nameOffset = fbb.writeString(object.name);
+        fbb.startTable(7);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, folderKeyOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addInt64(3, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(4, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(5, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final folderKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          false,
+        );
+        final object = DownloadFolder(
+          id: idParam,
+          folderKey: folderKeyParam,
+          name: nameParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
+    DownloadFolderItem: obx_int.EntityDefinition<DownloadFolderItem>(
+      model: _entities[15],
+      toOneRelations: (DownloadFolderItem object) => [],
+      toManyRelations: (DownloadFolderItem object) => {},
+      getId: (DownloadFolderItem object) => object.id,
+      setId: (DownloadFolderItem object, int id) {
+        object.id = id;
+      },
+      objectToFB: (DownloadFolderItem object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final folderKeyOffset = fbb.writeString(object.folderKey);
+        final downloadUniqueKeyOffset = fbb.writeString(
+          object.downloadUniqueKey,
+        );
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, folderKeyOffset);
+        fbb.addOffset(3, downloadUniqueKeyOffset);
+        fbb.addInt64(4, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(6, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final folderKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final downloadUniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object = DownloadFolderItem(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          folderKey: folderKeyParam,
+          downloadUniqueKey: downloadUniqueKeyParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -5299,5 +5527,76 @@ class FavoriteFolderItem_ {
   /// See [FavoriteFolderItem.deleted].
   static final deleted = obx.QueryBooleanProperty<FavoriteFolderItem>(
     _entities[13].properties[6],
+  );
+}
+
+/// [DownloadFolder] entity fields to define ObjectBox queries.
+class DownloadFolder_ {
+  /// See [DownloadFolder.id].
+  static final id = obx.QueryIntegerProperty<DownloadFolder>(
+    _entities[14].properties[0],
+  );
+
+  /// See [DownloadFolder.folderKey].
+  static final folderKey = obx.QueryStringProperty<DownloadFolder>(
+    _entities[14].properties[1],
+  );
+
+  /// See [DownloadFolder.name].
+  static final name = obx.QueryStringProperty<DownloadFolder>(
+    _entities[14].properties[2],
+  );
+
+  /// See [DownloadFolder.createdAt].
+  static final createdAt = obx.QueryDateProperty<DownloadFolder>(
+    _entities[14].properties[3],
+  );
+
+  /// See [DownloadFolder.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<DownloadFolder>(
+    _entities[14].properties[4],
+  );
+
+  /// See [DownloadFolder.deleted].
+  static final deleted = obx.QueryBooleanProperty<DownloadFolder>(
+    _entities[14].properties[5],
+  );
+}
+
+/// [DownloadFolderItem] entity fields to define ObjectBox queries.
+class DownloadFolderItem_ {
+  /// See [DownloadFolderItem.id].
+  static final id = obx.QueryIntegerProperty<DownloadFolderItem>(
+    _entities[15].properties[0],
+  );
+
+  /// See [DownloadFolderItem.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<DownloadFolderItem>(
+    _entities[15].properties[1],
+  );
+
+  /// See [DownloadFolderItem.folderKey].
+  static final folderKey = obx.QueryStringProperty<DownloadFolderItem>(
+    _entities[15].properties[2],
+  );
+
+  /// See [DownloadFolderItem.downloadUniqueKey].
+  static final downloadUniqueKey = obx.QueryStringProperty<DownloadFolderItem>(
+    _entities[15].properties[3],
+  );
+
+  /// See [DownloadFolderItem.createdAt].
+  static final createdAt = obx.QueryDateProperty<DownloadFolderItem>(
+    _entities[15].properties[4],
+  );
+
+  /// See [DownloadFolderItem.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<DownloadFolderItem>(
+    _entities[15].properties[5],
+  );
+
+  /// See [DownloadFolderItem.deleted].
+  static final deleted = obx.QueryBooleanProperty<DownloadFolderItem>(
+    _entities[15].properties[6],
   );
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -11,6 +12,8 @@ import 'package:zephyr/util/compatible/compatible.dart';
 import 'package:zephyr/util/router/router.gr.dart' as app_router;
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/util/tools_register.dart';
+import 'package:zephyr/widgets/gesture_lock.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
 class AppBootstrapPage extends StatelessWidget {
@@ -100,6 +103,52 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
     }
 
     if (!mounted) return;
+
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final globalSetting = globalSettingCubit.state;
+    final appLockSetting = globalSetting.appLockSetting;
+    if (appLockSetting.enabled && appLockSetting.isReady) {
+      updateStatus("请验证手势密码");
+      final unlockResult = await showGestureUnlockDialog(
+        context,
+        expectedHash: appLockSetting.gesturePasswordHash,
+        title: '应用已锁定',
+        hint: '请先完成手势验证',
+        showForgotPassword: true,
+      );
+      if (!mounted) {
+        return;
+      }
+      if (unlockResult == GestureUnlockResult.forgotPassword) {
+        final verified = await showPinVerifyDialog(
+          context,
+          expectedHash: appLockSetting.resetPinHash,
+          title: '重置手势密码',
+          hint: '请输入设置时保存的重置 PIN',
+        );
+        if (!mounted) {
+          return;
+        }
+        if (verified == true) {
+          globalSettingCubit.updateState(
+            (current) =>
+                current.copyWith(appLockSetting: const AppLockSettingState()),
+          );
+          showSuccessToast('密码已清空，请重新设置');
+          updateStatus("密码已清空，请重新设置");
+          context.router.replace(const app_router.NavigationBar());
+          return;
+        }
+        updateStatus("PIN 验证未通过");
+        return;
+      }
+      if (unlockResult != GestureUnlockResult.success) {
+        updateStatus("已取消解锁");
+        return;
+      }
+      updateStatus("验证成功，正在进入应用");
+    }
+
     context.router.replace(const app_router.NavigationBar());
   }
 }

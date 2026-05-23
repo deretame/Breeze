@@ -6,12 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/debug/qjs_runtime_debug_page.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/impeller_config.dart';
+import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
@@ -127,6 +127,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '应用行为', Icons.settings_outlined),
               _splashPage(state, globalSettingCubit),
+              _appLockSetting(state, globalSettingCubit),
               _oldPageRollback(state, globalSettingCubit),
 
               const SizedBox(height: 8),
@@ -152,11 +153,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   subtitle: const Text('手动输入运行时 ID，抓取调试快照'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const QjsRuntimeDebugPage(),
-                      ),
-                    );
+                    context.pushRoute(const QjsRuntimeDebugRoute());
                   },
                 ),
               ],
@@ -577,6 +574,149 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           showSuccessToast('自定义导出路径已设置');
         }
       },
+    );
+  }
+
+  Widget _appLockSetting(GlobalSettingState state, GlobalSettingCubit cubit) {
+    final lockSetting = state.appLockSetting;
+    final isReady = lockSetting.isReady;
+
+    return Column(
+      children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.lock_outline),
+          title: const Text('启动手势解锁'),
+          subtitle: Text('进入应用后先验证手势密码'),
+          thumbIcon: kSettingSwitchThumbIcon,
+          value: lockSetting.enabled,
+          onChanged: (bool value) async {
+            if (value && !isReady) {
+              final nextSetting = await _configureAppLock();
+              if (nextSetting == null) {
+                return;
+              }
+              cubit.updateState(
+                (current) => current.copyWith(appLockSetting: nextSetting),
+              );
+              showSuccessToast('手势解锁已开启');
+              return;
+            }
+
+            cubit.updateState(
+              (current) => current.copyWith(
+                appLockSetting: current.appLockSetting.copyWith(enabled: value),
+              ),
+            );
+            showSuccessToast(value ? '手势解锁已开启' : '手势解锁已关闭');
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.gesture_outlined),
+          title: const Text('设置手势密码与重置 PIN'),
+          subtitle: Text('重新设置手势密码和重置 PIN'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () async {
+            final nextSetting = await _configureAppLock();
+            if (nextSetting == null) {
+              return;
+            }
+            cubit.updateState(
+              (current) => current.copyWith(appLockSetting: nextSetting),
+            );
+            showSuccessToast('手势密码与重置 PIN 已更新');
+          },
+        ),
+        if (isReady)
+          ListTile(
+            leading: const Icon(Icons.pin_outlined),
+            title: const Text('修改重置 PIN'),
+            subtitle: const Text('修改重置 PIN'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final pin = await showPinCodeSetupDialog(
+                context,
+                title: '设置重置 PIN',
+                confirmTitle: '确认重置 PIN',
+              );
+              if (pin == null) {
+                return;
+              }
+              cubit.updateState(
+                (current) => current.copyWith(
+                  appLockSetting: current.appLockSetting.copyWith(
+                    resetPinHash: hashPinCode(pin),
+                  ),
+                ),
+              );
+              showSuccessToast('重置 PIN 已更新');
+            },
+          ),
+        if (isReady)
+          ListTile(
+            leading: const Icon(Icons.delete_outline),
+            title: const Text('清除手势密码与 PIN'),
+            subtitle: const Text('清除手势密码与 PIN'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final shouldDelete = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('清除手势密码与 PIN'),
+                  content: const Text('清除后，进入应用时将不再验证手势密码。'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('清除'),
+                    ),
+                  ],
+                ),
+              );
+              if (shouldDelete != true) {
+                return;
+              }
+              cubit.updateState(
+                (current) => current.copyWith(
+                  appLockSetting: const AppLockSettingState(),
+                ),
+              );
+              showSuccessToast('手势密码与 PIN 已清除');
+            },
+          ),
+      ],
+    );
+  }
+
+  Future<AppLockSettingState?> _configureAppLock() async {
+    final pattern = await showGesturePasswordSetupDialog(
+      context,
+      title: '设置手势密码',
+      confirmTitle: '确认手势密码',
+    );
+    if (pattern == null) {
+      return null;
+    }
+
+    if (!mounted) {
+      return null;
+    }
+
+    final pin = await showPinCodeSetupDialog(
+      context,
+      title: '设置重置 PIN',
+      confirmTitle: '确认重置 PIN',
+    );
+    if (pin == null) {
+      return null;
+    }
+
+    return AppLockSettingState(
+      enabled: true,
+      gesturePasswordHash: hashGesturePattern(pattern),
+      resetPinHash: hashPinCode(pin),
     );
   }
 }

@@ -52,6 +52,11 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
       ? const ReadSettingState()
       : ReadSettingState.fromJson(json['readSetting'] as Map<String, dynamic>),
   customExportPath: json['customExportPath'] as String? ?? '',
+  appLockSetting: json['appLockSetting'] == null
+      ? const AppLockSettingState()
+      : AppLockSettingState.fromJson(
+          json['appLockSetting'] as Map<String, dynamic>,
+        ),
   compatibleVersion: json['compatibleVersion'] as String? ?? "",
 );
 
@@ -82,6 +87,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'windowY': instance.windowY,
       'readSetting': instance.readSetting,
       'customExportPath': instance.customExportPath,
+      'appLockSetting': instance.appLockSetting,
       'compatibleVersion': instance.compatibleVersion,
     };
 
@@ -89,6 +95,21 @@ const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+_AppLockSettingState _$AppLockSettingStateFromJson(Map<String, dynamic> json) =>
+    _AppLockSettingState(
+      enabled: json['enabled'] as bool? ?? false,
+      gesturePasswordHash: json['gesturePasswordHash'] as String? ?? '',
+      resetPinHash: json['resetPinHash'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$AppLockSettingStateToJson(
+  _AppLockSettingState instance,
+) => <String, dynamic>{
+  'enabled': instance.enabled,
+  'gesturePasswordHash': instance.gesturePasswordHash,
+  'resetPinHash': instance.resetPinHash,
 };
 
 _WebDavSettingState _$WebDavSettingStateFromJson(Map<String, dynamic> json) =>

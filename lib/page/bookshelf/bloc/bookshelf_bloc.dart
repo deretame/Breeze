@@ -10,6 +10,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
+import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/error_filter.dart';
 
@@ -327,8 +328,20 @@ class BookshelfSectionBloc
   }
 
   _RawQueryResult _queryDownloadRaw(SearchEnter search, int offset, int limit) {
+    final folderKey = DownloadFolderService.parseFolderKeyFromSources(
+      search.sources,
+    );
+    final sourcesWithoutFolder = DownloadFolderService.stripFolderSourceTokens(
+      search.sources,
+    );
+    final folderFiltering =
+        folderKey != null && folderKey != kDownloadFolderAllKey;
     final query = objectbox.unifiedDownloadBox
-        .query(_downloadBaseCondition(search))
+        .query(
+          _downloadBaseCondition(
+            search.copyWith(sources: sourcesWithoutFolder),
+          ),
+        )
         .order(
           UnifiedComicDownload_.downloadedAt,
           flags: search.sort == 'da' ? 0 : Order.descending,
@@ -336,6 +349,22 @@ class BookshelfSectionBloc
         .build();
     try {
       final total = query.count();
+      if (folderFiltering) {
+        final all = query.find();
+        final members = DownloadFolderService.membersOf(folderKey);
+        final filtered = all
+            .where((item) => members.contains(item.uniqueKey))
+            .toList();
+        final start = offset > filtered.length ? filtered.length : offset;
+        final end = (start + limit) > filtered.length
+            ? filtered.length
+            : (start + limit);
+        final items = filtered.sublist(start, end);
+        return _RawQueryResult(
+          items.map((item) => item.toJson()).toList(),
+          filtered.length,
+        );
+      }
       query.offset = offset;
       query.limit = limit;
       final items = query.find();

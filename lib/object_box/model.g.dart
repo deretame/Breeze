@@ -613,6 +613,48 @@ Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
       'taskInfo': instance.taskInfo,
     };
 
+DownloadFolder _$DownloadFolderFromJson(Map<String, dynamic> json) =>
+    DownloadFolder(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      folderKey: json['folderKey'] as String,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deleted: json['deleted'] as bool,
+    );
+
+Map<String, dynamic> _$DownloadFolderToJson(DownloadFolder instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'folderKey': instance.folderKey,
+      'name': instance.name,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'deleted': instance.deleted,
+    };
+
+DownloadFolderItem _$DownloadFolderItemFromJson(Map<String, dynamic> json) =>
+    DownloadFolderItem(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      uniqueKey: json['uniqueKey'] as String,
+      folderKey: json['folderKey'] as String,
+      downloadUniqueKey: json['downloadUniqueKey'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deleted: json['deleted'] as bool,
+    );
+
+Map<String, dynamic> _$DownloadFolderItemToJson(DownloadFolderItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'uniqueKey': instance.uniqueKey,
+      'folderKey': instance.folderKey,
+      'downloadUniqueKey': instance.downloadUniqueKey,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'deleted': instance.deleted,
+    };
+
 PluginConfig _$PluginConfigFromJson(Map<String, dynamic> json) => PluginConfig(
   id: (json['id'] as num?)?.toInt() ?? 0,
   name: json['name'] as String,

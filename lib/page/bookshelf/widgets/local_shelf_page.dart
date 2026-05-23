@@ -12,6 +12,7 @@ import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
@@ -185,26 +186,34 @@ class _LocalShelfPageState extends State<LocalShelfPage>
       return;
     }
 
-    final currentFolderKey = FavoriteFolderService.parseFolderKeyFromSources(
-      _currentSearchState().sources,
-    );
-    final inCustomFavoriteFolder =
-        widget.mode == ShelfPageMode.favorite &&
+    final currentFolderKey = switch (widget.mode) {
+      ShelfPageMode.favorite => FavoriteFolderService.parseFolderKeyFromSources(
+        _currentSearchState().sources,
+      ),
+      ShelfPageMode.download => DownloadFolderService.parseFolderKeyFromSources(
+        _currentSearchState().sources,
+      ),
+      _ => null,
+    };
+    final inCustomFolder =
+        widget.mode != ShelfPageMode.history &&
         currentFolderKey != null &&
-        currentFolderKey != kFavoriteFolderAllKey;
+        currentFolderKey != kFavoriteFolderAllKey &&
+        currentFolderKey != kDownloadFolderAllKey;
 
     final deleteTitle = switch (widget.mode) {
-      ShelfPageMode.favorite => inCustomFavoriteFolder ? '移出收藏夹' : '删除收藏',
+      ShelfPageMode.favorite => inCustomFolder ? '移出收藏夹' : '删除收藏',
       ShelfPageMode.history => '删除历史记录',
-      ShelfPageMode.download => '删除下载记录',
+      ShelfPageMode.download => inCustomFolder ? '移出下载文件夹' : '删除下载记录',
     };
     final deleteContent = switch (widget.mode) {
       ShelfPageMode.favorite =>
-        inCustomFavoriteFolder
-            ? '是否要从本文件夹中移除'
-            : '确定要删除选中的 ${selected.length} 条收藏记录吗？',
+        inCustomFolder ? '是否要从本文件夹中移除' : '确定要删除选中的 ${selected.length} 条收藏记录吗？',
       ShelfPageMode.history => '确定要删除选中的 ${selected.length} 条历史记录吗？',
-      ShelfPageMode.download => '确定要删除选中的 ${selected.length} 条下载记录及文件吗？',
+      ShelfPageMode.download =>
+        inCustomFolder
+            ? '是否要从本文件夹中移除'
+            : '确定要删除选中的 ${selected.length} 条下载记录及文件吗？',
     };
 
     final ok = await showDialog<bool>(
@@ -227,11 +236,21 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     if (ok != true) return;
 
     try {
-      final folderKey = FavoriteFolderService.parseFolderKeyFromSources(
-        _currentSearchState().sources,
-      );
+      final folderKey = switch (widget.mode) {
+        ShelfPageMode.favorite =>
+          FavoriteFolderService.parseFolderKeyFromSources(
+            _currentSearchState().sources,
+          ),
+        ShelfPageMode.download =>
+          DownloadFolderService.parseFolderKeyFromSources(
+            _currentSearchState().sources,
+          ),
+        _ => null,
+      };
       final inAllFolder =
-          folderKey == null || folderKey == kFavoriteFolderAllKey;
+          folderKey == null ||
+          folderKey == kFavoriteFolderAllKey ||
+          folderKey == kDownloadFolderAllKey;
       for (final entry in selected) {
         final uniqueKey = _entryKey(entry);
         switch (widget.mode) {
@@ -263,20 +282,25 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             }
             break;
           case ShelfPageMode.download:
-            final temp = objectbox.unifiedDownloadBox
-                .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
-                .build()
-                .findFirst();
-            if (temp != null) {
-              objectbox.unifiedDownloadBox.remove(temp.id);
-              final downloadPath = await getDownloadPath();
-              final path = p.join(
-                downloadPath,
-                entry.from,
-                'original',
-                entry.id,
-              );
-              await deleteDirectory(path);
+            if (!inAllFolder) {
+              DownloadFolderService.removeMembers(folderKey, [uniqueKey]);
+            } else {
+              final temp = objectbox.unifiedDownloadBox
+                  .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
+                  .build()
+                  .findFirst();
+              if (temp != null) {
+                objectbox.unifiedDownloadBox.remove(temp.id);
+                DownloadFolderService.removeMemberFromAllFolders(uniqueKey);
+                final downloadPath = await getDownloadPath();
+                final path = p.join(
+                  downloadPath,
+                  entry.from,
+                  'original',
+                  entry.id,
+                );
+                await deleteDirectory(path);
+              }
             }
             break;
         }
@@ -465,6 +489,16 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                               if (widget.mode == ShelfPageMode.download)
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
+                                  tooltip: '加入下载文件夹',
+                                  onPressed: () =>
+                                      _addSelectedToDownloadFolder(entries),
+                                  icon: const Icon(
+                                    Icons.create_new_folder_outlined,
+                                  ),
+                                ),
+                              if (widget.mode == ShelfPageMode.download)
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
                                   tooltip: '批量导出',
                                   onPressed: () =>
                                       _batchExportSelected(entries),
@@ -611,6 +645,31 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     showSuccessToast('已加入收藏夹');
   }
 
+  Future<void> _addSelectedToDownloadFolder(
+    List<ComicSimplifyEntryInfo> entries,
+  ) async {
+    if (_selectedKeys.isEmpty) return;
+    final selected = entries
+        .where((entry) => _selectedKeys.contains(_entryKey(entry)))
+        .toList();
+    if (selected.isEmpty) return;
+    final folders = DownloadFolderService.listFolders()
+        .where((item) => !item.isAll)
+        .toList();
+    if (folders.isEmpty) {
+      showErrorToast('请先创建自定义下载文件夹');
+      return;
+    }
+    final selectedFolderKeys = await _showDownloadFolderPickDialog(folders);
+    if (selectedFolderKeys.isEmpty) {
+      return;
+    }
+    for (final folderKey in selectedFolderKeys) {
+      DownloadFolderService.addMembers(folderKey, selected.map(_entryKey));
+    }
+    showSuccessToast('已加入下载文件夹');
+  }
+
   Future<List<String>> _showFolderPickDialog(
     List<FavoriteFolderView> folders,
   ) async {
@@ -621,6 +680,55 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             builder: (context, setState) {
               return AlertDialog(
                 title: const Text('选择收藏夹（可多选）'),
+                content: SizedBox(
+                  width: 360,
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final folder in folders)
+                        CheckboxListTile(
+                          value: selected.contains(folder.key),
+                          title: Text(folder.name),
+                          onChanged: (value) => setState(() {
+                            if (value == true) {
+                              selected.add(folder.key);
+                            } else {
+                              selected.remove(folder.key);
+                            }
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('取消'),
+                  ),
+                  FilledButton(
+                    onPressed: selected.isEmpty
+                        ? null
+                        : () => Navigator.of(context).pop(selected.toList()),
+                    child: const Text('确定'),
+                  ),
+                ],
+              );
+            },
+          ),
+        )) ??
+        const <String>[];
+  }
+
+  Future<List<String>> _showDownloadFolderPickDialog(
+    List<DownloadFolderView> folders,
+  ) async {
+    final selected = <String>{};
+    return (await showDialog<List<String>>(
+          context: context,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('选择下载文件夹（可多选）'),
                 content: SizedBox(
                   width: 360,
                   child: ListView(

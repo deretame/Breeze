@@ -146,6 +146,21 @@ Future<void> main() async {
       ['format', './lib/'], // 只格式化 lib 目录，节省时间
       workingDirectory: projectRoot,
     );
+    await _runCommand(
+      'cargo',
+      ['fmt'],
+      workingDirectory: '$projectRoot${Platform.pathSeparator}rust',
+    );
+    final rquickjsPlaygroundDir = Directory(
+      '$projectRoot${Platform.pathSeparator}rquickjs_playground',
+    );
+    if (await rquickjsPlaygroundDir.exists()) {
+      await _runCommand(
+        'cargo',
+        ['fmt'],
+        workingDirectory: rquickjsPlaygroundDir.path,
+      );
+    }
   } catch (e) {
     _printColor('\n❌ 流程发生错误: $e', _red);
     exitCode = 1;

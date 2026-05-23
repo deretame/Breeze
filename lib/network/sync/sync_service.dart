@@ -211,6 +211,7 @@ Map<String, dynamic> _buildSettingsPayload(
 
   final globalSettingJson = sanitizedGlobal.toJson();
   globalSettingJson.remove('customExportPath');
+  globalSettingJson.remove('appLockSetting');
 
   final pluginBlock = snapshot.blocks[_pluginsBlockName];
   final pluginConfigs = pluginBlock == null

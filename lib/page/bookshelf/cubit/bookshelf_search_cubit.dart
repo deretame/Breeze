@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
+import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 
 class BookshelfSearchState {
@@ -91,10 +92,20 @@ class BookshelfSearchCubit extends Cubit<BookshelfSearchState> {
           .stateOf(mode)
           .sources
           .where((item) => item.trim().isNotEmpty);
-      final folderToken = FavoriteFolderService.parseFolderKeyFromSources(
-        current.toList(),
-      );
-      final filtered = current.where(available.contains).toSet();
+      String? folderToken;
+      if (mode == ShelfPageMode.favorite) {
+        folderToken = FavoriteFolderService.parseFolderKeyFromSources(
+          current.toList(),
+        );
+      } else if (mode == ShelfPageMode.download) {
+        folderToken = DownloadFolderService.parseFolderKeyFromSources(
+          current.toList(),
+        );
+      }
+      final filterSources = mode == ShelfPageMode.download
+          ? DownloadFolderService.stripFolderSourceTokens(current.toList())
+          : FavoriteFolderService.stripFolderSourceTokens(current.toList());
+      final filtered = filterSources.where(available.contains).toSet();
       filtered.addAll(autoSelectSet.where(available.contains));
       final nextSources = filtered.isEmpty
           ? available
@@ -103,6 +114,12 @@ class BookshelfSearchCubit extends Cubit<BookshelfSearchState> {
         nextSources.add(
           FavoriteFolderService.sourceToken(
             folderToken ?? kFavoriteFolderAllKey,
+          ),
+        );
+      } else if (mode == ShelfPageMode.download) {
+        nextSources.add(
+          DownloadFolderService.sourceToken(
+            folderToken ?? kDownloadFolderAllKey,
           ),
         );
       }

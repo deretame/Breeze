@@ -746,6 +746,7 @@ class UserSetting {
     this.jmJwt = '',
   });
 
+  @Transient()
   GlobalSettingState get globalSetting {
     if (_globalSetting == null && globalSettingData != null) {
       _globalSetting = GlobalSettingState.fromJson(
@@ -755,11 +756,13 @@ class UserSetting {
     return _globalSetting ??= GlobalSettingState();
   }
 
+  @Transient()
   set globalSetting(GlobalSettingState value) {
     _globalSetting = value;
     globalSettingData = jsonEncode(value.toJson());
   }
 
+  @Transient()
   BikaSettingState get bikaSetting {
     if (_bikaSetting == null && bikaSettingData != null) {
       _bikaSetting = BikaSettingState.fromJson(jsonDecode(bikaSettingData!));
@@ -767,11 +770,13 @@ class UserSetting {
     return _bikaSetting ??= BikaSettingState();
   }
 
+  @Transient()
   set bikaSetting(BikaSettingState value) {
     _bikaSetting = value;
     bikaSettingData = jsonEncode(value.toJson());
   }
 
+  @Transient()
   JmSettingState get jmSetting {
     if (_jmSetting == null && jmSettingData != null) {
       _jmSetting = JmSettingState.fromJson(jsonDecode(jmSettingData!));
@@ -779,6 +784,7 @@ class UserSetting {
     return _jmSetting ??= JmSettingState();
   }
 
+  @Transient()
   set jmSetting(JmSettingState value) {
     _jmSetting = value;
     jmSettingData = jsonEncode(value.toJson());
@@ -839,6 +845,83 @@ class DownloadTask {
 
   factory DownloadTask.fromJson(Map<String, dynamic> json) =>
       _$DownloadTaskFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class DownloadFolder {
+  @Id()
+  int id;
+
+  @Unique()
+  String folderKey;
+
+  String name;
+
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+
+  bool deleted;
+
+  DownloadFolder({
+    this.id = 0,
+    required this.folderKey,
+    required this.name,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.deleted,
+  });
+
+  Map<String, dynamic> toJson() => _$DownloadFolderToJson(this);
+
+  factory DownloadFolder.fromJson(Map<String, dynamic> json) =>
+      _$DownloadFolderFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class DownloadFolderItem {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  String folderKey;
+  String downloadUniqueKey;
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+  bool deleted;
+
+  DownloadFolderItem({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.folderKey,
+    required this.downloadUniqueKey,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.deleted,
+  });
+
+  Map<String, dynamic> toJson() => _$DownloadFolderItemToJson(this);
+
+  factory DownloadFolderItem.fromJson(Map<String, dynamic> json) =>
+      _$DownloadFolderItemFromJson(json);
 
   @override
   String toString() {

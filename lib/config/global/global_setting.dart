@@ -93,11 +93,32 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(0) double windowY,
     @Default(ReadSettingState()) ReadSettingState readSetting,
     @Default('') String customExportPath,
+    @Default(AppLockSettingState()) AppLockSettingState appLockSetting,
     @Default("") String compatibleVersion,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
       _$GlobalSettingStateFromJson(json);
+}
+
+@freezed
+abstract class AppLockSettingState with _$AppLockSettingState {
+  const AppLockSettingState._();
+
+  const factory AppLockSettingState({
+    @Default(false) bool enabled,
+    @Default('') String gesturePasswordHash,
+    @Default('') String resetPinHash,
+  }) = _AppLockSettingState;
+
+  factory AppLockSettingState.fromJson(Map<String, dynamic> json) =>
+      _$AppLockSettingStateFromJson(json);
+
+  bool get hasGesturePassword => gesturePasswordHash.trim().isNotEmpty;
+
+  bool get hasResetPin => resetPinHash.trim().isNotEmpty;
+
+  bool get isReady => hasGesturePassword && hasResetPin;
 }
 
 @freezed

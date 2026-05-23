@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
+import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -334,10 +335,21 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       return;
     }
 
-    final currentFolderKey =
+    final currentFolderKey = switch (currentMode) {
+      ShelfPageMode.favorite =>
         FavoriteFolderService.parseFolderKeyFromSources(current.sources) ??
-        kFavoriteFolderAllKey;
-    var selectedSources = FavoriteFolderService.stripFolderSourceTokens(
+            kFavoriteFolderAllKey,
+      ShelfPageMode.download =>
+        DownloadFolderService.parseFolderKeyFromSources(current.sources) ??
+            kDownloadFolderAllKey,
+      _ => kFavoriteFolderAllKey,
+    };
+    final stripFolderTokens = switch (currentMode) {
+      ShelfPageMode.favorite => FavoriteFolderService.stripFolderSourceTokens,
+      ShelfPageMode.download => DownloadFolderService.stripFolderSourceTokens,
+      _ => FavoriteFolderService.stripFolderSourceTokens,
+    };
+    var selectedSources = stripFolderTokens(
       current.sources,
     ).where(availableSources.contains).toSet();
     if (selectedSources.isEmpty) {
@@ -365,6 +377,8 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     final nextSources = result.sources.toList();
     if (currentMode == ShelfPageMode.favorite) {
       nextSources.add(FavoriteFolderService.sourceToken(result.folderKey));
+    } else if (currentMode == ShelfPageMode.download) {
+      nextSources.add(DownloadFolderService.sourceToken(result.folderKey));
     }
     searchCubit.setSources(currentMode, nextSources);
     _triggerRefresh(goTop: true);
@@ -395,13 +409,16 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
   Future<_FolderDialogOutcome?> _handleFolderAction(
     BuildContext dialogContext,
-    FavoriteFolderView folder,
+    dynamic folder,
   ) async {
+    final String folderKey = folder.key as String;
+    final String folderName = folder.name as String;
+
     if (!mounted) {
       return null;
     }
 
-    final action = await _showFolderActionDialog(context, folder.name);
+    final action = await _showFolderActionDialog(context, folderName);
     if (!mounted) {
       return null;
     }
@@ -409,24 +426,33 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       return null;
     }
 
+    final isFavoriteMode = _currentIndex == 0;
+    final allKey = isFavoriteMode
+        ? kFavoriteFolderAllKey
+        : kDownloadFolderAllKey;
+
     if (action == _FolderAction.delete) {
-      final ok = await _confirmDeleteFolder(context, folder.name);
+      final ok = await _confirmDeleteFolder(context, folderName);
       if (!mounted) {
         return null;
       }
       if (ok != true) {
         return null;
       }
-      FavoriteFolderService.deleteFolder(folder.key);
+      if (isFavoriteMode) {
+        FavoriteFolderService.deleteFolder(folderKey);
+      } else {
+        DownloadFolderService.deleteFolder(folderKey);
+      }
       return _FolderDialogOutcome(
         shouldRefreshFolders: true,
-        selectedFolderKey: kFavoriteFolderAllKey,
+        selectedFolderKey: allKey,
       );
     }
 
     final renamed = await _showRenameFolderDialog(
       context,
-      initialName: folder.name,
+      initialName: folderName,
     );
     if (!mounted) {
       return null;
@@ -435,10 +461,14 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       return null;
     }
     try {
-      FavoriteFolderService.renameFolder(folder.key, renamed.trim());
+      if (isFavoriteMode) {
+        FavoriteFolderService.renameFolder(folderKey, renamed.trim());
+      } else {
+        DownloadFolderService.renameFolder(folderKey, renamed.trim());
+      }
       return _FolderDialogOutcome(
         shouldRefreshFolders: true,
-        selectedFolderKey: folder.key,
+        selectedFolderKey: folderKey,
       );
     } catch (e) {
       if (dialogContext.mounted) {
@@ -610,7 +640,7 @@ class _BookshelfFilterDialog extends StatefulWidget {
   final List<String> availableSources;
   final List<_FilterSourceOption> sourceOptions;
   final Future<String?> Function() onCreateFolder;
-  final Future<_FolderDialogOutcome?> Function(FavoriteFolderView folder)
+  final Future<_FolderDialogOutcome?> Function(dynamic folder)
   onRequestFolderAction;
 
   @override
@@ -623,6 +653,8 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
   late Set<String> _selectedSources;
 
   bool get _isFavoriteMode => widget.mode == ShelfPageMode.favorite;
+  bool get _isDownloadMode => widget.mode == ShelfPageMode.download;
+  bool get _showFolderSection => _isFavoriteMode || _isDownloadMode;
 
   @override
   void initState() {
@@ -644,7 +676,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
           children: [
             _buildSortSection(context),
             const SizedBox(height: 16),
-            if (_isFavoriteMode) ...[
+            if (_showFolderSection) ...[
               _buildFolderSection(context),
               const SizedBox(height: 16),
             ],
@@ -699,12 +731,18 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
   }
 
   Widget _buildFolderSection(BuildContext context) {
+    final List<dynamic> folderViews;
+    if (_isFavoriteMode) {
+      folderViews = FavoriteFolderService.listFolders();
+    } else {
+      folderViews = DownloadFolderService.listFolders();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text('收藏夹', style: Theme.of(context).textTheme.titleSmall),
+            Text('文件夹', style: Theme.of(context).textTheme.titleSmall),
             const Spacer(),
             TextButton(onPressed: _createFolder, child: const Text('新建')),
           ],
@@ -714,7 +752,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final folder in FavoriteFolderService.listFolders())
+            for (final folder in folderViews)
               GestureDetector(
                 onLongPress: folder.isAll
                     ? null
@@ -731,6 +769,41 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
         ),
       ],
     );
+  }
+
+  Future<void> _createFolder() async {
+    final created = await widget.onCreateFolder();
+    if (created == null || created.trim().isEmpty) {
+      return;
+    }
+    try {
+      if (_isFavoriteMode) {
+        final folder = FavoriteFolderService.createFolder(created.trim());
+        if (!mounted) return;
+        setState(() => _selectedFolderKey = folder.key);
+      } else {
+        final folder = DownloadFolderService.createFolder(created.trim());
+        if (!mounted) return;
+        setState(() => _selectedFolderKey = folder.key);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<void> _handleFolderLongPress(dynamic folder) async {
+    final outcome = await widget.onRequestFolderAction(folder);
+    if (!mounted || outcome == null) {
+      return;
+    }
+    setState(() {
+      if (outcome.selectedFolderKey != null) {
+        _selectedFolderKey = outcome.selectedFolderKey!;
+      }
+    });
   }
 
   Widget _buildSourceSection(BuildContext context) {
@@ -777,39 +850,6 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
         ),
       ],
     );
-  }
-
-  Future<void> _createFolder() async {
-    final created = await widget.onCreateFolder();
-    if (created == null || created.trim().isEmpty) {
-      return;
-    }
-    try {
-      final folder = FavoriteFolderService.createFolder(created.trim());
-      if (!mounted) {
-        return;
-      }
-      setState(() => _selectedFolderKey = folder.key);
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
-    }
-  }
-
-  Future<void> _handleFolderLongPress(FavoriteFolderView folder) async {
-    final outcome = await widget.onRequestFolderAction(folder);
-    if (!mounted || outcome == null) {
-      return;
-    }
-    setState(() {
-      if (outcome.selectedFolderKey != null) {
-        _selectedFolderKey = outcome.selectedFolderKey!;
-      }
-    });
   }
 }
 

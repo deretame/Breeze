@@ -95,10 +95,22 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default('') String customExportPath,
     @Default(AppLockSettingState()) AppLockSettingState appLockSetting,
     @Default("") String compatibleVersion,
+    @Default(CacheSettingState()) CacheSettingState cacheSetting,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
       _$GlobalSettingStateFromJson(json);
+}
+
+@freezed
+abstract class CacheSettingState with _$CacheSettingState {
+  const factory CacheSettingState({
+    @Default(true) bool autoCleanCache,
+    @Default(1073741824) int cacheSizeLimit,
+  }) = _CacheSettingState;
+
+  factory CacheSettingState.fromJson(Map<String, dynamic> json) =>
+      _$CacheSettingStateFromJson(json);
 }
 
 @freezed
@@ -249,6 +261,15 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   ) {
     updateState(
       (current) => current.copyWith(syncSetting: updates(current.syncSetting)),
+    );
+  }
+
+  void updateCacheSetting(
+    CacheSettingState Function(CacheSettingState current) updates,
+  ) {
+    updateState(
+      (current) =>
+          current.copyWith(cacheSetting: updates(current.cacheSetting)),
     );
   }
 

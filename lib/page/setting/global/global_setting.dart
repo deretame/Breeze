@@ -10,6 +10,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -32,10 +33,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
   final List<String> splashPageList = ["书架", "发现"];
   final Map<String, int> splashPage = {"书架": 0, "发现": 1};
+
+  int? _cacheSizeBytes;
+  bool _cacheCalculating = false;
+
   @override
   void initState() {
     super.initState();
     _loadImpellerConfig();
+    _loadCacheSize();
   }
 
   Future<void> _loadImpellerConfig() async {
@@ -51,6 +57,70 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       cubit.updateState(
         (current) => current.copyWith(forceEnableImpeller: forceEnableImpeller),
       );
+    }
+  }
+
+  Future<void> _loadCacheSize() async {
+    if (_cacheCalculating) return;
+    setState(() => _cacheCalculating = true);
+
+    try {
+      final cachePath = await getCachePath();
+      final directory = Directory(cachePath);
+      if (!await directory.exists()) {
+        if (!mounted) return;
+        setState(() {
+          _cacheSizeBytes = 0;
+          _cacheCalculating = false;
+        });
+        return;
+      }
+
+      int totalSize = 0;
+      final entities = directory.listSync(recursive: true);
+      for (final entity in entities) {
+        final isSentry = entity.path
+            .split(Platform.pathSeparator)
+            .contains('sentry');
+        if (entity is File && !isSentry) {
+          try {
+            totalSize += await entity.length();
+          } on FileSystemException {
+            continue;
+          }
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _cacheSizeBytes = totalSize;
+        _cacheCalculating = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _cacheSizeBytes = null;
+        _cacheCalculating = false;
+      });
+    }
+  }
+
+  String _formatCacheSize(int? bytes) {
+    if (bytes == null) return '';
+    if (bytes == 0) return '0 B';
+
+    const gb = 1 << 30;
+    const mb = 1 << 20;
+    const kb = 1 << 10;
+
+    if (bytes >= gb) {
+      return '${(bytes / gb).toStringAsFixed(2)} GB';
+    } else if (bytes >= mb) {
+      return '${(bytes / mb).toStringAsFixed(1)} MB';
+    } else if (bytes >= kb) {
+      return '${(bytes / kb).toStringAsFixed(1)} KB';
+    } else {
+      return '$bytes B';
     }
   }
 
@@ -129,6 +199,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _splashPage(state, globalSettingCubit),
               _appLockSetting(state, globalSettingCubit),
               _oldPageRollback(state, globalSettingCubit),
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.3),
+              _buildSectionTitle(context, '存储', Icons.storage_outlined),
+              _cacheSettings(context),
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
@@ -687,6 +762,20 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             },
           ),
       ],
+    );
+  }
+
+  Widget _cacheSettings(BuildContext context) {
+    final sizeText = _cacheCalculating
+        ? '计算中…'
+        : _formatCacheSize(_cacheSizeBytes);
+
+    return ListTile(
+      leading: const Icon(Icons.cleaning_services_outlined),
+      title: const Text('缓存管理'),
+      subtitle: Text(sizeText.isEmpty ? '查看缓存大小，设置缓存上限与自动清理' : sizeText),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => AutoRouter.of(context).push(const CacheSettingRoute()),
     );
   }
 

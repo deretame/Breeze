@@ -58,6 +58,11 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
           json['appLockSetting'] as Map<String, dynamic>,
         ),
   compatibleVersion: json['compatibleVersion'] as String? ?? "",
+  cacheSetting: json['cacheSetting'] == null
+      ? const CacheSettingState()
+      : CacheSettingState.fromJson(
+          json['cacheSetting'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -89,6 +94,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'customExportPath': instance.customExportPath,
       'appLockSetting': instance.appLockSetting,
       'compatibleVersion': instance.compatibleVersion,
+      'cacheSetting': instance.cacheSetting,
     };
 
 const _$ThemeModeEnumMap = {
@@ -96,6 +102,18 @@ const _$ThemeModeEnumMap = {
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
 };
+
+_CacheSettingState _$CacheSettingStateFromJson(Map<String, dynamic> json) =>
+    _CacheSettingState(
+      autoCleanCache: json['autoCleanCache'] as bool? ?? true,
+      cacheSizeLimit: (json['cacheSizeLimit'] as num?)?.toInt() ?? 1073741824,
+    );
+
+Map<String, dynamic> _$CacheSettingStateToJson(_CacheSettingState instance) =>
+    <String, dynamic>{
+      'autoCleanCache': instance.autoCleanCache,
+      'cacheSizeLimit': instance.cacheSizeLimit,
+    };
 
 _AppLockSettingState _$AppLockSettingStateFromJson(Map<String, dynamic> json) =>
     _AppLockSettingState(

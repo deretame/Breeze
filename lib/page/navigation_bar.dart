@@ -180,17 +180,33 @@ class _NavigationBarState extends State<NavigationBar> {
       backgroundColor: context.backgroundColor,
       body: Row(
         children: [
-          NavigationRail(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedIndex = index;
-                _controller.index = index;
-              });
-            },
-            labelType: NavigationRailLabelType.all,
-            backgroundColor: context.backgroundColor,
-            destinations: navRailDestinations,
+          Column(
+            children: [
+              Expanded(
+                child: NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (int index) {
+                    setState(() {
+                      _selectedIndex = index;
+                      _controller.index = index;
+                    });
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  backgroundColor: context.backgroundColor,
+                  destinations: navRailDestinations,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: IconButton(
+                  icon: Icon(Icons.settings_outlined),
+                  tooltip: '设置',
+                  onPressed: () {
+                    context.pushRoute(GlobalSettingRoute());
+                  },
+                ),
+              ),
+            ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(

@@ -7,6 +7,15 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
 
 Future<void> manageCacheSize(BuildContext context) async {
+  if (!context.mounted) return;
+  final settinCubit = context.read<GlobalSettingCubit>();
+  final currentState = settinCubit.state;
+
+  if (!currentState.cacheSetting.autoCleanCache) {
+    logger.d('Auto clean cache disabled, skipping.');
+    return;
+  }
+
   final String cachePath = await getCachePath();
   int totalSize = 0;
 
@@ -14,11 +23,9 @@ Future<void> manageCacheSize(BuildContext context) async {
     final directory = Directory(cachePath);
     if (!await directory.exists()) return;
 
-    // 1. 使用 listSync 获取文件，并立即过滤掉 sentry 目录
     final List<FileSystemEntity> entities = directory.listSync(recursive: true);
 
     for (var entity in entities) {
-      // 检查路径是否包含 'sentry'（不区分大小写）
       final bool isSentryFile = entity.path
           .split(Platform.pathSeparator)
           .contains('sentry');
@@ -36,11 +43,12 @@ Future<void> manageCacheSize(BuildContext context) async {
   }
 
   if (!context.mounted) return;
-  final settinCubit = context.read<GlobalSettingCubit>();
 
-  const int maxSize = 1 * 1024 * 1024 * 1024; // 1GB
+  final maxSize = currentState.cacheSetting.cacheSizeLimit;
   if (totalSize >= maxSize) {
-    logger.d('Cache size exceeded 1GB, clearing cache...');
+    logger.d(
+      'Cache size exceeded ${maxSize / (1024 * 1024)} MB, clearing cache...',
+    );
     settinCubit.updateState(
       (current) => current.copyWith(needCleanCache: true),
     );

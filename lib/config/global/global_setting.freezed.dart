@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GlobalSettingState {
 
- bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; SyncSettingState get syncSetting; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; String get logAddress; bool get forceEnableImpeller; bool get updateAccelerate; bool get oldPageRollbackEnabled; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY; ReadSettingState get readSetting; String get customExportPath; AppLockSettingState get appLockSetting; String get compatibleVersion;
+ bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; SyncSettingState get syncSetting; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; String get logAddress; bool get forceEnableImpeller; bool get updateAccelerate; bool get oldPageRollbackEnabled; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY; ReadSettingState get readSetting; String get customExportPath; AppLockSettingState get appLockSetting; String get compatibleVersion; CacheSettingState get cacheSetting;
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $GlobalSettingStateCopyWith<GlobalSettingState> get copyWith => _$GlobalSettingS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncSetting, syncSetting) || other.syncSetting == syncSetting)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&(identical(other.logAddress, logAddress) || other.logAddress == logAddress)&&(identical(other.forceEnableImpeller, forceEnableImpeller) || other.forceEnableImpeller == forceEnableImpeller)&&(identical(other.updateAccelerate, updateAccelerate) || other.updateAccelerate == updateAccelerate)&&(identical(other.oldPageRollbackEnabled, oldPageRollbackEnabled) || other.oldPageRollbackEnabled == oldPageRollbackEnabled)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting)&&(identical(other.customExportPath, customExportPath) || other.customExportPath == customExportPath)&&(identical(other.appLockSetting, appLockSetting) || other.appLockSetting == appLockSetting)&&(identical(other.compatibleVersion, compatibleVersion) || other.compatibleVersion == compatibleVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncSetting, syncSetting) || other.syncSetting == syncSetting)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&(identical(other.logAddress, logAddress) || other.logAddress == logAddress)&&(identical(other.forceEnableImpeller, forceEnableImpeller) || other.forceEnableImpeller == forceEnableImpeller)&&(identical(other.updateAccelerate, updateAccelerate) || other.updateAccelerate == updateAccelerate)&&(identical(other.oldPageRollbackEnabled, oldPageRollbackEnabled) || other.oldPageRollbackEnabled == oldPageRollbackEnabled)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting)&&(identical(other.customExportPath, customExportPath) || other.customExportPath == customExportPath)&&(identical(other.appLockSetting, appLockSetting) || other.appLockSetting == appLockSetting)&&(identical(other.compatibleVersion, compatibleVersion) || other.compatibleVersion == compatibleVersion)&&(identical(other.cacheSetting, cacheSetting) || other.cacheSetting == cacheSetting));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncSetting,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,logAddress,forceEnableImpeller,updateAccelerate,oldPageRollbackEnabled,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting,customExportPath,appLockSetting,compatibleVersion]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncSetting,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,logAddress,forceEnableImpeller,updateAccelerate,oldPageRollbackEnabled,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting,customExportPath,appLockSetting,compatibleVersion,cacheSetting]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncSetting: $syncSetting, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, logAddress: $logAddress, forceEnableImpeller: $forceEnableImpeller, updateAccelerate: $updateAccelerate, oldPageRollbackEnabled: $oldPageRollbackEnabled, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting, customExportPath: $customExportPath, appLockSetting: $appLockSetting, compatibleVersion: $compatibleVersion)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncSetting: $syncSetting, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, logAddress: $logAddress, forceEnableImpeller: $forceEnableImpeller, updateAccelerate: $updateAccelerate, oldPageRollbackEnabled: $oldPageRollbackEnabled, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting, customExportPath: $customExportPath, appLockSetting: $appLockSetting, compatibleVersion: $compatibleVersion, cacheSetting: $cacheSetting)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $GlobalSettingStateCopyWith<$Res>  {
   factory $GlobalSettingStateCopyWith(GlobalSettingState value, $Res Function(GlobalSettingState) _then) = _$GlobalSettingStateCopyWithImpl;
 @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncSettingState syncSetting, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, String logAddress, bool forceEnableImpeller, bool updateAccelerate, bool oldPageRollbackEnabled, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting, String customExportPath, AppLockSettingState appLockSetting, String compatibleVersion
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncSettingState syncSetting, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, String logAddress, bool forceEnableImpeller, bool updateAccelerate, bool oldPageRollbackEnabled, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting, String customExportPath, AppLockSettingState appLockSetting, String compatibleVersion, CacheSettingState cacheSetting
 });
 
 
-$SyncSettingStateCopyWith<$Res> get syncSetting;$ReadSettingStateCopyWith<$Res> get readSetting;$AppLockSettingStateCopyWith<$Res> get appLockSetting;
+$SyncSettingStateCopyWith<$Res> get syncSetting;$ReadSettingStateCopyWith<$Res> get readSetting;$AppLockSettingStateCopyWith<$Res> get appLockSetting;$CacheSettingStateCopyWith<$Res> get cacheSetting;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncSetting = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? logAddress = null,Object? forceEnableImpeller = null,Object? updateAccelerate = null,Object? oldPageRollbackEnabled = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,Object? customExportPath = null,Object? appLockSetting = null,Object? compatibleVersion = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncSetting = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? logAddress = null,Object? forceEnableImpeller = null,Object? updateAccelerate = null,Object? oldPageRollbackEnabled = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,Object? customExportPath = null,Object? appLockSetting = null,Object? compatibleVersion = null,Object? cacheSetting = null,}) {
   return _then(_self.copyWith(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -94,7 +94,8 @@ as double,readSetting: null == readSetting ? _self.readSetting : readSetting // 
 as ReadSettingState,customExportPath: null == customExportPath ? _self.customExportPath : customExportPath // ignore: cast_nullable_to_non_nullable
 as String,appLockSetting: null == appLockSetting ? _self.appLockSetting : appLockSetting // ignore: cast_nullable_to_non_nullable
 as AppLockSettingState,compatibleVersion: null == compatibleVersion ? _self.compatibleVersion : compatibleVersion // ignore: cast_nullable_to_non_nullable
-as String,
+as String,cacheSetting: null == cacheSetting ? _self.cacheSetting : cacheSetting // ignore: cast_nullable_to_non_nullable
+as CacheSettingState,
   ));
 }
 /// Create a copy of GlobalSettingState
@@ -123,6 +124,15 @@ $AppLockSettingStateCopyWith<$Res> get appLockSetting {
   
   return $AppLockSettingStateCopyWith<$Res>(_self.appLockSetting, (value) {
     return _then(_self.copyWith(appLockSetting: value));
+  });
+}/// Create a copy of GlobalSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CacheSettingStateCopyWith<$Res> get cacheSetting {
+  
+  return $CacheSettingStateCopyWith<$Res>(_self.cacheSetting, (value) {
+    return _then(_self.copyWith(cacheSetting: value));
   });
 }
 }
@@ -206,10 +216,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  String logAddress,  bool forceEnableImpeller,  bool updateAccelerate,  bool oldPageRollbackEnabled,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting,  String customExportPath,  AppLockSettingState appLockSetting,  String compatibleVersion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  String logAddress,  bool forceEnableImpeller,  bool updateAccelerate,  bool oldPageRollbackEnabled,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting,  String customExportPath,  AppLockSettingState appLockSetting,  String compatibleVersion,  CacheSettingState cacheSetting)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.logAddress,_that.forceEnableImpeller,_that.updateAccelerate,_that.oldPageRollbackEnabled,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting,_that.customExportPath,_that.appLockSetting,_that.compatibleVersion);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.logAddress,_that.forceEnableImpeller,_that.updateAccelerate,_that.oldPageRollbackEnabled,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting,_that.customExportPath,_that.appLockSetting,_that.compatibleVersion,_that.cacheSetting);case _:
   return orElse();
 
 }
@@ -227,10 +237,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  String logAddress,  bool forceEnableImpeller,  bool updateAccelerate,  bool oldPageRollbackEnabled,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting,  String customExportPath,  AppLockSettingState appLockSetting,  String compatibleVersion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  String logAddress,  bool forceEnableImpeller,  bool updateAccelerate,  bool oldPageRollbackEnabled,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting,  String customExportPath,  AppLockSettingState appLockSetting,  String compatibleVersion,  CacheSettingState cacheSetting)  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState():
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.logAddress,_that.forceEnableImpeller,_that.updateAccelerate,_that.oldPageRollbackEnabled,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting,_that.customExportPath,_that.appLockSetting,_that.compatibleVersion);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.logAddress,_that.forceEnableImpeller,_that.updateAccelerate,_that.oldPageRollbackEnabled,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting,_that.customExportPath,_that.appLockSetting,_that.compatibleVersion,_that.cacheSetting);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -247,10 +257,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  String logAddress,  bool forceEnableImpeller,  bool updateAccelerate,  bool oldPageRollbackEnabled,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting,  String customExportPath,  AppLockSettingState appLockSetting,  String compatibleVersion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  String logAddress,  bool forceEnableImpeller,  bool updateAccelerate,  bool oldPageRollbackEnabled,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting,  String customExportPath,  AppLockSettingState appLockSetting,  String compatibleVersion,  CacheSettingState cacheSetting)?  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.logAddress,_that.forceEnableImpeller,_that.updateAccelerate,_that.oldPageRollbackEnabled,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting,_that.customExportPath,_that.appLockSetting,_that.compatibleVersion);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.logAddress,_that.forceEnableImpeller,_that.updateAccelerate,_that.oldPageRollbackEnabled,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting,_that.customExportPath,_that.appLockSetting,_that.compatibleVersion,_that.cacheSetting);case _:
   return null;
 
 }
@@ -262,7 +272,7 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 @JsonSerializable()
 
 class _GlobalSettingState implements GlobalSettingState {
-  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.syncSetting = const SyncSettingState(), final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, this.logAddress = '', this.forceEnableImpeller = false, this.updateAccelerate = true, this.oldPageRollbackEnabled = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0, this.readSetting = const ReadSettingState(), this.customExportPath = '', this.appLockSetting = const AppLockSettingState(), this.compatibleVersion = ""}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
+  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.syncSetting = const SyncSettingState(), final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, this.logAddress = '', this.forceEnableImpeller = false, this.updateAccelerate = true, this.oldPageRollbackEnabled = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0, this.readSetting = const ReadSettingState(), this.customExportPath = '', this.appLockSetting = const AppLockSettingState(), this.compatibleVersion = "", this.cacheSetting = const CacheSettingState()}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
   factory _GlobalSettingState.fromJson(Map<String, dynamic> json) => _$GlobalSettingStateFromJson(json);
 
 @override@JsonKey() final  bool dynamicColor;
@@ -304,6 +314,7 @@ class _GlobalSettingState implements GlobalSettingState {
 @override@JsonKey() final  String customExportPath;
 @override@JsonKey() final  AppLockSettingState appLockSetting;
 @override@JsonKey() final  String compatibleVersion;
+@override@JsonKey() final  CacheSettingState cacheSetting;
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
@@ -318,16 +329,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncSetting, syncSetting) || other.syncSetting == syncSetting)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&(identical(other.logAddress, logAddress) || other.logAddress == logAddress)&&(identical(other.forceEnableImpeller, forceEnableImpeller) || other.forceEnableImpeller == forceEnableImpeller)&&(identical(other.updateAccelerate, updateAccelerate) || other.updateAccelerate == updateAccelerate)&&(identical(other.oldPageRollbackEnabled, oldPageRollbackEnabled) || other.oldPageRollbackEnabled == oldPageRollbackEnabled)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting)&&(identical(other.customExportPath, customExportPath) || other.customExportPath == customExportPath)&&(identical(other.appLockSetting, appLockSetting) || other.appLockSetting == appLockSetting)&&(identical(other.compatibleVersion, compatibleVersion) || other.compatibleVersion == compatibleVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncSetting, syncSetting) || other.syncSetting == syncSetting)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&(identical(other.logAddress, logAddress) || other.logAddress == logAddress)&&(identical(other.forceEnableImpeller, forceEnableImpeller) || other.forceEnableImpeller == forceEnableImpeller)&&(identical(other.updateAccelerate, updateAccelerate) || other.updateAccelerate == updateAccelerate)&&(identical(other.oldPageRollbackEnabled, oldPageRollbackEnabled) || other.oldPageRollbackEnabled == oldPageRollbackEnabled)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting)&&(identical(other.customExportPath, customExportPath) || other.customExportPath == customExportPath)&&(identical(other.appLockSetting, appLockSetting) || other.appLockSetting == appLockSetting)&&(identical(other.compatibleVersion, compatibleVersion) || other.compatibleVersion == compatibleVersion)&&(identical(other.cacheSetting, cacheSetting) || other.cacheSetting == cacheSetting));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncSetting,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,logAddress,forceEnableImpeller,updateAccelerate,oldPageRollbackEnabled,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting,customExportPath,appLockSetting,compatibleVersion]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncSetting,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,logAddress,forceEnableImpeller,updateAccelerate,oldPageRollbackEnabled,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting,customExportPath,appLockSetting,compatibleVersion,cacheSetting]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncSetting: $syncSetting, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, logAddress: $logAddress, forceEnableImpeller: $forceEnableImpeller, updateAccelerate: $updateAccelerate, oldPageRollbackEnabled: $oldPageRollbackEnabled, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting, customExportPath: $customExportPath, appLockSetting: $appLockSetting, compatibleVersion: $compatibleVersion)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncSetting: $syncSetting, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, logAddress: $logAddress, forceEnableImpeller: $forceEnableImpeller, updateAccelerate: $updateAccelerate, oldPageRollbackEnabled: $oldPageRollbackEnabled, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting, customExportPath: $customExportPath, appLockSetting: $appLockSetting, compatibleVersion: $compatibleVersion, cacheSetting: $cacheSetting)';
 }
 
 
@@ -338,11 +349,11 @@ abstract mixin class _$GlobalSettingStateCopyWith<$Res> implements $GlobalSettin
   factory _$GlobalSettingStateCopyWith(_GlobalSettingState value, $Res Function(_GlobalSettingState) _then) = __$GlobalSettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncSettingState syncSetting, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, String logAddress, bool forceEnableImpeller, bool updateAccelerate, bool oldPageRollbackEnabled, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting, String customExportPath, AppLockSettingState appLockSetting, String compatibleVersion
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncSettingState syncSetting, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, String logAddress, bool forceEnableImpeller, bool updateAccelerate, bool oldPageRollbackEnabled, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting, String customExportPath, AppLockSettingState appLockSetting, String compatibleVersion, CacheSettingState cacheSetting
 });
 
 
-@override $SyncSettingStateCopyWith<$Res> get syncSetting;@override $ReadSettingStateCopyWith<$Res> get readSetting;@override $AppLockSettingStateCopyWith<$Res> get appLockSetting;
+@override $SyncSettingStateCopyWith<$Res> get syncSetting;@override $ReadSettingStateCopyWith<$Res> get readSetting;@override $AppLockSettingStateCopyWith<$Res> get appLockSetting;@override $CacheSettingStateCopyWith<$Res> get cacheSetting;
 
 }
 /// @nodoc
@@ -355,7 +366,7 @@ class __$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncSetting = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? logAddress = null,Object? forceEnableImpeller = null,Object? updateAccelerate = null,Object? oldPageRollbackEnabled = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,Object? customExportPath = null,Object? appLockSetting = null,Object? compatibleVersion = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncSetting = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? logAddress = null,Object? forceEnableImpeller = null,Object? updateAccelerate = null,Object? oldPageRollbackEnabled = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,Object? customExportPath = null,Object? appLockSetting = null,Object? compatibleVersion = null,Object? cacheSetting = null,}) {
   return _then(_GlobalSettingState(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -384,7 +395,8 @@ as double,readSetting: null == readSetting ? _self.readSetting : readSetting // 
 as ReadSettingState,customExportPath: null == customExportPath ? _self.customExportPath : customExportPath // ignore: cast_nullable_to_non_nullable
 as String,appLockSetting: null == appLockSetting ? _self.appLockSetting : appLockSetting // ignore: cast_nullable_to_non_nullable
 as AppLockSettingState,compatibleVersion: null == compatibleVersion ? _self.compatibleVersion : compatibleVersion // ignore: cast_nullable_to_non_nullable
-as String,
+as String,cacheSetting: null == cacheSetting ? _self.cacheSetting : cacheSetting // ignore: cast_nullable_to_non_nullable
+as CacheSettingState,
   ));
 }
 
@@ -415,7 +427,282 @@ $AppLockSettingStateCopyWith<$Res> get appLockSetting {
   return $AppLockSettingStateCopyWith<$Res>(_self.appLockSetting, (value) {
     return _then(_self.copyWith(appLockSetting: value));
   });
+}/// Create a copy of GlobalSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CacheSettingStateCopyWith<$Res> get cacheSetting {
+  
+  return $CacheSettingStateCopyWith<$Res>(_self.cacheSetting, (value) {
+    return _then(_self.copyWith(cacheSetting: value));
+  });
 }
+}
+
+
+/// @nodoc
+mixin _$CacheSettingState {
+
+ bool get autoCleanCache; int get cacheSizeLimit;
+/// Create a copy of CacheSettingState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CacheSettingStateCopyWith<CacheSettingState> get copyWith => _$CacheSettingStateCopyWithImpl<CacheSettingState>(this as CacheSettingState, _$identity);
+
+  /// Serializes this CacheSettingState to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CacheSettingState&&(identical(other.autoCleanCache, autoCleanCache) || other.autoCleanCache == autoCleanCache)&&(identical(other.cacheSizeLimit, cacheSizeLimit) || other.cacheSizeLimit == cacheSizeLimit));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,autoCleanCache,cacheSizeLimit);
+
+@override
+String toString() {
+  return 'CacheSettingState(autoCleanCache: $autoCleanCache, cacheSizeLimit: $cacheSizeLimit)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CacheSettingStateCopyWith<$Res>  {
+  factory $CacheSettingStateCopyWith(CacheSettingState value, $Res Function(CacheSettingState) _then) = _$CacheSettingStateCopyWithImpl;
+@useResult
+$Res call({
+ bool autoCleanCache, int cacheSizeLimit
+});
+
+
+
+
+}
+/// @nodoc
+class _$CacheSettingStateCopyWithImpl<$Res>
+    implements $CacheSettingStateCopyWith<$Res> {
+  _$CacheSettingStateCopyWithImpl(this._self, this._then);
+
+  final CacheSettingState _self;
+  final $Res Function(CacheSettingState) _then;
+
+/// Create a copy of CacheSettingState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? autoCleanCache = null,Object? cacheSizeLimit = null,}) {
+  return _then(_self.copyWith(
+autoCleanCache: null == autoCleanCache ? _self.autoCleanCache : autoCleanCache // ignore: cast_nullable_to_non_nullable
+as bool,cacheSizeLimit: null == cacheSizeLimit ? _self.cacheSizeLimit : cacheSizeLimit // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [CacheSettingState].
+extension CacheSettingStatePatterns on CacheSettingState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CacheSettingState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _CacheSettingState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CacheSettingState value)  $default,){
+final _that = this;
+switch (_that) {
+case _CacheSettingState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CacheSettingState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _CacheSettingState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool autoCleanCache,  int cacheSizeLimit)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _CacheSettingState() when $default != null:
+return $default(_that.autoCleanCache,_that.cacheSizeLimit);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool autoCleanCache,  int cacheSizeLimit)  $default,) {final _that = this;
+switch (_that) {
+case _CacheSettingState():
+return $default(_that.autoCleanCache,_that.cacheSizeLimit);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool autoCleanCache,  int cacheSizeLimit)?  $default,) {final _that = this;
+switch (_that) {
+case _CacheSettingState() when $default != null:
+return $default(_that.autoCleanCache,_that.cacheSizeLimit);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _CacheSettingState implements CacheSettingState {
+  const _CacheSettingState({this.autoCleanCache = true, this.cacheSizeLimit = 1073741824});
+  factory _CacheSettingState.fromJson(Map<String, dynamic> json) => _$CacheSettingStateFromJson(json);
+
+@override@JsonKey() final  bool autoCleanCache;
+@override@JsonKey() final  int cacheSizeLimit;
+
+/// Create a copy of CacheSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CacheSettingStateCopyWith<_CacheSettingState> get copyWith => __$CacheSettingStateCopyWithImpl<_CacheSettingState>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$CacheSettingStateToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CacheSettingState&&(identical(other.autoCleanCache, autoCleanCache) || other.autoCleanCache == autoCleanCache)&&(identical(other.cacheSizeLimit, cacheSizeLimit) || other.cacheSizeLimit == cacheSizeLimit));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,autoCleanCache,cacheSizeLimit);
+
+@override
+String toString() {
+  return 'CacheSettingState(autoCleanCache: $autoCleanCache, cacheSizeLimit: $cacheSizeLimit)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$CacheSettingStateCopyWith<$Res> implements $CacheSettingStateCopyWith<$Res> {
+  factory _$CacheSettingStateCopyWith(_CacheSettingState value, $Res Function(_CacheSettingState) _then) = __$CacheSettingStateCopyWithImpl;
+@override @useResult
+$Res call({
+ bool autoCleanCache, int cacheSizeLimit
+});
+
+
+
+
+}
+/// @nodoc
+class __$CacheSettingStateCopyWithImpl<$Res>
+    implements _$CacheSettingStateCopyWith<$Res> {
+  __$CacheSettingStateCopyWithImpl(this._self, this._then);
+
+  final _CacheSettingState _self;
+  final $Res Function(_CacheSettingState) _then;
+
+/// Create a copy of CacheSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? autoCleanCache = null,Object? cacheSizeLimit = null,}) {
+  return _then(_CacheSettingState(
+autoCleanCache: null == autoCleanCache ? _self.autoCleanCache : autoCleanCache // ignore: cast_nullable_to_non_nullable
+as bool,cacheSizeLimit: null == cacheSizeLimit ? _self.cacheSizeLimit : cacheSizeLimit // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
 }
 
 

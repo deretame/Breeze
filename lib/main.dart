@@ -215,8 +215,6 @@ Future<void> main(List<String> args) async {
   );
 }
 
-
-
 Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await initRustLib();
@@ -302,7 +300,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     setQjsErrorStackEnabled(enabled: true);
   }
 
-  // 关掉缓存定时清理
+  // 关掉缓存定时清理(rust端)
   setHostCacheGcEnabled(enabled: false);
 
   setTlsVerifyEnabled(enabled: false);

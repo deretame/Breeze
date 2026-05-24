@@ -489,10 +489,7 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
         .whereType<Map>()
         .map((entry) => Map<String, dynamic>.from(entry))
         .toList();
-    final filtered = _filterAndSort(
-      items: items,
-      search: search,
-    );
+    final filtered = _filterAndSort(items: items, search: search);
 
     return {'items': filtered};
   } catch (e) {

@@ -23,7 +23,7 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -47,7 +47,7 @@ jobs:
           git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
       - name: 设置 Java 21 & SDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "21"
@@ -68,12 +68,12 @@ jobs:
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -139,7 +139,7 @@ jobs:
           fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
 
       - name: 上传 Android 产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-apks
           path: |
@@ -152,7 +152,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -160,7 +160,7 @@ jobs:
       #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "21"
@@ -184,12 +184,12 @@ jobs:
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -215,7 +215,7 @@ jobs:
           fvm dart ./script/build_linux_flatpak.dart
 
       - name: 上传 Linux 产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-flatpak
           path: breeze.flatpak
@@ -228,7 +228,7 @@ jobs:
     steps:
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -236,7 +236,7 @@ jobs:
       #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "21"
@@ -261,10 +261,10 @@ jobs:
             windows-installer/src-tauri
 
       - name: 设置 Node.js & pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -293,7 +293,7 @@ jobs:
           fvm dart run sentry_dart_plugin --sentry-define=auth_token="$env:SENTRY_AUTH_TOKEN"
 
       - name: 上传 Windows 产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-exe
           path: windows-installer/src-tauri/target/release/windows-installer.exe
@@ -307,7 +307,7 @@ jobs:
       CARGO_HOME: ${{ github.workspace }}/.cargo
       RUSTUP_HOME: ${{ github.workspace }}/.rustup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -365,12 +365,12 @@ jobs:
             rust
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -428,7 +428,7 @@ jobs:
             "$APP_PATH"
 
       - name: 上传 macOS DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: macos-dmg
           path: Breeze-macOS.dmg
@@ -442,7 +442,7 @@ jobs:
       CARGO_HOME: ${{ github.workspace }}/.cargo
       RUSTUP_HOME: ${{ github.workspace }}/.rustup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -497,12 +497,12 @@ jobs:
             rust
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -560,7 +560,7 @@ jobs:
           zip -r "Breeze-iOS.ipa" Payload
 
       - name: 上传 iOS IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ios-ipa
           path: Breeze-iOS.ipa
@@ -572,7 +572,7 @@ jobs:
     needs: [ build-android, build-linux, build-windows, build-macos, build-ios ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -632,7 +632,7 @@ jobs:
             release-assets/macos-dmg/*.dmg
             release-assets/ios-ipa/*.ipa
 
-      - name: 发送 Release 消息到 Telegram
+      - name: 发送 Release 到 Telegram
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -646,41 +646,103 @@ jobs:
 
           RELEASE_URL="https://github.com/${REPO}/releases/tag/${VERSION}"
           BODY="$(head -n 60 release_body.md)"
-          TEXT="🚀 ${REPO} 发布新版本
+          CAPTION="$(cat <<EOF
+          🚀 ${REPO} 发布新版本
           版本: ${VERSION}
           链接: ${RELEASE_URL}
 
-          ${BODY}"
-
-          curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-            --data-urlencode "chat_id=${CHAT_ID}" \
-            --data-urlencode "text=${TEXT}" \
-            --data-urlencode "disable_web_page_preview=true"
-
-      - name: 发送 Release 附件到 Telegram
-        env:
-          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
-            echo "未配置 TELEGRAM_BOT_TOKEN 或 TELEGRAM_CHAT_ID，跳过 Telegram 附件发送。"
-            exit 0
-          fi
+          ${BODY}
+          EOF
+          )"
+          CAPTION="$(printf '%s' "$CAPTION" | head -c 900)"
 
           mapfile -t files < <(find release-assets -type f \( -name "*.apk" -o -name "*.flatpak" -o -name "*.exe" -o -name "*.dmg" -o -name "*.ipa" \) | sort)
 
           if [ "${#files[@]}" -eq 0 ]; then
-            echo "未找到可发送附件，跳过。"
+            echo "未找到附件，发送纯文本消息。"
+            curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${CHAT_ID}" \
+              --data-urlencode "text=${CAPTION}" \
+              --data-urlencode "disable_web_page_preview=true"
             exit 0
           fi
 
-          for file in "${files[@]}"; do
+          if [ "${#files[@]}" -eq 1 ]; then
+            file="${files[0]}"
             name="$(basename "$file")"
-            echo "Uploading ${name} to Telegram"
+            echo "Uploading single document ${name}"
             curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
               -F "chat_id=${CHAT_ID}" \
-              -F "caption=${name}" \
+              -F "caption=${CAPTION}" \
               -F "document=@${file}"
+            exit 0
+          fi
+
+          build_media_json() {
+            local start="$1"
+            local end="$2"
+            local include_caption="$3"
+            local filter='['
+            local comma=''
+            local local_index=0
+            local args=()
+
+            for ((i=start; i<end; i++)); do
+              args+=(--arg "media_${local_index}" "attach://file${local_index}")
+              if [ "$include_caption" = "1" ] && [ "$local_index" -eq 0 ]; then
+                args+=(--arg caption "$CAPTION")
+                filter+="${comma}{\"type\":\"document\",\"media\":\$media_${local_index},\"caption\":\$caption}"
+              else
+                filter+="${comma}{\"type\":\"document\",\"media\":\$media_${local_index}}"
+              fi
+              comma=','
+              local_index=$((local_index + 1))
+            done
+
+            filter+=']'
+            jq -nc "${args[@]}" "$filter"
+          }
+
+          batch_size=10
+          first_batch=1
+          total="${#files[@]}"
+
+          for ((start=0; start<total; start+=batch_size)); do
+            end=$((start + batch_size))
+            if [ "$end" -gt "$total" ]; then
+              end="$total"
+            fi
+
+            if [ $((end - start)) -eq 1 ]; then
+              file="${files[$start]}"
+              name="$(basename "$file")"
+              echo "Uploading trailing single document ${name}"
+              if [ "$first_batch" -eq 1 ]; then
+                curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
+                  -F "chat_id=${CHAT_ID}" \
+                  -F "caption=${CAPTION}" \
+                  -F "document=@${file}"
+                first_batch=0
+              else
+                curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
+                  -F "chat_id=${CHAT_ID}" \
+                  -F "document=@${file}"
+              fi
+              continue
+            fi
+
+            media_json="$(build_media_json "$start" "$end" "$first_batch")"
+            curl_args=(-sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup" -F "chat_id=${CHAT_ID}" -F "media=${media_json}")
+
+            local_index=0
+            for ((i=start; i<end; i++)); do
+              curl_args+=(-F "file${local_index}=@${files[$i]}")
+              local_index=$((local_index + 1))
+            done
+
+            echo "Uploading media group with $((end - start)) documents"
+            curl "${curl_args[@]}"
+            first_batch=0
           done
 
   # ══════════════════════════════════════════
@@ -691,7 +753,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出 Homebrew Tap 仓库
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: deretame/homebrew-Breeze
           token: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}

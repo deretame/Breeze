@@ -21,7 +21,7 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -50,7 +50,7 @@ jobs:
           git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
       - name: 设置 Java 21 & SDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "21"
@@ -71,12 +71,12 @@ jobs:
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -123,7 +123,7 @@ jobs:
           fvm dart ./script/build_apk.dart
 
       - name: 上传 Android 产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-apks
           path: |
@@ -136,7 +136,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -144,7 +144,7 @@ jobs:
       #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "21"
@@ -168,12 +168,12 @@ jobs:
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -194,7 +194,7 @@ jobs:
           fvm dart ./script/build_linux_flatpak.dart
 
       - name: 上传 Linux 产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: linux-flatpak
           path: breeze.flatpak
@@ -207,7 +207,7 @@ jobs:
     steps:
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -215,7 +215,7 @@ jobs:
       #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "21"
@@ -240,12 +240,12 @@ jobs:
             windows-installer/src-tauri
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -255,7 +255,7 @@ jobs:
           fvm dart ./script/build_windows.dart
 
       - name: 上传 Windows 产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-exe
           path: windows-installer/src-tauri/target/release/windows-installer.exe
@@ -269,7 +269,7 @@ jobs:
       CARGO_HOME: ${{ github.workspace }}/.cargo
       RUSTUP_HOME: ${{ github.workspace }}/.rustup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -327,12 +327,12 @@ jobs:
             rust
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -371,7 +371,7 @@ jobs:
             "$APP_PATH"
 
       - name: 上传 macOS DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: macos-dmg
           path: Breeze-macOS.dmg
@@ -385,7 +385,7 @@ jobs:
       CARGO_HOME: ${{ github.workspace }}/.cargo
       RUSTUP_HOME: ${{ github.workspace }}/.rustup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -440,12 +440,12 @@ jobs:
             rust
 
       - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -485,7 +485,7 @@ jobs:
           zip -r "Breeze-iOS.ipa" Payload
 
       - name: 上传 iOS IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ios-ipa
           path: Breeze-iOS.ipa

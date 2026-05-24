@@ -122,11 +122,24 @@ Map<String, String> _androidEnvironmentVariables(
 
   return <String, String>{
     'CLANG_PATH': clangBinary.replaceAll('\\', '/'),
-    'LIBCLANG_PATH': p.join(llvmBase, 'bin').replaceAll('\\', '/'),
+    'LIBCLANG_PATH': _libClangPath(llvmBase).replaceAll('\\', '/'),
     'BINDGEN_EXTRA_CLANG_ARGS': bindgenArgs,
-    'PATH': '${p.join(llvmBase, 'bin')};${Platform.environment['PATH'] ?? ''}',
+    'PATH': '${p.join(llvmBase, 'bin')}${_pathSep()}${Platform.environment['PATH'] ?? ''}',
   };
 }
+
+String _libClangPath(String llvmBase) {
+  if (Platform.isWindows) {
+    return p.join(llvmBase, 'bin');
+  }
+  final lib64 = Directory(p.join(llvmBase, 'lib64'));
+  if (lib64.existsSync()) {
+    return p.join(llvmBase, 'lib64');
+  }
+  return p.join(llvmBase, 'lib');
+}
+
+String _pathSep() => Platform.isWindows ? ';' : ':';
 
 String? _readNdkVersion(String projectRoot) {
   final gradleFile = File(

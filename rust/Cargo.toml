@@ -69,7 +69,6 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 
 [build-dependencies]
 ureq = "3.3.0"
-serde_json = "1.0"
 
 [profile.dev]
 # 关闭调试符号生成

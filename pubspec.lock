@@ -226,7 +226,7 @@ packages:
     source: hosted
     version: "1.1.2"
   code_assets:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: code_assets
       sha256: "83ccdaa064c980b5596c35dd64a8d3ecc68620174ab9b90b6343b753aa721687"

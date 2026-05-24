@@ -12,6 +12,7 @@ permissions:
   contents: write
 
 env:
+  MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
   BREEZE_PLUGIN_GITHUB_TOKEN: ${{ secrets.BREEZE_PLUGIN_GITHUB_TOKEN != '' &&
     secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
 
@@ -513,6 +514,24 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           export PATH="$CARGO_HOME/bin:$PATH"
+          export SDKROOT="$(xcrun --sdk iphoneos --show-sdk-path)"
+          export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="$(xcrun --sdk iphoneos --find clang)"
+          export IPHONEOS_DEPLOYMENT_TARGET="15.0"
+          export CFLAGS_aarch64_apple_ios="-miphoneos-version-min=$IPHONEOS_DEPLOYMENT_TARGET -isysroot $SDKROOT"
+          export CXXFLAGS_aarch64_apple_ios="$CFLAGS_aarch64_apple_ios"
+          export CARGO_TARGET_AARCH64_APPLE_IOS_RUSTFLAGS="-C link-arg=-miphoneos-version-min=$IPHONEOS_DEPLOYMENT_TARGET"
+          export RUSTFLAGS="$CARGO_TARGET_AARCH64_APPLE_IOS_RUSTFLAGS"
+          rm -f rust/.cargo/config.toml
+          echo "--- CARGO_TARGET_AARCH64_APPLE_IOS_LINKER ---"
+          printf '%s\n' "$CARGO_TARGET_AARCH64_APPLE_IOS_LINKER"
+          echo "--- SDKROOT ---"
+          printf '%s\n' "$SDKROOT"
+          echo "--- IPHONEOS_DEPLOYMENT_TARGET ---"
+          printf '%s\n' "${IPHONEOS_DEPLOYMENT_TARGET:-<unset>}"
+          echo "--- RUSTFLAGS ---"
+          printf '%s\n' "${RUSTFLAGS:-<unset>}"
+          echo "--- CFLAGS_aarch64_apple_ios ---"
+          printf '%s\n' "${CFLAGS_aarch64_apple_ios:-<unset>}"
           rustup toolchain list
           fvm flutter precache --ios
           fvm flutter pub get

@@ -4,5 +4,7 @@ include:
 linter:
 
 analyzer:
+  exclude:
+    - "DART_T~1/**"
   errors:
     invalid_annotation_target: ignore

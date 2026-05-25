@@ -14,8 +14,27 @@ import 'package:zephyr/util/github_proxy.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-const _cloudPluginListUrl =
+const _cloudPluginListCdnPath =
+    'gh/deretame/Breeze-plugin-list@latest/plugins_data.json';
+
+const _cloudPluginListDirectUrl =
     'https://raw.githubusercontent.com/deretame/Breeze-plugin-list/main/plugins_data.json';
+
+const _cdnMirrors = [
+  'https://jsdelivr.topthink.com/',
+  'https://cdn.jsdmirror.com/',
+  'https://cdn.jsdmirror.cn/',
+  'https://www.webcache.cn/',
+  'https://jsd.onmicrosoft.cn/',
+  'https://cdn.jsdelivr.net/',
+];
+
+const _ghCdnMirrors = [
+  'https://cdn.jsdmirror.com/',
+  'https://cdn.jsdmirror.cn/',
+  'https://jsd.onmicrosoft.cn/',
+  'https://cdn.jsdelivr.net/',
+];
 
 class PluginStoreState {
   const PluginStoreState({
@@ -56,7 +75,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     emit(state.copyWith(cloudLoading: true, cloudError: ''));
 
     try {
-      final payload = await _fetchCloudPluginListPayload(_cloudPluginListUrl);
+      final payload = await _fetchCloudPluginListWithCdnFallback();
       final decoded = jsonDecode(payload);
       final entries = asJsonList(decoded)
           .map((item) => CloudPluginItem.fromJson(asJsonMap(item)))
@@ -114,23 +133,26 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   }) async {
     if (npmName.isNotEmpty) {
       for (final ext in ['.cjs.br', '.cjs']) {
-        final url =
-            'https://cdn.jsdelivr.net/npm/$npmName@$cloudVersion/dist/$npmName.bundle$ext';
-        try {
-          final response = await _downloadPluginAssetWithFallback(url);
-          final script = await _decodeDownloadedPluginScript(
-            response: response,
-            resolvedUrl: url,
-          );
-          final trimmed = script.trim();
-          if (trimmed.isNotEmpty) {
-            return trimmed;
+        final assetPath =
+            'npm/$npmName@$cloudVersion/dist/$npmName.bundle$ext';
+    for (final mirror in _cdnMirrors) {
+          final url = '$mirror$assetPath';
+          try {
+            final response = await _downloadPluginAssetWithFallback(url);
+            final script = await _decodeDownloadedPluginScript(
+              response: response,
+              resolvedUrl: url,
+            );
+            final trimmed = script.trim();
+            if (trimmed.isNotEmpty) {
+              return trimmed;
+            }
+          } catch (e) {
+            logger.w('CDN 下载尝试失败: $url', error: e);
           }
-        } catch (e) {
-          logger.w('jsdelivr CDN 下载尝试失败: $url', error: e);
         }
       }
-      logger.w('jsdelivr CDN 下载失败，回退 GitHub release: $npmName');
+      logger.w('所有 CDN 镜像下载失败，回退 GitHub release: $npmName');
     }
 
     final release = await fetchReleaseData(updateUrl);
@@ -215,6 +237,36 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   void _reportInstallSuccess(String message) {
     emit(state.copyWith(installing: false, installMessage: ''));
     showSuccessToast(message);
+  }
+
+  Future<String> _fetchCloudPluginListWithCdnFallback() async {
+    final client = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 8),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
+
+    for (final mirror in _ghCdnMirrors) {
+      final url = '$mirror$_cloudPluginListCdnPath';
+      try {
+        final response = await client.get<String>(
+          url,
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {'Accept': 'application/json, text/plain, */*'},
+          ),
+        );
+        final body = response.data?.trim() ?? '';
+        if ((response.statusCode ?? 0) == 200 && body.isNotEmpty) {
+          return body;
+        }
+      } catch (e, stackTrace) {
+        logger.w('CDN 镜像通道失败: $url', error: e, stackTrace: stackTrace);
+      }
+    }
+
+    return _fetchCloudPluginListPayload(_cloudPluginListDirectUrl);
   }
 
   Future<String> _fetchCloudPluginListPayload(String sourceUrl) async {

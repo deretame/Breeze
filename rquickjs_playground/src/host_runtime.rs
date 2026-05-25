@@ -29,8 +29,8 @@ const ASYNC_TASK_DISPATCHER_JS: &str = r#"(function () {
     } catch (err) {
       let __msg;
       try {
-        const __message = String(err && err.message ? err.message : err || "task eval error");
-        const __stack = String(err && err.stack ? err.stack : "");
+        const __message = Error.isError(err) ? err.message : String(err || "task eval error");
+        const __stack = Error.isError(err) ? (err.stack || "") : "";
         __msg = __stack ? `${__message}\n${__stack}` : __message;
       } catch (_err) {
         __msg = "task eval error";
@@ -105,8 +105,8 @@ const ASYNC_TASK_DISPATCHER_JS: &str = r#"(function () {
       (err) => {
         let __msg;
         try {
-          const __message = String(err && err.message ? err.message : err || "task rejected");
-          const __stack = String(err && err.stack ? err.stack : "");
+          const __message = Error.isError(err) ? err.message : String(err || "task rejected");
+          const __stack = Error.isError(err) ? (err.stack || "") : "";
           __msg = __stack ? `${__message}\n${__stack}` : __message;
         } catch (_err) {
           __msg = "task rejected";
@@ -152,12 +152,19 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
     const appendSourceUrl = (source, logicalName) =>
       `${String(source || "")}\n//# sourceURL=${sanitizeSourceName(logicalName)}.cjs`;
     const withInvokeContextError = (err, ctx) => {
-      const base = String(err && err.message ? err.message : err || "执行失败");
-      const stack = String(err && err.stack ? err.stack : "");
-      const scope = `bundle:${ctx?.name || "?"} fn:${ctx?.fnPath || "?"} argc:${ctx?.argc ?? 0} source:${ctx?.sourceName || "?"}`;
+      const scope = `bundle:${ctx?.name || "?"} fn:${ctx?.fnPath || "?"} args:${ctx?.args || "[]"} source:${ctx?.sourceName || "?"}`;
+
+      if (err instanceof Error) {
+        err.__bundle_scope = scope;
+        return err;
+      }
+
+      const base = Error.isError(err) ? err.message : String(err || "执行失败");
       const enriched = new Error(base);
+      if (typeof Error.captureStackTrace === "function") {
+        Error.captureStackTrace(enriched, withInvokeContextError);
+      }
       enriched.__bundle_scope = scope;
-      if (stack) enriched.stack = stack;
       return enriched;
     };
 
@@ -229,7 +236,7 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
           const { owner, fn } = resolveCallable(api, fnPath);
           return await fn.apply(owner, args);
         } catch (err) {
-          throw withInvokeContextError(err, { name, fnPath, argc: args.length, sourceName: `${sanitizeSourceName(name)}.cjs` });
+          throw withInvokeContextError(err, { name, fnPath, args: JSON.stringify(args), sourceName: `${sanitizeSourceName(name)}.cjs` });
         }
       },
       async invokeOnceLoaded(payload) {
@@ -249,7 +256,7 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
           const { owner, fn } = resolveCallable(api, fnPath);
           return await fn.apply(owner, args);
         } catch (err) {
-          throw withInvokeContextError(err, { name: debugName, fnPath, argc: args.length, sourceName });
+          throw withInvokeContextError(err, { name: debugName, fnPath, args: JSON.stringify(args), sourceName });
         }
       },
       unloadBundle(name) {
@@ -270,9 +277,9 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
 
     return JSON.stringify({ ok: true, data: null });
   } catch (err) {
-    const base = String(err && err.message ? err.message : err || "执行失败");
-    const stack = String(err && err.stack ? err.stack : "");
-    const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+    const base = Error.isError(err) ? err.message : String(err || "执行失败");
+    const stack = Error.isError(err) ? (err.stack || "") : "";
+    const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
     return JSON.stringify({ ok: false, error: base, stack, debug_scope: debugScope });
   }
 })()"#;
@@ -1076,6 +1083,7 @@ impl AsyncHostRuntime {
     }
 
     pub async fn bundle_load(&self, name: &str, source: &str) -> Result<(), String> {
+        let _ = crate::source_map::extract_and_register("__default__", source);
         self.bundle_ensure_dispatcher().await?;
         let name_literal =
             serde_json::to_string(name).map_err(|e| format!("序列化 bundle 名称失败: {e}"))?;
@@ -1093,9 +1101,9 @@ impl AsyncHostRuntime {
                 host.loadBundle({name_literal}, {source_literal});
                 return JSON.stringify({{ ok: true, data: null }});
               }} catch (err) {{
-                const base = String(err && err.message ? err.message : err || "执行失败");
-                const stack = String(err && err.stack ? err.stack : "");
-                const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+                const base = Error.isError(err) ? err.message : String(err || "执行失败");
+                const stack = Error.isError(err) ? (err.stack || "") : "";
+                const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
                 return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
               }}
             }})()
@@ -1215,9 +1223,9 @@ impl AsyncHostRuntime {
                 const removed = host.unloadBundle({name_literal});
                 return JSON.stringify({{ ok: true, data: removed }});
               }} catch (err) {{
-                const base = String(err && err.message ? err.message : err || "执行失败");
-                const stack = String(err && err.stack ? err.stack : "");
-                const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+                const base = Error.isError(err) ? err.message : String(err || "执行失败");
+                const stack = Error.isError(err) ? (err.stack || "") : "";
+                const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
                 return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
               }}
             }})()
@@ -1246,9 +1254,9 @@ impl AsyncHostRuntime {
                 const names = host.listBundles();
                 return JSON.stringify({ ok: true, data: names });
               } catch (err) {
-                const base = String(err && err.message ? err.message : err || "执行失败");
-                const stack = String(err && err.stack ? err.stack : "");
-                const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+                const base = Error.isError(err) ? err.message : String(err || "执行失败");
+                const stack = Error.isError(err) ? (err.stack || "") : "";
+                const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
                 return JSON.stringify({ ok: false, error: base, stack, debug_scope: debugScope });
               }
             })()
@@ -1620,9 +1628,9 @@ fn build_bundle_call_once_script(
             }});
             return JSON.stringify({{ ok: true, data: encodeHostData(data) }});
           }} catch (err) {{
-            const base = String(err && err.message ? err.message : err || "执行失败");
-            const stack = String(err && err.stack ? err.stack : "");
-            const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+            const base = Error.isError(err) ? err.message : String(err || "执行失败");
+            const stack = Error.isError(err) ? (err.stack || "") : "";
+            const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
             return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
           }}
         }})()
@@ -1770,9 +1778,9 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
             const data = await host.invoke({{ name: {name_literal}, fnPath: {fn_path_literal}, args: {args_literal} }});
             return JSON.stringify({{ ok: true, data: encodeHostData(data) }});
           }} catch (err) {{
-            const base = String(err && err.message ? err.message : err || "执行失败");
-            const stack = String(err && err.stack ? err.stack : "");
-            const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+            const base = Error.isError(err) ? err.message : String(err || "执行失败");
+            const stack = Error.isError(err) ? (err.stack || "") : "";
+            const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
             return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
           }}
         }})()

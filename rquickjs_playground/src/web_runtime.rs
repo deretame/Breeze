@@ -120,6 +120,8 @@ const WEB_POLYFILL_CORE: &str = concat!(
     "\n",
     include_str!("../js/62_bridge.js"),
     "\n",
+    include_str!("../js/63_stack_hook.js"),
+    "\n",
     include_str!("../js/65_console.js"),
     "\n"
 );
@@ -145,6 +147,8 @@ pub const WEB_POLYFILL: &str = concat!(
     include_str!("../js/60_native.js"),
     "\n",
     include_str!("../js/62_bridge.js"),
+    "\n",
+    include_str!("../js/63_stack_hook.js"),
     "\n",
     include_str!("../js/65_console.js"),
     "\n",
@@ -330,7 +334,15 @@ pub fn install_host_bindings(
         globals.set("__fs_task_try_take", Func::from(fs_task_try_take))?;
         globals.set("__fs_task_drop", Func::from(fs_task_drop))?;
     }
+    globals.set("__sourcemap_lookup", Func::from(sourcemap_lookup))?;
     Ok(())
+}
+
+fn sourcemap_lookup(bundle_name: String, gen_line: f64, gen_col: f64) -> String {
+    match crate::source_map::look_up(&bundle_name, gen_line as u32, gen_col as u32) {
+        Some(r) => json!({ "source": r.source, "line": r.line, "column": r.column, "name": r.name }).to_string(),
+        None => String::new(),
+    }
 }
 
 static HTTP_REQ_ID: AtomicU64 = AtomicU64::new(1);

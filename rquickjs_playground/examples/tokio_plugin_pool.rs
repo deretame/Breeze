@@ -157,7 +157,7 @@ fn invoke_one(host: &AsyncHostRuntime, item: &InvokeItem) -> Result<Value, Strin
             const data = await globalThis.__plugin_invoke({name_json}, {function_json}, {args_json});
             return JSON.stringify({{ ok: true, data }});
           }} catch (err) {{
-            return JSON.stringify({{ ok: false, error: String(err && err.message ? err.message : err) }});
+            return JSON.stringify({{ ok: false, error: Error.isError(err) ? err.message : String(err) }});
           }}
         }})()
         "#
@@ -277,7 +277,7 @@ fn get_plugin_info(
             const data = await globalThis.__plugin_get_info({name_json}, {query_json});
             return JSON.stringify({{ ok: true, data }});
           }} catch (err) {{
-            return JSON.stringify({{ ok: false, error: String(err && err.message ? err.message : err) }});
+            return JSON.stringify({{ ok: false, error: Error.isError(err) ? err.message : String(err) }});
           }}
         }})()
         "#

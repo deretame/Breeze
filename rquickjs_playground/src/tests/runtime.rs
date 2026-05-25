@@ -423,7 +423,7 @@ fn runtime_abort_signal_any_edge_cases() {
         try {
           AbortSignal.any([{}]);
         } catch (err) {
-          invalidErr = String(err && err.message ? err.message : err);
+          invalidErr = Error.isError(err) ? err.message : String(err);
         }
 
         const timed = AbortSignal.timeout(1);
@@ -547,7 +547,7 @@ fn runtime_response_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
         try {
           await res.text();
         } catch (err) {
-          secondError = String(err && err.message ? err.message : err);
+          secondError = Error.isError(err) ? err.message : String(err);
         }
         return JSON.stringify({ first, secondError });
       })()
@@ -579,7 +579,7 @@ fn runtime_request_clone_rejected_for_native_binary_body() {
         try {
           req.clone();
         } catch (err) {
-          errMsg = String(err && err.message ? err.message : err);
+          errMsg = Error.isError(err) ? err.message : String(err);
         }
         return JSON.stringify({ errMsg });
       })()

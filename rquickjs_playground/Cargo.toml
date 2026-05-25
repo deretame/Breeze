@@ -50,6 +50,7 @@ ecb = "0.2.0"
 flate2 = "1.1.2"
 wasmtime = { version = "44.0.1", optional = true }
 wasmtime-wasi = { version = "44.0.1", optional = true }
+srcmap-sourcemap = "0.3.6"
 
 [target.'cfg(windows)'.dependencies]
 windows-registry = "0.6.1"

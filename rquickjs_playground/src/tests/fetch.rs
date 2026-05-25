@@ -441,7 +441,7 @@ fn fetch_abort_concurrent_requests_do_not_leave_pending_http_tasks() {
           const controller = new AbortController();
           const p = fetch("{}/slow?i=" + i, {{ signal: controller.signal }})
             .then(() => "resolved")
-            .catch((err) => String(err && err.name ? err.name : err));
+            .catch((err) => Error.isError(err) ? (err.name || String(err)) : String(err));
           tasks.push(p);
           setTimeout(() => controller.abort("cancel"), 0);
         }}
@@ -644,7 +644,7 @@ fn fetch_offloaded_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
             try {{
               await res.takeOffloadedBody();
             }} catch (err) {{
-              secondError = String(err && err.message ? err.message : err);
+              secondError = Error.isError(err) ? err.message : String(err);
             }}
 
             return JSON.stringify({{

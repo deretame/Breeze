@@ -190,7 +190,7 @@ function createRuntimeAdapters() {
         const compiled = await WebAssembly.compile(wasmBytes);
         instance = await WebAssembly.instantiate(compiled, {});
       } catch (err) {
-        throw new Error(String(err && err.message ? err.message : err));
+        throw new Error(String(Error.isError(err) ? err.message : err));
       }
 
       const start = instance && instance.exports ? instance.exports._start : undefined;
@@ -198,7 +198,7 @@ function createRuntimeAdapters() {
         try {
           start();
         } catch (err) {
-          throw new Error(String(err && err.message ? err.message : err));
+          throw new Error(String(Error.isError(err) ? err.message : err));
         }
       }
 

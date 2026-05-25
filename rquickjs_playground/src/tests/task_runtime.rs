@@ -368,7 +368,7 @@ fn bundle_call_once_error_contains_context_and_source_url() {
         .expect_err("调用应失败");
 
     assert!(
-        err.contains("[bundle:__once__ fn:boom argc:0 source:__bundle_once__.cjs]"),
+        err.contains("[bundle:__once__ fn:boom args:[] source:__bundle_once__.cjs]"),
         "缺少调用上下文: {err}"
     );
     assert!(
@@ -561,5 +561,41 @@ fn run_benchmark_case(total: usize, delay_ms: u64) {
         wait_handle_elapsed.as_millis(),
         ratio,
         order_hint
+    );
+}
+
+#[test]
+fn sourcemap_inline_resolves_real_bundle_error() {
+    use crate::host_runtime::AsyncHostRuntime;
+    use std::fs;
+
+    let bundle_path =
+        r"D:\Project\web\Breeze-plugin-example\dist\breeze-plugin-example.bundle.cjs";
+    let bundle_src = fs::read_to_string(bundle_path).expect("read bundle");
+
+    // bundle already has inline source map via //# sourceMappingURL=data:...
+    let runtime = AsyncHostRuntime::new("sourcemap-inline").expect("create runtime");
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    rt.block_on(async { runtime.bundle_load("test-bundle", &bundle_src).await })
+        .expect("load bundle");
+
+    let err = rt
+        .block_on(async {
+            runtime
+                .bundle_call("test-bundle", "getComicDetail", &serde_json::json!([]))
+                .await
+        })
+        .expect_err("should fail");
+
+    println!("=== SOURCE MAPPED ERROR ===");
+    println!("{err}");
+
+    assert!(
+        err.contains("webpack://breeze-plugin-example/./src/index.ts:"),
+        "missing src/index.ts in source map: {err}"
     );
 }

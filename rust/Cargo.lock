@@ -3106,6 +3106,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "srcmap-sourcemap",
  "tokio",
  "tracing",
  "url",
@@ -3892,6 +3893,33 @@ dependencies = [
  "thiserror",
  "tracing",
  "url",
+]
+
+[[package]]
+name = "srcmap-codec"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb59e0dc99488e5df4228114213cc2cfc1fa6071ab1b90706ba999fba866bee8"
+
+[[package]]
+name = "srcmap-scopes"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45412ac7dcc91d43395072a2aa2480022963895c9791e52b519ab922e03c401a"
+dependencies = [
+ "srcmap-codec",
+]
+
+[[package]]
+name = "srcmap-sourcemap"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cfb6ac3ef26caf22443bda4db17468e936a4adeaf073ac5235d9d367d98115d"
+dependencies = [
+ "serde",
+ "serde_json",
+ "srcmap-codec",
+ "srcmap-scopes",
 ]
 
 [[package]]

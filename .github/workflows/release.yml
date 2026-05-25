@@ -54,7 +54,7 @@ jobs:
           cache: "gradle"
 
       - name: 设置 Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -95,7 +95,7 @@ jobs:
           echo "ndk_version=$NDK_VER" >> $GITHUB_OUTPUT
 
       - name: 缓存 Android NDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /usr/local/lib/android/sdk/ndk/${{ steps.ndk-config.outputs.ndk_version }}
           key: ${{ runner.os }}-android-ndk-${{ steps.ndk-config.outputs.ndk_version }}

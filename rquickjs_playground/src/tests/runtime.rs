@@ -1,12 +1,6 @@
-#[cfg(feature = "wasi")]
-use crate::tests::run_async_script_with_wasi;
-use crate::tests::{run_async_script, run_async_script_without_wasi};
+use crate::tests::run_async_script;
 use crate::web_runtime::configure_log_http_endpoint;
 use serde_json::Value;
-#[cfg(feature = "wasi")]
-use std::fs;
-#[cfg(feature = "wasi")]
-use std::path::PathBuf;
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -35,7 +29,7 @@ fn runtime_timers_and_microtask() {
       })()
     "#;
 
-    let result = run_async_script_without_wasi(script).expect("执行脚本失败");
+    let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     let events = parsed["events"].as_array().expect("events 必须是数组");
 
@@ -67,7 +61,7 @@ fn runtime_interval_repeats_from_host_scheduler() {
       })()
     "#;
 
-    let result = run_async_script_without_wasi(script).expect("执行脚本失败");
+    let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert_eq!(parsed["has1"], true);
     assert_eq!(parsed["has2"], true);
@@ -96,7 +90,7 @@ fn runtime_text_and_base64() {
       })()
     "#;
 
-    let result = run_async_script_without_wasi(script).expect("执行脚本失败");
+    let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
 
     assert_eq!(parsed["text"], "A中B");
@@ -809,8 +803,6 @@ fn runtime_stats_exposed() {
           hasStale: typeof s.staleDrops === "object",
           hasBridge: typeof s.bridge === "object",
           bridgeProtocol: s.bridge ? s.bridge.protocol : "",
-          hasWasi: typeof s.wasi === "object",
-          hasCap: typeof s.wasi.cacheCapacity === "number"
         });
       })()
     "#;
@@ -824,8 +816,6 @@ fn runtime_stats_exposed() {
     assert_eq!(parsed["hasStale"], true);
     assert_eq!(parsed["hasBridge"], true);
     assert_eq!(parsed["bridgeProtocol"], "bridge-binary-v1");
-    assert_eq!(parsed["hasWasi"], true);
-    assert_eq!(parsed["hasCap"], true);
 }
 
 #[test]
@@ -836,7 +826,7 @@ fn wasi_is_not_injected_by_default() {
       }))()
     "#;
 
-    let result = run_async_script_without_wasi(script).expect("执行脚本失败");
+    let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert_eq!(parsed["hasWasi"], false);
 }
@@ -960,52 +950,4 @@ fn runtime_console_all_levels_forwarded_to_http_endpoint() {
     assert!(first["payload"]["tsMs"].is_number());
     assert!(second["payload"]["tsMs"].is_number());
     assert!(third["payload"]["tsMs"].is_number());
-}
-
-#[cfg(feature = "wasi")]
-#[test]
-fn runtime_runs_compiled_pnpm_bundle() {
-    let mut bundle_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    bundle_path.push("pnpm_demo");
-    bundle_path.push("dist");
-    bundle_path.push("bundle.cjs");
-
-    let bundle =
-        fs::read_to_string(&bundle_path).expect("读取编译产物失败，请先执行 pnpm_demo/pnpm build");
-    let bundle_json = serde_json::to_string(&bundle).expect("序列化 bundle 失败");
-
-    let script = format!(
-        r#"
-      (async () => {{
-        const code = {bundle_json};
-        const module = {{ exports: {{}} }};
-        const exports = module.exports;
-        const requireFn = typeof require === "function" ? require.bind(globalThis) : undefined;
-        const runner = new Function("module", "exports", "require", code);
-        runner(module, exports, requireFn);
-
-        let entry = module.exports;
-        if (entry && typeof entry === "object" && entry.default !== undefined) {{
-          entry = entry.default;
-        }}
-        if (typeof entry !== "function") {{
-          throw new Error("bundle 必须导出默认函数");
-        }}
-
-        const result = await entry();
-        return JSON.stringify(result);
-      }})()
-    "#
-    );
-
-    let result = run_async_script_with_wasi(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
-
-    assert_eq!(parsed["ok"], true);
-    assert_eq!(parsed["joined"], "/demo/out.png");
-    assert_eq!(parsed["out"][0], 1);
-    assert_eq!(parsed["out"][1], 2);
-    assert_eq!(parsed["out"][2], 3);
-    assert_eq!(parsed["out"][3], 4);
-    assert_eq!(parsed["wasi"]["exitCode"], 0);
 }

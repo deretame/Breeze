@@ -59,25 +59,6 @@ export interface NativeApi {
   free(id: number): Promise<void>;
 }
 
-export interface WasiRunResult {
-  exitCode: number;
-  stdoutId: number;
-  stderrId: number;
-}
-
-export interface WasiApi {
-  run(
-    moduleBytes: Uint8Array,
-    options?: { stdinId?: number; args?: string[]; reuseModule?: boolean },
-  ): Promise<WasiRunResult>;
-  runById(
-    moduleId: number,
-    options?: { stdinId?: number; args?: string[]; reuseModule?: boolean },
-  ): Promise<WasiRunResult>;
-  takeStdout(result: WasiRunResult): Promise<Uint8Array>;
-  takeStderr(result: WasiRunResult): Promise<Uint8Array>;
-}
-
 export interface BridgeApi {
   gzipDecompress(
     input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
@@ -138,7 +119,6 @@ declare global {
   var fs: FsApi | undefined;
   var path: PathApi | undefined;
   var native: NativeApi;
-  var wasi: WasiApi;
   var bridge: BridgeApi;
   var nodeCryptoCompat: CryptoApi;
   var uuidv4: () => string;

@@ -13,10 +13,7 @@ use std::sync::OnceLock;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
-pub use support::{
-    run_async_script, run_async_script_with_fs, run_async_script_with_wasi,
-    run_async_script_with_wasi_and_fs, run_async_script_without_wasi,
-};
+pub use support::{run_async_script, run_async_script_with_fs};
 use tiny_http::{Method as TinyMethod, Response, Server};
 
 static PNPM_CASES_BUILD: OnceLock<Result<(), String>> = OnceLock::new();

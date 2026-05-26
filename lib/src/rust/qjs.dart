@@ -50,22 +50,17 @@ class QjsCancelTasksByGroupResult {
 class QjsRuntimeBuildRequest {
   final String runtimeName;
   final bool injectFilesystem;
-  final bool enableWasi;
   final QjsRuntimeBundleBuild? bundle;
 
   const QjsRuntimeBuildRequest({
     required this.runtimeName,
     required this.injectFilesystem,
-    required this.enableWasi,
     this.bundle,
   });
 
   @override
   int get hashCode =>
-      runtimeName.hashCode ^
-      injectFilesystem.hashCode ^
-      enableWasi.hashCode ^
-      bundle.hashCode;
+      runtimeName.hashCode ^ injectFilesystem.hashCode ^ bundle.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -74,7 +69,6 @@ class QjsRuntimeBuildRequest {
           runtimeType == other.runtimeType &&
           runtimeName == other.runtimeName &&
           injectFilesystem == other.injectFilesystem &&
-          enableWasi == other.enableWasi &&
           bundle == other.bundle;
 }
 

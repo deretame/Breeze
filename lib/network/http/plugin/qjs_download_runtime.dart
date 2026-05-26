@@ -77,7 +77,6 @@ Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
         request: QjsRuntimeBuildRequest(
           runtimeName: runtimeName,
           injectFilesystem: false,
-          enableWasi: false,
           bundle: QjsRuntimeBundleBuild(
             bundleName: bundleName,
             bundleJs: bundleJs,

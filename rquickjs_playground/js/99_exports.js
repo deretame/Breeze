@@ -9,7 +9,6 @@
     fs,
     FSError,
     native,
-    wasi,
     console,
     bridge,
     URL,
@@ -34,7 +33,6 @@
   globalThis.fs = fs;
   globalThis.FSError = FSError;
   globalThis.native = native;
-  globalThis.wasi = wasi;
   globalThis.console = console;
   globalThis.bridge = bridge;
   globalThis.URL = URL;

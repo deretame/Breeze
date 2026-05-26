@@ -194,7 +194,6 @@ class PluginRegistryService {
         request: const QjsRuntimeBuildRequest(
           runtimeName: globalRuntimeName,
           injectFilesystem: false,
-          enableWasi: false,
         ),
       );
     }
@@ -1064,7 +1063,6 @@ class PluginRegistryService {
       request: QjsRuntimeBuildRequest(
         runtimeName: runtimeName,
         injectFilesystem: false,
-        enableWasi: false,
         bundle: QjsRuntimeBundleBuild(
           bundleName: runtimeName,
           bundleJs: bundleJs,

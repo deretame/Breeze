@@ -133,9 +133,8 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   }) async {
     if (npmName.isNotEmpty) {
       for (final ext in ['.cjs.br', '.cjs']) {
-        final assetPath =
-            'npm/$npmName@$cloudVersion/dist/$npmName.bundle$ext';
-    for (final mirror in _cdnMirrors) {
+        final assetPath = 'npm/$npmName@$cloudVersion/dist/$npmName.bundle$ext';
+        for (final mirror in _cdnMirrors) {
           final url = '$mirror$assetPath';
           try {
             final response = await _downloadPluginAssetWithFallback(url);

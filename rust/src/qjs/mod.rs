@@ -194,7 +194,6 @@ pub struct QjsRuntimeBundleBuild {
 pub struct QjsRuntimeBuildRequest {
     pub runtime_name: String,
     pub inject_filesystem: bool,
-    pub enable_wasi: bool,
     pub bundle: Option<QjsRuntimeBundleBuild>,
 }
 
@@ -216,11 +215,6 @@ impl QjsRuntimeBuilder {
 
     pub fn filesystem(mut self, enabled: bool) -> Self {
         self.options.fs = enabled;
-        self
-    }
-
-    pub fn wasi(mut self, enabled: bool) -> Self {
-        self.options.wasi = enabled;
         self
     }
 
@@ -649,9 +643,8 @@ async fn create_qjs_runtime_with_options(
 ) -> Result<AsyncHostRuntime> {
     let runtime = AsyncHostRuntimeBuilder::new(runtime_name)
         .filesystem(options.fs)
-        .wasi(options.wasi)
         .build()
-        .map_err(|err| anyhow!(err))?;
+        .map_err(|err: String| anyhow!(err))?;
     let init_script = r#"(async () => {
             return "ok";
     })()"#;
@@ -674,10 +667,8 @@ fn ensure_runtime_options(
         return Ok(());
     }
     Err(anyhow!(
-        "runtime '{runtime_name}' 已存在且配置不匹配 (existing: wasi={}, fs={}; requested: wasi={}, fs={})",
-        actual.wasi,
+        "runtime '{runtime_name}' 已存在且配置不匹配 (existing: fs={}; requested: fs={})",
         actual.fs,
-        expected.wasi,
         expected.fs
     ))
 }
@@ -714,8 +705,7 @@ async fn qjs_runtime_with_options(
     map.insert(runtime_name.to_owned(), new_runtime.clone());
 
     tracing::info!(
-        "新建了一个 qjs 实例: {runtime_name} (wasi={}, fs={})，thread id : {:?}",
-        options.wasi,
+        "新建了一个 qjs 实例: {runtime_name} (fs={})，thread id : {:?}",
         options.fs,
         std::thread::current().id()
     );
@@ -772,8 +762,7 @@ async fn create_qjs_runtime_with_bundle_and_options(
     map.insert(runtime_name.to_owned(), new_runtime);
 
     tracing::info!(
-        "新建 qjs 实例并加载 bundle: {runtime_name} -> {bundle_name} (wasi={}, fs={})",
-        options.wasi,
+        "新建 qjs 实例并加载 bundle: {runtime_name} -> {bundle_name} (fs={})",
         options.fs
     );
     Ok(())
@@ -1475,7 +1464,6 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
             "cacheScopeId": runtime.cache_scope_id(),
             "options": {
                 "fs": runtime.options().fs,
-                "wasi": runtime.options().wasi,
             },
             "taskStats": {
                 "pending": stats.pending,
@@ -1915,9 +1903,8 @@ pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
 }
 
 pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
-    let mut builder = QjsRuntimeBuilder::new(request.runtime_name)
-        .filesystem(request.inject_filesystem)
-        .wasi(request.enable_wasi);
+    let mut builder =
+        QjsRuntimeBuilder::new(request.runtime_name).filesystem(request.inject_filesystem);
 
     if let Some(bundle) = request.bundle {
         builder = builder.with_bundle(bundle);

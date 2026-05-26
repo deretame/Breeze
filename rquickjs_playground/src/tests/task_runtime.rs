@@ -569,8 +569,7 @@ fn sourcemap_inline_resolves_real_bundle_error() {
     use crate::host_runtime::AsyncHostRuntime;
     use std::fs;
 
-    let bundle_path =
-        r"D:\Project\web\Breeze-plugin-example\dist\breeze-plugin-example.bundle.cjs";
+    let bundle_path = r"D:\Project\web\Breeze-plugin-example\dist\breeze-plugin-example.bundle.cjs";
     let bundle_src = fs::read_to_string(bundle_path).expect("read bundle");
 
     // bundle already has inline source map via //# sourceMappingURL=data:...

@@ -2481,12 +2481,10 @@ impl SseDecode for crate::qjs::QjsRuntimeBuildRequest {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_runtimeName = <String>::sse_decode(deserializer);
         let mut var_injectFilesystem = <bool>::sse_decode(deserializer);
-        let mut var_enableWasi = <bool>::sse_decode(deserializer);
         let mut var_bundle = <Option<crate::qjs::QjsRuntimeBundleBuild>>::sse_decode(deserializer);
         return crate::qjs::QjsRuntimeBuildRequest {
             runtime_name: var_runtimeName,
             inject_filesystem: var_injectFilesystem,
-            enable_wasi: var_enableWasi,
             bundle: var_bundle,
         };
     }
@@ -2824,7 +2822,6 @@ impl flutter_rust_bridge::IntoDart for crate::qjs::QjsRuntimeBuildRequest {
         [
             self.runtime_name.into_into_dart().into_dart(),
             self.inject_filesystem.into_into_dart().into_dart(),
-            self.enable_wasi.into_into_dart().into_dart(),
             self.bundle.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -3048,7 +3045,6 @@ impl SseEncode for crate::qjs::QjsRuntimeBuildRequest {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.runtime_name, serializer);
         <bool>::sse_encode(self.inject_filesystem, serializer);
-        <bool>::sse_encode(self.enable_wasi, serializer);
         <Option<crate::qjs::QjsRuntimeBundleBuild>>::sse_encode(self.bundle, serializer);
     }
 }

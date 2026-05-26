@@ -6,7 +6,6 @@ edition = "2024"
 [features]
 default = ["host-fs"]
 host-fs = []
-wasi = ["dep:wasmtime", "dep:wasmtime-wasi"]
 
 [dependencies]
 rquickjs = { version = "0.11.0", features = ["bindgen"] }
@@ -48,8 +47,6 @@ md5 = "0.8.0"
 aes = "0.9.0"
 ecb = "0.2.0"
 flate2 = "1.1.2"
-wasmtime = { version = "44.0.1", optional = true }
-wasmtime-wasi = { version = "44.0.1", optional = true }
 srcmap-sourcemap = "0.3.6"
 
 [target.'cfg(windows)'.dependencies]
@@ -57,4 +54,3 @@ windows-registry = "0.6.1"
 
 [dev-dependencies]
 tiny_http = "0.12.0"
-wat = "1.245.1"

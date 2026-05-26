@@ -15,7 +15,7 @@ import { createServer } from "node:http";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
 
-const caseNames = ["fetch", "axios", "fs", "native", "runtime", "runtime_api", "wasi", "bridge"];
+const caseNames = ["fetch", "axios", "fs", "native", "runtime", "runtime_api", "bridge"];
 
 function toUint8Array(input) {
   if (input instanceof Uint8Array) return new Uint8Array(input);
@@ -168,54 +168,6 @@ function createRuntimeAdapters() {
     },
   };
 
-  const wasi = {
-    async run(moduleBytes, options = {}) {
-      const moduleId = await native.put(moduleBytes);
-      return this.runById(moduleId, options);
-    },
-    async runById(moduleId, options = {}) {
-      if (options.stdinId !== undefined && options.stdinId !== null) {
-        takePool(Number(options.stdinId));
-      }
-
-      const consumeModule = options.reuseModule ? false : true;
-      const source = consumeModule
-        ? takePool(Number(moduleId))
-        : pool.get(Number(moduleId));
-      if (!source) throw new Error("module id 不存在");
-      const wasmBytes = new Uint8Array(source);
-
-      let instance;
-      try {
-        const compiled = await WebAssembly.compile(wasmBytes);
-        instance = await WebAssembly.instantiate(compiled, {});
-      } catch (err) {
-        throw new Error(String(Error.isError(err) ? err.message : err));
-      }
-
-      const start = instance && instance.exports ? instance.exports._start : undefined;
-      if (typeof start === "function") {
-        try {
-          start();
-        } catch (err) {
-          throw new Error(String(Error.isError(err) ? err.message : err));
-        }
-      }
-
-      return {
-        exitCode: 0,
-        stdoutId: alloc(new Uint8Array(0)),
-        stderrId: alloc(new Uint8Array(0)),
-      };
-    },
-    async takeStdout(result) {
-      return native.take(result.stdoutId);
-    },
-    async takeStderr(result) {
-      return native.take(result.stderrId);
-    },
-  };
-
   const bridge = {
     async call(name, ...args) {
       const method = String(name || "");
@@ -252,7 +204,6 @@ function createRuntimeAdapters() {
     },
     uuidv4: () => randomUUID().replace(/-/g, ""),
     native,
-    wasi,
   };
 }
 

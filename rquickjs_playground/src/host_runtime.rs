@@ -15,7 +15,7 @@ use tokio::sync::oneshot;
 use crate::web_runtime::{
     WebRuntimeOptions, http_request_drop_evented, http_request_start_evented,
     install_host_bindings, native_buffer_take_raw, polyfill_script, timer_drop_evented,
-    timer_start_kind_evented, wasi_run_drop_evented, wasi_run_start_evented,
+    timer_start_kind_evented,
 };
 
 #[cfg(feature = "host-fs")]
@@ -362,11 +362,6 @@ impl AsyncHostRuntimeBuilder {
         self
     }
 
-    pub fn wasi(mut self, enabled: bool) -> Self {
-        self.options.wasi = enabled;
-        self
-    }
-
     pub fn build(self) -> Result<AsyncHostRuntime, String> {
         AsyncHostRuntime::build_inner(self.cache_scope_id, self.options)
     }
@@ -415,11 +410,6 @@ enum HostEvent {
     },
     #[cfg(feature = "host-fs")]
     FsCompleted {
-        route: ContextRoute,
-        id: u64,
-        payload: String,
-    },
-    WasiCompleted {
         route: ContextRoute,
         id: u64,
         payload: String,
@@ -487,13 +477,6 @@ impl HostRuntime {
         cache_scope_id: String,
         options: WebRuntimeOptions,
     ) -> Result<Self, rquickjs::Error> {
-        if options.wasi && !cfg!(feature = "wasi") {
-            return Err(rquickjs::Error::new_from_js_message(
-                "rust",
-                "runtime",
-                "当前构建未启用 wasi Cargo 特性",
-            ));
-        }
         if options.fs && !cfg!(feature = "host-fs") {
             return Err(rquickjs::Error::new_from_js_message(
                 "rust",
@@ -820,9 +803,6 @@ impl AsyncHostRuntime {
     }
 
     fn build_inner(cache_scope_id: String, options: WebRuntimeOptions) -> Result<Self, String> {
-        if options.wasi && !cfg!(feature = "wasi") {
-            return Err("当前构建未启用 wasi Cargo 特性".to_string());
-        }
         if options.fs && !cfg!(feature = "host-fs") {
             return Err("当前构建未启用 host-fs Cargo 特性".to_string());
         }
@@ -1914,36 +1894,6 @@ fn install_evented_host_bindings_worker(
         globals.set("__fs_task_drop_evented", Func::from(fs_task_drop_evented))?;
     }
 
-    if options.wasi {
-        let wasi_tx = signal_tx;
-        globals.set(
-            "__wasi_run_start_evented",
-            Function::new(
-                ctx.clone(),
-                move |module_id: u64,
-                      stdin_id: Option<u64>,
-                      args_json: Option<String>,
-                      consume_module: bool| {
-                    let tx = wasi_tx.clone();
-                    wasi_run_start_evented(
-                        module_id,
-                        stdin_id,
-                        args_json,
-                        consume_module,
-                        move |id, payload| {
-                            let _ = tx.send(WorkerSignal::HostEvent(HostEvent::WasiCompleted {
-                                route,
-                                id,
-                                payload,
-                            }));
-                        },
-                    )
-                },
-            )?,
-        )?;
-        globals.set("__wasi_run_drop_evented", Func::from(wasi_run_drop_evented))?;
-    }
-
     Ok(())
 }
 
@@ -2046,7 +1996,6 @@ fn handle_host_event(host: &HostRuntime, event: HostEvent) {
         HostEvent::HttpCompleted { route, .. } => *route,
         #[cfg(feature = "host-fs")]
         HostEvent::FsCompleted { route, .. } => *route,
-        HostEvent::WasiCompleted { route, .. } => *route,
         HostEvent::TimerCompleted { route, .. } => *route,
     };
     let result = host.with_context_route(route, |ctx| handle_host_event_in_ctx(ctx, event));
@@ -2067,10 +2016,6 @@ fn handle_host_event_in_ctx(
         #[cfg(feature = "host-fs")]
         HostEvent::FsCompleted { id, payload, .. } => {
             let func: Function = globals.get("__host_runtime_fs_complete")?;
-            func.call::<_, ()>((id, payload))
-        }
-        HostEvent::WasiCompleted { id, payload, .. } => {
-            let func: Function = globals.get("__host_runtime_wasi_complete")?;
             func.call::<_, ()>((id, payload))
         }
         HostEvent::TimerCompleted { id, payload, .. } => {

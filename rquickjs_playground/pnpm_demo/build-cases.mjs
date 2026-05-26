@@ -1,7 +1,7 @@
 import { build } from "esbuild";
 import { mkdir, rm } from "node:fs/promises";
 
-const caseNames = ["fetch", "axios", "fs", "native", "runtime", "runtime_api", "wasi", "bridge"];
+const caseNames = ["fetch", "axios", "fs", "native", "runtime", "runtime_api", "bridge"];
 
 await rm("dist/cases", { recursive: true, force: true });
 await mkdir("dist/cases", { recursive: true });

@@ -24,18 +24,6 @@ export default async function main(config: unknown = {}) {
   const native = requireApi("native");
   const nativeOut = await native.chain(["invert", "invert"], new Uint8Array([1, 2, 3]));
 
-  const wasi = requireApi("wasi");
-  const moduleBytes = new Uint8Array([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
-      0x01, 0x04, 0x01, 0x60, 0x00, 0x00,
-      0x03, 0x02, 0x01, 0x00,
-      0x07, 0x0a, 0x01, 0x06, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x00, 0x00,
-      0x0a, 0x04, 0x01, 0x02, 0x00, 0x0b,
-    ]);
-  const wasiRun = await wasi.run(moduleBytes);
-  const wasiStdout = await wasi.takeStdout(wasiRun);
-  const wasiStderr = await wasi.takeStderr(wasiRun);
-
   const fsApi = requireApi("fs");
   const filePath = `${baseDir}/runtime-api.txt`;
   await fsApi.promises.writeFile(filePath, "hello-runtime-api");
@@ -59,9 +47,6 @@ export default async function main(config: unknown = {}) {
     && nativeOut[0] === 1
     && nativeOut[1] === 2
     && nativeOut[2] === 3
-    && wasiRun.exitCode === 0
-    && wasiStdout.length === 0
-    && wasiStderr.length === 0
     && fileText === "hello-runtime-api"
     && typeof fetchFn === "function"
     && formData.get("name") === "runtime-api";

@@ -665,7 +665,6 @@ async fn http_request_inner_async(
         serde_json::from_str(&headers_json).context("解析 HTTP headers JSON 失败")?;
     let client = http_client()?;
     let mut offload_body_to_native = false;
-    let mut wasi_transform_plan: Option<WasiTransformPlan> = None;
     let mut formdata_body = false;
     let mut plain_headers: Vec<(String, String)> = Vec::new();
 
@@ -676,10 +675,6 @@ async fn http_request_inner_async(
             if let Some(v) = value.as_str() {
                 if key.eq_ignore_ascii_case(HTTP_OFFLOAD_BODY_HEADER) {
                     offload_body_to_native = header_truthy(v);
-                    continue;
-                }
-                if key.eq_ignore_ascii_case(HTTP_WASI_TRANSFORM_HEADER) {
-                    wasi_transform_plan = Some(parse_wasi_transform_plan(v)?);
                     continue;
                 }
                 if key.eq_ignore_ascii_case(HTTP_FORMDATA_BODY_HEADER) {
@@ -696,12 +691,6 @@ async fn http_request_inner_async(
             continue;
         }
         builder = builder.header(&key, value);
-    }
-
-    if wasi_transform_plan.is_some() && !offload_body_to_native {
-        return Err(anyhow!(
-            "使用 wasi transform 时必须同时开启 {HTTP_OFFLOAD_BODY_HEADER}"
-        ));
     }
 
     if formdata_body {
@@ -728,23 +717,11 @@ async fn http_request_inner_async(
     }
 
     if offload_body_to_native || auto_offload_body {
-        let mut body_bytes = response
+        let body_bytes = response
             .bytes()
             .await
             .context("读取 HTTP 响应体字节失败")?
             .to_vec();
-
-        let mut wasi_applied = false;
-        let mut wasi_need_js_processing = false;
-        let mut wasi_function: Option<String> = None;
-        let mut wasi_output_type: Option<String> = None;
-        if let Some(plan) = &wasi_transform_plan {
-            wasi_need_js_processing = plan.js_process.unwrap_or(false);
-            wasi_function = plan.function.clone();
-            wasi_output_type = Some(plan.output_type.clone());
-            body_bytes = run_wasi_transform_once(plan, body_bytes).await?;
-            wasi_applied = true;
-        }
 
         let native_buffer_id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
         let body_len = body_bytes.len();
@@ -772,11 +749,7 @@ async fn http_request_inner_async(
             "body": "",
             "offloaded": true,
             "nativeBufferId": native_buffer_id,
-            "offloadedBytes": body_len,
-            "wasiApplied": wasi_applied,
-            "wasiNeedJsProcessing": wasi_need_js_processing,
-            "wasiFunction": wasi_function,
-            "wasiOutputType": wasi_output_type
+            "offloadedBytes": body_len
         })
         .to_string());
     }

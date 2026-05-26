@@ -22,11 +22,8 @@ pub fn extract_and_register(name: &str, bundle_source: &str) -> Result<(), Strin
     let b64_start = after.find("base64,").ok_or("no base64 marker")? + "base64,".len();
     let b64 = after[b64_start..].trim();
 
-    let decoded = base64::Engine::decode(
-        &base64::engine::general_purpose::STANDARD,
-        b64,
-    )
-    .map_err(|e| format!("base64 decode: {e}"))?;
+    let decoded = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64)
+        .map_err(|e| format!("base64 decode: {e}"))?;
     let json = std::str::from_utf8(&decoded).map_err(|e| format!("utf8: {e}"))?;
     register(name, json)
 }
@@ -44,7 +41,11 @@ pub fn look_up(bundle_name: &str, gen_line_1: u32, gen_col_0: u32) -> Option<Loo
                 let source = sm.source(loc.source).to_string();
                 let name = loc.name.and_then(|n| {
                     let s = sm.name(n);
-                    if s.is_empty() { None } else { Some(s.to_string()) }
+                    if s.is_empty() {
+                        None
+                    } else {
+                        Some(s.to_string())
+                    }
                 });
                 return Some(LookUpResult {
                     source,

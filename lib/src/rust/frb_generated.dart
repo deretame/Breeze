@@ -2449,13 +2449,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   QjsRuntimeBuildRequest dco_decode_qjs_runtime_build_request(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
     return QjsRuntimeBuildRequest(
       runtimeName: dco_decode_String(arr[0]),
       injectFilesystem: dco_decode_bool(arr[1]),
-      enableWasi: dco_decode_bool(arr[2]),
-      bundle: dco_decode_opt_box_autoadd_qjs_runtime_bundle_build(arr[3]),
+      bundle: dco_decode_opt_box_autoadd_qjs_runtime_bundle_build(arr[2]),
     );
   }
 
@@ -2719,14 +2718,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_runtimeName = sse_decode_String(deserializer);
     var var_injectFilesystem = sse_decode_bool(deserializer);
-    var var_enableWasi = sse_decode_bool(deserializer);
     var var_bundle = sse_decode_opt_box_autoadd_qjs_runtime_bundle_build(
       deserializer,
     );
     return QjsRuntimeBuildRequest(
       runtimeName: var_runtimeName,
       injectFilesystem: var_injectFilesystem,
-      enableWasi: var_enableWasi,
       bundle: var_bundle,
     );
   }
@@ -3039,7 +3036,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.runtimeName, serializer);
     sse_encode_bool(self.injectFilesystem, serializer);
-    sse_encode_bool(self.enableWasi, serializer);
     sse_encode_opt_box_autoadd_qjs_runtime_bundle_build(
       self.bundle,
       serializer,

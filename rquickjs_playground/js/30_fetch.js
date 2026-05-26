@@ -38,10 +38,6 @@
           offloaded: payload.offloaded === true,
           nativeBufferId: payload.nativeBufferId,
           offloadedBytes: payload.offloadedBytes,
-          wasiApplied: payload.wasiApplied === true,
-          wasiNeedJsProcessing: payload.wasiNeedJsProcessing === true,
-          wasiFunction: payload.wasiFunction || null,
-          wasiOutputType: payload.wasiOutputType || null,
         }),
       ),
     );
@@ -354,10 +350,6 @@
         ? null
         : Number(init.nativeBufferId);
       this.offloadedBytes = Number(init.offloadedBytes || 0);
-      this.wasiApplied = Boolean(init.wasiApplied);
-      this.wasiNeedJsProcessing = Boolean(init.wasiNeedJsProcessing);
-      this.wasiFunction = init.wasiFunction || null;
-      this.wasiOutputType = init.wasiOutputType || null;
     }
 
     clone() {
@@ -379,10 +371,6 @@
         offloaded: this.offloaded,
         nativeBufferId: this.nativeBufferId,
         offloadedBytes: this.offloadedBytes,
-        wasiApplied: this.wasiApplied,
-        wasiNeedJsProcessing: this.wasiNeedJsProcessing,
-        wasiFunction: this.wasiFunction,
-        wasiOutputType: this.wasiOutputType,
       });
     }
 

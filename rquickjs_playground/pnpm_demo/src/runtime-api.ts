@@ -4,14 +4,12 @@ import type {
   FsApi,
   NativeApi,
   PathApi,
-  WasiApi,
 } from "../types/runtime-globals";
 
 export interface RuntimeApiSet {
   fs: FsApi;
   FSError: new (message?: string, code?: string, path?: string) => Error;
   native: NativeApi;
-  wasi: WasiApi;
   bridge: BridgeApi;
   path: PathApi;
   nodeCryptoCompat: CryptoApi;
@@ -85,9 +83,6 @@ export const runtime = {
   },
   get native() {
     return requireApi("native");
-  },
-  get wasi() {
-    return requireApi("wasi");
   },
   get bridge() {
     return requireApi("bridge");

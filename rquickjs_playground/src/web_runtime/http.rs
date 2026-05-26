@@ -297,8 +297,67 @@ pub fn configure_http_client(config: HttpClientConfig) -> AnyResult<()> {
 pub fn current_http_client_config() -> HttpClientConfig {
     http_client_state_cell()
         .lock()
-        .map(|state| state.config.clone())
+        .map(|g| g.config.clone())
         .unwrap_or_default()
+}
+
+thread_local! {
+    static WORKER_HTTP_CONFIG: std::cell::RefCell<Option<HttpClientConfig>> = const { std::cell::RefCell::new(None) };
+}
+
+pub fn set_worker_http_config(config: HttpClientConfig) {
+    WORKER_HTTP_CONFIG.with(|c| *c.borrow_mut() = Some(config));
+}
+
+fn worker_http_config() -> HttpClientConfig {
+    WORKER_HTTP_CONFIG.with(|c| {
+        c.borrow()
+            .clone()
+            .unwrap_or_else(current_http_client_config)
+    })
+}
+
+fn http_client() -> AnyResult<Client> {
+    let now = Instant::now();
+    let mut state = http_client_state_cell()
+        .lock()
+        .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
+    let config = state.config.clone();
+    let mut need_rebuild = state.client.is_none();
+
+    if state.auto_system_proxy {
+        let need_check = state
+            .last_system_proxy_check_at
+            .map(|last| now.saturating_duration_since(last) >= HTTP_SYSTEM_PROXY_REFRESH_INTERVAL)
+            .unwrap_or(true);
+        if need_check {
+            let fingerprint = current_system_proxy_fingerprint();
+            if state.system_proxy_fingerprint != fingerprint {
+                need_rebuild = true;
+            }
+            state.system_proxy_fingerprint = fingerprint;
+            state.last_system_proxy_check_at = Some(now);
+        }
+    }
+
+    if need_rebuild {
+        let (client, auto_system_proxy) = build_http_client(&config)?;
+        state.client = Some(client);
+        state.config = config;
+        state.auto_system_proxy = auto_system_proxy;
+        if auto_system_proxy {
+            state.system_proxy_fingerprint = current_system_proxy_fingerprint();
+            state.last_system_proxy_check_at = Some(Instant::now());
+        } else {
+            state.system_proxy_fingerprint = None;
+            state.last_system_proxy_check_at = None;
+        }
+    }
+
+    Ok(state
+        .client
+        .clone()
+        .ok_or_else(|| anyhow!("HTTP client 未初始化"))?)
 }
 
 fn normalize_http_proxy_url(raw: &str) -> String {
@@ -423,49 +482,6 @@ fn current_system_proxy_fingerprint() -> Option<String> {
     }
 }
 
-fn http_client() -> AnyResult<Client> {
-    let now = Instant::now();
-    let mut state = http_client_state_cell()
-        .lock()
-        .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
-    let config = state.config.clone();
-    let mut need_rebuild = state.client.is_none();
-
-    if state.auto_system_proxy {
-        let need_check = state
-            .last_system_proxy_check_at
-            .map(|last| now.saturating_duration_since(last) >= HTTP_SYSTEM_PROXY_REFRESH_INTERVAL)
-            .unwrap_or(true);
-        if need_check {
-            let fingerprint = current_system_proxy_fingerprint();
-            if state.system_proxy_fingerprint != fingerprint {
-                need_rebuild = true;
-            }
-            state.system_proxy_fingerprint = fingerprint;
-            state.last_system_proxy_check_at = Some(now);
-        }
-    }
-
-    if need_rebuild {
-        let (client, auto_system_proxy) = build_http_client(&config)?;
-        state.client = Some(client);
-        state.config = config;
-        state.auto_system_proxy = auto_system_proxy;
-        if auto_system_proxy {
-            state.system_proxy_fingerprint = current_system_proxy_fingerprint();
-            state.last_system_proxy_check_at = Some(now);
-        } else {
-            state.system_proxy_fingerprint = None;
-            state.last_system_proxy_check_at = None;
-        }
-    }
-
-    match state.client.clone() {
-        Some(client) => Ok(client),
-        None => Err(anyhow!("HTTP client 不可用")),
-    }
-}
-
 pub fn http_request_start(
     method: String,
     url: String,
@@ -485,7 +501,7 @@ pub fn http_request_start(
     let sem = Arc::clone(http_io_sem());
     let request_label = format!("method={} url={}", method, url);
 
-    let task = host_async_runtime().spawn(async move {
+    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) => {
@@ -582,7 +598,7 @@ where
     let sem = Arc::clone(http_io_sem());
     let request_label = format!("method={} url={}", method, url);
 
-    let task = host_async_runtime().spawn(async move {
+    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
         let finish = |payload: String| {
             let should_callback = http_req_event_pool()
                 .lock()
@@ -768,7 +784,7 @@ async fn http_request_inner_async(
 }
 
 async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {
-    let config = current_http_client_config();
+    let config = worker_http_config();
     if config.allow_private_network {
         return Ok(());
     }

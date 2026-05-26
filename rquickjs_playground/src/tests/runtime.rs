@@ -914,8 +914,9 @@ fn runtime_console_all_levels_forwarded_to_http_endpoint() {
         console.debug("{marker}-debug");
         console.info("{marker}-info");
         console.warn("{marker}-warn");
-        await new Promise((r) => setTimeout(r, 10));
-        await new Promise((r) => setTimeout(r, 10));
+        await new Promise((r) => setTimeout(r, 50));
+        await new Promise((r) => setTimeout(r, 50));
+        await new Promise((r) => setTimeout(r, 50));
         return JSON.stringify({{ ok: true }});
       }})()
     "#,

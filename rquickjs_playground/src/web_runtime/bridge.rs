@@ -320,7 +320,7 @@ async fn call_registered_bridge_route(
         .get(&name)
         .cloned();
     if let Some(blocking_handler) = blocking_handler {
-        return host_async_runtime()
+        return tokio::runtime::Handle::try_current().unwrap()
             .spawn_blocking(move || blocking_handler(runtime_name, args))
             .await
             .map_err(|err| anyhow!("bridge blocking 路由任务 join 失败: {err}"))?;
@@ -700,7 +700,7 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
     let (tx, rx) = mpsc::channel::<String>();
     let call_name = name.clone();
     let request_label = format!("route={name}");
-    let task = host_async_runtime().spawn(async move {
+    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
         let payload = match bridge_call_inner_async(runtime_name, call_name, args_json).await {
             Ok(data) => json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string(),
             Err(error) => bridge_error_json(

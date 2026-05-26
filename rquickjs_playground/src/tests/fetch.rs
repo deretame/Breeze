@@ -434,6 +434,8 @@ fn fetch_block_private_network_by_default() {
 
     let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime-private-block")
         .expect("创建 runtime 失败");
+    configure_http_client(previous).expect("恢复 HTTP 配置失败");
+
     let task = runtime
         .spawn(
             r#"
@@ -450,8 +452,6 @@ fn fetch_block_private_network_by_default() {
         .expect("执行脚本失败");
     let result = task.wait().expect("等待脚本结果失败");
     assert!(result.contains("已拦截内网请求"));
-
-    configure_http_client(previous).expect("恢复 HTTP 配置失败");
 }
 
 // 说明：

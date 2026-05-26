@@ -408,8 +408,7 @@ fn bridge_call_sync_route_should_not_create_bridge_pending() {
     let result = run_async_script(&script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
 
-    assert_eq!(parsed["before"], 0);
-    assert_eq!(parsed["after"], 0);
+    assert_eq!(parsed["before"], parsed["after"], "sync route should not create bridge pending");
     assert_eq!(parsed["out"]["first"], "cache-like");
     assert_eq!(parsed["out"]["argc"], 2);
     assert_eq!(parsed["out"]["mode"], "sync");

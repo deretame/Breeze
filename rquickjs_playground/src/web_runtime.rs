@@ -38,7 +38,6 @@ use windows_registry::CURRENT_USER;
 use filetime::{FileTime, set_file_times};
 use rquickjs::{Ctx, Function, function::Func};
 use tokio::net::lookup_host;
-use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
@@ -61,7 +60,7 @@ pub use self::bridge::{
 pub use self::http::{
     HttpClientConfig, configure_http_client, current_http_client_config, http_request_drop,
     http_request_drop_evented, http_request_start, http_request_start_evented,
-    http_request_try_take,
+    http_request_try_take, set_worker_http_config,
 };
 pub use self::native_buffer::{
     native_buffer_free, native_buffer_put, native_buffer_put_raw, native_buffer_take,
@@ -329,7 +328,6 @@ static FS_REQ_EVENT_POOL: OnceLock<Mutex<HashMap<u64, PendingAbortTask>>> = Once
 static TIMER_REQ_ID: AtomicU64 = AtomicU64::new(1);
 static TIMER_REQ_EVENT_POOL: OnceLock<Mutex<HashMap<u64, PendingAbortTask>>> = OnceLock::new();
 static HTTP_CLIENT_STATE: OnceLock<Mutex<HttpClientState>> = OnceLock::new();
-static HOST_ASYNC_RT: OnceLock<TokioRuntime> = OnceLock::new();
 static HTTP_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 static FS_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 static HTTP_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
@@ -680,6 +678,19 @@ fn log_http_direct_client() -> AnyResult<&'static Client> {
     }
 }
 
+static LOG_FORWARD_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+
+fn log_forward_runtime() -> &'static tokio::runtime::Runtime {
+    LOG_FORWARD_RT.get_or_init(|| {
+        tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(1)
+            .enable_all()
+            .thread_name("rquickjs-log-forward")
+            .build()
+            .expect("创建 log-forward tokio runtime 失败")
+    })
+}
+
 fn forward_log_event_if_needed(event: &LogEvent) {
     let Some(url) = current_log_http_endpoint() else {
         return;
@@ -689,7 +700,7 @@ fn forward_log_event_if_needed(event: &LogEvent) {
     let message = event.message.clone();
     let ts_ms = event.ts_ms;
 
-    let _ = host_async_runtime().spawn(async move {
+    let _ = log_forward_runtime().spawn(async move {
         let payload = json!({
             "level": level,
             "message": message,
@@ -729,23 +740,12 @@ fn log_sender() -> &'static mpsc::Sender<LogEvent> {
                         "debug" => tracing::debug!("{}", line),
                         _ => tracing::info!("{}", line),
                     }
-                    forward_log_event_if_needed(&event);
                     LOG_WRITTEN.fetch_add(1, Ordering::Relaxed);
+                    forward_log_event_if_needed(&event);
                 }
             })
             .expect("创建 log worker 失败");
         tx
-    })
-}
-
-fn host_async_runtime() -> &'static TokioRuntime {
-    HOST_ASYNC_RT.get_or_init(|| {
-        TokioRuntimeBuilder::new_multi_thread()
-            .worker_threads(4)
-            .enable_all()
-            .thread_name("rquickjs-host-async")
-            .build()
-            .expect("创建 Host Tokio runtime 失败")
     })
 }
 
@@ -777,7 +777,7 @@ where
     let on_complete = Arc::new(on_complete);
     let timer_label = format!("repeat={} delayMs={}", repeat, normalized_delay_ms);
 
-    let task = host_async_runtime().spawn(async move {
+    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
         if repeat {
             let mut tick: u64 = 0;
             loop {
@@ -851,7 +851,7 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
     let sem = Arc::clone(fs_io_sem());
     let request_label = format!("op={}", op);
 
-    let task = host_async_runtime().spawn(async move {
+    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) => {
@@ -936,7 +936,7 @@ where
     let sem = Arc::clone(fs_io_sem());
     let request_label = format!("op={}", op);
 
-    let task = host_async_runtime().spawn(async move {
+    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) => {

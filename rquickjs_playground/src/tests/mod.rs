@@ -70,7 +70,7 @@ pub fn spawn_test_server_with_headers(
             if rx.try_recv().is_ok() {
                 break;
             }
-            match server.recv_timeout(Duration::from_millis(100)) {
+            match server.recv_timeout(Duration::from_millis(500)) {
                 Ok(Some(mut request)) => {
                     if request.url().starts_with("/slow") {
                         thread::sleep(Duration::from_millis(120));

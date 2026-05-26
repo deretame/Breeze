@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_rust_bridge/flutter_rust_bridge.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class UnauthorizedPayload {
@@ -20,11 +21,13 @@ UnauthorizedPayload? parseUnauthorizedPayload(
   Object error, {
   required String fallbackPluginId,
 }) {
-  final text = error.toString().trim();
-  final jsonText = _firstJsonObject(text);
-  if (jsonText == null) {
-    return null;
-  }
+  final text = (error as AnyhowException).message.trim().split('\n').first;
+  final regExp = RegExp(
+    r'(?:bundle:.*?cjs\]|source:.*?cjs\])\s*(\{.*\})',
+    dotAll: true,
+  );
+  final match = regExp.firstMatch(text);
+  final jsonText = match != null ? match.group(1)! : text;
   try {
     final parsed = requireJsonMap(jsonDecode(jsonText));
     if (parsed['type']?.toString() != 'unauthorized') {
@@ -42,21 +45,4 @@ UnauthorizedPayload? parseUnauthorizedPayload(
   } catch (_) {
     return null;
   }
-}
-
-String? _firstJsonObject(String text) {
-  var value = text;
-  if (value.startsWith('Exception:')) {
-    value = value.replaceFirst('Exception:', '').trim();
-  }
-  if (value.startsWith('Error:')) {
-    value = value.replaceFirst('Error:', '').trim();
-  }
-
-  final start = value.indexOf('{');
-  final end = value.lastIndexOf('}');
-  if (start < 0 || end <= start) {
-    return null;
-  }
-  return value.substring(start, end + 1);
 }

@@ -153,6 +153,7 @@ _S3SettingState _$S3SettingStateFromJson(Map<String, dynamic> json) =>
       region: json['region'] as String? ?? '',
       useSSL: json['useSSL'] as bool? ?? true,
       port: (json['port'] as num?)?.toInt() ?? 0,
+      pathStyle: json['pathStyle'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$S3SettingStateToJson(_S3SettingState instance) =>
@@ -164,6 +165,7 @@ Map<String, dynamic> _$S3SettingStateToJson(_S3SettingState instance) =>
       'region': instance.region,
       'useSSL': instance.useSSL,
       'port': instance.port,
+      'pathStyle': instance.pathStyle,
     };
 
 _SyncSettingState _$SyncSettingStateFromJson(Map<String, dynamic> json) =>

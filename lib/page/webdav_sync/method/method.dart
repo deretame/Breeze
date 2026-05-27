@@ -74,6 +74,7 @@ Future<void> testS3Server({
   required bool useSSL,
   required int port,
   required String region,
+  required bool pathStyle,
 }) async {
   if (endpoint.isEmpty ||
       accessKey.isEmpty ||
@@ -91,6 +92,7 @@ Future<void> testS3Server({
     secretKey: secretKey,
     useSSL: useSSL,
     region: region.isEmpty ? null : region,
+    pathStyle: pathStyle,
   );
 
   try {

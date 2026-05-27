@@ -482,24 +482,42 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
       context: dialogContext,
       builder: (context) {
         return AlertDialog(
-          title: Text('您确定要退出软件吗？'),
+          title: Text('提示'),
+          content: Text('隐藏到托盘或关闭程序'),
           actions: [
             TextButton(
-              child: Text('否'),
+              child: Text('取消'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('是'),
+              child: Text('关闭'),
               onPressed: () {
+                Navigator.of(context).pop();
                 _forceExit();
+              },
+            ),
+            TextButton(
+              child: Text('隐藏'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _hideWindow();
               },
             ),
           ],
         );
       },
     );
+  }
+
+  /// 隐藏窗口到任务栏托盘，不退出程序
+  void _hideWindow() {
+    if (Platform.isWindows) {
+      NativeWindow.hide();
+    } else {
+      windowManager.hide();
+    }
   }
 
   Future<void> _performGracefulExit() async {

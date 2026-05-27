@@ -1247,7 +1247,7 @@ as String,
 /// @nodoc
 mixin _$S3SettingState {
 
- String get endpoint; String get accessKey; String get secretKey; String get bucket; String get region; bool get useSSL; int get port;
+ String get endpoint; String get accessKey; String get secretKey; String get bucket; String get region; bool get useSSL; int get port; bool get pathStyle;
 /// Create a copy of S3SettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1260,16 +1260,16 @@ $S3SettingStateCopyWith<S3SettingState> get copyWith => _$S3SettingStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is S3SettingState&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.accessKey, accessKey) || other.accessKey == accessKey)&&(identical(other.secretKey, secretKey) || other.secretKey == secretKey)&&(identical(other.bucket, bucket) || other.bucket == bucket)&&(identical(other.region, region) || other.region == region)&&(identical(other.useSSL, useSSL) || other.useSSL == useSSL)&&(identical(other.port, port) || other.port == port));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is S3SettingState&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.accessKey, accessKey) || other.accessKey == accessKey)&&(identical(other.secretKey, secretKey) || other.secretKey == secretKey)&&(identical(other.bucket, bucket) || other.bucket == bucket)&&(identical(other.region, region) || other.region == region)&&(identical(other.useSSL, useSSL) || other.useSSL == useSSL)&&(identical(other.port, port) || other.port == port)&&(identical(other.pathStyle, pathStyle) || other.pathStyle == pathStyle));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,endpoint,accessKey,secretKey,bucket,region,useSSL,port);
+int get hashCode => Object.hash(runtimeType,endpoint,accessKey,secretKey,bucket,region,useSSL,port,pathStyle);
 
 @override
 String toString() {
-  return 'S3SettingState(endpoint: $endpoint, accessKey: $accessKey, secretKey: $secretKey, bucket: $bucket, region: $region, useSSL: $useSSL, port: $port)';
+  return 'S3SettingState(endpoint: $endpoint, accessKey: $accessKey, secretKey: $secretKey, bucket: $bucket, region: $region, useSSL: $useSSL, port: $port, pathStyle: $pathStyle)';
 }
 
 
@@ -1280,7 +1280,7 @@ abstract mixin class $S3SettingStateCopyWith<$Res>  {
   factory $S3SettingStateCopyWith(S3SettingState value, $Res Function(S3SettingState) _then) = _$S3SettingStateCopyWithImpl;
 @useResult
 $Res call({
- String endpoint, String accessKey, String secretKey, String bucket, String region, bool useSSL, int port
+ String endpoint, String accessKey, String secretKey, String bucket, String region, bool useSSL, int port, bool pathStyle
 });
 
 
@@ -1297,7 +1297,7 @@ class _$S3SettingStateCopyWithImpl<$Res>
 
 /// Create a copy of S3SettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? endpoint = null,Object? accessKey = null,Object? secretKey = null,Object? bucket = null,Object? region = null,Object? useSSL = null,Object? port = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? endpoint = null,Object? accessKey = null,Object? secretKey = null,Object? bucket = null,Object? region = null,Object? useSSL = null,Object? port = null,Object? pathStyle = null,}) {
   return _then(_self.copyWith(
 endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
 as String,accessKey: null == accessKey ? _self.accessKey : accessKey // ignore: cast_nullable_to_non_nullable
@@ -1306,7 +1306,8 @@ as String,bucket: null == bucket ? _self.bucket : bucket // ignore: cast_nullabl
 as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as String,useSSL: null == useSSL ? _self.useSSL : useSSL // ignore: cast_nullable_to_non_nullable
 as bool,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
-as int,
+as int,pathStyle: null == pathStyle ? _self.pathStyle : pathStyle // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -1391,10 +1392,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port,  bool pathStyle)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _S3SettingState() when $default != null:
-return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port);case _:
+return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port,_that.pathStyle);case _:
   return orElse();
 
 }
@@ -1412,10 +1413,10 @@ return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port,  bool pathStyle)  $default,) {final _that = this;
 switch (_that) {
 case _S3SettingState():
-return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port);case _:
+return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port,_that.pathStyle);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1432,10 +1433,10 @@ return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port,  bool pathStyle)?  $default,) {final _that = this;
 switch (_that) {
 case _S3SettingState() when $default != null:
-return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port);case _:
+return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port,_that.pathStyle);case _:
   return null;
 
 }
@@ -1447,7 +1448,7 @@ return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_tha
 @JsonSerializable()
 
 class _S3SettingState implements S3SettingState {
-  const _S3SettingState({this.endpoint = '', this.accessKey = '', this.secretKey = '', this.bucket = '', this.region = '', this.useSSL = true, this.port = 0});
+  const _S3SettingState({this.endpoint = '', this.accessKey = '', this.secretKey = '', this.bucket = '', this.region = '', this.useSSL = true, this.port = 0, this.pathStyle = true});
   factory _S3SettingState.fromJson(Map<String, dynamic> json) => _$S3SettingStateFromJson(json);
 
 @override@JsonKey() final  String endpoint;
@@ -1457,6 +1458,7 @@ class _S3SettingState implements S3SettingState {
 @override@JsonKey() final  String region;
 @override@JsonKey() final  bool useSSL;
 @override@JsonKey() final  int port;
+@override@JsonKey() final  bool pathStyle;
 
 /// Create a copy of S3SettingState
 /// with the given fields replaced by the non-null parameter values.
@@ -1471,16 +1473,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _S3SettingState&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.accessKey, accessKey) || other.accessKey == accessKey)&&(identical(other.secretKey, secretKey) || other.secretKey == secretKey)&&(identical(other.bucket, bucket) || other.bucket == bucket)&&(identical(other.region, region) || other.region == region)&&(identical(other.useSSL, useSSL) || other.useSSL == useSSL)&&(identical(other.port, port) || other.port == port));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _S3SettingState&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.accessKey, accessKey) || other.accessKey == accessKey)&&(identical(other.secretKey, secretKey) || other.secretKey == secretKey)&&(identical(other.bucket, bucket) || other.bucket == bucket)&&(identical(other.region, region) || other.region == region)&&(identical(other.useSSL, useSSL) || other.useSSL == useSSL)&&(identical(other.port, port) || other.port == port)&&(identical(other.pathStyle, pathStyle) || other.pathStyle == pathStyle));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,endpoint,accessKey,secretKey,bucket,region,useSSL,port);
+int get hashCode => Object.hash(runtimeType,endpoint,accessKey,secretKey,bucket,region,useSSL,port,pathStyle);
 
 @override
 String toString() {
-  return 'S3SettingState(endpoint: $endpoint, accessKey: $accessKey, secretKey: $secretKey, bucket: $bucket, region: $region, useSSL: $useSSL, port: $port)';
+  return 'S3SettingState(endpoint: $endpoint, accessKey: $accessKey, secretKey: $secretKey, bucket: $bucket, region: $region, useSSL: $useSSL, port: $port, pathStyle: $pathStyle)';
 }
 
 
@@ -1491,7 +1493,7 @@ abstract mixin class _$S3SettingStateCopyWith<$Res> implements $S3SettingStateCo
   factory _$S3SettingStateCopyWith(_S3SettingState value, $Res Function(_S3SettingState) _then) = __$S3SettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- String endpoint, String accessKey, String secretKey, String bucket, String region, bool useSSL, int port
+ String endpoint, String accessKey, String secretKey, String bucket, String region, bool useSSL, int port, bool pathStyle
 });
 
 
@@ -1508,7 +1510,7 @@ class __$S3SettingStateCopyWithImpl<$Res>
 
 /// Create a copy of S3SettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? endpoint = null,Object? accessKey = null,Object? secretKey = null,Object? bucket = null,Object? region = null,Object? useSSL = null,Object? port = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? endpoint = null,Object? accessKey = null,Object? secretKey = null,Object? bucket = null,Object? region = null,Object? useSSL = null,Object? port = null,Object? pathStyle = null,}) {
   return _then(_S3SettingState(
 endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
 as String,accessKey: null == accessKey ? _self.accessKey : accessKey // ignore: cast_nullable_to_non_nullable
@@ -1517,7 +1519,8 @@ as String,bucket: null == bucket ? _self.bucket : bucket // ignore: cast_nullabl
 as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
 as String,useSSL: null == useSSL ? _self.useSSL : useSSL // ignore: cast_nullable_to_non_nullable
 as bool,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
-as int,
+as int,pathStyle: null == pathStyle ? _self.pathStyle : pathStyle // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

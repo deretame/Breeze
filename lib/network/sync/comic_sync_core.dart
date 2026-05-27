@@ -125,8 +125,10 @@ class ComicSyncCore {
 
     final data = {
       'version': syncDataVersion,
-      'favorites': favorites.map((e) => e.toJson()).toList(),
-      'histories': histories.map((e) => e.toJson()).toList(),
+      'favorites':
+          favorites.map((e) => _stripLocalId(e.toJson())).toList(),
+      'histories':
+          histories.map((e) => _stripLocalId(e.toJson())).toList(),
     };
 
     final raw = utf8.encode(jsonEncode(data));
@@ -275,6 +277,11 @@ class ComicSyncCore {
     final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
     final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
     return encrypter.decryptBytes(Encrypted(Uint8List.fromList(bytes)), iv: iv);
+  }
+
+  static Map<String, dynamic> _stripLocalId(Map<String, dynamic> json) {
+    json.remove('id');
+    return json;
   }
 
   static final RegExp _comicDataRegex = RegExp(r'^comic_(\d+)\.bin$');

@@ -34,6 +34,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   final TextEditingController _s3Region = TextEditingController();
   final TextEditingController _s3Port = TextEditingController();
   bool _s3UseSSL = true;
+  bool _s3PathStyle = false;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         ? settings.syncSetting.s3Setting.port.toString()
         : '';
     _s3UseSSL = settings.syncSetting.s3Setting.useSSL;
+    _s3PathStyle = settings.syncSetting.s3Setting.pathStyle;
   }
 
   @override
@@ -223,6 +225,17 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
             });
           },
         ),
+        SwitchListTile(
+          title: const Text('路径风格 (Path-Style)'),
+          subtitle: const Text('自建 MinIO 通常需要开启此选项'),
+          thumbIcon: _thumbIcon,
+          value: _s3PathStyle,
+          onChanged: (value) {
+            setState(() {
+              _s3PathStyle = value;
+            });
+          },
+        ),
       ],
     );
   }
@@ -370,6 +383,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         bucket: _s3Bucket.text.trim(),
         useSSL: _s3UseSSL,
         port: port,
+        pathStyle: _s3PathStyle,
         region: _s3Region.text.trim(),
       );
 

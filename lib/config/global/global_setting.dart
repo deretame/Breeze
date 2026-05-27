@@ -155,6 +155,7 @@ abstract class S3SettingState with _$S3SettingState {
     @Default('') String region,
     @Default(true) bool useSSL,
     @Default(0) int port,
+    @Default(false) bool pathStyle,
   }) = _S3SettingState;
 
   factory S3SettingState.fromJson(Map<String, dynamic> json) =>

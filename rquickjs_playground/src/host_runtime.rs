@@ -1,7 +1,6 @@
 use base64::Engine as _;
 use rquickjs::{
-    AsyncContext, AsyncRuntime, Ctx, Function, Value as JsValue, async_with,
-    function::Func,
+    AsyncContext, AsyncRuntime, Ctx, Function, Value as JsValue, async_with, function::Func,
 };
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -407,13 +406,9 @@ impl HostRuntime {
         if options.fs && !cfg!(feature = "host-fs") {
             return Err("当前构建未启用 host-fs Cargo 特性".to_string());
         }
-        crate::web_runtime::set_worker_http_config(
-            crate::web_runtime::current_http_client_config(),
-        );
-        let runtime = AsyncRuntime::new()
-            .map_err(|e| format!("初始化 AsyncRuntime 失败: {e}"))?;
-        let context =
-            Self::init_context(&runtime, &cache_scope_id, options).await?;
+        crate::web_runtime::set_worker_http_config(crate::web_runtime::current_http_client_config());
+        let runtime = AsyncRuntime::new().map_err(|e| format!("初始化 AsyncRuntime 失败: {e}"))?;
+        let context = Self::init_context(&runtime, &cache_scope_id, options).await?;
 
         Ok(Self {
             runtime,
@@ -449,11 +444,16 @@ impl HostRuntime {
                 } else {
                     serialize_js_value(&ctx, value)
                 }
-            }).await;
-            let outcome = result.unwrap_or_else(|e| format!("{{\"ok\":false,\"error\":\"{}\"}}", e.replace('"', "\\\"")));
+            })
+            .await;
+            let outcome = result.unwrap_or_else(|e| {
+                format!("{{\"ok\":false,\"error\":\"{}\"}}", e.replace('"', "\\\""))
+            });
             with_runtime_shared(rt_id, |shared| {
                 finalize_task_and_notify(shared, id, Ok(outcome));
-                let _ = shared.worker_signal_tx.send(WorkerSignal::TaskCompleted { id });
+                let _ = shared
+                    .worker_signal_tx
+                    .send(WorkerSignal::TaskCompleted { id });
             });
         });
         Ok(())
@@ -463,7 +463,10 @@ impl HostRuntime {
         self.worker_signal_tx = Some(tx);
     }
 
-    async fn ensure_async_runtime_bindings_on_context(&self, context: &AsyncContext) -> Result<(), String> {
+    async fn ensure_async_runtime_bindings_on_context(
+        &self,
+        context: &AsyncContext,
+    ) -> Result<(), String> {
         let Some(signal_tx) = self.worker_signal_tx.clone() else {
             return Err("AsyncHostRuntime worker 信号通道不可用".to_string());
         };
@@ -482,7 +485,10 @@ impl HostRuntime {
             .map_err(|e| format!("安装 AsyncHostRuntime 上下文绑定失败: {e}"))
     }
 
-    async fn ensure_once_context_pool_capacity(&mut self, max_contexts: usize) -> Result<(), String> {
+    async fn ensure_once_context_pool_capacity(
+        &mut self,
+        max_contexts: usize,
+    ) -> Result<(), String> {
         while self.once_contexts.len() < max_contexts {
             let context =
                 Self::init_context(&self.runtime, &self.cache_scope_id, self.options).await?;
@@ -532,7 +538,8 @@ impl HostRuntime {
         }
 
         if self.once_contexts.len() < max_contexts {
-            self.ensure_once_context_pool_capacity(self.once_contexts.len() + 1).await?;
+            self.ensure_once_context_pool_capacity(self.once_contexts.len() + 1)
+                .await?;
             let index = self.once_contexts.len() - 1;
             self.once_contexts[index].busy_task_id = Some(task_id);
             return Ok(Some(index));
@@ -549,9 +556,7 @@ impl HostRuntime {
         script: &str,
     ) -> Result<(), String> {
         match route {
-            ContextRoute::Primary => {
-                self.submit_async_task(runtime_id, task_id, script)
-            }
+            ContextRoute::Primary => self.submit_async_task(runtime_id, task_id, script),
             ContextRoute::Once(slot_index) => {
                 let Some(slot) = self.once_contexts.get(slot_index) else {
                     return Err(format!("一次性 Context slot 不存在: {slot_index}"));
@@ -573,10 +578,14 @@ impl HostRuntime {
                             serialize_js_value(&ctx, value)
                         }
                     }).await;
-                    let outcome = result.unwrap_or_else(|e| format!("{{\"ok\":false,\"error\":\"{}\"}}", e.replace('"', "\\\"")));
+                    let outcome = result.unwrap_or_else(|e| {
+                        format!("{{\"ok\":false,\"error\":\"{}\"}}", e.replace('"', "\\\""))
+                    });
                     with_runtime_shared(rt_id, |shared| {
                         finalize_task_and_notify(shared, id, Ok(outcome));
-                        let _ = shared.worker_signal_tx.send(WorkerSignal::TaskCompleted { id });
+                        let _ = shared
+                            .worker_signal_tx
+                            .send(WorkerSignal::TaskCompleted { id });
                     });
                 });
                 Ok(())
@@ -612,7 +621,8 @@ impl HostRuntime {
             runtime_id,
             task_id,
             &script,
-        ).await?;
+        )
+        .await?;
 
         if let Some(slot) = self.once_contexts.get_mut(slot_index) {
             slot.last_bundle_source_hash = Some(submission.source_hash);
@@ -631,19 +641,20 @@ impl HostRuntime {
     {
         match route {
             ContextRoute::Primary => self.context.with(f).await,
-            ContextRoute::Once(slot_index) => self
-                .once_contexts
-                .get(slot_index)
-                .ok_or_else(|| {
-                    rquickjs::Error::new_from_js_message(
-                        "rust",
-                        "runtime",
-                        &format!("once context slot not found: {slot_index}"),
-                    )
-                })?
-                .context
-                .with(f)
-                .await,
+            ContextRoute::Once(slot_index) => {
+                self.once_contexts
+                    .get(slot_index)
+                    .ok_or_else(|| {
+                        rquickjs::Error::new_from_js_message(
+                            "rust",
+                            "runtime",
+                            &format!("once context slot not found: {slot_index}"),
+                        )
+                    })?
+                    .context
+                    .with(f)
+                    .await
+            }
         }
     }
 
@@ -689,14 +700,20 @@ impl HostRuntime {
                 continue;
             }
 
-            match self.acquire_once_slot_for_task(pending.id, MAX_BUNDLE_CALL_ONCE_CONTEXTS).await {
+            match self
+                .acquire_once_slot_for_task(pending.id, MAX_BUNDLE_CALL_ONCE_CONTEXTS)
+                .await
+            {
                 Ok(Some(slot_index)) => {
-                    if let Err(err) = self.submit_once_task_on_slot(
-                        runtime_id,
-                        pending.id,
-                        slot_index,
-                        &pending.submission,
-                    ).await {
+                    if let Err(err) = self
+                        .submit_once_task_on_slot(
+                            runtime_id,
+                            pending.id,
+                            slot_index,
+                            &pending.submission,
+                        )
+                        .await
+                    {
                         let _ = self.release_once_slot(pending.id);
                         finalize_task_with_waiter(states, waiters, pending.id, Err(err));
                         continue;
@@ -781,8 +798,7 @@ impl AsyncHostRuntime {
             }),
         );
         let (init_tx, init_rx) = std::sync::mpsc::channel::<Result<(), String>>();
-        let (handle_tx, handle_rx) =
-            std::sync::mpsc::channel::<tokio::runtime::Handle>();
+        let (handle_tx, handle_rx) = std::sync::mpsc::channel::<tokio::runtime::Handle>();
 
         thread::spawn(move || {
             let rt = tokio::runtime::Builder::new_current_thread()
@@ -797,7 +813,9 @@ impl AsyncHostRuntime {
                 let mut host = match HostRuntime::new_with_options_async(
                     cache_scope_id_for_worker,
                     options_for_worker,
-                ).await {
+                )
+                .await
+                {
                     Ok(host) => host,
                     Err(err) => {
                         let _ = init_tx.send(Err(format!("初始化 HostRuntime 失败: {err}")));
@@ -807,7 +825,8 @@ impl AsyncHostRuntime {
 
                 host.set_worker_signal_tx(tx_for_worker.clone());
 
-                if let Err(err) = install_async_runtime_bindings(&host, tx_for_worker.clone()).await {
+                if let Err(err) = install_async_runtime_bindings(&host, tx_for_worker.clone()).await
+                {
                     let _ = init_tx.send(Err(err));
                     return;
                 }
@@ -823,7 +842,8 @@ impl AsyncHostRuntime {
                             runtime_id,
                             &states_for_worker,
                             &waiters_for_worker,
-                        ).await;
+                        )
+                        .await;
                         if !running {
                             break;
                         }
@@ -837,11 +857,7 @@ impl AsyncHostRuntime {
                         Ok(jobs) if jobs > 0 => continue,
                         Ok(_) => {}
                         Err(err) => {
-                            fail_all_active_tasks(
-                                &states_for_worker,
-                                &waiters_for_worker,
-                                err,
-                            );
+                            fail_all_active_tasks(&states_for_worker, &waiters_for_worker, err);
                             break;
                         }
                     }
@@ -858,7 +874,8 @@ impl AsyncHostRuntime {
                                 runtime_id,
                                 &states_for_worker,
                                 &waiters_for_worker,
-                            ).await;
+                            )
+                            .await;
                         }
                         Ok(None) => break,
                         Err(_elapsed) => {}
@@ -1866,7 +1883,9 @@ async fn handle_worker_signal(
     waiters: &Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
 ) -> bool {
     match signal {
-        WorkerSignal::Command(cmd) => handle_worker_command(cmd, host, runtime_id, states, waiters).await,
+        WorkerSignal::Command(cmd) => {
+            handle_worker_command(cmd, host, runtime_id, states, waiters).await
+        }
         WorkerSignal::HostEvent(event) => {
             handle_host_event(host, event).await;
             true
@@ -1900,10 +1919,14 @@ async fn handle_worker_command(
                 return true;
             }
 
-            match host.acquire_once_slot_for_task(id, MAX_BUNDLE_CALL_ONCE_CONTEXTS).await {
+            match host
+                .acquire_once_slot_for_task(id, MAX_BUNDLE_CALL_ONCE_CONTEXTS)
+                .await
+            {
                 Ok(Some(slot_index)) => {
-                    if let Err(err) =
-                        host.submit_once_task_on_slot(runtime_id, id, slot_index, &submission).await
+                    if let Err(err) = host
+                        .submit_once_task_on_slot(runtime_id, id, slot_index, &submission)
+                        .await
                     {
                         let _ = host.release_once_slot(id);
                         finalize_task_with_waiter(states, waiters, id, Err(err));
@@ -1926,7 +1949,8 @@ async fn handle_worker_command(
             }
             mark_dropped_and_notify(states, waiters, id);
             let _ = host.release_once_slot(id);
-            host.try_schedule_pending_once_submissions(runtime_id, states, waiters).await;
+            host.try_schedule_pending_once_submissions(runtime_id, states, waiters)
+                .await;
             true
         }
         AsyncCommand::DropMany { ids } => {
@@ -1939,7 +1963,8 @@ async fn handle_worker_command(
                     let _ = host.release_once_slot(id);
                 }
             }
-            host.try_schedule_pending_once_submissions(runtime_id, states, waiters).await;
+            host.try_schedule_pending_once_submissions(runtime_id, states, waiters)
+                .await;
             true
         }
         AsyncCommand::RunGc { tx } => {
@@ -1961,7 +1986,9 @@ async fn handle_host_event(host: &HostRuntime, event: HostEvent) {
         HostEvent::FsCompleted { route, .. } => *route,
         HostEvent::TimerCompleted { route, .. } => *route,
     };
-    let result = host.with_context_route(route, |ctx| handle_host_event_in_ctx(ctx, event)).await;
+    let result = host
+        .with_context_route(route, |ctx| handle_host_event_in_ctx(ctx, event))
+        .await;
 
     let _ = result;
 }
@@ -1996,7 +2023,8 @@ async fn handle_task_completed(
     id: u64,
 ) {
     let _ = host.release_once_slot(id);
-    host.try_schedule_pending_once_submissions(runtime_id, states, waiters).await;
+    host.try_schedule_pending_once_submissions(runtime_id, states, waiters)
+        .await;
 }
 
 fn fail_all_active_tasks(

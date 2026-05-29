@@ -125,10 +125,8 @@ class ComicSyncCore {
 
     final data = {
       'version': syncDataVersion,
-      'favorites':
-          favorites.map((e) => _stripLocalId(e.toJson())).toList(),
-      'histories':
-          histories.map((e) => _stripLocalId(e.toJson())).toList(),
+      'favorites': favorites.map((e) => _stripLocalId(e.toJson())).toList(),
+      'histories': histories.map((e) => _stripLocalId(e.toJson())).toList(),
     };
 
     final raw = utf8.encode(jsonEncode(data));

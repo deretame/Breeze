@@ -1448,7 +1448,7 @@ return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_tha
 @JsonSerializable()
 
 class _S3SettingState implements S3SettingState {
-  const _S3SettingState({this.endpoint = '', this.accessKey = '', this.secretKey = '', this.bucket = '', this.region = '', this.useSSL = true, this.port = 0, this.pathStyle = true});
+  const _S3SettingState({this.endpoint = '', this.accessKey = '', this.secretKey = '', this.bucket = '', this.region = '', this.useSSL = true, this.port = 0, this.pathStyle = false});
   factory _S3SettingState.fromJson(Map<String, dynamic> json) => _$S3SettingStateFromJson(json);
 
 @override@JsonKey() final  String endpoint;

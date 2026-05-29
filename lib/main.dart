@@ -225,6 +225,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 关掉rust端，主要是anyhow的堆栈调用信息
   enableStacktrace(enabled: false);
 
+  enableRustLog(enabled: kDebugMode);
+
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
     // 配置http代理，方便开发测试

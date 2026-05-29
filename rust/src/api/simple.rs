@@ -5,8 +5,10 @@ use anyhow::{Result, anyhow};
 use flutter_rust_bridge::frb;
 use rquickjs_playground::{configure_http_client, current_http_client_config};
 use std::sync::Once;
+use std::sync::atomic::Ordering;
 
 static ENABLE_STACKTRACE: Once = Once::new();
+static ENABLE_LOG: Once = Once::new();
 static INIT_ONCE: Once = Once::new();
 
 #[frb(init)]
@@ -78,6 +80,15 @@ pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
 pub fn enable_stacktrace(enabled: bool) {
     ENABLE_STACKTRACE.call_once(|| unsafe {
         std::env::set_var("RUST_LIB_BACKTRACE", if enabled { "1" } else { "0" });
+    });
+}
+
+#[frb(sync)]
+pub fn enable_rust_log(enabled: bool) {
+    println!("enable_log : {enabled}");
+    ENABLE_LOG.call_once(|| {
+        crate::api::user_utils::setup_log_to_console(enabled);
+        crate::api::logger::FLUTTER_KDEBUGMOD.store(enabled, Ordering::Relaxed);
     });
 }
 

@@ -501,27 +501,30 @@ pub fn http_request_start(
     let sem = Arc::clone(http_io_sem());
     let request_label = format!("method={} url={}", method, url);
 
-    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
-        let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-            Ok(Ok(permit)) => permit,
-            Ok(Err(_)) => {
-                let _ =
-                    tx.send(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
-                return;
-            }
-            Err(_) => {
-                let _ =
-                    tx.send(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
-                return;
-            }
-        };
-        let payload = match http_request_inner_async(method, url, headers_json, body, None).await {
-            Ok(payload) => payload,
-            Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
-        };
-        drop(permit);
-        let _ = tx.send(payload);
-    });
+    let task = tokio::runtime::Handle::try_current()
+        .unwrap()
+        .spawn(async move {
+            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
+                Ok(Ok(permit)) => permit,
+                Ok(Err(_)) => {
+                    let _ = tx
+                        .send(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
+                    return;
+                }
+                Err(_) => {
+                    let _ = tx
+                        .send(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
+                    return;
+                }
+            };
+            let payload =
+                match http_request_inner_async(method, url, headers_json, body, None).await {
+                    Ok(payload) => payload,
+                    Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
+                };
+            drop(permit);
+            let _ = tx.send(payload);
+        });
 
     {
         let mut pool = http_req_pool().lock().expect("http 请求池加锁失败");
@@ -598,40 +601,47 @@ where
     let sem = Arc::clone(http_io_sem());
     let request_label = format!("method={} url={}", method, url);
 
-    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
-        let finish = |payload: String| {
-            let should_callback = http_req_event_pool()
-                .lock()
-                .map(|mut pool| pool.remove(&id).is_some())
-                .unwrap_or(false);
-            if should_callback {
-                HTTP_EVENT_COMPLETED.fetch_add(1, Ordering::Relaxed);
-                on_complete(id, payload);
-            } else {
-                HTTP_EVENT_SUPPRESSED.fetch_add(1, Ordering::Relaxed);
-            }
-        };
-        let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-            Ok(Ok(permit)) => permit,
-            Ok(Err(_)) => {
-                finish(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
-                return;
-            }
-            Err(_) => {
-                finish(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
-                return;
-            }
-        };
-        let payload =
-            match http_request_inner_async(method, url, headers_json, body, body_native_buffer_id)
-                .await
+    let task = tokio::runtime::Handle::try_current()
+        .unwrap()
+        .spawn(async move {
+            let finish = |payload: String| {
+                let should_callback = http_req_event_pool()
+                    .lock()
+                    .map(|mut pool| pool.remove(&id).is_some())
+                    .unwrap_or(false);
+                if should_callback {
+                    HTTP_EVENT_COMPLETED.fetch_add(1, Ordering::Relaxed);
+                    on_complete(id, payload);
+                } else {
+                    HTTP_EVENT_SUPPRESSED.fetch_add(1, Ordering::Relaxed);
+                }
+            };
+            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
+                Ok(Ok(permit)) => permit,
+                Ok(Err(_)) => {
+                    finish(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
+                    return;
+                }
+                Err(_) => {
+                    finish(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
+                    return;
+                }
+            };
+            let payload = match http_request_inner_async(
+                method,
+                url,
+                headers_json,
+                body,
+                body_native_buffer_id,
+            )
+            .await
             {
                 Ok(payload) => payload,
                 Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
             };
-        drop(permit);
-        finish(payload);
-    });
+            drop(permit);
+            finish(payload);
+        });
 
     {
         let mut pool = http_req_event_pool()

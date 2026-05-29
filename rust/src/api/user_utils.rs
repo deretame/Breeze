@@ -1,5 +1,4 @@
 pub fn setup_default_user_utils() {
-    setup_log_to_console();
     setup_backtrace();
 }
 
@@ -11,78 +10,82 @@ fn setup_backtrace() {
     }
 }
 
-fn setup_log_to_console() {
+pub(crate) fn setup_log_to_console(enabled: bool) {
     static INIT: std::sync::Once = std::sync::Once::new();
     INIT.call_once(|| {
-        #[cfg(debug_assertions)]
+        if !enabled {
+            return;
+        }
+        #[allow(unused_imports)]
+        use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+
+        use crate::api::logger::BoxedFormatter;
+
+        let filter = EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| EnvFilter::new(default_log_level(enabled)));
+
+        #[cfg(target_os = "android")]
         {
-            #[allow(unused_imports)]
-            use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+            use tracing_logcat::{LogcatMakeWriter, LogcatTag};
 
-            use crate::api::logger::BoxedFormatter;
+            let writer = LogcatMakeWriter::new(LogcatTag::Fixed("windcore".to_owned()))
+                .expect("Failed to initialize logcat writer");
 
-            let filter = EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new(default_log_level()));
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(
+                    fmt::layer()
+                        .with_writer(writer)
+                        .event_format(BoxedFormatter { with_ansi: false }),
+                )
+                .try_init()
+                .expect("Failed to initialize tracing subscriber (Android)");
 
-            #[cfg(target_os = "android")]
-            {
-                use tracing_logcat::{LogcatMakeWriter, LogcatTag};
+            tracing::info!("Tracing initialized (Android)");
+            return;
+        }
 
-                let writer = LogcatMakeWriter::new(LogcatTag::Fixed("windcore".to_owned()))
-                    .expect("Failed to initialize logcat writer");
+        #[cfg(any(target_os = "ios", target_os = "macos"))]
+        {
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
+                .try_init()
+                .expect("Failed to initialize tracing subscriber (iOS/macOS)");
+            tracing::info!("Tracing initialized (iOS/macOS)");
+            return;
+        }
 
-                let _ = tracing_subscriber::registry()
-                    .with(filter)
-                    .with(
-                        fmt::layer()
-                            .with_writer(writer)
-                            .event_format(BoxedFormatter { with_ansi: false }),
-                    )
-                    .try_init();
+        #[cfg(target_family = "wasm")]
+        {
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(fmt::layer().event_format(BoxedFormatter { with_ansi: false }))
+                .try_init()
+                .expect("Failed to initialize tracing subscriber (WASM)");
+            tracing::info!("Tracing initialized (WASM)");
+            return;
+        }
 
-                tracing::info!("Tracing initialized (Android)");
-                return;
-            }
-
-            #[cfg(any(target_os = "ios", target_os = "macos"))]
-            {
-                let _ = tracing_subscriber::registry()
-                    .with(filter)
-                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
-                    .try_init();
-                tracing::info!("Tracing initialized (iOS/macOS)");
-                return;
-            }
-
-            #[cfg(target_family = "wasm")]
-            {
-                let _ = tracing_subscriber::registry()
-                    .with(filter)
-                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: false }))
-                    .try_init();
-                tracing::info!("Tracing initialized (WASM)");
-                return;
-            }
-
-            #[cfg(all(
-                not(target_family = "wasm"),
-                not(target_os = "android"),
-                not(target_os = "ios"),
-                not(target_os = "macos")
-            ))]
-            {
-                let _ = tracing_subscriber::registry()
-                    .with(filter)
-                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
-                    .try_init();
-                tracing::info!("Tracing initialized (Desktop)");
-            }
+        #[cfg(all(
+            not(target_family = "wasm"),
+            not(target_os = "android"),
+            not(target_os = "ios"),
+            not(target_os = "macos")
+        ))]
+        {
+            tracing_subscriber::registry()
+                .with(filter)
+                .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
+                .try_init()
+                .expect("Failed to initialize tracing subscriber (Desktop)");
+            tracing::info!("Tracing initialized (Desktop)");
         }
     });
 }
 
-fn default_log_level() -> String {
-    if cfg!(debug_assertions) {
+fn default_log_level(enabled: bool) -> String {
+    if enabled {
         "debug,hyper_util=warn,reqwest=warn,h2=warn".to_string()
     } else {
         "warn".to_string()

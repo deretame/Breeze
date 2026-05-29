@@ -53,6 +53,9 @@ Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
 void enableStacktrace({required bool enabled}) =>
     RustLib.instance.api.crateApiSimpleEnableStacktrace(enabled: enabled);
 
+void enableRustLog({required bool enabled}) =>
+    RustLib.instance.api.crateApiSimpleEnableRustLog(enabled: enabled);
+
 Future<Uint8List> compressExtreme({required List<int> data}) =>
     RustLib.instance.api.crateApiSimpleCompressExtreme(data: data);
 

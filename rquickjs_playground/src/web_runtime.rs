@@ -255,7 +255,13 @@ pub fn install_host_bindings(
     )?;
     globals.set("__host_call_try_take", Func::from(host_call_try_take))?;
     globals.set("__host_call_drop", Func::from(host_call_drop))?;
-    globals.set("__log_emit", Func::from(log_emit))?;
+    let log_emit_rt = runtime_name.to_string();
+    globals.set(
+        "__log_emit",
+        Func::from(move |level: String, message: String| {
+            log_emit(level, message, log_emit_rt.clone())
+        }),
+    )?;
     globals.set("__runtime_stats", Func::from(runtime_stats))?;
     globals.set("__crypto_sha256_b64", Func::from(crypto_sha256_b64))?;
     globals.set(
@@ -440,6 +446,7 @@ struct LogEvent {
     level: String,
     message: String,
     ts_ms: u128,
+    runtime_name: String,
 }
 
 fn body_state_pool() -> &'static Mutex<HashMap<u64, BodyStateEntry>> {
@@ -732,7 +739,10 @@ fn log_sender() -> &'static mpsc::Sender<LogEvent> {
             .spawn(move || {
                 while let Ok(event) = rx.recv() {
                     LOG_PENDING.fetch_sub(1, Ordering::Relaxed);
-                    let line = format!("[qjs:{}:{}] {}", event.ts_ms, event.level, event.message);
+                    let line = format!(
+                        "[qjs:{}:{}:{}] {}",
+                        event.runtime_name, event.ts_ms, event.level, event.message
+                    );
                     match event.level.as_str() {
                         "error" => tracing::error!("{}", line),
                         "warn" => tracing::warn!("{}", line),
@@ -777,32 +787,34 @@ where
     let on_complete = Arc::new(on_complete);
     let timer_label = format!("repeat={} delayMs={}", repeat, normalized_delay_ms);
 
-    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
-        if repeat {
-            let mut tick: u64 = 0;
-            loop {
-                tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
-                tick = tick.saturating_add(1);
-                on_complete(
-                    id,
-                    json!({ "ok": true, "kind": "interval", "tick": tick }).to_string(),
-                );
-                let alive = timer_req_event_pool()
-                    .lock()
-                    .map(|pool| pool.contains_key(&id))
-                    .unwrap_or(false);
-                if !alive {
-                    break;
+    let task = tokio::runtime::Handle::try_current()
+        .unwrap()
+        .spawn(async move {
+            if repeat {
+                let mut tick: u64 = 0;
+                loop {
+                    tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
+                    tick = tick.saturating_add(1);
+                    on_complete(
+                        id,
+                        json!({ "ok": true, "kind": "interval", "tick": tick }).to_string(),
+                    );
+                    let alive = timer_req_event_pool()
+                        .lock()
+                        .map(|pool| pool.contains_key(&id))
+                        .unwrap_or(false);
+                    if !alive {
+                        break;
+                    }
                 }
+            } else {
+                tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
+                on_complete(id, json!({ "ok": true, "kind": "timeout" }).to_string());
+                let _ = timer_req_event_pool()
+                    .lock()
+                    .map(|mut pool| pool.remove(&id));
             }
-        } else {
-            tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
-            on_complete(id, json!({ "ok": true, "kind": "timeout" }).to_string());
-            let _ = timer_req_event_pool()
-                .lock()
-                .map(|mut pool| pool.remove(&id));
-        }
-    });
+        });
 
     {
         let mut pool = timer_req_event_pool()
@@ -851,24 +863,28 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
     let sem = Arc::clone(fs_io_sem());
     let request_label = format!("op={}", op);
 
-    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
-        let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-            Ok(Ok(permit)) => permit,
-            Ok(Err(_)) => {
-                let _ = tx.send(json!({ "ok": false, "error": "fs 并发控制器不可用" }).to_string());
-                return;
-            }
-            Err(_) => {
-                let _ = tx.send(json!({ "ok": false, "error": "fs 等待并发许可超时" }).to_string());
-                return;
-            }
-        };
-        let payload = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json))
-            .await
-            .unwrap_or_else(|e| json!({ "ok": false, "error": e.to_string() }).to_string());
-        drop(permit);
-        let _ = tx.send(payload);
-    });
+    let task = tokio::runtime::Handle::try_current()
+        .unwrap()
+        .spawn(async move {
+            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
+                Ok(Ok(permit)) => permit,
+                Ok(Err(_)) => {
+                    let _ =
+                        tx.send(json!({ "ok": false, "error": "fs 并发控制器不可用" }).to_string());
+                    return;
+                }
+                Err(_) => {
+                    let _ =
+                        tx.send(json!({ "ok": false, "error": "fs 等待并发许可超时" }).to_string());
+                    return;
+                }
+            };
+            let payload = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json))
+                .await
+                .unwrap_or_else(|e| json!({ "ok": false, "error": e.to_string() }).to_string());
+            drop(permit);
+            let _ = tx.send(payload);
+        });
 
     {
         let mut pool = fs_req_pool().lock().expect("fs 请求池加锁失败");
@@ -936,31 +952,33 @@ where
     let sem = Arc::clone(fs_io_sem());
     let request_label = format!("op={}", op);
 
-    let task = tokio::runtime::Handle::try_current().unwrap().spawn(async move {
-        let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-            Ok(Ok(permit)) => permit,
-            Ok(Err(_)) => {
-                on_complete(
-                    id,
-                    json!({ "ok": false, "error": "fs 并发控制器不可用" }).to_string(),
-                );
-                return;
-            }
-            Err(_) => {
-                on_complete(
-                    id,
-                    json!({ "ok": false, "error": "fs 等待并发许可超时" }).to_string(),
-                );
-                return;
-            }
-        };
-        let payload = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json))
-            .await
-            .unwrap_or_else(|e| json!({ "ok": false, "error": e.to_string() }).to_string());
-        drop(permit);
-        on_complete(id, payload);
-        let _ = fs_req_event_pool().lock().map(|mut pool| pool.remove(&id));
-    });
+    let task = tokio::runtime::Handle::try_current()
+        .unwrap()
+        .spawn(async move {
+            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
+                Ok(Ok(permit)) => permit,
+                Ok(Err(_)) => {
+                    on_complete(
+                        id,
+                        json!({ "ok": false, "error": "fs 并发控制器不可用" }).to_string(),
+                    );
+                    return;
+                }
+                Err(_) => {
+                    on_complete(
+                        id,
+                        json!({ "ok": false, "error": "fs 等待并发许可超时" }).to_string(),
+                    );
+                    return;
+                }
+            };
+            let payload = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json))
+                .await
+                .unwrap_or_else(|e| json!({ "ok": false, "error": e.to_string() }).to_string());
+            drop(permit);
+            on_complete(id, payload);
+            let _ = fs_req_event_pool().lock().map(|mut pool| pool.remove(&id));
+        });
 
     {
         let mut pool = fs_req_event_pool().lock().expect("fs event 请求池加锁失败");
@@ -1016,7 +1034,7 @@ fn normalize_runtime_name(input: &str) -> String {
     }
 }
 
-pub fn log_emit(level: String, message: String) -> String {
+pub fn log_emit(level: String, message: String, runtime_name: String) -> String {
     let level_norm = level.trim().to_ascii_lowercase();
     let level = if level_norm.is_empty() {
         "log".to_string()
@@ -1039,6 +1057,7 @@ pub fn log_emit(level: String, message: String) -> String {
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_millis())
             .unwrap_or_default(),
+        runtime_name,
     };
 
     if let Err(e) = log_sender().send(event) {

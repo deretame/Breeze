@@ -165,7 +165,7 @@ abstract class S3SettingState with _$S3SettingState {
 @freezed
 abstract class SyncSettingState with _$SyncSettingState {
   const factory SyncSettingState({
-    @Default(SyncServiceType.webdav) SyncServiceType syncServiceType,
+    @Default(SyncServiceType.none) SyncServiceType syncServiceType,
     @Default(WebDavSettingState()) WebDavSettingState webdavSetting,
     @Default(S3SettingState()) S3SettingState s3Setting,
     @Default(false) bool syncSettings,

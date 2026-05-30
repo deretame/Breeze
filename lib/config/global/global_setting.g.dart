@@ -175,7 +175,7 @@ _SyncSettingState _$SyncSettingStateFromJson(Map<String, dynamic> json) =>
             _$SyncServiceTypeEnumMap,
             json['syncServiceType'],
           ) ??
-          SyncServiceType.webdav,
+          SyncServiceType.none,
       webdavSetting: json['webdavSetting'] == null
           ? const WebDavSettingState()
           : WebDavSettingState.fromJson(

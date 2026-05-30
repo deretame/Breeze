@@ -404,6 +404,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
             region: _s3Region.text.trim(),
             useSSL: _s3UseSSL,
             port: port,
+            pathStyle: _s3PathStyle,
           ),
         ),
       );

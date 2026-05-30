@@ -1750,7 +1750,7 @@ return $default(_that.syncServiceType,_that.webdavSetting,_that.s3Setting,_that.
 @JsonSerializable()
 
 class _SyncSettingState implements SyncSettingState {
-  const _SyncSettingState({this.syncServiceType = SyncServiceType.webdav, this.webdavSetting = const WebDavSettingState(), this.s3Setting = const S3SettingState(), this.syncSettings = false, this.syncPlugins = false, this.autoSync = true, this.syncNotify = true, this.settingsSyncTime = 0});
+  const _SyncSettingState({this.syncServiceType = SyncServiceType.none, this.webdavSetting = const WebDavSettingState(), this.s3Setting = const S3SettingState(), this.syncSettings = false, this.syncPlugins = false, this.autoSync = true, this.syncNotify = true, this.settingsSyncTime = 0});
   factory _SyncSettingState.fromJson(Map<String, dynamic> json) => _$SyncSettingStateFromJson(json);
 
 @override@JsonKey() final  SyncServiceType syncServiceType;

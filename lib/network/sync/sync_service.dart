@@ -61,8 +61,8 @@ Future<void> autoSync(
 
   await runComicSync(adapter);
 
-  if (!state.syncSetting.syncSettings) {
-    logger.d('设置同步未启用，跳过设置同步');
+  if (!state.syncSetting.syncSettings && !state.syncSetting.syncPlugins) {
+    logger.d('设置同步和插件同步均未启用，跳过配置同步');
     return;
   }
 
@@ -241,7 +241,6 @@ Future<_SettingsSnapshot> _buildLocalSettingsSnapshot(
 ) async {
   final existingMeta = await _loadLocalSettingsBlockMeta();
   final nextMeta = Map<String, _LocalSettingsBlockMeta>.from(existingMeta);
-  final blockData = _extractSyncableSettingsBlocks(globalSetting);
   final blockPayloads = <String, _SettingsBlockPayload>{};
   final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
   final baseTimestamp = _normalizeTimestamp(
@@ -249,23 +248,26 @@ Future<_SettingsSnapshot> _buildLocalSettingsSnapshot(
     fallback: nowMs,
   );
 
-  for (final entry in blockData.entries) {
-    final blockName = entry.key;
-    final data = entry.value;
-    final hash = _calculateStructuredMd5(data);
-    final previous = existingMeta[blockName];
-    final updatedAt = previous == null
-        ? baseTimestamp
-        : previous.hash == hash
-        ? _normalizeTimestamp(previous.updatedAt, fallback: baseTimestamp)
-        : nowMs;
-    final payload = _SettingsBlockPayload(
-      name: blockName,
-      updatedAt: updatedAt,
-      data: data,
-    );
-    blockPayloads[blockName] = payload;
-    nextMeta[blockName] = _LocalSettingsBlockMeta.fromBlock(payload);
+  if (globalSetting.syncSetting.syncSettings) {
+    final blockData = _extractSyncableSettingsBlocks(globalSetting);
+    for (final entry in blockData.entries) {
+      final blockName = entry.key;
+      final data = entry.value;
+      final hash = _calculateStructuredMd5(data);
+      final previous = existingMeta[blockName];
+      final updatedAt = previous == null
+          ? baseTimestamp
+          : previous.hash == hash
+          ? _normalizeTimestamp(previous.updatedAt, fallback: baseTimestamp)
+          : nowMs;
+      final payload = _SettingsBlockPayload(
+        name: blockName,
+        updatedAt: updatedAt,
+        data: data,
+      );
+      blockPayloads[blockName] = payload;
+      nextMeta[blockName] = _LocalSettingsBlockMeta.fromBlock(payload);
+    }
   }
 
   if (globalSetting.syncSetting.syncPlugins) {
@@ -381,17 +383,26 @@ Future<_SettingsMergeResult> _mergeSettingsSnapshots(
   final nextMeta = Map<String, _LocalSettingsBlockMeta>.from(localBlockMeta);
   var shouldApplyLocalState = false;
 
-  for (final blockName in _syncableSettingsBlockNames) {
-    final localBlock = localSnapshot.blocks[blockName];
-    if (localBlock == null) {
-      continue;
+  if (localGlobal.syncSetting.syncSettings) {
+    for (final blockName in _syncableSettingsBlockNames) {
+      final localBlock = localSnapshot.blocks[blockName];
+      if (localBlock == null) {
+        continue;
+      }
+      final remoteBlock = remoteSnapshot.blocks[blockName];
+      final mergedBlock = _pickPreferredBlock(localBlock, remoteBlock)!;
+      mergedBlocks[blockName] = mergedBlock;
+      nextMeta[blockName] = _LocalSettingsBlockMeta.fromBlock(mergedBlock);
+      if (!_sameBlock(localBlock, mergedBlock)) {
+        shouldApplyLocalState = true;
+      }
     }
-    final remoteBlock = remoteSnapshot.blocks[blockName];
-    final mergedBlock = _pickPreferredBlock(localBlock, remoteBlock)!;
-    mergedBlocks[blockName] = mergedBlock;
-    nextMeta[blockName] = _LocalSettingsBlockMeta.fromBlock(mergedBlock);
-    if (!_sameBlock(localBlock, mergedBlock)) {
-      shouldApplyLocalState = true;
+  } else {
+    for (final blockName in _syncableSettingsBlockNames) {
+      final remoteBlock = remoteSnapshot.blocks[blockName];
+      if (remoteBlock != null) {
+        mergedBlocks[blockName] = remoteBlock;
+      }
     }
   }
 
@@ -445,9 +456,10 @@ Future<_SettingsMergeResult> _mergeSettingsSnapshots(
   }
 
   final syncTimeBlocks = <String, _SettingsBlockPayload>{
-    for (final blockName in _syncableSettingsBlockNames)
-      if (mergedBlocks.containsKey(blockName))
-        blockName: mergedBlocks[blockName]!,
+    if (localGlobal.syncSetting.syncSettings)
+      for (final blockName in _syncableSettingsBlockNames)
+        if (mergedBlocks.containsKey(blockName))
+          blockName: mergedBlocks[blockName]!,
   };
   if (localGlobal.syncSetting.syncPlugins &&
       mergedBlocks.containsKey(_pluginsBlockName)) {

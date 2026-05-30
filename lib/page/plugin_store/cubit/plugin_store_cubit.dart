@@ -30,10 +30,10 @@ const _cdnMirrors = [
 ];
 
 const _ghCdnMirrors = [
-  'https://cdn.jsdmirror.com/',
-  'https://cdn.jsdmirror.cn/',
-  'https://jsd.onmicrosoft.cn/',
-  'https://cdn.jsdelivr.net/',
+  // 'https://cdn.jsdmirror.com/',
+  // 'https://cdn.jsdmirror.cn/',
+  // 'https://jsd.onmicrosoft.cn/',
+  // 'https://cdn.jsdelivr.net/',
 ];
 
 class PluginStoreState {
@@ -301,6 +301,12 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   }
 
   List<String> _buildCloudRequestCandidates(String sourceUrl) {
+    List<String> mirrorBaseUrls = [
+      "https://v4.gh-proxy.org/",
+      "https://gh-proxy.org/",
+      "https://v6.gh-proxy.org/",
+      "https://cdn.gh-proxy.org/",
+    ];
     final uri = Uri.tryParse(sourceUrl);
     final result = <String>[];
     if (uri != null) {
@@ -309,7 +315,9 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
           uri.host == 'github.com' ||
           uri.host == 'www.github.com';
       if (isGithubHost) {
-        result.add('https://gh-proxy.org/$sourceUrl');
+        for (final baseUrl in mirrorBaseUrls) {
+          result.add('$baseUrl/$sourceUrl');
+        }
       }
     }
     result.add(sourceUrl);

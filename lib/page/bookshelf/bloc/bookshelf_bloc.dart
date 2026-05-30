@@ -13,6 +13,8 @@ import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/util/rust_loader.dart';
+import 'package:zephyr/util/sundry.dart';
 
 const _kPageSize = 200;
 
@@ -163,6 +165,10 @@ class BookshelfSectionBloc
             'sources': event.searchEnterConst.sources,
           },
           'items': raw.items,
+          'total': raw.total,
+          'offset': offset,
+          'limit': _kPageSize,
+          'preFiltered': raw.preFiltered,
         }),
       );
 
@@ -172,8 +178,8 @@ class BookshelfSectionBloc
       }
 
       final pageItems = _decodeItems(response['items']);
-      final total = raw.total;
-      final hasReachedMax = (offset + raw.items.length) >= total;
+      final total = (response['total'] as int?) ?? raw.total;
+      final hasReachedMax = (offset + pageItems.length) >= total;
 
       emit(
         current.copyWith(
@@ -257,6 +263,7 @@ class BookshelfSectionBloc
     );
     final folderFiltering =
         folderKey != null && folderKey != kFavoriteFolderAllKey;
+    final preFilter = !_needsWorkerFilter(search);
     final query = objectbox.unifiedFavoriteBox
         .query(
           _favoriteBaseCondition(
@@ -276,14 +283,21 @@ class BookshelfSectionBloc
         final filtered = all
             .where((item) => members.contains(item.uniqueKey))
             .toList();
-        final start = offset > filtered.length ? filtered.length : offset;
-        final end = (start + limit) > filtered.length
-            ? filtered.length
-            : (start + limit);
-        final items = filtered.sublist(start, end);
+        final items = preFilter
+            ? _sliceItems(filtered, offset, limit)
+            : filtered;
         return _RawQueryResult(
           items.map((item) => item.toJson()).toList(),
           filtered.length,
+          preFilter,
+        );
+      }
+      if (!preFilter) {
+        final items = query.find();
+        return _RawQueryResult(
+          items.map((item) => item.toJson()).toList(),
+          total,
+          preFilter,
         );
       }
       query.offset = offset;
@@ -292,6 +306,7 @@ class BookshelfSectionBloc
       return _RawQueryResult(
         items.map((item) => item.toJson()).toList(),
         total,
+        preFilter,
       );
     } finally {
       query.close();
@@ -299,6 +314,7 @@ class BookshelfSectionBloc
   }
 
   _RawQueryResult _queryHistoryRaw(SearchEnter search, int offset, int limit) {
+    final preFilter = !_needsWorkerFilter(search);
     final query = objectbox.unifiedHistoryBox
         .query(_historyBaseCondition(search))
         .order(
@@ -308,12 +324,21 @@ class BookshelfSectionBloc
         .build();
     try {
       final total = query.count();
+      if (!preFilter) {
+        final items = query.find();
+        return _RawQueryResult(
+          items.map((item) => item.toJson()).toList(),
+          total,
+          preFilter,
+        );
+      }
       query.offset = offset;
       query.limit = limit;
       final items = query.find();
       return _RawQueryResult(
         items.map((item) => item.toJson()).toList(),
         total,
+        preFilter,
       );
     } finally {
       query.close();
@@ -329,6 +354,7 @@ class BookshelfSectionBloc
     );
     final folderFiltering =
         folderKey != null && folderKey != kDownloadFolderAllKey;
+    final preFilter = !_needsWorkerFilter(search);
     final query = objectbox.unifiedDownloadBox
         .query(
           _downloadBaseCondition(
@@ -348,14 +374,21 @@ class BookshelfSectionBloc
         final filtered = all
             .where((item) => members.contains(item.uniqueKey))
             .toList();
-        final start = offset > filtered.length ? filtered.length : offset;
-        final end = (start + limit) > filtered.length
-            ? filtered.length
-            : (start + limit);
-        final items = filtered.sublist(start, end);
+        final items = preFilter
+            ? _sliceItems(filtered, offset, limit)
+            : filtered;
         return _RawQueryResult(
           items.map((item) => item.toJson()).toList(),
           filtered.length,
+          preFilter,
+        );
+      }
+      if (!preFilter) {
+        final items = query.find();
+        return _RawQueryResult(
+          items.map((item) => item.toJson()).toList(),
+          total,
+          preFilter,
         );
       }
       query.offset = offset;
@@ -364,6 +397,7 @@ class BookshelfSectionBloc
       return _RawQueryResult(
         items.map((item) => item.toJson()).toList(),
         total,
+        preFilter,
       );
     } finally {
       query.close();
@@ -482,6 +516,7 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
   Map<String, dynamic> payload,
 ) async {
   try {
+    await initRustLib(silent: true);
     final search = Map<String, dynamic>.from(
       (payload['search'] as Map?) ?? const <String, dynamic>{},
     );
@@ -490,8 +525,16 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
         .map((entry) => Map<String, dynamic>.from(entry))
         .toList();
     final filtered = _filterAndSort(items: items, search: search);
+    final preFiltered = payload['preFiltered'] == true;
+    final rawTotal = (payload['total'] as int?) ?? items.length;
+    final total = preFiltered ? rawTotal : filtered.length;
+    final offset = (payload['offset'] as int?) ?? 0;
+    final limit = (payload['limit'] as int?) ?? filtered.length;
+    final pageItems = preFiltered
+        ? filtered
+        : _sliceItems(filtered, offset, limit);
 
-    return {'items': filtered};
+    return {'items': pageItems, 'total': total};
   } catch (e) {
     return {'error': normalizeSearchErrorMessage(e), 'items': [], 'total': 0};
   }
@@ -501,9 +544,9 @@ List<Map<String, dynamic>> _filterAndSort({
   required List<Map<String, dynamic>> items,
   required Map<String, dynamic> search,
 }) {
-  final keyword = (search['keyword']?.toString() ?? '').trim().toLowerCase();
+  final keyword = _normalizeSearchText(search['keyword']?.toString() ?? '');
   final categories = ((search['categories'] as List?) ?? const <dynamic>[])
-      .map((item) => item.toString().trim())
+      .map((item) => _normalizeSearchText(item.toString()))
       .where((item) => item.isNotEmpty)
       .toList();
 
@@ -516,7 +559,11 @@ List<Map<String, dynamic>> _filterAndSort({
         final values = metadata
             .where((entry) => entry['type']?.toString() == 'categories')
             .expand((entry) => entry['value'] as List<dynamic>? ?? const [])
-            .map((entry) => (entry as Map?)?['name']?.toString() ?? '')
+            .map(
+              (entry) => _normalizeSearchText(
+                (entry as Map?)?['name']?.toString() ?? '',
+              ),
+            )
             .toList();
         return values.contains(category);
       }).toList();
@@ -531,12 +578,33 @@ List<Map<String, dynamic>> _filterAndSort({
         item['description']?.toString() ?? '',
         _creatorName(item['creator']?.toString() ?? ''),
         item['metadata']?.toString() ?? '',
-      ].join().toLowerCase();
-      return text.contains(keyword);
+      ].join();
+      final normalizedText = _normalizeSearchText(text);
+      return normalizedText.contains(keyword);
     }).toList();
   }
 
   return data;
+}
+
+bool _needsWorkerFilter(SearchEnter search) {
+  return search.keyword.trim().isNotEmpty || search.categories.isNotEmpty;
+}
+
+List<T> _sliceItems<T>(List<T> items, int offset, int limit) {
+  final start = offset > items.length ? items.length : offset;
+  final end = (start + limit) > items.length ? items.length : (start + limit);
+  return items.sublist(start, end);
+}
+
+String _normalizeSearchText(String text) {
+  final lower = text.trim().toLowerCase();
+  if (lower.isEmpty) return '';
+  try {
+    return t2s(lower);
+  } catch (_) {
+    return lower;
+  }
 }
 
 List<Map<String, dynamic>> _decodeMetadata(String raw) {
@@ -562,8 +630,9 @@ String _creatorName(String raw) {
 }
 
 class _RawQueryResult {
-  const _RawQueryResult(this.items, this.total);
+  const _RawQueryResult(this.items, this.total, this.preFiltered);
 
   final List<Map<String, dynamic>> items;
   final int total;
+  final bool preFiltered;
 }

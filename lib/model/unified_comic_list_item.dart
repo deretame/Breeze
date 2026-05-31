@@ -181,7 +181,12 @@ class UnifiedComicMetadata {
     return UnifiedComicMetadata(
       type: json['type']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      value: _asList(json['value']).map((item) => item.toString()).toList(),
+      value: _asList(json['value']).map((item) {
+        if (item is Map) {
+          return (item['name'] ?? item.toString()).toString();
+        }
+        return item.toString();
+      }).toList(),
     );
   }
 

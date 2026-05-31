@@ -1557,7 +1557,7 @@ fn build_bundle_call_once_script(
               let id;
               if (typeof globalThis.__native_buffer_put_raw === "function") {{
                 try {{
-                  id = globalThis.__native_buffer_put_raw(bytes);
+                  id = globalThis.__native_buffer_put_raw(Array.from(bytes));
                 }} catch (_err) {{}}
               }}
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put === "function") {{
@@ -1714,7 +1714,7 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
               let id;
               if (typeof globalThis.__native_buffer_put_raw === "function") {{
                 try {{
-                  id = globalThis.__native_buffer_put_raw(bytes);
+                  id = globalThis.__native_buffer_put_raw(Array.from(bytes));
                 }} catch (_err) {{}}
               }}
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put === "function") {{

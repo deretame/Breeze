@@ -219,7 +219,12 @@ List<UnifiedComicMetadata> _metadataFromFlex(
   return (metadata ?? const <Map<String, dynamic>>[])
       .map((item) {
         final value = asList(item['value'])
-            .map((e) => asMap(e)['name']?.toString().trim() ?? '')
+            .map((e) {
+              if (e is Map) {
+                return (e['name'] ?? e.toString()).toString().trim();
+              }
+              return e.toString().trim();
+            })
             .where((e) => e.isNotEmpty)
             .toList();
         if (value.isEmpty) {

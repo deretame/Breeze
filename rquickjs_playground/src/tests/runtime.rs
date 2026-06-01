@@ -732,6 +732,58 @@ fn runtime_crypto_hash_and_hmac_basic() {
 }
 
 #[test]
+fn runtime_crypto_chain_call_smoke() {
+    let script = r#"
+      (async () => {
+        const crypto = require("crypto");
+        const text = "The quick brown fox jumps over the lazy dog";
+
+        const hash = crypto.createHash("sha256");
+        const sameHash = hash.update("The quick brown ").update("fox jumps over the lazy dog") === hash;
+        const shaHex = hash.digest("hex");
+
+        const hmac = crypto.createHmac("sha256", "key");
+        const sameHmac = hmac.update("The quick brown ").update("fox jumps over the lazy dog") === hmac;
+        const hmacHex = hmac.digest("hex");
+
+        return JSON.stringify({
+          hasCreateHash: typeof crypto.createHash === "function",
+          hasCreateHmac: typeof crypto.createHmac === "function",
+          sameHash,
+          sameHmac,
+          shaHex,
+          hmacHex,
+          digestAfterFinishThrows: (() => {
+            try {
+              hash.update(text);
+              return false;
+            } catch {
+              return true;
+            }
+          })(),
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["hasCreateHash"], true);
+    assert_eq!(parsed["hasCreateHmac"], true);
+    assert_eq!(parsed["sameHash"], true);
+    assert_eq!(parsed["sameHmac"], true);
+    assert_eq!(
+        parsed["shaHex"],
+        "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+    );
+    assert_eq!(
+        parsed["hmacHex"],
+        "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8"
+    );
+    assert_eq!(parsed["digestAfterFinishThrows"], true);
+}
+
+#[test]
 fn runtime_crypto_common_extra_apis() {
     let script = r#"
       (async () => {
@@ -787,6 +839,62 @@ fn runtime_crypto_common_extra_apis() {
         "632c2812e46d4604102ba7618e9d6d7d2f8128f6266b4a03264d2a0460b7dcb3"
     );
     assert_eq!(parsed["uuidValid"], true);
+}
+
+#[test]
+fn runtime_crypto_bridge_aes_roundtrip_smoke() {
+    let script = r#"
+      (async () => {
+        const plain = "bridge crypto roundtrip";
+        const payloadB64 = Buffer.from(plain, "utf8").toString("base64");
+        const keyRaw = "0123456789abcdef";
+        const ivRaw = "abcdef9876543210";
+        const nonceRaw = "123456789012";
+
+        const cbcEncrypted = await bridge.call(
+          "crypto.aes_cbc_pkcs7_encrypt_b64",
+          payloadB64,
+          keyRaw,
+          ivRaw,
+        );
+        const cbcDecrypted = await bridge.call(
+          "crypto.aes_cbc_pkcs7_decrypt_b64",
+          cbcEncrypted,
+          keyRaw,
+          ivRaw,
+        );
+
+        const gcmEncrypted = await bridge.call(
+          "crypto.aes_gcm_encrypt_b64",
+          payloadB64,
+          keyRaw,
+          nonceRaw,
+        );
+        const gcmDecrypted = await bridge.call(
+          "crypto.aes_gcm_decrypt_b64",
+          gcmEncrypted,
+          keyRaw,
+          nonceRaw,
+        );
+
+        return JSON.stringify({
+          hasBridge: typeof bridge === "object",
+          cbcRoundtrip: Buffer.from(cbcDecrypted, "base64").toString("utf8"),
+          gcmRoundtrip: Buffer.from(gcmDecrypted, "base64").toString("utf8"),
+          cbcChanged: cbcEncrypted !== payloadB64,
+          gcmChanged: gcmEncrypted !== payloadB64,
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["hasBridge"], true);
+    assert_eq!(parsed["cbcRoundtrip"], "bridge crypto roundtrip");
+    assert_eq!(parsed["gcmRoundtrip"], "bridge crypto roundtrip");
+    assert_eq!(parsed["cbcChanged"], true);
+    assert_eq!(parsed["gcmChanged"], true);
 }
 
 #[test]

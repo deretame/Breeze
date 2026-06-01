@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
@@ -194,6 +195,21 @@ class _NavigationBarState extends State<NavigationBar> {
                   labelType: NavigationRailLabelType.all,
                   backgroundColor: context.backgroundColor,
                   destinations: navRailDestinations,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: IconButton(
+                  icon: Icon(Icons.search),
+                  tooltip: '搜索',
+                  onPressed: () {
+                    context.pushRoute(
+                      SearchRoute(
+                        searchState: SearchStates.initial(),
+                        aggregateMode: true,
+                      ),
+                    );
+                  },
                 ),
               ),
               Padding(

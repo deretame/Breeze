@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -35,6 +36,10 @@ const _ghCdnMirrors = [
   // 'https://jsd.onmicrosoft.cn/',
   // 'https://cdn.jsdelivr.net/',
 ];
+
+const _blockedPluginUuid = kDebugMode
+    ? ""
+    : '00000000-0000-0000-0000-00000000e001';
 
 class PluginStoreState {
   const PluginStoreState({
@@ -97,6 +102,11 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
 
   Future<void> installFromCloud(CloudPluginItem item) async {
     if (state.installing) {
+      return;
+    }
+    final pluginUuid = item.manifest.uuid.trim();
+    if (pluginUuid == _blockedPluginUuid) {
+      _reportInstallFailure('请更换插件id');
       return;
     }
     final updateUrl = item.manifest.updateUrl.trim();
@@ -436,6 +446,9 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       final resolvedUuid = _readUuidFromInfo(info);
       if (resolvedUuid.isEmpty) {
         throw StateError('getInfo 返回缺少 uuid');
+      }
+      if (resolvedUuid == _blockedPluginUuid) {
+        throw StateError('请更换插件id');
       }
       final version = _readVersionFromInfo(info);
 

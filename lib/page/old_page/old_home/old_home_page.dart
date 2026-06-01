@@ -58,25 +58,6 @@ class _OldHomePageState extends State<OldHomePage> {
     });
   }
 
-  String get _currentFrom {
-    final pluginStates = context.read<PluginRegistryCubit>().state;
-    final active =
-        pluginStates.values
-            .where((state) => state.isEnabled && !state.isDeleted)
-            .toList()
-          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
-    if (active.isNotEmpty) {
-      return active.first.uuid;
-    }
-    final visible =
-        pluginStates.values.where((state) => !state.isDeleted).toList()
-          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
-    if (visible.isNotEmpty) {
-      return visible.first.uuid;
-    }
-    return '';
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isWaitingInitialLoad) {
@@ -104,7 +85,12 @@ class _OldHomePageState extends State<OldHomePage> {
                 IconButton(
                   tooltip: '搜索',
                   icon: const Icon(Icons.search),
-                  onPressed: search,
+                  onPressed: () => context.pushRoute(
+                    SearchRoute(
+                      searchState: SearchStates.initial(),
+                      aggregateMode: true,
+                    ),
+                  ),
                 ),
               ],
             )
@@ -122,20 +108,6 @@ class _OldHomePageState extends State<OldHomePage> {
               child: const Icon(Icons.swap_horiz),
             )
           : null,
-    );
-  }
-
-  void search() {
-    final source = _currentFrom;
-    if (source.isEmpty) {
-      showErrorToast('暂无可用插件，无法搜索');
-      return;
-    }
-    context.pushRoute(
-      SearchRoute(
-        searchState: SearchStates.initial().copyWith(from: source),
-        aggregateMode: true,
-      ),
     );
   }
 

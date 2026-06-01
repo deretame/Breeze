@@ -564,7 +564,9 @@
 
   function normalizeHashAlgorithm(algorithm) {
     const alg = String(algorithm || "").toLowerCase();
+    if (alg === "sha1" || alg === "sha-1") return "sha1";
     if (alg === "sha256" || alg === "sha-256") return "sha256";
+    if (alg === "sha512" || alg === "sha-512") return "sha512";
     throw new TypeError(`不支持的 hash 算法: ${algorithm}`);
   }
 
@@ -590,9 +592,15 @@
       this._digested = true;
       const input = concatChunks(this._chunks);
       const inputB64 = bytesToBase64(input);
+      const route =
+        this.algorithm === "sha1"
+          ? "__crypto_sha1_b64"
+          : this.algorithm === "sha512"
+            ? "__crypto_sha512_b64"
+            : "__crypto_sha256_b64";
       const out = parseHostCryptoResult(
-        globalThis.__crypto_sha256_b64(inputB64),
-        "sha256",
+        globalThis[route](inputB64),
+        this.algorithm,
       );
       if (
         outputEncoding === undefined ||
@@ -635,9 +643,15 @@
       const message = concatChunks(this._chunks);
       const keyB64 = bytesToBase64(this._key);
       const msgB64 = bytesToBase64(message);
+      const route =
+        this.algorithm === "sha1"
+          ? "__crypto_hmac_sha1_b64"
+          : this.algorithm === "sha512"
+            ? "__crypto_hmac_sha512_b64"
+            : "__crypto_hmac_sha256_b64";
       const out = parseHostCryptoResult(
-        globalThis.__crypto_hmac_sha256_b64(keyB64, msgB64),
-        "hmac-sha256",
+        globalThis[route](keyB64, msgB64),
+        `hmac-${this.algorithm}`,
       );
       if (
         outputEncoding === undefined ||
@@ -664,9 +678,43 @@
     return new Hmac(algorithm, key);
   }
 
+  function aesCbcPkcs7EncryptB64(payloadB64, keyRaw, ivRaw) {
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_aes_cbc_pkcs7_encrypt_b64(payloadB64, keyRaw, ivRaw),
+      "aes-cbc-encrypt",
+    );
+    return String(out.base64 || out);
+  }
+
+  function aesCbcPkcs7DecryptB64(payloadB64, keyRaw, ivRaw) {
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_aes_cbc_pkcs7_decrypt_b64(payloadB64, keyRaw, ivRaw),
+      "aes-cbc-decrypt",
+    );
+    return String(out.base64 || out);
+  }
+
+  function aesGcmEncryptB64(payloadB64, keyRaw, nonceRaw, aadB64) {
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_aes_gcm_encrypt_b64(payloadB64, keyRaw, nonceRaw, aadB64 ?? null),
+      "aes-gcm-encrypt",
+    );
+    return String(out.base64 || out);
+  }
+
+  function aesGcmDecryptB64(payloadB64, keyRaw, nonceRaw, aadB64) {
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_aes_gcm_decrypt_b64(payloadB64, keyRaw, nonceRaw, aadB64 ?? null),
+      "aes-gcm-decrypt",
+    );
+    return String(out.base64 || out);
+  }
+
   function normalizeDigestAlgorithm(digest) {
     const alg = String(digest || "").toLowerCase();
+    if (alg === "sha1" || alg === "sha-1") return "sha1";
     if (alg === "sha256" || alg === "sha-256") return "sha256";
+    if (alg === "sha512" || alg === "sha-512") return "sha512";
     throw new TypeError(`不支持的 digest 算法: ${digest}`);
   }
 
@@ -756,6 +804,10 @@
   const cryptoModule = {
     createHash,
     createHmac,
+    aesCbcPkcs7EncryptB64,
+    aesCbcPkcs7DecryptB64,
+    aesGcmEncryptB64,
+    aesGcmDecryptB64,
     randomBytes,
     randomUUID,
     timingSafeEqual,

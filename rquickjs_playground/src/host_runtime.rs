@@ -382,28 +382,28 @@ impl HostRuntime {
     async fn install_promise_rejection_tracker(runtime: &AsyncRuntime) {
         runtime
             .set_host_promise_rejection_tracker(Some(Box::new(
-            move |ctx, _promise, reason, is_handled| {
-                if is_handled {
-                    return;
-                }
+                move |ctx, _promise, reason, is_handled| {
+                    if is_handled {
+                        return;
+                    }
 
-                let message = if reason.is_string() {
-                    reason
-                        .get::<String>()
-                        .unwrap_or_else(|_| "Promise rejected".to_string())
-                } else if reason.is_undefined() {
-                    "Promise rejected".to_string()
-                } else {
-                    ctx.json_stringify(reason)
-                        .ok()
-                        .and_then(|v| v.and_then(|s| s.to_string().ok()))
-                        .unwrap_or_else(|| "Promise rejected".to_string())
-                };
+                    let message = if reason.is_string() {
+                        reason
+                            .get::<String>()
+                            .unwrap_or_else(|_| "Promise rejected".to_string())
+                    } else if reason.is_undefined() {
+                        "Promise rejected".to_string()
+                    } else {
+                        ctx.json_stringify(reason)
+                            .ok()
+                            .and_then(|v| v.and_then(|s| s.to_string().ok()))
+                            .unwrap_or_else(|| "Promise rejected".to_string())
+                    };
 
-                tracing::warn!("[qjs-unhandled-promise] {}", message);
-            },
-        )))
-        .await;
+                    tracing::warn!("[qjs-unhandled-promise] {}", message);
+                },
+            )))
+            .await;
     }
 
     async fn init_context(

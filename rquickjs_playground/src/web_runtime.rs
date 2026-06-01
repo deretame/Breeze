@@ -1,4 +1,4 @@
-use aes::cipher::{BlockDecrypt, BlockEncrypt};
+use aes::cipher::BlockDecrypt;
 use aes::{Aes128, Aes192, Aes256};
 use aes_gcm::{
     Aes128Gcm, Aes256Gcm, Nonce,
@@ -563,82 +563,6 @@ fn crypto_digest_b64<D: Digest + Default>(input_b64: String) -> String {
         Ok(v) => v,
         Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
     }
-}
-
-fn crypto_hmac_b64<M: Mac + hmac::digest::KeyInit>(key_b64: String, input_b64: String) -> String {
-    let result: AnyResult<String> = (|| {
-        let key = decode_host_base64(&key_b64).context("解析 hmac key 失败")?;
-        let input = decode_host_base64(&input_b64).context("解析 hmac 输入失败")?;
-        let mut mac = <M as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
-        mac.update(&input);
-        let out = mac.finalize().into_bytes();
-        Ok(json!({
-            "ok": true,
-            "hex": bytes_to_hex(&out),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-fn aes_ecb_encrypt_pkcs7_b64(plain: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
-    let block_size = 16usize;
-    let pad_len = block_size - (plain.len() % block_size);
-    let mut buf = Vec::with_capacity(plain.len() + pad_len);
-    buf.extend_from_slice(plain);
-    buf.extend(std::iter::repeat_n(pad_len as u8, pad_len));
-
-    let mut out = vec![0u8; buf.len()];
-    match key.len() {
-        16 => {
-            let cipher =
-                Aes128::new_from_slice(key).map_err(|_| anyhow!("AES-128 密钥长度无效"))?;
-            for (src, dst) in buf
-                .chunks_exact(block_size)
-                .zip(out.chunks_exact_mut(block_size))
-            {
-                let mut block = aes::cipher::Block::<Aes128>::clone_from_slice(src);
-                cipher.encrypt_block(&mut block);
-                dst.copy_from_slice(&block);
-            }
-        }
-        24 => {
-            let cipher =
-                Aes192::new_from_slice(key).map_err(|_| anyhow!("AES-192 密钥长度无效"))?;
-            for (src, dst) in buf
-                .chunks_exact(block_size)
-                .zip(out.chunks_exact_mut(block_size))
-            {
-                let mut block = aes::cipher::Block::<Aes192>::clone_from_slice(src);
-                cipher.encrypt_block(&mut block);
-                dst.copy_from_slice(&block);
-            }
-        }
-        32 => {
-            let cipher =
-                Aes256::new_from_slice(key).map_err(|_| anyhow!("AES-256 密钥长度无效"))?;
-            for (src, dst) in buf
-                .chunks_exact(block_size)
-                .zip(out.chunks_exact_mut(block_size))
-            {
-                let mut block = aes::cipher::Block::<Aes256>::clone_from_slice(src);
-                cipher.encrypt_block(&mut block);
-                dst.copy_from_slice(&block);
-            }
-        }
-        _ => {
-            return Err(anyhow!(
-                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {}",
-                key.len()
-            ));
-        }
-    }
-    Ok(out)
 }
 
 fn aes_ecb_decrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {

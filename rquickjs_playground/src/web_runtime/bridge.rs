@@ -500,15 +500,6 @@ fn crypto_aes_ecb_pkcs7_decrypt_b64(payload_b64: String, key_raw: String) -> Any
     Ok(json!(text))
 }
 
-fn crypto_aes_ecb_pkcs7_encrypt_b64(plain_b64: String, key_raw: String) -> AnyResult<Value> {
-    let plain = BASE64_STANDARD
-        .decode(plain_b64.as_bytes())
-        .context("base64 解码失败")?;
-    let key = key_raw.into_bytes();
-    let cipher = super::aes_ecb_encrypt_pkcs7_b64(&plain, &key)?;
-    Ok(json!(BASE64_STANDARD.encode(cipher)))
-}
-
 fn crypto_aes_cbc_pkcs7_encrypt_b64(
     plain_b64: String,
     key_raw: String,
@@ -611,20 +602,36 @@ fn crypto_aes_gcm_encrypt_b64(
     let key = key_raw.into_bytes();
     let nonce = nonce_raw.into_bytes();
     let aad = aad_b64
-        .map(|raw| BASE64_STANDARD.decode(raw.as_bytes()).context("base64 解码失败"))
+        .map(|raw| {
+            BASE64_STANDARD
+                .decode(raw.as_bytes())
+                .context("base64 解码失败")
+        })
         .transpose()?
         .unwrap_or_default();
     let out = match key.len() {
         16 => {
             let cipher = Aes128Gcm::new_from_slice(&key).context("AES-128 GCM 参数无效")?;
             cipher
-                .encrypt(Nonce::from_slice(&nonce), AeadPayload { msg: &plain, aad: &aad })
+                .encrypt(
+                    Nonce::from_slice(&nonce),
+                    AeadPayload {
+                        msg: &plain,
+                        aad: &aad,
+                    },
+                )
                 .map_err(|_| anyhow!("AES-128 GCM 加密失败"))?
         }
         32 => {
             let cipher = Aes256Gcm::new_from_slice(&key).context("AES-256 GCM 参数无效")?;
             cipher
-                .encrypt(Nonce::from_slice(&nonce), AeadPayload { msg: &plain, aad: &aad })
+                .encrypt(
+                    Nonce::from_slice(&nonce),
+                    AeadPayload {
+                        msg: &plain,
+                        aad: &aad,
+                    },
+                )
                 .map_err(|_| anyhow!("AES-256 GCM 加密失败"))?
         }
         _ => {
@@ -649,20 +656,36 @@ fn crypto_aes_gcm_decrypt_b64(
     let key = key_raw.into_bytes();
     let nonce = nonce_raw.into_bytes();
     let aad = aad_b64
-        .map(|raw| BASE64_STANDARD.decode(raw.as_bytes()).context("base64 解码失败"))
+        .map(|raw| {
+            BASE64_STANDARD
+                .decode(raw.as_bytes())
+                .context("base64 解码失败")
+        })
         .transpose()?
         .unwrap_or_default();
     let out = match key.len() {
         16 => {
             let cipher = Aes128Gcm::new_from_slice(&key).context("AES-128 GCM 参数无效")?;
             cipher
-                .decrypt(Nonce::from_slice(&nonce), AeadPayload { msg: &payload, aad: &aad })
+                .decrypt(
+                    Nonce::from_slice(&nonce),
+                    AeadPayload {
+                        msg: &payload,
+                        aad: &aad,
+                    },
+                )
                 .map_err(|_| anyhow!("AES-128 GCM 解密失败"))?
         }
         32 => {
             let cipher = Aes256Gcm::new_from_slice(&key).context("AES-256 GCM 参数无效")?;
             cipher
-                .decrypt(Nonce::from_slice(&nonce), AeadPayload { msg: &payload, aad: &aad })
+                .decrypt(
+                    Nonce::from_slice(&nonce),
+                    AeadPayload {
+                        msg: &payload,
+                        aad: &aad,
+                    },
+                )
                 .map_err(|_| anyhow!("AES-256 GCM 解密失败"))?
         }
         _ => {

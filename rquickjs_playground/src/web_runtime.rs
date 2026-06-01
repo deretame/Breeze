@@ -748,6 +748,7 @@ fn log_sender() -> &'static mpsc::Sender<LogEvent> {
                         "warn" => tracing::warn!("{}", line),
                         "info" => tracing::info!("{}", line),
                         "debug" => tracing::debug!("{}", line),
+                        "log" => tracing::info!("{}", line),
                         _ => tracing::info!("{}", line),
                     }
                     LOG_WRITTEN.fetch_add(1, Ordering::Relaxed);

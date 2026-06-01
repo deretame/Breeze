@@ -379,6 +379,33 @@ fn serialize_js_value<'js>(ctx: &Ctx<'js>, value: JsValue<'js>) -> Result<String
 }
 
 impl HostRuntime {
+    async fn install_promise_rejection_tracker(runtime: &AsyncRuntime) {
+        runtime
+            .set_host_promise_rejection_tracker(Some(Box::new(
+            move |ctx, _promise, reason, is_handled| {
+                if is_handled {
+                    return;
+                }
+
+                let message = if reason.is_string() {
+                    reason
+                        .get::<String>()
+                        .unwrap_or_else(|_| "Promise rejected".to_string())
+                } else if reason.is_undefined() {
+                    "Promise rejected".to_string()
+                } else {
+                    ctx.json_stringify(reason)
+                        .ok()
+                        .and_then(|v| v.and_then(|s| s.to_string().ok()))
+                        .unwrap_or_else(|| "Promise rejected".to_string())
+                };
+
+                tracing::warn!("[qjs-unhandled-promise] {}", message);
+            },
+        )))
+        .await;
+    }
+
     async fn init_context(
         runtime: &AsyncRuntime,
         cache_scope_id: &str,
@@ -408,6 +435,7 @@ impl HostRuntime {
         }
         crate::web_runtime::set_worker_http_config(crate::web_runtime::current_http_client_config());
         let runtime = AsyncRuntime::new().map_err(|e| format!("初始化 AsyncRuntime 失败: {e}"))?;
+        Self::install_promise_rejection_tracker(&runtime).await;
         let context = Self::init_context(&runtime, &cache_scope_id, options).await?;
 
         Ok(Self {

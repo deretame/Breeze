@@ -48,12 +48,6 @@
 
     var result = lines.join("\n");
 
-    try {
-      if (typeof globalThis.__log_emit === "function") {
-        globalThis.__log_emit("debug", result);
-      }
-    } catch (_e) {}
-
     if (typeof _originalPrepareStackTrace === "function") {
       try {
         return _originalPrepareStackTrace(err, frames);

@@ -181,4 +181,4 @@ pnpm run build
 
 ## 8) 下一步阅读
 
-继续看 [运行时 API](/guide/runtime-api)、[插件 API 契约](/guide/plugin-api-contract) 和 [Scheme 设计](/guide/scheme-design)。
+继续看 [运行时 API](/guide/runtime-api)、[插件 API 契约](/guide/plugin-api-contract) 和 [生命周期与结构](/guide/runtime-and-structure)。

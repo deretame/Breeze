@@ -29,11 +29,11 @@ jobs:
           New-Item -ItemType Directory -Force -Path $src | Out-Null
 
           dotnet new console --framework net8.0 --output $src --no-restore | Out-Null
-          @'
-using System;
-
-Console.WriteLine("SignPath smoke test");
-'@ | Set-Content -Path (Join-Path $src "Program.cs") -Encoding UTF8
+          @(
+            'using System;',
+            '',
+            'Console.WriteLine("SignPath smoke test");'
+          ) | Set-Content -Path (Join-Path $src "Program.cs") -Encoding UTF8
 
           dotnet publish $src `
             -c Release `

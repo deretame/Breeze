@@ -65,7 +65,7 @@ jobs:
           organization-id: f3cf3aed-f869-41ec-95c1-27dbd2926618
           project-slug: Breeze
           signing-policy-slug: test-signing
-          artifact-configuration-slug: initial
+          artifact-configuration-slug: smoke-exe
           github-artifact-id: ${{ steps.upload-smoke.outputs.artifact-id }}
           wait-for-completion: true
           output-artifact-directory: ${{ runner.temp }}\signed-smoke

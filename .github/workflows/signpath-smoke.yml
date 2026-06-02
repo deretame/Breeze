@@ -1,0 +1,70 @@
+name: SignPath Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  smoke-sign-windows:
+    runs-on: windows-2025-vs2026
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build tiny test exe
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP "signpath-smoke"
+          $src = Join-Path $root "src"
+          New-Item -ItemType Directory -Force -Path $src | Out-Null
+
+          dotnet new console --framework net8.0 --output $src --no-restore | Out-Null
+          @'
+using System;
+
+Console.WriteLine("SignPath smoke test");
+'@ | Set-Content -Path (Join-Path $src "Program.cs") -Encoding UTF8
+
+          dotnet publish $src `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o (Join-Path $root "out")
+
+      - name: Upload unsigned smoke exe
+        id: upload-smoke
+        uses: actions/upload-artifact@v6
+        with:
+          name: signpath-smoke-exe
+          path: ${{ runner.temp }}\signpath-smoke\out\*.exe
+
+      - name: Submit smoke signing request
+        id: sign-smoke
+        uses: SignPath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: f3cf3aed-f869-41ec-95c1-27dbd2926618
+          project-slug: Breeze
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: initial
+          github-artifact-id: ${{ steps.upload-smoke.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: ${{ runner.temp }}\signed-smoke
+
+      - name: Upload signed smoke exe
+        uses: actions/upload-artifact@v6
+        with:
+          name: signpath-smoke-signed
+          path: ${{ runner.temp }}\signed-smoke\*.exe

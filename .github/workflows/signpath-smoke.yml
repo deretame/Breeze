@@ -43,7 +43,12 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -o (Join-Path $root "out")
 
-          Copy-Item -Force (Join-Path $root "out\signpath-smoke.exe") (Join-Path $root "out\smoke.exe")
+          $exe = Get-ChildItem -Path (Join-Path $root "out") -Filter *.exe | Select-Object -First 1
+          if (-not $exe) {
+            throw "No .exe was produced in $root\out"
+          }
+
+          Copy-Item -Force $exe.FullName (Join-Path $root "out\smoke.exe")
 
       - name: Upload unsigned smoke exe
         id: upload-smoke

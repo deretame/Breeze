@@ -8,6 +8,7 @@ import 'api/qjs.dart';
 import 'api/simple.dart';
 import 'api/system.dart';
 import 'api/user_utils.dart';
+import 'api/webdav.dart';
 import 'compressed/compressed.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -73,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => -1618471083;
+  int get rustContentHash => -1452454335;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -304,6 +305,81 @@ abstract class RustLibApi extends BaseApi {
   Stream<bool> crateApiSystemStartShutdownListener();
 
   Stream<String> crateApiSimpleStreamTest();
+
+  Future<void> crateApiWebdavWebdavDeleteRemoteFiles({
+    required String host,
+    required String username,
+    required String password,
+    required List<String> remotePaths,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+  });
+
+  Future<Uint8List> crateApiWebdavWebdavDownloadFile({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+  });
+
+  Future<String> crateApiWebdavWebdavDownloadText({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+  });
+
+  Future<void> crateApiWebdavWebdavEnsureRemoteReady({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+  });
+
+  Future<List<String>> crateApiWebdavWebdavListRemoteDataFiles({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+  });
+
+  Future<void> crateApiWebdavWebdavTestConnection({
+    required String host,
+    required String username,
+    required String password,
+  });
+
+  Future<void> crateApiWebdavWebdavUploadBytes({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+    required List<int> data,
+    required String contentType,
+  });
+
+  Future<void> crateApiWebdavWebdavUploadText({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+    required String value,
+  });
 
   Future<Uint8List> crateApiSimpleZstdCompressBytes({
     required List<int> raw,
@@ -2153,6 +2229,456 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "stream_test", argNames: ["stream"]);
 
   @override
+  Future<void> crateApiWebdavWebdavDeleteRemoteFiles({
+    required String host,
+    required String username,
+    required String password,
+    required List<String> remotePaths,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_list_String(remotePaths, serializer);
+          sse_encode_String(syncRootName, serializer);
+          sse_encode_String(legacyDataRootName, serializer);
+          sse_encode_String(legacySettingsRootName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 58,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavDeleteRemoteFilesConstMeta,
+        argValues: [
+          host,
+          username,
+          password,
+          remotePaths,
+          syncRootName,
+          legacyDataRootName,
+          legacySettingsRootName,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavDeleteRemoteFilesConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_delete_remote_files",
+        argNames: [
+          "host",
+          "username",
+          "password",
+          "remotePaths",
+          "syncRootName",
+          "legacyDataRootName",
+          "legacySettingsRootName",
+        ],
+      );
+
+  @override
+  Future<Uint8List> crateApiWebdavWebdavDownloadFile({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_String(syncRootName, serializer);
+          sse_encode_String(legacyDataRootName, serializer);
+          sse_encode_String(legacySettingsRootName, serializer);
+          sse_encode_String(remotePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 59,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavDownloadFileConstMeta,
+        argValues: [
+          host,
+          username,
+          password,
+          syncRootName,
+          legacyDataRootName,
+          legacySettingsRootName,
+          remotePath,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavDownloadFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_download_file",
+        argNames: [
+          "host",
+          "username",
+          "password",
+          "syncRootName",
+          "legacyDataRootName",
+          "legacySettingsRootName",
+          "remotePath",
+        ],
+      );
+
+  @override
+  Future<String> crateApiWebdavWebdavDownloadText({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_String(syncRootName, serializer);
+          sse_encode_String(legacyDataRootName, serializer);
+          sse_encode_String(legacySettingsRootName, serializer);
+          sse_encode_String(remotePath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 60,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavDownloadTextConstMeta,
+        argValues: [
+          host,
+          username,
+          password,
+          syncRootName,
+          legacyDataRootName,
+          legacySettingsRootName,
+          remotePath,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavDownloadTextConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_download_text",
+        argNames: [
+          "host",
+          "username",
+          "password",
+          "syncRootName",
+          "legacyDataRootName",
+          "legacySettingsRootName",
+          "remotePath",
+        ],
+      );
+
+  @override
+  Future<void> crateApiWebdavWebdavEnsureRemoteReady({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_String(syncRootName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 61,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavEnsureRemoteReadyConstMeta,
+        argValues: [host, username, password, syncRootName],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavEnsureRemoteReadyConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_ensure_remote_ready",
+        argNames: ["host", "username", "password", "syncRootName"],
+      );
+
+  @override
+  Future<List<String>> crateApiWebdavWebdavListRemoteDataFiles({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_String(syncRootName, serializer);
+          sse_encode_String(legacyDataRootName, serializer);
+          sse_encode_String(legacySettingsRootName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 62,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavListRemoteDataFilesConstMeta,
+        argValues: [
+          host,
+          username,
+          password,
+          syncRootName,
+          legacyDataRootName,
+          legacySettingsRootName,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavListRemoteDataFilesConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_list_remote_data_files",
+        argNames: [
+          "host",
+          "username",
+          "password",
+          "syncRootName",
+          "legacyDataRootName",
+          "legacySettingsRootName",
+        ],
+      );
+
+  @override
+  Future<void> crateApiWebdavWebdavTestConnection({
+    required String host,
+    required String username,
+    required String password,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 63,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavTestConnectionConstMeta,
+        argValues: [host, username, password],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavTestConnectionConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_test_connection",
+        argNames: ["host", "username", "password"],
+      );
+
+  @override
+  Future<void> crateApiWebdavWebdavUploadBytes({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+    required List<int> data,
+    required String contentType,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_String(syncRootName, serializer);
+          sse_encode_String(legacyDataRootName, serializer);
+          sse_encode_String(legacySettingsRootName, serializer);
+          sse_encode_String(remotePath, serializer);
+          sse_encode_list_prim_u_8_loose(data, serializer);
+          sse_encode_String(contentType, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 64,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavUploadBytesConstMeta,
+        argValues: [
+          host,
+          username,
+          password,
+          syncRootName,
+          legacyDataRootName,
+          legacySettingsRootName,
+          remotePath,
+          data,
+          contentType,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavUploadBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_upload_bytes",
+        argNames: [
+          "host",
+          "username",
+          "password",
+          "syncRootName",
+          "legacyDataRootName",
+          "legacySettingsRootName",
+          "remotePath",
+          "data",
+          "contentType",
+        ],
+      );
+
+  @override
+  Future<void> crateApiWebdavWebdavUploadText({
+    required String host,
+    required String username,
+    required String password,
+    required String syncRootName,
+    required String legacyDataRootName,
+    required String legacySettingsRootName,
+    required String remotePath,
+    required String value,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          sse_encode_String(syncRootName, serializer);
+          sse_encode_String(legacyDataRootName, serializer);
+          sse_encode_String(legacySettingsRootName, serializer);
+          sse_encode_String(remotePath, serializer);
+          sse_encode_String(value, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 65,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWebdavWebdavUploadTextConstMeta,
+        argValues: [
+          host,
+          username,
+          password,
+          syncRootName,
+          legacyDataRootName,
+          legacySettingsRootName,
+          remotePath,
+          value,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWebdavWebdavUploadTextConstMeta =>
+      const TaskConstMeta(
+        debugName: "webdav_upload_text",
+        argNames: [
+          "host",
+          "username",
+          "password",
+          "syncRootName",
+          "legacyDataRootName",
+          "legacySettingsRootName",
+          "remotePath",
+          "value",
+        ],
+      );
+
+  @override
   Future<Uint8List> crateApiSimpleZstdCompressBytes({
     required List<int> raw,
     required int level,
@@ -2166,7 +2692,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 58,
+            funcId: 66,
             port: port_,
           );
         },
@@ -2199,7 +2725,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 59,
+            funcId: 67,
             port: port_,
           );
         },

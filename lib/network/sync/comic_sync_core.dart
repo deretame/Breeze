@@ -312,6 +312,12 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
 
   if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
     logger.d('[sync][comic] decision=skip reason=md5_equal');
+    await _cleanupRemoteComicFiles(
+      adapter,
+      allSyncRootFiles: allRemoteFiles,
+      keepComicPath:
+          '${ComicSyncCore.syncRemoteRootName}/${ComicSyncCore.buildComicDataFileName()}',
+    );
     return;
   }
 

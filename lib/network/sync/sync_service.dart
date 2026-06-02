@@ -108,6 +108,7 @@ Future<void> _syncSettings(
 
   if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
     logger.d('[sync][settings] decision=skip reason=md5_equal');
+    await _cleanupRemoteSettingsFiles(adapter);
     await _updateLocalSettingsSyncTime(
       localGlobal,
       syncTime: localSnapshot.syncTime,

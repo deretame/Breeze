@@ -27,6 +27,8 @@ tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.12", default-features = false, features = [
     "rustls-tls",
 ] }
+reqwest_dav = "0.3.3"
+url = "2"
 tokio-tar = "0.3.1"
 zip = { version = "8.2.0", default-features = false, features = [
     "deflate",
@@ -42,6 +44,8 @@ terminal_size = "0.4.4"
 ferrous-opencc = "0.3"
 brotli = "8.0.2"
 webp = "0.3.1"
+serde = { version = "1", features = ["derive"] }
+serde-xml-rs = "0.8.2"
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"

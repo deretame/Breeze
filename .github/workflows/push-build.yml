@@ -252,12 +252,66 @@ jobs:
       - name: 运行 Windows 构建脚本
         run: |
           fvm flutter pub get
-          fvm dart ./script/build_windows.dart
+          fvm dart ./script/build_windows.dart --prepare-only
 
-      - name: 上传 Windows 产物
+      - name: 上传未签名 Windows 主程序
+        id: upload-zephyr
         uses: actions/upload-artifact@v6
         with:
-          name: windows-exe
+          name: zephyr-exe
+          path: build/windows/x64/runner/Release/zephyr.exe
+
+      - name: SignPath 签名 Windows 主程序
+        id: sign-zephyr
+        uses: SignPath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: f3cf3aed-f869-41ec-95c1-27dbd2926618
+          project-slug: Breeze
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: initial
+          github-artifact-id: ${{ steps.upload-zephyr.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: ${{ runner.temp }}\signed-zephyr
+
+      - name: 回灌已签名 Windows 主程序
+        shell: pwsh
+        run: |
+          Copy-Item -Force "${{ runner.temp }}\signed-zephyr\zephyr.exe" "build/windows/x64/runner/Release/zephyr.exe"
+
+      - name: 继续构建 Windows 安装器
+        run: |
+          fvm dart ./script/build_windows.dart --package-only
+
+      - name: 上传未签名 Windows 安装器
+        id: upload-installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-installer-exe
+          path: windows-installer/src-tauri/target/release/windows-installer.exe
+
+      - name: SignPath 签名 Windows 安装器
+        id: sign-installer
+        uses: SignPath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: f3cf3aed-f869-41ec-95c1-27dbd2926618
+          project-slug: Breeze
+          signing-policy-slug: test-signing
+          artifact-configuration-slug: initial
+          github-artifact-id: ${{ steps.upload-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: ${{ runner.temp }}\signed-installer
+
+      - name: 回灌已签名 Windows 安装器
+        shell: pwsh
+        run: |
+          Copy-Item -Force "${{ runner.temp }}\signed-installer\windows-installer.exe" "windows-installer/src-tauri/target/release/windows-installer.exe"
+
+      - name: 上传已签名 Windows 安装器
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-installer-signed
           path: windows-installer/src-tauri/target/release/windows-installer.exe
 
   # ══════════════════════════════════════════

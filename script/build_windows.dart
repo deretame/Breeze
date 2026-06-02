@@ -59,6 +59,36 @@ Future<void> _killProcessTree(Process process) async {
   }
 }
 
+enum WindowsBuildStage {
+  all,
+  prepare,
+  package,
+}
+
+WindowsBuildStage _parseBuildStage(List<String> args) {
+  for (final arg in args) {
+    if (arg == '--prepare-only') return WindowsBuildStage.prepare;
+    if (arg == '--package-only') return WindowsBuildStage.package;
+
+    if (arg.startsWith('--stage=')) {
+      final value = arg.substring('--stage='.length).toLowerCase();
+      switch (value) {
+        case 'all':
+          return WindowsBuildStage.all;
+        case 'prepare':
+        case 'build':
+        case 'release':
+          return WindowsBuildStage.prepare;
+        case 'package':
+        case 'installer':
+          return WindowsBuildStage.package;
+      }
+    }
+  }
+
+  return WindowsBuildStage.all;
+}
+
 // ════════════════════════════════════════════════════════════════
 //  liblzma (xz) FFI 绑定
 // ════════════════════════════════════════════════════════════════
@@ -291,9 +321,12 @@ Future<Uint8List> _createTarArchive(String dirPath) async {
 //  主流程
 // ════════════════════════════════════════════════════════════════
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   int exitCode = 0;
   bool isCleaningUp = false;
+  final buildStage = _parseBuildStage(args);
+  final bool shouldBuildFlutter = buildStage != WindowsBuildStage.package;
+  final bool shouldPackageInstaller = buildStage != WindowsBuildStage.prepare;
 
   final sep = Platform.pathSeparator;
   // 使用 path 库（p.join）可以更优雅地处理路径，这里保持字符串拼接兼容原代码
@@ -343,105 +376,110 @@ Future<void> main() async {
     _printColor('liblzma 加载成功 (xz v$_xzVersion)', _green);
     print('');
 
-    final String sentryDsn = Platform.environment['SENTRY_DSN'] ?? '';
-    if (sentryDsn.isEmpty) {
-      _printColor('提示: 未找到 sentry_dsn 环境变量，将使用空字符串', _yellow);
-    } else {
-      _printColor('已读取 Sentry DSN (长度: ${sentryDsn.length})', _green);
-    }
-
-    // ═══ 第 1 步：Flutter build ═══
-    _printColor('--- (1/4) 构建 Flutter Windows Release ---', _cyan);
-
-    // 确保项目目录下执行
-    exitCode = await _runCommand(flutterExecutable, [
-      'build',
-      'windows',
-      '--release',
-      '--dart-define=sentry_dsn=$sentryDsn',
-      '--split-debug-info=$projectRoot${sep}build${sep}symbols',
-    ], workingDirectory: projectRoot);
-
-    if (exitCode != 0) {
-      throw Exception('Flutter 构建失败！ (Exit code: $exitCode)');
-    }
-    _printColor('Flutter 构建完成 ✓\n', _green);
-
     final releaseDir = Directory(releaseDirPath);
+    if (shouldBuildFlutter) {
+      final String sentryDsn = Platform.environment['SENTRY_DSN'] ?? '';
+      if (sentryDsn.isEmpty) {
+        _printColor('提示: 未找到 SENTRY_DSN 环境变量，将使用空字符串', _yellow);
+      } else {
+        _printColor('已读取 Sentry DSN (长度: ${sentryDsn.length})', _green);
+      }
+
+      // ═══ 第 1 步：Flutter build ═══
+      _printColor('--- (1/4) 构建 Flutter Windows Release ---', _cyan);
+
+      exitCode = await _runCommand(flutterExecutable, [
+        'build',
+        'windows',
+        '--release',
+        '--dart-define=sentry_dsn=$sentryDsn',
+        '--split-debug-info=$projectRoot${sep}build${sep}symbols',
+      ], workingDirectory: projectRoot);
+
+      if (exitCode != 0) {
+        throw Exception('Flutter 构建失败！ (Exit code: $exitCode)');
+      }
+      _printColor('Flutter 构建完成 ✓\n', _green);
+    } else {
+      _printColor('跳过 Flutter 构建，直接进入安装器打包阶段。', _yellow);
+    }
+
     if (!await releaseDir.exists()) {
       throw Exception('构建产物不存在: $releaseDirPath');
     }
 
-    // ═══ 第 2 步：tar + xz 压缩（FFI） ═══
-    _printColor('--- (2/4) tar 打包 + xz/LZMA2 极限压缩 (FFI) ---', _cyan);
+    if (shouldPackageInstaller) {
+      // ═══ 第 2 步：tar + xz 压缩（FFI） ═══
+      _printColor('--- (2/4) tar 打包 + xz/LZMA2 极限压缩 (FFI) ---', _cyan);
 
-    _printColor('正在打包 Release 目录...', _cyan);
-    final tarData = await _createTarArchive(releaseDirPath);
-    _printColor(
-      'tar 打包完成: ${(tarData.length / 1024 / 1024).toStringAsFixed(1)} MB',
-      _green,
-    );
+      _printColor('正在打包 Release 目录...', _cyan);
+      final tarData = await _createTarArchive(releaseDirPath);
+      _printColor(
+        'tar 打包完成: ${(tarData.length / 1024 / 1024).toStringAsFixed(1)} MB',
+        _green,
+      );
 
-    // xz 极限压缩 (preset 9 | EXTREME)
-    _printColor('正在使用 xz -9e (LZMA2 极限) 压缩 (FFI)...', _cyan);
-    _printColor('（这可能需要几分钟，请耐心等待）', _yellow);
+      _printColor('正在使用 xz -9e (LZMA2 极限) 压缩 (FFI)...', _cyan);
+      _printColor('（这可能需要几分钟，请耐心等待）', _yellow);
 
-    final stopwatch = Stopwatch()..start();
-    final compressedData = lzma.compress(tarData, preset: 9, extreme: true);
-    stopwatch.stop();
+      final stopwatch = Stopwatch()..start();
+      final compressedData = lzma.compress(tarData, preset: 9, extreme: true);
+      stopwatch.stop();
 
-    final ratio = (compressedData.length / tarData.length * 100)
-        .toStringAsFixed(1);
-    _printColor(
-      '压缩完成 ✓ '
-      '${(tarData.length / 1024 / 1024).toStringAsFixed(1)} MB → '
-      '${(compressedData.length / 1024 / 1024).toStringAsFixed(1)} MB '
-      '(压缩率 $ratio%, 耗时 ${stopwatch.elapsed.inSeconds}s)\n',
-      _green,
-    );
+      final ratio = (compressedData.length / tarData.length * 100)
+          .toStringAsFixed(1);
+      _printColor(
+        '压缩完成 ✓ '
+        '${(tarData.length / 1024 / 1024).toStringAsFixed(1)} MB → '
+        '${(compressedData.length / 1024 / 1024).toStringAsFixed(1)} MB '
+        '(压缩率 $ratio%, 耗时 ${stopwatch.elapsed.inSeconds}s)\n',
+        _green,
+      );
 
-    await File(archiveOutput).writeAsBytes(compressedData);
-    _printColor('已保存: $archiveOutput', _green);
+      await File(archiveOutput).writeAsBytes(compressedData);
+      _printColor('已保存: $archiveOutput', _green);
 
-    // ═══ 第 3 步：复制到安装器资源目录 ═══
-    _printColor('\n--- (3/4) 复制到安装器资源目录 ---', _cyan);
+      // ═══ 第 3 步：复制到安装器资源目录 ═══
+      _printColor('\n--- (3/4) 复制到安装器资源目录 ---', _cyan);
 
-    final resDirObj = Directory(resourcesDir);
-    if (!await resDirObj.exists()) {
-      await resDirObj.create(recursive: true);
-    }
-
-    // 删除旧文件
-    for (final oldName in ['Release.7z', 'Release.tar.zst']) {
-      final old = File('$resourcesDir$sep$oldName');
-      if (await old.exists()) {
-        await old.delete();
-        _printColor('已删除旧的 $oldName', _yellow);
+      final resDirObj = Directory(resourcesDir);
+      if (!await resDirObj.exists()) {
+        await resDirObj.create(recursive: true);
       }
+
+      for (final oldName in ['Release.7z', 'Release.tar.zst']) {
+        final old = File('$resourcesDir$sep$oldName');
+        if (await old.exists()) {
+          await old.delete();
+          _printColor('已删除旧的 $oldName', _yellow);
+        }
+      }
+
+      await File(archiveOutput).copy(archiveDestination);
+      _printColor('已复制到: $archiveDestination ✓\n', _green);
+
+      // ═══ 第 4 步：Tauri 构建 ═══
+      _printColor('--- (4/4) 构建 Tauri 安装器 ---', _cyan);
+
+      _printColor('正在安装前端与 Tauri 依赖 (pnpm install)...', _cyan);
+      exitCode = await _runCommand('pnpm', [
+        'install',
+      ], workingDirectory: installerRoot);
+      if (exitCode != 0) {
+        throw Exception('pnpm install 失败！ (Exit code: $exitCode)');
+      }
+
+      exitCode = await _runCommand('pnpm', [
+        'tauri',
+        'build',
+      ], workingDirectory: installerRoot);
+      if (exitCode != 0) {
+        throw Exception('Tauri 构建失败！ (Exit code: $exitCode)');
+      }
+      _printColor('Tauri 安装器构建完成 ✓\n', _green);
+    } else {
+      _printColor('已跳过安装器打包阶段，等待签名回灌。', _green);
     }
-
-    await File(archiveOutput).copy(archiveDestination);
-    _printColor('已复制到: $archiveDestination ✓\n', _green);
-
-    // ═══ 第 4 步：Tauri 构建 ═══
-    _printColor('--- (4/4) 构建 Tauri 安装器 ---', _cyan);
-
-    _printColor('正在安装前端与 Tauri 依赖 (pnpm install)...', _cyan);
-    exitCode = await _runCommand('pnpm', [
-      'install',
-    ], workingDirectory: installerRoot);
-    if (exitCode != 0) {
-      throw Exception('pnpm install 失败！ (Exit code: $exitCode)');
-    }
-
-    exitCode = await _runCommand('pnpm', [
-      'tauri',
-      'build',
-    ], workingDirectory: installerRoot);
-    if (exitCode != 0) {
-      throw Exception('Tauri 构建失败！ (Exit code: $exitCode)');
-    }
-    _printColor('Tauri 安装器构建完成 ✓\n', _green);
   } catch (e) {
     if (!isCleaningUp) {
       _printColor('\n构建过程中发生错误: $e', _red);
@@ -453,6 +491,12 @@ Future<void> main() async {
   if (exitCode != 0) exit(exitCode);
 
   _printColor('═══════════════════════════════════════════', _green);
-  _printColor('       全部构建流程完成！', _green);
+  if (buildStage == WindowsBuildStage.prepare) {
+    _printColor('       Windows 第一阶段构建完成！', _green);
+  } else if (buildStage == WindowsBuildStage.package) {
+    _printColor('       Windows 安装器打包完成！', _green);
+  } else {
+    _printColor('       全部构建流程完成！', _green);
+  }
   _printColor('═══════════════════════════════════════════', _green);
 }

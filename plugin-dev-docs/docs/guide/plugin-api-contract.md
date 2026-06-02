@@ -1,187 +1,193 @@
-# 插件 API 契约（按 fnPath）
+# 插件 API 契约
 
-本文档给出 Breeze 插件 `fnPath` 的调用语义、请求结构与返回结构。
+本文给出 Breeze 插件每个 `fnPath` 的 TypeScript 类型定义与调用语义。
 
-## 0. 通用调用规则
+## 0. 通用约定
 
-### 0.1 调用入参
+### 0.1 入参模型
 
-客户端调用时会把参数组装成：
+宿主调用时总是传入一个扁平对象。顶层放业务主参数，透传字段放 `extern`：
 
 ```ts
-const payload = {
-  ...core,
-  extern: extern ?? {}
+// 泛型入参模型
+type PluginPayload<T extends Record<string, unknown>> = T & {
+  extern?: Record<string, unknown>;
 };
 ```
 
-函数签名通常可写为：
+例如 `searchComic` 的实际签名：
 
 ```ts
-async function someFn(payload: {
-  // core 字段
-  comicId?: string;
-  page?: number;
-  // 透传字段
-  extern?: Record<string, unknown>;
-} = {}) {}
+import type { SearchComicPayload } from "../types/type";
+
+async function searchComic(payload: SearchComicPayload): Promise<SearchResultContract> {}
 ```
 
-### 0.2 通用返回 envelope
+所有参数类型定义在示例仓库 `types/type.d.ts` 中，下文每个 `fnPath` 会标注其对应的 Payload 和返回类型。
 
-大部分接口返回结构可统一为：
+### 0.2 返回模型
+
+绝大部分接口返回统一信封结构：
 
 ```ts
 type PluginEnvelope = {
-  source?: string;
-  scheme?: Record<string, unknown>;
-  data?: Record<string, unknown>;
-  extern?: Record<string, unknown>;
-  [key: string]: unknown;
+  source: string;                       // 插件 ID
+  scheme?: Record<string, unknown>;     // 页面渲染协议
+  data?: Record<string, unknown>;       // 业务数据
+  extern?: Record<string, unknown>;     // 透传上下文
+  [key: string]: unknown;               // 其他平铺字段（如 comicId、paging）
 };
 ```
 
-### 0.3 错误与格式
+宿主机型 `scheme` 知道"页面长什么样"，机型 `data` 知道"页面值是多少"。插件只需按类型填充即可。
 
-- 插件返回值必须是可 JSON 解析的对象（非对象会触发“返回格式错误”）
-- 建议始终返回 `source` 字段，便于排障
-- 抛出的错误字符串会直接显示在客户端
+### 0.3 错误处理
 
-### 0.4 `init` 是可选接口
+- 返回值必须是可 JSON 序列化的对象（非对象会触发"返回格式错误"）
+- 抛出的 `Error` 字符串会直接显示在客户端
+- 建议始终返回 `source` 字段，便于排查
 
-- 客户端可能在 runtime 启动后调用 `init`
-- 如果没实现，客户端会跳过
-- 若实现 `init`，建议返回 `{ source, data: { ok: true } }`
+### 0.4 `init`（可选）
 
-## 0.5 fnPath 职责总览
+宿主可能在 runtime 启动后调用 `init`。如未实现则跳过。若实现，建议返回 `{ source, data: { ok: true } }`。
 
-下表用于快速定位每个函数的职责与触发时机。
+注意：热更新时 QJS 实例重建，`init` 会重新调用。不要用 `init` 做一次性初始化。
 
-| fnPath | 做什么 | 典型触发位置 |
-| --- | --- | --- |
-| `getInfo` | 返回插件基本信息和首页功能入口 | 主页加载插件卡片时 |
-| `searchComic` | 按关键词/筛选返回漫画列表 | 用户在搜索页点击搜索 |
-| `getComicDetail` | 返回漫画详情与章节目录 | 用户打开漫画详情页 |
-| `getReadSnapshot` | 返回“漫画+当前章节+页面+章节列表”快照 | 阅读页初始化或切章 |
-| `getChapter` | 返回某一章节的图片列表 | 下载章节内容时 |
-| `fetchImageBytes` | 把图片 URL 转成可下载二进制缓冲 | 阅读/下载图片时 |
-| `getLoginBundle` | 返回登录表单结构 | 进入插件登录页或登录过期 |
-| `loginWithPassword` | 执行账号密码登录并保存会话 | 用户点登录按钮 |
-| `clearPluginSession` | 清理插件登录态/会话数据 | 设置页点击“清理会话” |
-| `getSettingsBundle` | 返回插件设置项结构和值 | 打开插件设置页 |
-| `getCapabilitiesBundle` | 返回设置页“操作按钮”列表 | 打开插件设置页 |
-| `getUserInfoBundle` | 返回用户头像与信息摘要 | 设置页显示用户卡片 |
-| `getFunctionPage` | 返回某个“插件功能页”的页面方案 | 主页功能入口 `openPluginFunction` |
-| `getComicListSceneBundle` | 返回默认漫画列表场景定义 | 列表页按 source 自动加载时 |
-| `getCloudFavoriteSceneBundle` | 返回“云端收藏”列表场景 | 点击云端收藏入口 |
-| `getRankingFilterBundle` 等 filter bundle | 返回列表筛选项与默认值 | 列表页点筛选按钮 |
-| `getAdvancedSearchScheme` | 返回高级搜索选项结构 | 搜索页点高级筛选 |
-| `toggleLike` | 切换点赞状态 | 详情页点点赞 |
-| `toggleFavorite` | 切换收藏状态 | 详情页点收藏 |
-| `listFavoriteFolders` | 返回收藏夹列表 | 收藏后需选择收藏夹时 |
-| `moveFavoriteToFolder` | 把漫画移动到指定收藏夹 | 用户确认收藏夹后 |
-| `getCommentFeed` | 返回评论主列表 | 评论面板首次加载 |
-| `loadCommentReplies` | 分页加载某条评论的回复 | 评论展开回复时 |
-| `postComment` | 发布主评论 | 用户发主评论 |
-| `postCommentReply` | 发布回复评论 | 用户回复某条评论 |
+### 0.5 类型引用
 
-## 1. 必需 API
+所有类型定义在示例仓库 `types/type.d.ts`。下文标注的 Payload 和 Contract 类型均来自该文件。
 
-## `getInfo()`
+---
 
-用途：插件卡片、功能入口。
+## 1. fnPath 职责总览
 
-最小返回：
+下表中 Host 调用的函数是宿主按场景主动触发；回调函数是用户在 UI 上操作后宿主代调。
 
-```json
-{
-  "name": "插件名",
-  "uuid": "插件ID",
-  "describe": "描述",
-  "version": "1.0.0",
-  "updateUrl": "https://api.github.com/repos/<owner>/Breeze-plugin-<name>/releases/latest",
-  "function": []
-}
-```
+| fnPath                    | 触发场景                           |
+| ------------------------- | ---------------------------------- |
+| `getInfo`                 | 发现页加载插件卡片                 |
+| `searchComic`             | 搜索页输入关键词 / 翻页 / 高级搜索 |
+| `getComicDetail`          | 打开漫画详情页                     |
+| `getReadSnapshot`         | 阅读页初始化、切章                 |
+| `getChapter`              | 下载章节内容                       |
+| `fetchImageBytes`         | 阅读/下载时获取图片二进制          |
+| `toggleLike`              | 详情页点点赞                       |
+| `toggleFavorite`          | 详情页点收藏                       |
+| `listFavoriteFolders`     | 收藏后需选择收藏夹                 |
+| `moveFavoriteToFolder`    | 用户确认收藏夹                     |
+| `getCommentFeed`          | 打开评论面板 / 翻页                |
+| `loadCommentReplies`      | 展开评论回复                       |
+| `postComment`             | 发送主评论                         |
+| `postCommentReply`        | 回复某条评论                       |
+| `getAdvancedSearchScheme` | 搜索页打开高级筛选                 |
+| `getComicListSceneBundle` | 发现页按 source 加载默认列表       |
+| `getRankingData`          | 列表页 body 请求                   |
+| `getRankingFilterBundle`  | 列表页点筛选按钮                   |
+| `getSettingsBundle`       | 打开插件设置页                     |
+| `getCapabilitiesBundle`   | 打开设置页（操作区段）             |
+| `getUserInfoBundle`       | 设置页显示用户卡片                 |
 
-`function[]` 项结构：
+以下为回调函数，由插件在 setting / capability 中指定 `fnPath`，用户操作时宿主代调：
+
+| fnPath             | 触发条件               |
+| ------------------ | ---------------------- |
+| `onAuthChanged` 等 | 设置页字段变更         |
+| `clearPluginCache` | 设置页点击能力操作按钮 |
+
+---
+
+## 2. 核心 API
+
+### `getInfo()`
+
+返回插件基本信息与功能入口。
 
 ```ts
+// 返回类型 InfoContract
+type InfoContract = {
+  name: string;
+  uuid: string;
+  iconUrl: string;
+  creator: { name: string; describe: string; coverUrl?: string };
+  describe: string;
+  version: string;
+  home?: string;
+  updateUrl?: string;
+  npmName?: string;
+  function: PluginFunctionItem[];
+};
+
 type PluginFunctionItem = {
   id: string;
   title: string;
-  action: PluginAction;
+  action:
+    | { type: "openSearch"; payload: { source: string; keyword?: string } }
+    | { type: "openComicDetail"; payload: { comicId: string } }
+    | { type: "openWeb"; payload: { title?: string; url: string } }
+    | { type: "openComicList"; payload: { scene: ComicListScene } }
+    | {
+        type: "openPluginFunction";
+        payload: {
+          id: string;
+          title?: string;
+          presentation?: "page" | "dialog";
+        };
+      }
+    | { type: "openCloudFavorite"; payload: { title: string } };
 };
 
-type PluginAction =
-  | {
-      type: "openSearch";
-      payload: {
-        source: string;
-        keyword?: string;
-        url?: string;
-        categories?: string[];
-      };
-    }
-  | {
-      type: "openWeb";
-      payload: { title?: string; url: string };
-    }
-  | {
-      type: "openPluginFunction";
-      payload: {
-        source?: string;
-        id: string;
-        title?: string;
-        presentation?: "page" | "dialog";
-      };
-    }
-  | {
-      type: "openCloudFavorite";
-      payload: { source?: string; title?: string };
-    }
-  | {
-      type: "openComicList";
-      payload: { scene: ComicListScene };
-    };
+type ComicListScene = {
+  title: string;
+  source: string;
+  body: {
+    type: "pluginPagedComicList" | "pluginPagedCreatorList";
+    request: ComicListRequest;
+  };
+  filter?: ComicListRequest;
+};
+
+type ComicListRequest = {
+  fnPath: string; // 列表数据函数名
+  core?: Record<string, unknown>; // 固定请求参数
+  extern?: Record<string, unknown>; // 透传上下文
+};
 ```
 
-`getInfo` 用于插件展示和功能入口，不是阅读主链路的优先接口。
+目前推荐使用 `openComicList` 作为功能入口。示例见 [快速开始](/guide/quick-start)。
 
-## `searchComic(payload)`
-
-请求：
+### `searchComic(payload)`
 
 ```ts
+// 入参 SearchComicPayload
 type SearchComicPayload = {
   keyword?: string;
   page?: number;
   extern?: Record<string, unknown>;
 };
-```
 
-返回最小结构：
+// 返回 SearchResultContract
+type SearchResultContract = {
+  source: string;
+  extern: Record<string, unknown> | null;
+  scheme: {
+    version: "1.0.0";
+    type: "searchResult";
+    source: string;
+    list: string;
+  };
+  data: { paging: PagingInfo; items: ComicListItem[] };
+  paging: PagingInfo;
+  items: ComicListItem[];
+};
 
-```json
-{
-  "source": "plugin-id",
-  "extern": {},
-  "data": {
-    "paging": {
-      "page": 1,
-      "pages": 1,
-      "total": 0,
-      "hasReachedMax": true
-    },
-    "items": []
-  }
-}
-```
+type PagingInfo = {
+  page: number;
+  pages: number;
+  total: number;
+  hasReachedMax: boolean;
+};
 
-`items[]` 单项应可映射为统一漫画卡：
-
-```ts
-type SearchComicItem = {
+type ComicListItem = {
   source: string;
   id: string;
   title: string;
@@ -190,397 +196,511 @@ type SearchComicItem = {
   likesCount: number;
   viewsCount: number;
   updatedAt: string;
-  cover: {
-    id: string;
-    url: string;
-    path: string;
-    extern: Record<string, unknown>;
-  };
-  metadata: Array<{
-    type: string;
-    name: string;
-    value: string[];
-  }>;
+  cover: ImageItem;
+  metadata: MetadataListItem[];
   raw: Record<string, unknown>;
   extern: Record<string, unknown>;
 };
 ```
 
-## `getComicDetail(payload)`
+`extern` 中会包含高级搜索选中的筛选项。
 
-请求：
+### `getComicDetail(payload)`
 
 ```ts
+// 入参 ComicDetailPayload
 type ComicDetailPayload = {
   comicId?: string;
   extern?: Record<string, unknown>;
 };
+
+// 返回 ComicDetailContract
+type ComicDetailContract = {
+  source: string;
+  comicId: string;
+  extern: Record<string, unknown> | null;
+  scheme: { version: "1.0.0"; type: "comicDetail"; source: string };
+  data: { normal: ComicDetailNormal; raw: unknown };
+};
+
+type ComicDetailNormal = {
+  comicInfo: {
+    id: string;
+    title: string;
+    titleMeta: ActionItem[];
+    creator: {
+      id: string;
+      name: string;
+      avatar: ImageItem;
+      onTap: Record<string, unknown>;
+      extern: Record<string, unknown>;
+    };
+    description: string;
+    cover: ImageItem;
+    metadata: MetadataListItem[];
+    extern: Record<string, unknown>;
+  };
+  eps: ChapterSummary[]; // 章节列表
+  recommend: RecommendItem[];
+  totalViews: number;
+  totalLikes: number;
+  totalComments: number;
+  isFavourite: boolean;
+  isLiked: boolean;
+  allowComments: boolean;
+  allowLike: boolean;
+  allowCollected: boolean;
+  allowDownload: boolean;
+  extern: Record<string, unknown>;
+};
+
+// 基础类型
+type ActionItem = {
+  name: string;
+  onTap: Record<string, unknown>;
+  extern: Record<string, unknown>;
+};
+type ImageItem = {
+  id: string;
+  url: string;
+  name: string;
+  path: string;
+  extern: Record<string, unknown>;
+};
 ```
 
-返回最小结构：
+> `url` 必须是非空占位符字符串，不能为 404 地址。宿主不会用它来下载图片，但会校验格式。图片下载完全由 `fetchImageBytes` 自行处理。
 
-```json
-{
-  "source": "plugin-id",
-  "comicId": "comic-id",
-  "extern": {},
-  "data": {
-    "normal": {
-      "comicInfo": {
-        "id": "comic-id",
-        "title": "标题",
-        "titleMeta": [],
-        "creator": {
-          "id": "creator-id",
-          "name": "作者",
-          "avatar": {
-            "id": "creator-id",
-            "url": "",
-            "name": "",
-            "path": "",
-            "extern": {}
-          },
-          "onTap": {},
-          "extern": {}
-        },
-        "description": "",
-        "cover": {
-          "id": "comic-id",
-          "url": "",
-          "name": "",
-          "path": "",
-          "extern": {}
-        },
-        "metadata": [],
-        "extern": {}
-      },
-      "eps": [
-        {
-          "id": "chapter-id",
-          "requestId": "chapter-id",
-          "logicalKey": "chapter-id",
-          "storageChapterId": "chapter-id",
-          "name": "第1话",
-          "order": 1,
-          "extern": {}
-        }
-      ],
-      "recommend": [],
-      "totalViews": 0,
-      "totalLikes": 0,
-      "totalComments": 0,
-      "isFavourite": false,
-      "isLiked": false,
-      "allowComments": false,
-      "allowLike": true,
-      "allowCollected": true,
-      "allowDownload": true,
-      "extern": {}
-    },
-    "raw": {}
-  }
+```ts
+type MetadataListItem = { type: string; name: string; value: ActionItem[] };
+```
+
+### 章节字段说明
+
+章节相关数据统一使用以下字段，会同时出现在 `CommonDetail` 的 `eps[]` 和 `getReadSnapshot` / `getChapter` 的返回中：
+
+```ts
+type ChapterSummary = {
+  id: string;               // 章节自身标识
+  requestId: string;        // 宿主调用 getReadSnapshot / getChapter 时用于请求章节
+  logicalKey: string;       // 宿主内部用于识别章节（大部分时候可与 requestId 相同）
+  storageChapterId: string; // 下载到本地后的目录名（大部分时候可与 requestId 相同）
+  name: string;             // 章节名
+  order: number;            // 章节顺序
+  extern: Record<string, unknown>; // 插件透传数据
+};
+
+type ChapterPage = {
+  id: string;
+  name: string;
+  path: string;
+  url: string;
+  extern: Record<string, unknown>;
+};
+```
+
+### `getReadSnapshot(payload)`
+
+```ts
+// 入参 ReadSnapshotPayload
+type ReadSnapshotPayload = {
+  comicId?: string;
+  chapterId?: string | number;  // 即 requestId
+  extern?: Record<string, unknown>;
+};
+
+// 返回 ReadSnapshotContract
+type ReadSnapshotContract = {
+  source: string;
+  extern: Record<string, unknown> | null;
+  data: {
+    comic: {
+      id: string;
+      source: string;
+      title: string;
+      extern: Record<string, unknown>;
+    };
+    chapter: ChapterWithPages; // 当前章节 + 图片列表
+    chapters: Array<{
+      id: string;
+      name: string;
+      order: number;
+      extern: Record<string, unknown>;
+    }>;
+  };
+};
+
+
+type ChapterWithPages = ChapterSummary & { pages: ChapterPage[] };
+```
+
+`chapters` 是章节导航列表（精简版），`chapter` 是当前选中章节（含 `pages`）。
+
+### `fetchImageBytes(payload)`
+
+```ts
+// 入参 FetchImageBytesPayload
+type FetchImageBytesPayload = {
+  url?: string;
+  timeoutMs?: number;
+  taskGroupKey?: string;  // 下载任务组标识，宿主可通过它批量取消
+  extern?: Record<string, unknown>;
+};
+
+// 返回类型（直接返回 Uint8Array，不再返回 { nativeBufferId }）
+type FetchImageBytesResult = Uint8Array<ArrayBufferLike>;
+```
+
+`url` 来自 `ImageItem.url`，宿主不会用它下载图片，下载逻辑由插件自行实现。但传入的 `url` 必须是有效占位符字符串，不能为空或 404 地址。
+
+```ts
+// 实现建议： 
+async function fetchImageBytes({
+  url,
+  timeoutMs = 30000,
+}: FetchImageBytesPayload): Promise<Uint8Array> {
+  const res = await fetch(url, {
+    headers: { "x-rquickjs-host-offload-binary-v1": "1" },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  return new Uint8Array(await res.arrayBuffer());
 }
 ```
 
-说明：`normal` 建议完整返回，详情页依赖字段较多。
+### `getChapter(payload)`
 
-## 1.0 章节字段说明
-
-章节相关数据统一使用下面这些字段：
-
-- `id`：章节自身标识
-- `requestId`：宿主调用 `getReadSnapshot`、`getChapter` 时用来请求章节
-- `logicalKey`：宿主内部用来识别“这是哪一个章节”
-- `storageChapterId`：下载到本地后，这个章节对应的目录名
-- `name`：章节名
-- `order`：章节顺序
-- `pages`：当前章节的图片列表
-- `extern`：插件自己需要继续透传的补充数据
-
-这些字段会同时出现在：
-
-- `getComicDetail().data.normal.eps[]`
-- `getReadSnapshot().data.chapter`
-- `getReadSnapshot().data.chapters[]`
-- `getChapter().data.chapter`
-
-## `getReadSnapshot(payload)`
-
-请求：
+下载场景使用，结构与 `getReadSnapshot` 类似但携带完整的 `scheme + data + comicId/chapterId`：
 
 ```ts
-type ReadSnapshotPayload = {
+// 入参 ChapterPayload
+type ChapterPayload = {
   comicId?: string;
   chapterId?: string | number;
-  extern?: {
-    order?: number;
-    [k: string]: unknown;
+  page?: number;
+  extern?: Record<string, unknown>;
+};
+
+// 返回 ChapterContentContract
+type ChapterContentContract = {
+  source: string;
+  comicId: string;
+  chapterId: string;
+  extern: Record<string, unknown> | null;
+  scheme: { version: "1.0.0"; type: "chapterContent"; source: string };
+  data: {
+    comic: {
+      id: string;
+      source: string;
+      title: string;
+      extern: Record<string, unknown>;
+    };
+    chapter: ChapterWithPages;
+    chapters: Array<{
+      id: string;
+      name: string;
+      order: number;
+      extern: Record<string, unknown>;
+    }>;
   };
 };
 ```
 
-返回最小结构：
+---
 
-```json
-{
-  "source": "plugin-id",
-  "extern": {},
-  "data": {
-    "comic": {
-      "id": "comic-id",
-      "source": "plugin-id",
-      "title": "标题",
-      "description": "",
-      "cover": { "id": "", "url": "", "path": "", "extern": {} },
-      "creator": { "id": "", "name": "", "avatar": { "url": "", "path": "", "extern": {} }, "extern": {} },
-      "titleMeta": [],
-      "metadata": [],
-      "extern": {}
-    },
-    "chapter": {
-      "id": "chapter-id",
-      "requestId": "chapter-id",
-      "logicalKey": "chapter-id",
-      "storageChapterId": "chapter-id",
-      "name": "第1话",
-      "order": 1,
-      "pages": [
-        {
-          "id": "p1",
-          "name": "001.jpg",
-          "path": "001.jpg",
-          "url": "https://example.com/001.jpg",
-          "extern": {}
-        }
-      ],
-      "extern": {}
-    },
-    "chapters": [
-      {
-        "id": "chapter-id",
-        "requestId": "chapter-id",
-        "logicalKey": "chapter-id",
-        "storageChapterId": "chapter-id",
-        "name": "第1话",
-        "order": 1,
-        "extern": {}
-      }
-    ]
-  }
-}
-```
+## 3. 社交 API
 
-`getReadSnapshot` 是阅读主链路必需接口。
-
-## `fetchImageBytes(payload)`
-
-请求：
+### `toggleLike(payload)`
 
 ```ts
-type FetchImageBytesPayload = {
-  url?: string;
-  timeoutMs?: number;
-};
-```
-
-返回（必需）：
-
-```json
-{ "nativeBufferId": 123 }
-```
-
-标准实现步骤：
-
-1. 按 `url` 下载二进制（`arraybuffer`）
-2. 转 `Uint8Array`
-3. `runtime.native.put(bytes)`
-4. 返回 `nativeBufferId`
-
-## 1.1 下载相关 API
-
-如果插件支持下载，需要实现以下接口。
-
-## `getChapter(payload)`
-
-请求：
-
-```ts
-type ChapterPayload = {
+// 入参 ToggleLikePayload
+type ToggleLikePayload = {
   comicId?: string;
-  chapterId?: string | number;
+  currentLiked?: boolean;
   extern?: Record<string, unknown>;
 };
+
+// 返回 ToggleLikeResult
+type ToggleLikeResult = { liked: boolean };
+
 ```
 
-这里的 `chapterId` 应理解为章节请求标识，通常使用 `requestId`。
-
-返回最小结构：
-
-```json
-{
-  "source": "plugin-id",
-  "comicId": "comic-id",
-  "extern": {},
-  "data": {
-    "chapter": {
-      "id": "chapter-id",
-      "requestId": "chapter-id",
-      "logicalKey": "chapter-id",
-      "storageChapterId": "chapter-id",
-      "name": "第1话",
-      "order": 1,
-      "pages": [
-        {
-          "id": "p1",
-          "name": "001.jpg",
-          "path": "001.jpg",
-          "url": "https://example.com/001.jpg",
-          "extern": {}
-        }
-      ],
-      "extern": {}
-    }
-  }
-}
-```
-
-## 2. 登录与会话 API
-
-## `getLoginBundle()`
-
-客户端要求：
-
-- `scheme.fields` 至少 2 项（第 1 项账号、第 2 项密码）
-- `data.account` / `data.password` 作为默认值
-
-返回示例：
-
-```json
-{
-  "source": "plugin-id",
-  "scheme": {
-    "version": "1.0.0",
-    "type": "login",
-    "title": "账号登录",
-    "fields": [
-      { "key": "account", "kind": "text", "label": "账号" },
-      { "key": "password", "kind": "password", "label": "密码" }
-    ],
-    "action": { "fnPath": "loginWithPassword", "submitText": "登录" }
-  },
-  "data": { "account": "", "password": "" }
-}
-```
-
-## `loginWithPassword(payload)`
-
-请求：`{ account?: string; password?: string; extern?: object }`
-
-返回结构（推荐）：
-
-```json
-{
-  "source": "plugin-id",
-  "data": {
-    "account": "user@example.com",
-    "password": "******",
-    "token": "..."
-  },
-  "raw": {}
-}
-```
-
-说明：客户端当前只校验调用是否成功，不强依赖字段名；建议保留 `data` 与 `raw`。
-
-## `clearPluginSession()`（可选）
-
-返回结构（推荐）：
-
-```json
-{ "ok": true, "message": "插件会话已清理" }
-```
-
-若在 `getCapabilitiesBundle` 暴露该动作，建议实现。
-
-## 3. 设置与用户信息 API
-
-## `getSettingsBundle()`
-
-客户端读取：
-
-- `scheme.sections[].fields[]`
-- `data.values`
-- `data.canShowUserInfo`
-
-类型参考（TS）：
+### `toggleFavorite(payload)`
 
 ```ts
-type SettingsFieldKind =
-  | "text"
-  | "password"
-  | "switch"
-  | "select"
-  | "choice"
-  | "multiChoice";
-
-type BaseSettingsField = {
-  key: string;
-  kind: SettingsFieldKind;
-  label: string;
-  fnPath?: string;
-  persist?: boolean; // 默认 true
+// 入参 ToggleFavoritePayload
+type ToggleFavoritePayload = {
+  comicId?: string;
+  currentFavorite?: boolean;
+  extern?: Record<string, unknown>;
 };
 
-type OptionSettingsField = BaseSettingsField & {
+// 返回 ToggleFavoriteResult
+type ToggleFavoriteResult = {
+  favorited: boolean;
+  nextStep: "none" | "selectFolder";
+};
+
+```
+
+`nextStep` 为 `selectFolder` 时，宿主会继续调用 `listFavoriteFolders` 和 `moveFavoriteToFolder`。
+
+### `listFavoriteFolders()`
+
+```ts
+// 返回 ListFavoriteFoldersResult
+type ListFavoriteFoldersResult = { items: Array<{ id: string; name: string }> };
+```
+
+### `moveFavoriteToFolder(payload)`
+
+```ts
+// 入参 MoveFavoriteToFolderPayload
+type MoveFavoriteToFolderPayload = {
+  comicId?: string;
+  folderId?: string;
+  folderName?: string;
+  extern?: Record<string, unknown>;
+};
+
+// 返回 { ok: boolean }
+```
+
+### 评论流
+
+```ts
+// 入参 CommentFeedPayload
+type CommentFeedPayload = {
+  comicId?: string;
+  page?: number;
+  extern?: Record<string, unknown>;
+};
+
+// 返回 CommentFeedContract
+type CommentFeedContract = {
+  source: string;
+  extern: Record<string, unknown> | null;
+  scheme: { version: "1.0.0"; type: "commentFeed" };
+  data: {
+    topItems: CommentItem[];
+    items: CommentItem[];
+    paging: { hasReachedMax: boolean };
+    replyMode: "lazy" | "embedded"; // lazy: 按需加载回复, embedded: 回复内嵌
+    canComment: { comic: boolean; reply: boolean };
+  };
+};
+
+type CommentItem = {
+  id: string;
+  author: { name: string; avatar: { url: string; path: string } };
+  content: string;
+  createdAt: string;
+  replyCount: number;
+  replies: CommentItem[];
+  extern: Record<string, unknown>;
+};
+
+// 加载回复
+type CommentRepliesPayload = {
+  comicId?: string;
+  commentId?: string;
+  page?: number;
+  extern?: Record<string, unknown>;
+};
+
+type CommentRepliesContract = {
+  source: string;
+  extern: Record<string, unknown> | null;
+  scheme: { version: "1.0.0"; type: "commentReplies" };
+  data: {
+    commentId: string;
+    items: CommentItem[];
+    paging: { hasReachedMax: boolean };
+  };
+};
+
+// 发评论
+type CommentPostPayload = {
+  comicId?: string;
+  content?: string;
+  extern?: Record<string, unknown>;
+};
+
+// 回复评论
+type CommentReplyPayload = {
+  comicId?: string;
+  commentId?: string;
+  content?: string;
+  extern?: Record<string, unknown>;
+};
+
+// 发评/回复的统一返回
+type CommentMutationContract = {
+  source: string;
+  scheme: { version: "1.0.0"; type: "commentMutation" };
+  data: {
+    ok: boolean;
+    mode: "postComment" | "postReply";
+    parentId?: string;
+    created: CommentItem | null;
+    insertHint: {
+      needsRefetch: boolean;
+      strategy?: "prependAfterTop" | "prepend";
+      targetCommentId?: string;
+    };
+  };
+};
+```
+
+- `replyMode: "lazy"` — 回复按需加载，宿主会调 `loadCommentReplies`
+- `replyMode: "embedded"` — 回复直接放在 `replies` 中，不再调 `loadCommentReplies`
+- `insertHint.strategy` — `prependAfterTop` 插到列表顶部（主评论），`prepend` 插为回复
+
+---
+
+## 4. 发现与列表
+
+### `getAdvancedSearchScheme()`
+
+定义搜索页的高级搜索筛选项。用户选中后，筛选值会通过 `extern` 传入 `searchComic`。
+
+```ts
+// 返回 AdvancedSearchContract
+type AdvancedSearchContract = {
+  source: string;
+  scheme: {
+    version: "1.0.0";
+    type: "advancedSearch";
+    title?: string;
+    fields: AdvancedSearchField[];
+  };
+  data: { values: Record<string, unknown> };
+};
+
+type AdvancedSearchField = {
+  key: string;
+  kind: "text" | "switch" | "choice" | "multiChoice";
+  label: string;
+  options?: Array<{ label: string; value: unknown }>;
+};
+```
+
+### `getComicListSceneBundle()`
+
+定义发现页默认列表场景，返回 `data.scene`，宿主据此渲染列表页和调用 `body.request.fnPath` / `filter.fnPath`。
+
+```ts
+// 返回 ComicListSceneBundleContract
+type ComicListSceneBundleContract = {
+  source: string;
+  scheme: { version: "1.0.0"; type: "comicListSceneBundle" };
+  data: { scene: ComicListScene };
+};
+```
+
+`ComicListScene` 类型见 `getInfo` 一节。
+
+### `getRankingData(payload)`
+
+列表数据函数，由 `ComicListScene.body.request.fnPath` 指定。宿主分页请求列表数据时调用。
+
+```ts
+// 入参同 SearchComicPayload（含 paging + extern）
+
+// 返回 ComicPagedListContract
+type ComicPagedListContract = {
+  source: string;
+  extern?: Record<string, unknown> | null;
+  scheme?: Record<string, unknown>;
+  data: { items: ComicListItem[]; hasReachedMax: boolean };
+};
+```
+
+### `getRankingFilterBundle()`
+
+列表筛选函数，由 `ComicListScene.filter.fnPath` 指定。用户点击列表页筛选按钮时调用。
+
+```ts
+// 返回 FilterBundleContract
+type FilterBundleContract = {
+  source: string;
+  scheme: {
+    version: "1.0.0";
+    type?: string;
+    title?: string;
+    fields: FilterField[];
+  };
+  data: { values: Record<string, unknown> };
+};
+
+type FilterField = {
+  key: string;
+  kind: "choice";
+  label: string;
+  options: FilterOption[];
+};
+
+type FilterOption = {
+  label: string;
+  value: unknown;
+  result?: {
+    core?: Record<string, unknown>;   // 合并到列表请求 core
+    extern?: Record<string, unknown>; // 合并到列表请求 extern
+    params?: Record<string, unknown>; // UI 参数
+    [key: string]: unknown;
+  };
+  children?: FilterOption[];
+};
+```
+
+
+
+---
+
+## 5. 设置
+
+### `getSettingsBundle()`
+
+```ts
+// 返回 SettingsBundleContract
+type SettingsBundleContract = {
+  source: string;
+  scheme: { version: "1.0.0"; type: "settings"; sections: SettingsSection[] };
+  data: { canShowUserInfo: boolean; values: Record<string, unknown> };
+};
+
+type SettingsSection = {
+  id?: string;
+  title: string;
+  fields: SettingsField[];
+};
+
+type SettingsField = OptionField | PlainField;
+
+type OptionField = BaseField & {
   kind: "select" | "choice" | "multiChoice";
   options?: Array<{ label: string; value: unknown }>;
 };
 
-type PlainSettingsField = BaseSettingsField & {
-  kind: "text" | "password" | "switch";
-};
+type PlainField = BaseField & { kind: "text" | "password" | "switch" };
 
-type SettingsField = OptionSettingsField | PlainSettingsField;
-
-export type SettingsBundleContract = {
-  source: string;
-  scheme: {
-    version: "1.0.0";
-    type: "settings";
-    sections: Array<{
-      id: string;
-      title: string;
-      fields: SettingsField[];
-    }>;
-  };
-  data: {
-    canShowUserInfo: boolean;
-    values: Record<string, unknown>;
-  };
+type BaseField = {
+  key: string; // 配置键，会出现在 values 和回调 payload 中
+  kind: FieldKind; // "text" | "password" | "switch" | "select" | "choice" | "multiChoice"
+  label: string; // 展示标签
+  fnPath?: string; // 字段变更时回调
+  persist?: boolean; // 是否由客户端持久化，默认 true
 };
 ```
 
-`fnPath` 行为：用户修改该字段时，客户端会调用：
+当用户修改携带 `fnPath` 的字段值时，宿主调用该函数，入参 `{ key: string, value: unknown, allValues: Record<string, unknown> }`。
 
-```json
-{
-  "key": "字段key",
-  "value": "新值"
-}
-```
+### `getCapabilitiesBundle()`
 
-## `getCapabilitiesBundle()`
-
-客户端读取 `scheme.actions[]`，每项至少：
+设置页底部"操作"区段，点击后调用对应 `fnPath`。
 
 ```ts
-type CapabilityAction = {
-  key?: string;
-  title: string;
-  fnPath: string;
-};
-
-export type CapabilitiesBundleContract = {
+// 返回 CapabilitiesBundleContract
+type CapabilitiesBundleContract = {
   source: string;
   scheme: {
     version: "1.0.0";
@@ -589,343 +709,110 @@ export type CapabilitiesBundleContract = {
   };
   data: Record<string, unknown>;
 };
+
+type CapabilityAction = { key?: string; title: string; fnPath: string };
 ```
 
-## `getUserInfoBundle()`
+### `getUserInfoBundle()`
 
-客户端读取 `data`：
+设置页用户信息卡片。
 
 ```ts
-type UserInfoData = {
-  title?: string;
-  avatar?: {
-    id?: string;
-    url?: string;
-    name?: string;
-    path?: string;
-    extern?: { path?: string; [k: string]: unknown };
-  };
-  lines?: string[];
-  extern?: Record<string, unknown>;
-};
-```
-
-其中头像本地路径优先读 `data.avatar.extern.path`。
-
-## 4. 页面与场景 API
-
-## `getFunctionPage(payload)`
-
-用途：
-
-- 该函数用于返回功能页页面定义，而非普通数据列表。
-- 当 `getInfo().function[]` 中配置 `action.type = openPluginFunction` 时，客户端会按 `payload.id` 调用该函数。
-- 返回的 `scheme + data` 会被渲染为独立页面或弹窗。
-
-调用链：
-
-1. `getInfo` 返回功能入口：`{ action: { type: "openPluginFunction", payload: { id: "hotSearch" }}}`
-2. 用户点击入口
-3. 客户端调用 `getFunctionPage({ id: "hotSearch" })`
-4. 客户端按 `scheme.body` 与 `data` 渲染 UI
-
-请求常见：`{ id?: string, extern?: object }`
-
-返回值应为 `scheme + data` 页面方案。
-
-支持的 `scheme.body` 节点类型：
-
-- `list`
-- `chip-list`
-- `action-grid`
-- `comic-section-list`
-- `comic-grid`
-
-函数页示例：
-
-```json
-{
-  "source": "plugin-id",
-  "scheme": {
-    "version": "1.0.0",
-    "type": "page",
-    "title": "导航",
-    "body": {
-      "type": "list",
-      "direction": "vertical",
-      "children": [{ "type": "action-grid", "key": "items" }]
-    }
-  },
-  "data": {
-    "items": [
-      {
-        "title": "排行榜",
-        "cover": { "url": "", "path": "", "extern": {} },
-        "action": {
-          "type": "openComicList",
-          "payload": { "scene": { "title": "排行榜", "source": "plugin-id" } }
-        }
-      }
-    ]
-  }
-}
-```
-
-## `getComicListSceneBundle()`
-
-返回 `data.scene`：
-
-```ts
-type ComicListScene = {
-  title: string;
+// 返回 UserInfoBundleContract
+type UserInfoBundleContract = {
   source: string;
-  body: {
-    type: "pluginPagedComicList" | "pluginPagedCreatorList";
-    request: {
-      fnPath: string;
-      core?: Record<string, unknown>;
-      extern?: Record<string, unknown>;
-    };
-  };
-  filter?: {
-    fnPath: string;
-    core?: Record<string, unknown>;
+  scheme: { version: "1.0.0"; type: "userInfo" };
+  data: {
+    title?: string;
+    avatar: ImageItem;
+    lines: string[];
     extern?: Record<string, unknown>;
   };
 };
 ```
 
-## `getCloudFavoriteSceneBundle()`
+---
 
-结构同上，差异在于默认 scene 指向云端收藏列表函数。
+## 6. 数据流与调用链
 
-## 过滤器 bundle（例如 `getRankingFilterBundle`）
+### 6.1 搜索流程：高级搜索 → `searchComic`
 
-返回结构：
-
-```json
-{
-  "source": "plugin-id",
-  "scheme": {
-    "title": "筛选",
-    "fields": [
-      {
-        "key": "ranking",
-        "kind": "choice",
-        "label": "榜单",
-        "options": [
-          {
-            "label": "日榜",
-            "value": "day",
-            "result": {
-              "core": { "days": "H24", "type": "comic" },
-              "extern": { "source": "ranking" },
-              "params": { "bodyType": "pluginPagedComicList" }
-            }
-          }
-        ]
-      }
-    ]
-  },
-  "data": {
-    "values": { "ranking": "day" }
-  }
-}
+```
+用户打开搜索页 → 宿主调 getAdvancedSearchScheme() → 渲染高级搜索 UI
+用户选择筛选项 → 不立即请求
+用户点搜索 / 翻页 → 宿主调 searchComic({ keyword, page, extern: { sortBy, categories, ... } })
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                                         高级搜索选中的 key-value 放入 extern
 ```
 
-`result` 规则：
+具体来说：
+- `getAdvancedSearchScheme().scheme.fields[].key` 定义了筛选参数名（如 `sortBy`、`categories`）
+- 用户选择后，选中的 key-value 会放入 `searchComic` 的 `extern` 字段
+- 插件在 `searchComic` 中通过 `extern.sortBy` / `extern.categories` 读取筛选值
 
-- `result.core` 会并入列表请求 `core`
-- `result.extern` 会并入列表请求 `extern`
-- `result` 的其他字段用于 UI 参数（如 `params.bodyType`）
+### 6.2 筛选器：filter bundle → 列表请求
 
-## `getAdvancedSearchScheme()`
-
-返回结构：
-
-```json
-{
-  "source": "plugin-id",
-  "scheme": {
-    "fields": [
-      {
-        "key": "sortBy",
-        "kind": "choice",
-        "label": "排序",
-        "options": [
-          { "label": "最新", "value": 1 }
-        ]
-      },
-      {
-        "key": "categories",
-        "kind": "multiChoice",
-        "label": "分类",
-        "options": [
-          { "label": "同人", "value": "同人" }
-        ]
-      }
-    ]
-  },
-  "data": {
-    "values": {
-      "sortBy": 1,
-      "categories": ["同人"]
-    }
-  }
-}
+```
+列表页加载 → 宿主调 body.request.fnPath（如 getRankingData）获取初始数据
+用户点筛选 → 宿主调 filter.fnPath（如 getRankingFilterBundle）获取筛选项
+用户选择筛选项 → 宿主将 option.result 合并到下一次列表请求
 ```
 
-## 5. 收藏 / 点赞 / 评论 API
-
-## `toggleLike(payload)`
-
-请求：`{ comicId?: string; currentLiked?: boolean }`
-
-返回：
-
-```json
-{ "liked": true }
-```
-
-## `toggleFavorite(payload)`
-
-请求：`{ comicId?: string; currentFavorite?: boolean }`
-
-返回：
-
-```json
-{ "favorited": true, "nextStep": "none" }
-```
-
-`nextStep` 常见值：
-
-- `none`
-- `selectFolder`（客户端会继续调 `listFavoriteFolders` 和 `moveFavoriteToFolder`）
-
-## `listFavoriteFolders(payload)`
-
-返回：
-
-```json
-{
-  "items": [
-    { "id": "folder-1", "name": "默认" }
-  ]
-}
-```
-
-## `moveFavoriteToFolder(payload)`
-
-请求：`{ comicId?: string; folderId?: string; folderName?: string }`
-
-返回：
-
-```json
-{ "ok": true }
-```
-
-## `getCommentFeed(payload)`
-
-请求：`{ comicId?: string; page?: number; extern?: object }`
-
-返回最小结构：
-
-```json
-{
-  "source": "plugin-id",
-  "data": {
-    "replyMode": "lazy",
-    "canComment": { "comic": true, "reply": true },
-    "paging": { "page": 1, "hasReachedMax": false },
-    "topItems": [],
-    "items": []
-  }
-}
-```
-
-评论项结构：
+合并规则：
+- `result.core` 中的字段**直接写入**下一次列表请求的顶层
+- `result.extern` 中的字段**合并进**下一次列表请求的 `extern`
 
 ```ts
-type CommentItem = {
-  id: string;
-  author: {
-    name: string;
-    avatar: {
-      url: string;
-      extern?: { path?: string; [k: string]: unknown };
-    };
-  };
-  content: string;
-  createdAt: string;
-  replyCount: number;
-  replies: CommentItem[];
-  extern: Record<string, unknown>;
+// 例如 FilterOption:
+{ label: "日榜", value: "day", result: { core: { type: "comic" }, extern: { rankType: "day" } } }
+
+// 用户选择后，下一次 getRankingData 的入参变为：
+{ page: 1, type: "comic", extern: { source: "ranking", rankType: "day" } }
+//       ^^^^^^^^^^^^                                    ^^^^^^^^^^^^^^^^
+//       result.core 平铺                                result.extern 合并
+```
+
+### 6.3 设置字段回调
+
+设置字段可携带 `fnPath`。用户修改字段值时，宿主调用该 `fnPath`，入参为：
+
+```ts
+type SettingsFieldCallbackPayload = {
+  key: string;           // 字段 key，如 "auth.account"
+  value: unknown;        // 新值
+  allValues: Record<string, unknown>;  // 所有字段当前值
 };
 ```
 
-`replyMode` 说明：
+示例仓库中的对应回调：
+- 文本/密码变更 → `onAuthChanged`、`onRememberChanged`
+- 开关变更 → `onAdultChanged`
+- choice 变更 → `onThemeChanged`、`onQualityChanged`
+- multiChoice 变更 → `onHiddenTagsChanged`
 
-- `embedded`：回复放在 `replies`，客户端不再调 `loadCommentReplies`
-- `lazy`：客户端会按需调 `loadCommentReplies`
+插件可在回调中做校验、保存到配置等操作。
 
-## `loadCommentReplies(payload)`
+### 6.4 能力操作回调
 
-请求：`{ commentId?: string; page?: number; extern?: { commentId?: string } }`
+`getCapabilitiesBundle().scheme.actions[]` 中每项的 `fnPath` 在用户点击时被宿主调用，无入参。
 
-返回：
+### 6.5 功能入口调用链
 
-```json
-{
-  "source": "plugin-id",
-  "data": {
-    "commentId": "comment-1",
-    "paging": { "page": 1, "hasReachedMax": false },
-    "items": []
-  }
-}
+`getInfo().function[]` 定义了插件卡片上的功能入口按钮。以 `openComicList` 为例：
+
+```
+用户点"排行榜"按钮
+  → 宿主读取对应 action.payload.scene
+  → 渲染列表页（标题、筛选按钮等）
+  → 调用 scene.body.request.fnPath（如 getRankingData）获取列表数据
+  → 用户点筛选 → 调用 scene.filter.fnPath（如 getRankingFilterBundle）
 ```
 
-## `postComment(payload)` / `postCommentReply(payload)`
+`scene.body.request.core` 和 `scene.body.request.extern` 作为固定参数传入每次列表请求，与筛选器动态参数合并。
 
-请求：
+### 6.6 实践建议
 
-- 发主评论：`{ comicId?: string; content?: string }`
-- 发回复：`{ commentId?: string; content?: string; extern?: { commentId?: string } }`
-
-返回结构（推荐）：
-
-```json
-{
-  "source": "plugin-id",
-  "scheme": { "version": "1.0.0", "type": "commentMutation" },
-  "data": {
-    "ok": true,
-    "mode": "postComment",
-    "parentId": "comment-1",
-    "created": {},
-    "insertHint": {
-      "strategy": "prependAfterTop",
-      "targetCommentId": "comment-1",
-      "needsRefetch": false
-    }
-  }
-}
-```
-
-`insertHint.strategy` 常见值：
-
-- `prependAfterTop`
-- `prepend`
-
-## 6. fnPath 速查（客户端会直接调用）
-
-- 基础：`init` `getInfo`
-- 阅读主链路：`searchComic` `getComicDetail` `getReadSnapshot` `fetchImageBytes`
-- 下载：`getChapter`
-- 登录：`getLoginBundle` `loginWithPassword`
-- 设置：`getSettingsBundle` `getCapabilitiesBundle` `getUserInfoBundle`
-- 页面：`getFunctionPage`
-- 列表场景：`getComicListSceneBundle` `getCloudFavoriteSceneBundle`
-- 搜索扩展：`getAdvancedSearchScheme`
-- 收藏点赞：`toggleFavorite` `toggleLike` `listFavoriteFolders` `moveFavoriteToFolder`
-- 评论：`getCommentFeed` `loadCommentReplies` `postComment` `postCommentReply`
+- **`core` 和 `extern` 各司其职**：业务参数（分页、类型、排序等）放 `core`，会话/上下文透传放 `extern`。能放进 `core` 的不要混进 `extern`。
+- **筛选器 `options.value` 保持稳定**：一旦确定不要随版本改变语义，否则用户已保存的筛选值会失效。
+- **`data.values` 一定给默认值**：避免空选项导致请求参数缺失，宿主不会补默认值。
+- **对外提供的 `fnPath` 键名保持兼容**：如需要重命名，建议 `snake_case` + `camelCase` 同时导出。

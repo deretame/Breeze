@@ -1,0 +1,17 @@
+插件有名字要求吗？
+有的，请以Breeze-plugin-开头，例如Breeze-plugin-example。
+本体内的插件列表会搜索所有github上以Breeze-plugin-开头的仓库。
+如果使用其他的名字开头将不会收集到插件列表中去。
+插件一定要开源吗？
+不一定。
+一定要发布到github上吗？
+建议发布到github上，至少把mainfest.json发布到github上，软件内部的插件列表会基于mainfest.json获取插件信息，可以更简单的使用户获取到插件的信息并及时更新插件。
+一定要发布到npm上吗？
+不一定。
+但是推荐发布到npm上，这样用户可以通过jsdelivr来加速下载。
+插件如何发布？
+可以在github上发布，也可以在npm上发布。
+在github上发布需要保证tag和插件mainfest.json中的version保持一致。
+为什么我已经发布了插件，但是还是无法在插件列表中看到？
+请检查插件的mainfest.json是否正确，以及插件是否已经发布到github上。
+插件收集有延迟，如果插件已经发布到github上，但是还是无法在插件列表中看到，请耐心等待。

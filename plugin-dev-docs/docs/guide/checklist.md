@@ -17,7 +17,6 @@
 
 ## 业务流程
 
-- [ ] 登录流程（`getLoginBundle/loginWithPassword`）可用
 - [ ] 收藏/点赞流程（`toggleFavorite/toggleLike`）可用
 - [ ] 评论流（若实现）支持分页和回复
 - [ ] 过滤器（若实现）能正确下发 `core/extern`
@@ -26,12 +25,13 @@
 
 - [ ] 网络请求统一超时与错误转换
 - [ ] 登录过期返回 unauthorized 结构化错误
-- [ ] `fetchImageBytes` 支持二进制回传
+- [ ] `fetchImageBytes` 直接返回 `Uint8Array`，请求携带 `x-rquickjs-host-offload-binary-v1: 1`
+- [ ] 所有 `ImageItem.url` 填写有效占位符字符串，不为空或 404
 - [ ] 调试模式与发布模式都跑通过
 
 ## 发布
 
 - [ ] bundle 与插件 UUID 对齐
-- [ ] 版本号已更新
+- [ ] 已更新 `src/get-info.ts` 中 `buildPluginInfo()` 的 `version` 字段，再执行 `pnpm build`
 - [ ] 至少完成一次真实设备完整回归（首页 -> 搜索 -> 详情 -> 阅读）
 - [ ] 变更记录已写清楚（新增能力、行为变化、已知限制）

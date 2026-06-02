@@ -9,6 +9,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: "快速开始", link: "/guide/quick-start" },
+      { text: "运行时 API", link: "/guide/runtime-api" },
       { text: "API 契约", link: "/guide/plugin-api-contract" },
       { text: "调试与发布", link: "/guide/debug-and-release" }
     ],
@@ -18,15 +19,14 @@ export default defineConfig({
         items: [
           { text: "文档首页", link: "/" },
           { text: "快速开始", link: "/guide/quick-start" },
+          { text: "运行时 API", link: "/guide/runtime-api" },
           { text: "生命周期与结构", link: "/guide/runtime-and-structure" }
         ]
       },
       {
         text: "接口协议",
         items: [
-          { text: "插件 API 契约", link: "/guide/plugin-api-contract" },
-          { text: "API 响应样例", link: "/guide/api-examples" },
-          { text: "Scheme 设计", link: "/guide/scheme-design" }
+          { text: "插件 API 契约", link: "/guide/plugin-api-contract" }
         ]
       },
       {

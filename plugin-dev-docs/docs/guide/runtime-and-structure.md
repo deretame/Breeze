@@ -44,19 +44,17 @@ type PluginEnvelope = {
 - `source`：插件 ID
 - `scheme`：页面渲染协议（可选）
 - `data`：业务数据
-- `extern`：透传上下文
+- `extern`：透传上下文。宿主会把返回的 `extern` 存下来，下次请求时原样传回
 
-## 4) Runtime 封装
+## 4) 运行时 API
 
-运行时能力、类型定义和工具封装，直接参考示例仓库：
+Breeze 插件运行在 **QuickJS-NG** 引擎中，不是 Node.js 也不是浏览器环境。
 
-- `types/runtime-api.ts`
-- `types/runtime-globals.d.ts`
-- `src/tools.ts`
+可用的全局 API（`fetch`、`bridge`、`crypto`、`console` 等）详见 [运行时 API](/guide/runtime-api)。
 
-新插件建议直接沿用示例仓库里的封装方式，不在文档里重复维护另一套说明。
+## 5) 调试与状态
 
-调试模式下，如果 `cjs` 文件发生变更，宿主会重建 QJS 实例。
+调试模式下，如果 bundle 文件发生变更，宿主会重建 QJS 实例。
 
 这意味着：
 
@@ -65,27 +63,45 @@ type PluginEnvelope = {
 
 如果需要存储数据，建议按生命周期拆分：
 
-- 短期数据放 `cache`
-- 长期数据放 `config`
-
-其中 `cache` 的生命周期跟随软件进程存在，适合运行期缓存；`config` 适合需要跨重启保留的数据。
-
-## 5) 未登录错误（推荐）
-
-当接口依赖登录态时，建议抛出结构化 unauthorized 错误，便于客户端直接进入登录流程：
-
-```json
-{
-  "type": "unauthorized",
-  "source": "your-plugin-id",
-  "message": "登录过期，请重新登录",
-  "scheme": { "title": "登录", "fields": [] },
-  "data": {}
-}
-```
+- 短期数据放 `cache`（随进程存在）
+- 长期数据放 `config`（跨重启保留）
 
 ## 6) 兼容性
 
 - API 新增时优先保持向后兼容
 - 对可选字段做默认值兜底
-- 对旧命名保留别名函数（例如 `snake_case` + `camelCase` 同时导出）
+
+## 7) 常见陷阱
+
+### QJS 实例重建
+
+调试模式下每次 bundle 变更都重建 QJS 实例。这意味着：
+- 顶层模块代码（除了 `export default`）每次都会重新执行
+- `init` 也会重新调用
+- 不要依赖模块级变量保存状态
+
+### `getInfo` 变更需要重装
+
+`getInfo()` 返回的 `function` 入口列表在插件加载时读取一次。修改后需要：
+- 重启软件，或
+- 卸载后重新安装插件
+
+热更新不会触发 `getInfo` 重新读取。
+
+### 单文件 bundle
+
+构建产物是单文件 `.cjs`，所有依赖必须通过 Rspack 打包进去。**不能有运行时 npm 外部依赖。**
+
+### `bridge.callSync` 限制
+
+同步调用会阻塞宿主线程，仅适合极短操作。**不要在 `bridge.callSync` 中执行网络请求或文件读写。**
+
+### `extern` 闭环
+
+插件返回的 `extern` 会被宿主存储，下次请求同一上下文时会原样传回。利用这个机制可以在 `extern` 中携带分页 token、会话状态等上下文数据。
+
+### `ImageItem.url` 规则
+
+`ImageItem` 有 `url` 字段，且 `fetchImageBytes` 会收到这个 `url`，但**宿主本身不会用 `url` 来下载图片**——图片下载完全由插件在 `fetchImageBytes` 中自行处理。
+
+不过这并不意味着 `url` 可以乱填。**不能为 404 地址，也不能是空字符串**，必须是一个有效格式的占位符字符串（如 `"https://example.com/placeholder.jpg"`），否则宿主会拒绝渲染。

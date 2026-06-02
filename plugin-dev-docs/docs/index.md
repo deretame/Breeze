@@ -17,13 +17,15 @@
 ## 文档内容
 
 - 基于示例仓库直接开工
-- 必需 API 与可选 API 的输入输出示例
-- 设置页/登录页/列表页的 `scheme + data` 协议
+- 运行时 API 参考（`fetch`、`bridge`、`crypto` 等）
+- 所有 fnPath 的 TypeScript 类型定义与调用语义
+- Scheme + data 页面协议说明
 - 本地联调、调试模式、打包发布流程
 - 交付前检查清单
 
 ## 前置假设
 
+- 插件运行在 QuickJS-NG 引擎中（不是 Node.js，不是浏览器）
 - 使用 TypeScript 开发插件
 - 使用 Node.js 22+
 - 使用 pnpm 10+（推荐 11+）
@@ -39,9 +41,8 @@
 ## 推荐阅读顺序
 
 1. [快速开始](/guide/quick-start)
-2. [生命周期与结构](/guide/runtime-and-structure)
-3. [插件 API 契约](/guide/plugin-api-contract)
-4. [API 响应样例](/guide/api-examples)
-5. [Scheme 设计](/guide/scheme-design)
-6. [调试与发布](/guide/debug-and-release)
-7. [交付检查清单](/guide/checklist)
+2. [运行时 API](/guide/runtime-api)
+3. [生命周期与结构](/guide/runtime-and-structure)
+4. [插件 API 契约](/guide/plugin-api-contract)
+5. [调试与发布](/guide/debug-and-release)
+6. [交付检查清单](/guide/checklist)

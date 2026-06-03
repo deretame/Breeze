@@ -7,8 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/plugin_settings/method/plugin_settings_web_login.dart';
 import 'package:zephyr/page/plugin_settings/cubit/plugin_settings_cubit.dart';
+import 'package:zephyr/page/plugin_settings/method/plugin_settings_web_login.dart';
 import 'package:zephyr/page/plugin_settings/widgets/plugin_settings_content.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/event/event.dart';
@@ -583,7 +583,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       context.read<PluginSettingsCubit>().saveFieldValue(key, value);
     }
     if (showToast) {
-      showSuccessToast('已保存');
+      // showSuccessToast('已保存');
     }
   }
 }

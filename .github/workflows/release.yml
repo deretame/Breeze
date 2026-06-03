@@ -645,104 +645,32 @@ jobs:
           fi
 
           RELEASE_URL="https://github.com/${REPO}/releases/tag/${VERSION}"
-          BODY="$(head -n 60 release_body.md)"
-          CAPTION="$(cat <<EOF
-          🚀 ${REPO} 发布新版本
+          BODY="$(awk 'BEGIN{p=1} /^---$/ {exit} {print}' release_body.md)"
+          TEXT="🚀 ${REPO} 发布新版本
           版本: ${VERSION}
           链接: ${RELEASE_URL}
 
-          ${BODY}
-          EOF
-          )"
-          CAPTION="$(printf '%s' "$CAPTION" | head -c 900)"
+          ${BODY}"
+
+          curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true"
 
           mapfile -t files < <(find release-assets -type f \( -name "*.apk" -o -name "*.flatpak" -o -name "*.exe" -o -name "*.dmg" -o -name "*.ipa" \) | sort)
 
           if [ "${#files[@]}" -eq 0 ]; then
-            echo "未找到附件，发送纯文本消息。"
-            curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-              --data-urlencode "chat_id=${CHAT_ID}" \
-              --data-urlencode "text=${CAPTION}" \
-              --data-urlencode "disable_web_page_preview=true"
+            echo "未找到可发送附件，跳过。"
             exit 0
           fi
 
-          if [ "${#files[@]}" -eq 1 ]; then
-            file="${files[0]}"
+          for file in "${files[@]}"; do
             name="$(basename "$file")"
-            echo "Uploading single document ${name}"
+            echo "Uploading ${name} to Telegram"
             curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
               -F "chat_id=${CHAT_ID}" \
-              -F "caption=${CAPTION}" \
+              -F "caption=${name}" \
               -F "document=@${file}"
-            exit 0
-          fi
-
-          build_media_json() {
-            local start="$1"
-            local end="$2"
-            local include_caption="$3"
-            local filter='['
-            local comma=''
-            local local_index=0
-            local args=()
-
-            for ((i=start; i<end; i++)); do
-              args+=(--arg "media_${local_index}" "attach://file${local_index}")
-              if [ "$include_caption" = "1" ] && [ "$local_index" -eq 0 ]; then
-                args+=(--arg caption "$CAPTION")
-                filter+="${comma}{\"type\":\"document\",\"media\":\$media_${local_index},\"caption\":\$caption}"
-              else
-                filter+="${comma}{\"type\":\"document\",\"media\":\$media_${local_index}}"
-              fi
-              comma=','
-              local_index=$((local_index + 1))
-            done
-
-            filter+=']'
-            jq -nc "${args[@]}" "$filter"
-          }
-
-          batch_size=10
-          first_batch=1
-          total="${#files[@]}"
-
-          for ((start=0; start<total; start+=batch_size)); do
-            end=$((start + batch_size))
-            if [ "$end" -gt "$total" ]; then
-              end="$total"
-            fi
-
-            if [ $((end - start)) -eq 1 ]; then
-              file="${files[$start]}"
-              name="$(basename "$file")"
-              echo "Uploading trailing single document ${name}"
-              if [ "$first_batch" -eq 1 ]; then
-                curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
-                  -F "chat_id=${CHAT_ID}" \
-                  -F "caption=${CAPTION}" \
-                  -F "document=@${file}"
-                first_batch=0
-              else
-                curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
-                  -F "chat_id=${CHAT_ID}" \
-                  -F "document=@${file}"
-              fi
-              continue
-            fi
-
-            media_json="$(build_media_json "$start" "$end" "$first_batch")"
-            curl_args=(-sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup" -F "chat_id=${CHAT_ID}" -F "media=${media_json}")
-
-            local_index=0
-            for ((i=start; i<end; i++)); do
-              curl_args+=(-F "file${local_index}=@${files[$i]}")
-              local_index=$((local_index + 1))
-            done
-
-            echo "Uploading media group with $((end - start)) documents"
-            curl "${curl_args[@]}"
-            first_batch=0
           done
 
   # ══════════════════════════════════════════

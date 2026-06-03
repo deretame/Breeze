@@ -45,6 +45,8 @@ class _NavigationBarState extends State<NavigationBar> {
   final debouncer = Debouncer(milliseconds: 100);
   DateTime? _lastLoginNavigateAt;
   String? _lastLoginPluginId;
+  DateTime? _lastToastShownAt;
+  (ToastType, String?, String, Duration)? _lastToastEvent;
   late HideOnScrollSettings hideOnScrollSettings;
 
   static bool _notificationsInitialized = false; // ← 使用静态变量，跨实例共享
@@ -404,6 +406,21 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   void _showToast(ToastEvent event) {
+    final now = DateTime.now();
+    final toastEvent = (
+      event.type,
+      event.title,
+      event.message,
+      event.duration,
+    );
+    if (_lastToastEvent == toastEvent &&
+        _lastToastShownAt != null &&
+        now.difference(_lastToastShownAt!) < const Duration(seconds: 2)) {
+      return;
+    }
+    _lastToastEvent = toastEvent;
+    _lastToastShownAt = now;
+
     ToastificationType type;
     switch (event.type) {
       case ToastType.success:

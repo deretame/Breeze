@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 3.0.14+2202
+version: 3.0.15+2203
 
 environment:
   sdk: ^3.9.2
@@ -58,7 +58,7 @@ dependencies:
   # 数据模型与本地存储
   objectbox: ^5.0.0 # 存储: 本地对象数据库
   objectbox_flutter_libs: ^5.0.0 # 存储: ObjectBox 原生库
-  json_annotation: ^4.9.0 # 模型: JSON 注解
+  json_annotation: ^4.12.0 # 模型: JSON 注解
   freezed_annotation: ^3.0.0 # 模型: Freezed 注解
   file_selector: ^1.1.0 # 文件: 文件选择器
   shared_preferences: ^2.5.4 # 文件: 键值对存储器
@@ -123,7 +123,7 @@ dev_dependencies:
   auto_route_generator: ^10.0.0 # 生成: 路由代码生成
   objectbox_generator: ^5.0.0 # 生成: ObjectBox 模型生成
   freezed: ^3.0.0 # 生成: Freezed 代码生成
-  json_serializable: ^6.8.0 # 生成: JSON 序列化生成
+  json_serializable: ^6.14.0 # 生成: JSON 序列化生成
 
   # 构建与发布辅助
   sentry_dart_plugin: ^3.2.1 # 发布: Sentry 构建上传

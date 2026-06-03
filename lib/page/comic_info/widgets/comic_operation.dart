@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
@@ -33,6 +35,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   ComicInfo get comicInfoView => normalInfo.comicInfo;
   bool isCollected = false;
   bool isLiked = false;
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>?
+  _favoriteSnackBarController;
+  Timer? _favoriteSnackBarAutoHideTimer;
 
   @override
   void initState() {
@@ -157,7 +162,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       if (next) {
         _showFavoriteSavedSnackbar(uniqueKey);
       } else {
-        showSuccessToast('已取消本地收藏');
+        // showSuccessToast('已取消本地收藏');
       }
     } catch (error) {
       if (!mounted) {
@@ -203,8 +208,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   void _showFavoriteSavedSnackbar(String uniqueKey) {
     final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
+    _favoriteSnackBarAutoHideTimer?.cancel();
+    _favoriteSnackBarController?.close();
+    final controller = messenger.showSnackBar(
       SnackBar(
         content: const Text('已添加至全部（长按收藏可直接修改文件夹）'),
         duration: const Duration(seconds: 3),
@@ -214,10 +220,19 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         ),
       ),
     );
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      messenger.hideCurrentSnackBar();
+    _favoriteSnackBarController = controller;
+    controller.closed.whenComplete(() {
+      if (_favoriteSnackBarController != controller) {
+        return;
+      }
+      _favoriteSnackBarController = null;
+      _favoriteSnackBarAutoHideTimer?.cancel();
+      _favoriteSnackBarAutoHideTimer = null;
     });
+    _favoriteSnackBarAutoHideTimer = Timer(
+      const Duration(seconds: 2),
+      controller.close,
+    );
   }
 
   Future<void> _showManageFolderDialog({required String uniqueKey}) async {
@@ -362,6 +377,13 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         duration: const Duration(seconds: 5),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _favoriteSnackBarAutoHideTimer?.cancel();
+    _favoriteSnackBarController?.close();
+    super.dispose();
   }
 }
 

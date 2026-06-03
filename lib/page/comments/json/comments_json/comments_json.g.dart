@@ -17,7 +17,7 @@ Map<String, dynamic> _$CommentsJsonToJson(_CommentsJson instance) =>
     <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
-      'data': instance.data,
+      'data': instance.data.toJson(),
     };
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
@@ -28,8 +28,8 @@ _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
-  'comments': instance.comments,
-  'topComments': instance.topComments,
+  'comments': instance.comments.toJson(),
+  'topComments': instance.topComments.map((e) => e.toJson()).toList(),
 };
 
 _Comments _$CommentsFromJson(Map<String, dynamic> json) => _Comments(
@@ -43,7 +43,7 @@ _Comments _$CommentsFromJson(Map<String, dynamic> json) => _Comments(
 );
 
 Map<String, dynamic> _$CommentsToJson(_Comments instance) => <String, dynamic>{
-  'docs': instance.docs,
+  'docs': instance.docs.map((e) => e.toJson()).toList(),
   'total': instance.total,
   'limit': instance.limit,
   'page': instance.page,
@@ -68,7 +68,7 @@ _Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
 Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
   '_id': instance.id,
   'content': instance.content,
-  '_user': instance.user,
+  '_user': instance.user.toJson(),
   '_comic': instance.comic,
   'totalComments': instance.totalComments,
   'isTop': instance.isTop,
@@ -109,7 +109,7 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
   'level': instance.level,
   'characters': instance.characters,
   'role': instance.role,
-  'avatar': instance.avatar,
+  'avatar': instance.avatar?.toJson(),
   'slogan': instance.slogan,
   'character': instance.character,
 };
@@ -144,7 +144,7 @@ Map<String, dynamic> _$TopCommentToJson(_TopComment instance) =>
     <String, dynamic>{
       '_id': instance.id,
       'content': instance.content,
-      '_user': instance.user,
+      '_user': instance.user.toJson(),
       '_comic': instance.comic,
       'isTop': instance.isTop,
       'hide': instance.hide,

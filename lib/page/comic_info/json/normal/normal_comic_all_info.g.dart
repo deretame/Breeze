@@ -29,9 +29,9 @@ _NormalComicAllInfo _$NormalComicAllInfoFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
     <String, dynamic>{
-      'comicInfo': instance.comicInfo,
-      'eps': instance.eps,
-      'recommend': instance.recommend,
+      'comicInfo': instance.comicInfo.toJson(),
+      'eps': instance.eps.map((e) => e.toJson()).toList(),
+      'recommend': instance.recommend.map((e) => e.toJson()).toList(),
       'totalViews': instance.totalViews,
       'totalLikes': instance.totalLikes,
       'totalComments': instance.totalComments,
@@ -72,7 +72,7 @@ Map<String, dynamic> _$ComicInfoMetadataToJson(_ComicInfoMetadata instance) =>
     <String, dynamic>{
       'type': instance.type,
       'name': instance.name,
-      'value': instance.value,
+      'value': instance.value.map((e) => e.toJson()).toList(),
     };
 
 _ComicImage _$ComicImageFromJson(Map<String, dynamic> json) => _ComicImage(
@@ -103,7 +103,7 @@ _Creator _$CreatorFromJson(Map<String, dynamic> json) => _Creator(
 Map<String, dynamic> _$CreatorToJson(_Creator instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'avatar': instance.avatar,
+  'avatar': instance.avatar.toJson(),
   'onTap': instance.onTap,
   'extern': instance.extern,
 };
@@ -127,11 +127,11 @@ Map<String, dynamic> _$ComicInfoToJson(_ComicInfo instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
-      'titleMeta': instance.titleMeta,
-      'creator': instance.creator,
+      'titleMeta': instance.titleMeta.map((e) => e.toJson()).toList(),
+      'creator': instance.creator.toJson(),
       'description': instance.description,
-      'cover': instance.cover,
-      'metadata': instance.metadata,
+      'cover': instance.cover.toJson(),
+      'metadata': instance.metadata.map((e) => e.toJson()).toList(),
       'extern': instance.extern,
     };
 
@@ -159,7 +159,14 @@ _Recommend _$RecommendFromJson(Map<String, dynamic> json) => _Recommend(
   source: json['source'] as String,
   id: json['id'] as String,
   title: json['title'] as String,
+  subtitle: json['subtitle'] as String? ?? '',
+  finished: json['finished'] as bool? ?? false,
+  likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
+  viewsCount: (json['viewsCount'] as num?)?.toInt() ?? 0,
+  updatedAt: json['updatedAt'] ?? '',
   cover: ComicImage.fromJson(json['cover'] as Map<String, dynamic>),
+  metadata: json['metadata'] as List<dynamic>? ?? const [],
+  raw: json['raw'] as Map<String, dynamic>? ?? const {},
   extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -168,6 +175,13 @@ Map<String, dynamic> _$RecommendToJson(_Recommend instance) =>
       'source': instance.source,
       'id': instance.id,
       'title': instance.title,
-      'cover': instance.cover,
+      'subtitle': instance.subtitle,
+      'finished': instance.finished,
+      'likesCount': instance.likesCount,
+      'viewsCount': instance.viewsCount,
+      'updatedAt': instance.updatedAt,
+      'cover': instance.cover.toJson(),
+      'metadata': instance.metadata,
+      'raw': instance.raw,
       'extern': instance.extern,
     };

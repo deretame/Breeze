@@ -138,7 +138,14 @@ abstract class Recommend with _$Recommend {
     @JsonKey(name: 'source') required String source,
     @JsonKey(name: 'id') required String id,
     @JsonKey(name: 'title') required String title,
+    @JsonKey(name: 'subtitle') @Default('') String subtitle,
+    @JsonKey(name: 'finished') @Default(false) bool finished,
+    @JsonKey(name: 'likesCount') @Default(0) int likesCount,
+    @JsonKey(name: 'viewsCount') @Default(0) int viewsCount,
+    @JsonKey(name: 'updatedAt') @Default('') updatedAt,
     @JsonKey(name: 'cover') required ComicImage cover,
+    @JsonKey(name: 'metadata') @Default([]) List<dynamic> metadata,
+    @JsonKey(name: 'raw') @Default({}) Map<String, dynamic> raw,
     @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Recommend;
 

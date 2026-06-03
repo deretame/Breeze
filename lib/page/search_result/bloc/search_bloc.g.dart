@@ -19,7 +19,7 @@ _SearchEvent _$SearchEventFromJson(Map<String, dynamic> json) => _SearchEvent(
 Map<String, dynamic> _$SearchEventToJson(_SearchEvent instance) =>
     <String, dynamic>{
       'status': _$SearchStatusEnumMap[instance.status]!,
-      'searchStates': instance.searchStates,
+      'searchStates': instance.searchStates.toJson(),
       'page': instance.page,
     };
 
@@ -50,8 +50,8 @@ _SearchState _$SearchStateFromJson(Map<String, dynamic> json) => _SearchState(
 Map<String, dynamic> _$SearchStateToJson(_SearchState instance) =>
     <String, dynamic>{
       'status': _$SearchStatusEnumMap[instance.status]!,
-      'comics': instance.comics,
+      'comics': instance.comics.map((e) => e.toJson()).toList(),
       'hasReachedMax': instance.hasReachedMax,
       'result': instance.result,
-      'searchEvent': instance.searchEvent,
+      'searchEvent': instance.searchEvent.toJson(),
     };

@@ -22,8 +22,8 @@ Map<String, dynamic> _$CommonEpInfoJsonToJson(_CommonEpInfoJson instance) =>
     <String, dynamic>{
       'epId': instance.epId,
       'epName': instance.epName,
-      'series': instance.series,
-      'docs': instance.docs,
+      'series': instance.series.map((e) => e.toJson()).toList(),
+      'docs': instance.docs.map((e) => e.toJson()).toList(),
     };
 
 _Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(

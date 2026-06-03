@@ -584,9 +584,9 @@ Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
       'bikaSettingData': instance.bikaSettingData,
       'jmSettingData': instance.jmSettingData,
       'jmJwt': instance.jmJwt,
-      'globalSetting': instance.globalSetting,
-      'bikaSetting': instance.bikaSetting,
-      'jmSetting': instance.jmSetting,
+      'globalSetting': instance.globalSetting.toJson(),
+      'bikaSetting': instance.bikaSetting.toJson(),
+      'jmSetting': instance.jmSetting.toJson(),
     };
 
 DownloadTask _$DownloadTaskFromJson(Map<String, dynamic> json) => DownloadTask()
@@ -610,7 +610,7 @@ Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
       'isDownloading': instance.isDownloading,
       'status': instance.status,
       'dbTaskInfoStr': instance.dbTaskInfoStr,
-      'taskInfo': instance.taskInfo,
+      'taskInfo': instance.taskInfo?.toJson(),
     };
 
 DownloadFolder _$DownloadFolderFromJson(Map<String, dynamic> json) =>

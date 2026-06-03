@@ -1,5 +1,5 @@
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class UnifiedComicListItem {
   const UnifiedComicListItem({
@@ -31,9 +31,6 @@ class UnifiedComicListItem {
   final Map<String, dynamic> extern;
 
   factory UnifiedComicListItem.fromJson(Map<String, dynamic> json) {
-    if (json['cover'] is! Map || json['metadata'] is! List) {
-      throw const FormatException('Invalid UnifiedComicListItem payload');
-    }
     return UnifiedComicListItem(
       source: json['source']?.toString() ?? '',
       id: json['id']?.toString() ?? '',

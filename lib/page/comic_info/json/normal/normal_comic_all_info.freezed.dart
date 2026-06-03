@@ -2117,7 +2117,7 @@ as Map<String, dynamic>,
 /// @nodoc
 mixin _$Recommend {
 
-@JsonKey(name: 'source') String get source;@JsonKey(name: 'id') String get id;@JsonKey(name: 'title') String get title;@JsonKey(name: 'cover') ComicImage get cover;@JsonKey(name: 'extern') Map<String, dynamic> get extern;
+@JsonKey(name: 'source') String get source;@JsonKey(name: 'id') String get id;@JsonKey(name: 'title') String get title;@JsonKey(name: 'subtitle') String get subtitle;@JsonKey(name: 'finished') bool get finished;@JsonKey(name: 'likesCount') int get likesCount;@JsonKey(name: 'viewsCount') int get viewsCount;@JsonKey(name: 'updatedAt') dynamic get updatedAt;@JsonKey(name: 'cover') ComicImage get cover;@JsonKey(name: 'metadata') List<dynamic> get metadata;@JsonKey(name: 'raw') Map<String, dynamic> get raw;@JsonKey(name: 'extern') Map<String, dynamic> get extern;
 /// Create a copy of Recommend
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2130,16 +2130,16 @@ $RecommendCopyWith<Recommend> get copyWith => _$RecommendCopyWithImpl<Recommend>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.extern, extern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&const DeepCollectionEquality().equals(other.updatedAt, updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.raw, raw)&&const DeepCollectionEquality().equals(other.extern, extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,source,id,title,cover,const DeepCollectionEquality().hash(extern));
+int get hashCode => Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,const DeepCollectionEquality().hash(updatedAt),cover,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(raw),const DeepCollectionEquality().hash(extern));
 
 @override
 String toString() {
-  return 'Recommend(source: $source, id: $id, title: $title, cover: $cover, extern: $extern)';
+  return 'Recommend(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
 }
 
 
@@ -2150,7 +2150,7 @@ abstract mixin class $RecommendCopyWith<$Res>  {
   factory $RecommendCopyWith(Recommend value, $Res Function(Recommend) _then) = _$RecommendCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'source') String source,@JsonKey(name: 'id') String id,@JsonKey(name: 'title') String title,@JsonKey(name: 'cover') ComicImage cover,@JsonKey(name: 'extern') Map<String, dynamic> extern
+@JsonKey(name: 'source') String source,@JsonKey(name: 'id') String id,@JsonKey(name: 'title') String title,@JsonKey(name: 'subtitle') String subtitle,@JsonKey(name: 'finished') bool finished,@JsonKey(name: 'likesCount') int likesCount,@JsonKey(name: 'viewsCount') int viewsCount,@JsonKey(name: 'updatedAt') dynamic updatedAt,@JsonKey(name: 'cover') ComicImage cover,@JsonKey(name: 'metadata') List<dynamic> metadata,@JsonKey(name: 'raw') Map<String, dynamic> raw,@JsonKey(name: 'extern') Map<String, dynamic> extern
 });
 
 
@@ -2167,13 +2167,20 @@ class _$RecommendCopyWithImpl<$Res>
 
 /// Create a copy of Recommend
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? source = null,Object? id = null,Object? title = null,Object? cover = null,Object? extern = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? source = null,Object? id = null,Object? title = null,Object? subtitle = null,Object? finished = null,Object? likesCount = null,Object? viewsCount = null,Object? updatedAt = freezed,Object? cover = null,Object? metadata = null,Object? raw = null,Object? extern = null,}) {
   return _then(_self.copyWith(
 source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,cover: null == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
-as ComicImage,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
+as String,subtitle: null == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
+as String,finished: null == finished ? _self.finished : finished // ignore: cast_nullable_to_non_nullable
+as bool,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as int,viewsCount: null == viewsCount ? _self.viewsCount : viewsCount // ignore: cast_nullable_to_non_nullable
+as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as dynamic,cover: null == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
+as ComicImage,metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,raw: null == raw ? _self.raw : raw // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }
@@ -2268,10 +2275,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'source')  String source, @JsonKey(name: 'id')  String id, @JsonKey(name: 'title')  String title, @JsonKey(name: 'cover')  ComicImage cover, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'source')  String source, @JsonKey(name: 'id')  String id, @JsonKey(name: 'title')  String title, @JsonKey(name: 'subtitle')  String subtitle, @JsonKey(name: 'finished')  bool finished, @JsonKey(name: 'likesCount')  int likesCount, @JsonKey(name: 'viewsCount')  int viewsCount, @JsonKey(name: 'updatedAt')  dynamic updatedAt, @JsonKey(name: 'cover')  ComicImage cover, @JsonKey(name: 'metadata')  List<dynamic> metadata, @JsonKey(name: 'raw')  Map<String, dynamic> raw, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Recommend() when $default != null:
-return $default(_that.source,_that.id,_that.title,_that.cover,_that.extern);case _:
+return $default(_that.source,_that.id,_that.title,_that.subtitle,_that.finished,_that.likesCount,_that.viewsCount,_that.updatedAt,_that.cover,_that.metadata,_that.raw,_that.extern);case _:
   return orElse();
 
 }
@@ -2289,10 +2296,10 @@ return $default(_that.source,_that.id,_that.title,_that.cover,_that.extern);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'source')  String source, @JsonKey(name: 'id')  String id, @JsonKey(name: 'title')  String title, @JsonKey(name: 'cover')  ComicImage cover, @JsonKey(name: 'extern')  Map<String, dynamic> extern)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'source')  String source, @JsonKey(name: 'id')  String id, @JsonKey(name: 'title')  String title, @JsonKey(name: 'subtitle')  String subtitle, @JsonKey(name: 'finished')  bool finished, @JsonKey(name: 'likesCount')  int likesCount, @JsonKey(name: 'viewsCount')  int viewsCount, @JsonKey(name: 'updatedAt')  dynamic updatedAt, @JsonKey(name: 'cover')  ComicImage cover, @JsonKey(name: 'metadata')  List<dynamic> metadata, @JsonKey(name: 'raw')  Map<String, dynamic> raw, @JsonKey(name: 'extern')  Map<String, dynamic> extern)  $default,) {final _that = this;
 switch (_that) {
 case _Recommend():
-return $default(_that.source,_that.id,_that.title,_that.cover,_that.extern);case _:
+return $default(_that.source,_that.id,_that.title,_that.subtitle,_that.finished,_that.likesCount,_that.viewsCount,_that.updatedAt,_that.cover,_that.metadata,_that.raw,_that.extern);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2309,10 +2316,10 @@ return $default(_that.source,_that.id,_that.title,_that.cover,_that.extern);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'source')  String source, @JsonKey(name: 'id')  String id, @JsonKey(name: 'title')  String title, @JsonKey(name: 'cover')  ComicImage cover, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'source')  String source, @JsonKey(name: 'id')  String id, @JsonKey(name: 'title')  String title, @JsonKey(name: 'subtitle')  String subtitle, @JsonKey(name: 'finished')  bool finished, @JsonKey(name: 'likesCount')  int likesCount, @JsonKey(name: 'viewsCount')  int viewsCount, @JsonKey(name: 'updatedAt')  dynamic updatedAt, @JsonKey(name: 'cover')  ComicImage cover, @JsonKey(name: 'metadata')  List<dynamic> metadata, @JsonKey(name: 'raw')  Map<String, dynamic> raw, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,) {final _that = this;
 switch (_that) {
 case _Recommend() when $default != null:
-return $default(_that.source,_that.id,_that.title,_that.cover,_that.extern);case _:
+return $default(_that.source,_that.id,_that.title,_that.subtitle,_that.finished,_that.likesCount,_that.viewsCount,_that.updatedAt,_that.cover,_that.metadata,_that.raw,_that.extern);case _:
   return null;
 
 }
@@ -2324,13 +2331,32 @@ return $default(_that.source,_that.id,_that.title,_that.cover,_that.extern);case
 @JsonSerializable()
 
 class _Recommend implements Recommend {
-  const _Recommend({@JsonKey(name: 'source') required this.source, @JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _extern = extern;
+  const _Recommend({@JsonKey(name: 'source') required this.source, @JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'subtitle') this.subtitle = '', @JsonKey(name: 'finished') this.finished = false, @JsonKey(name: 'likesCount') this.likesCount = 0, @JsonKey(name: 'viewsCount') this.viewsCount = 0, @JsonKey(name: 'updatedAt') this.updatedAt = '', @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata') final  List<dynamic> metadata = const [], @JsonKey(name: 'raw') final  Map<String, dynamic> raw = const {}, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _metadata = metadata,_raw = raw,_extern = extern;
   factory _Recommend.fromJson(Map<String, dynamic> json) => _$RecommendFromJson(json);
 
 @override@JsonKey(name: 'source') final  String source;
 @override@JsonKey(name: 'id') final  String id;
 @override@JsonKey(name: 'title') final  String title;
+@override@JsonKey(name: 'subtitle') final  String subtitle;
+@override@JsonKey(name: 'finished') final  bool finished;
+@override@JsonKey(name: 'likesCount') final  int likesCount;
+@override@JsonKey(name: 'viewsCount') final  int viewsCount;
+@override@JsonKey(name: 'updatedAt') final  dynamic updatedAt;
 @override@JsonKey(name: 'cover') final  ComicImage cover;
+ final  List<dynamic> _metadata;
+@override@JsonKey(name: 'metadata') List<dynamic> get metadata {
+  if (_metadata is EqualUnmodifiableListView) return _metadata;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_metadata);
+}
+
+ final  Map<String, dynamic> _raw;
+@override@JsonKey(name: 'raw') Map<String, dynamic> get raw {
+  if (_raw is EqualUnmodifiableMapView) return _raw;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_raw);
+}
+
  final  Map<String, dynamic> _extern;
 @override@JsonKey(name: 'extern') Map<String, dynamic> get extern {
   if (_extern is EqualUnmodifiableMapView) return _extern;
@@ -2352,16 +2378,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other._extern, _extern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&const DeepCollectionEquality().equals(other.updatedAt, updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._raw, _raw)&&const DeepCollectionEquality().equals(other._extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,source,id,title,cover,const DeepCollectionEquality().hash(_extern));
+int get hashCode => Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,const DeepCollectionEquality().hash(updatedAt),cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_raw),const DeepCollectionEquality().hash(_extern));
 
 @override
 String toString() {
-  return 'Recommend(source: $source, id: $id, title: $title, cover: $cover, extern: $extern)';
+  return 'Recommend(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
 }
 
 
@@ -2372,7 +2398,7 @@ abstract mixin class _$RecommendCopyWith<$Res> implements $RecommendCopyWith<$Re
   factory _$RecommendCopyWith(_Recommend value, $Res Function(_Recommend) _then) = __$RecommendCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'source') String source,@JsonKey(name: 'id') String id,@JsonKey(name: 'title') String title,@JsonKey(name: 'cover') ComicImage cover,@JsonKey(name: 'extern') Map<String, dynamic> extern
+@JsonKey(name: 'source') String source,@JsonKey(name: 'id') String id,@JsonKey(name: 'title') String title,@JsonKey(name: 'subtitle') String subtitle,@JsonKey(name: 'finished') bool finished,@JsonKey(name: 'likesCount') int likesCount,@JsonKey(name: 'viewsCount') int viewsCount,@JsonKey(name: 'updatedAt') dynamic updatedAt,@JsonKey(name: 'cover') ComicImage cover,@JsonKey(name: 'metadata') List<dynamic> metadata,@JsonKey(name: 'raw') Map<String, dynamic> raw,@JsonKey(name: 'extern') Map<String, dynamic> extern
 });
 
 
@@ -2389,13 +2415,20 @@ class __$RecommendCopyWithImpl<$Res>
 
 /// Create a copy of Recommend
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? source = null,Object? id = null,Object? title = null,Object? cover = null,Object? extern = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? source = null,Object? id = null,Object? title = null,Object? subtitle = null,Object? finished = null,Object? likesCount = null,Object? viewsCount = null,Object? updatedAt = freezed,Object? cover = null,Object? metadata = null,Object? raw = null,Object? extern = null,}) {
   return _then(_Recommend(
 source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,cover: null == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
-as ComicImage,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
+as String,subtitle: null == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
+as String,finished: null == finished ? _self.finished : finished // ignore: cast_nullable_to_non_nullable
+as bool,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as int,viewsCount: null == viewsCount ? _self.viewsCount : viewsCount // ignore: cast_nullable_to_non_nullable
+as int,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as dynamic,cover: null == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
+as ComicImage,metadata: null == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,raw: null == raw ? _self._raw : raw // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }

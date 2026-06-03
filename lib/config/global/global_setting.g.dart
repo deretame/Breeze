@@ -74,7 +74,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'themeInitState': instance.themeInitState,
       'locale': const LocaleConverter().toJson(instance.locale),
       'welcomePageNum': instance.welcomePageNum,
-      'syncSetting': instance.syncSetting,
+      'syncSetting': instance.syncSetting.toJson(),
       'maskedKeywords': instance.maskedKeywords,
       'socks5Proxy': instance.socks5Proxy,
       'needCleanCache': instance.needCleanCache,
@@ -90,11 +90,11 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'windowHeight': instance.windowHeight,
       'windowX': instance.windowX,
       'windowY': instance.windowY,
-      'readSetting': instance.readSetting,
+      'readSetting': instance.readSetting.toJson(),
       'customExportPath': instance.customExportPath,
-      'appLockSetting': instance.appLockSetting,
+      'appLockSetting': instance.appLockSetting.toJson(),
       'compatibleVersion': instance.compatibleVersion,
-      'cacheSetting': instance.cacheSetting,
+      'cacheSetting': instance.cacheSetting.toJson(),
     };
 
 const _$ThemeModeEnumMap = {
@@ -194,8 +194,8 @@ _SyncSettingState _$SyncSettingStateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SyncSettingStateToJson(_SyncSettingState instance) =>
     <String, dynamic>{
       'syncServiceType': _$SyncServiceTypeEnumMap[instance.syncServiceType]!,
-      'webdavSetting': instance.webdavSetting,
-      's3Setting': instance.s3Setting,
+      'webdavSetting': instance.webdavSetting.toJson(),
+      's3Setting': instance.s3Setting.toJson(),
       'syncSettings': instance.syncSettings,
       'syncPlugins': instance.syncPlugins,
       'autoSync': instance.autoSync,

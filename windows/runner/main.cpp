@@ -7,11 +7,15 @@
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t* command_line, _In_ int show_command) {
-  HWND hwnd =
-      ::FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"single_instance_example");
+  HWND hwnd = ::FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", L"zephyr");
   if (hwnd != NULL) {
-    ::ShowWindow(hwnd, SW_NORMAL);
+    if (::IsIconic(hwnd)) {
+      ::ShowWindow(hwnd, SW_RESTORE);
+    } else {
+      ::ShowWindow(hwnd, SW_SHOW);
+    }
     ::SetForegroundWindow(hwnd);
+    ::BringWindowToTop(hwnd);
     return EXIT_FAILURE;
   }
   // Attach to console when present (e.g., 'flutter run') or create a

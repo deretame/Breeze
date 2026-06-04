@@ -31,6 +31,10 @@ class ObjectBox {
   late final Box<PluginConfig> _pluginConfigBox;
   late final Box<PluginInfo> _pluginInfoBox;
 
+  void close() {
+    store.close();
+  }
+
   ObjectBox._create(this.store) {
     _bikaComicHistoryBox = store.box<BikaComicHistory>();
     _bikaComicDownloadBox = store.box<BikaComicDownload>();

@@ -318,7 +318,17 @@ jobs:
   # 4. macOS 构建
   # ══════════════════════════════════════════
   build-macos:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+            rust_target: aarch64-apple-darwin
+          - arch: x64
+            runner: macos-15-intel
+            rust_target: x86_64-apple-darwin
+    runs-on: ${{ matrix.runner }}
     env:
       CARGO_HOME: ${{ github.workspace }}/.cargo
       RUSTUP_HOME: ${{ github.workspace }}/.rustup
@@ -352,7 +362,7 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin, x86_64-apple-darwin
+          targets: ${{ matrix.rust_target }}
 
       - name: 校验并修复 rustup
         shell: bash
@@ -406,71 +416,47 @@ jobs:
         run: |
           export PATH="$CARGO_HOME/bin:$PATH"
           rustup toolchain list
-          rm -rf dist/macos
+          rm -rf build/macos dist/macos
           mkdir -p dist/macos
+          fvm flutter build macos --release --split-debug-info="build/symbols/macos-${{ matrix.arch }}"
 
-          for ARCH in arm64 x64; do
-            case "$ARCH" in
-              arm64)
-                TARGET_PLATFORM="darwin-arm64"
-                ;;
-              x64)
-                TARGET_PLATFORM="darwin-x64"
-                ;;
-              *)
-                echo "Unsupported arch: $ARCH"
-                exit 1
-                ;;
-            esac
+          APP_PATH=$(find build/macos/Build/Products/Release -maxdepth 1 -name "*.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Failed to find built .app for ${{ matrix.arch }}"
+            exit 1
+          fi
 
-            rm -rf build/macos
-            fvm flutter build macos --release \
-              --target-platform="$TARGET_PLATFORM" \
-              --split-debug-info="build/symbols/macos-$ARCH"
-
-            APP_PATH=$(find build/macos/Build/Products/Release -maxdepth 1 -name "*.app" | head -n 1)
-            if [ -z "$APP_PATH" ]; then
-              echo "Failed to find built .app for $ARCH"
-              exit 1
-            fi
-
-            APP_NAME=$(basename "$APP_PATH")
-            mkdir -p "dist/macos/$ARCH"
-            cp -R "$APP_PATH" "dist/macos/$ARCH/$APP_NAME"
-          done
+          APP_NAME=$(basename "$APP_PATH")
+          cp -R "$APP_PATH" "dist/macos/$APP_NAME"
 
       - name: 制作 DMG
         run: |
-          for ARCH in arm64 x64; do
-            APP_PATH=$(find "dist/macos/$ARCH" -maxdepth 1 -name "*.app" | head -n 1)
-            if [ -z "$APP_PATH" ]; then
-              echo "Failed to find staged .app for $ARCH"
-              exit 1
-            fi
+          APP_PATH=$(find dist/macos -maxdepth 1 -name "*.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Failed to find staged .app for ${{ matrix.arch }}"
+            exit 1
+          fi
 
-            APP_NAME=$(basename "$APP_PATH")
-            DMG_NAME="Breeze-macOS-$ARCH.dmg"
+          APP_NAME=$(basename "$APP_PATH")
+          DMG_NAME="Breeze-macOS-${{ matrix.arch }}.dmg"
 
-            rm -f "$DMG_NAME"
-            create-dmg \
-              --volname "Breeze Installer" \
-              --window-pos 200 120 \
-              --window-size 600 400 \
-              --icon-size 100 \
-              --icon "$APP_NAME" 150 190 \
-              --hide-extension "$APP_NAME" \
-              --app-drop-link 450 190 \
-              "$DMG_NAME" \
-              "$APP_PATH"
-          done
+          rm -f "$DMG_NAME"
+          create-dmg \
+            --volname "Breeze Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "$APP_NAME" 150 190 \
+            --hide-extension "$APP_NAME" \
+            --app-drop-link 450 190 \
+            "$DMG_NAME" \
+            "$APP_PATH"
 
       - name: 上传 macOS DMG
         uses: actions/upload-artifact@v6
         with:
-          name: macos-dmg
-          path: |
-            Breeze-macOS-arm64.dmg
-            Breeze-macOS-x64.dmg
+          name: macos-dmg-${{ matrix.arch }}
+          path: Breeze-macOS-${{ matrix.arch }}.dmg
 
   # ══════════════════════════════════════════
   # 5. iOS 构建 (免签)

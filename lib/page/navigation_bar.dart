@@ -407,12 +407,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
   void _showToast(ToastEvent event) {
     final now = DateTime.now();
-    final toastEvent = (
-      event.type,
-      event.title,
-      event.message,
-      event.duration,
-    );
+    final toastEvent = (event.type, event.title, event.message, event.duration);
     if (_lastToastEvent == toastEvent &&
         _lastToastShownAt != null &&
         now.difference(_lastToastShownAt!) < const Duration(seconds: 2)) {

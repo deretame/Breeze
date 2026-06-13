@@ -10,6 +10,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
@@ -36,12 +37,21 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
   int? _cacheSizeBytes;
   bool _cacheCalculating = false;
+  DesktopCloseBehavior _desktopCloseBehavior = DesktopCloseBehavior.ask;
 
   @override
   void initState() {
     super.initState();
     _loadImpellerConfig();
     _loadCacheSize();
+    _loadDesktopCloseBehavior();
+  }
+
+  Future<void> _loadDesktopCloseBehavior() async {
+    if (!isDesktop) return;
+    final value = await WindowLogic.loadCloseBehavior();
+    if (!mounted) return;
+    setState(() => _desktopCloseBehavior = value);
   }
 
   Future<void> _loadImpellerConfig() async {
@@ -197,6 +207,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '应用行为', Icons.settings_outlined),
               _splashPage(state, globalSettingCubit),
+              if (isDesktop) _desktopCloseBehaviorTile(),
               _appLockSetting(state, globalSettingCubit),
               _oldPageRollback(state, globalSettingCubit),
 
@@ -525,6 +536,38 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         );
         showSuccessToast("设置成功，重启生效");
       },
+    );
+  }
+
+  Widget _desktopCloseBehaviorTile() {
+    return ListTile(
+      leading: const Icon(Icons.close_fullscreen_outlined),
+      title: const Text('关闭按钮行为'),
+      subtitle: const Text('设置点击窗口关闭按钮时的默认动作'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<DesktopCloseBehavior>(
+          value: _desktopCloseBehavior,
+          icon: const Icon(Icons.expand_more),
+          onChanged: (DesktopCloseBehavior? value) async {
+            if (value == null || value == _desktopCloseBehavior) {
+              return;
+            }
+            await WindowLogic.saveCloseBehavior(value);
+            if (!mounted) return;
+            setState(() => _desktopCloseBehavior = value);
+            showSuccessToast('设置成功');
+          },
+          items: DesktopCloseBehavior.values
+              .map(
+                (value) => DropdownMenuItem<DesktopCloseBehavior>(
+                  value: value,
+                  child: Text(value.label),
+                ),
+              )
+              .toList(),
+          style: TextStyle(color: context.textColor, fontSize: 15),
+        ),
+      ),
     );
   }
 

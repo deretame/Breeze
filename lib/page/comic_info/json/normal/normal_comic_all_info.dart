@@ -11,20 +11,6 @@ NormalComicAllInfo normalComicAllInfoFromJson(String str) =>
 String normalComicAllInfoToJson(NormalComicAllInfo data) =>
     json.encode(data.toJson());
 
-Map<String, dynamic> _normalizeExternWithExtension(Map<String, dynamic> json) {
-  final next = Map<String, dynamic>.from(json);
-  final extern = next['extern'];
-  if (extern is Map && extern.isNotEmpty) {
-    next['extern'] = Map<String, dynamic>.from(extern);
-    return next;
-  }
-  final extension = next['extension'];
-  if (extension is Map && extension.isNotEmpty) {
-    next['extern'] = Map<String, dynamic>.from(extension);
-  }
-  return next;
-}
-
 @freezed
 abstract class NormalComicAllInfo with _$NormalComicAllInfo {
   const factory NormalComicAllInfo({
@@ -44,7 +30,7 @@ abstract class NormalComicAllInfo with _$NormalComicAllInfo {
   }) = _NormalComicAllInfo;
 
   factory NormalComicAllInfo.fromJson(Map<String, dynamic> json) =>
-      _$NormalComicAllInfoFromJson(_normalizeExternWithExtension(json));
+      _$NormalComicAllInfoFromJson(json);
 }
 
 @freezed
@@ -56,7 +42,7 @@ abstract class ComicInfoActionItem with _$ComicInfoActionItem {
   }) = _ComicInfoActionItem;
 
   factory ComicInfoActionItem.fromJson(Map<String, dynamic> json) =>
-      _$ComicInfoActionItemFromJson(_normalizeExternWithExtension(json));
+      _$ComicInfoActionItemFromJson(json);
 }
 
 @freezed
@@ -82,7 +68,7 @@ abstract class ComicImage with _$ComicImage {
   }) = _ComicImage;
 
   factory ComicImage.fromJson(Map<String, dynamic> json) =>
-      _$ComicImageFromJson(_normalizeExternWithExtension(json));
+      _$ComicImageFromJson(json);
 }
 
 @freezed
@@ -96,7 +82,7 @@ abstract class Creator with _$Creator {
   }) = _Creator;
 
   factory Creator.fromJson(Map<String, dynamic> json) =>
-      _$CreatorFromJson(_normalizeExternWithExtension(json));
+      _$CreatorFromJson(json);
 }
 
 @freezed
@@ -113,7 +99,7 @@ abstract class ComicInfo with _$ComicInfo {
   }) = _ComicInfo;
 
   factory ComicInfo.fromJson(Map<String, dynamic> json) =>
-      _$ComicInfoFromJson(_normalizeExternWithExtension(json));
+      _$ComicInfoFromJson(json);
 }
 
 @freezed
@@ -129,7 +115,7 @@ abstract class Ep with _$Ep {
   }) = _Ep;
 
   factory Ep.fromJson(Map<String, dynamic> json) =>
-      _$EpFromJson(_normalizeExternWithExtension(json));
+      _$EpFromJson(json);
 }
 
 @freezed
@@ -150,5 +136,5 @@ abstract class Recommend with _$Recommend {
   }) = _Recommend;
 
   factory Recommend.fromJson(Map<String, dynamic> json) =>
-      _$RecommendFromJson(_normalizeExternWithExtension(json));
+      _$RecommendFromJson(json);
 }

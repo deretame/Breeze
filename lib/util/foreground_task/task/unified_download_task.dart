@@ -479,7 +479,7 @@ String _resolveImageDisplayName(UnifiedPluginChapterDoc doc) {
 
 Map<String, dynamic> _normalizeStoredImageMap(Map<String, dynamic> image) {
   final map = Map<String, dynamic>.from(image);
-  final ext = _readExternFirst(map);
+  final ext = Map<String, dynamic>.from(map['extern'] as Map? ?? const {});
   final topLevelRawPath = map['path']?.toString() ?? '';
   final extRawPath = ext['path']?.toString() ?? '';
 
@@ -524,16 +524,6 @@ void _markTaskCompleted(String comicId) {
   if (tasks.isNotEmpty) {
     objectbox.downloadTaskBox.putMany(tasks);
   }
-}
-
-Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
-  final extern = map['extern'] as Map?;
-  if (extern != null && extern.isNotEmpty) {
-    return Map<String, dynamic>.from(extern);
-  }
-  return Map<String, dynamic>.from(
-    map['extension'] as Map? ?? const <String, dynamic>{},
-  );
 }
 
 UnifiedComicDownloadChapter? _findMatchingChapter(

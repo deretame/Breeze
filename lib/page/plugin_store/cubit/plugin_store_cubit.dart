@@ -76,8 +76,16 @@ class PluginStoreState {
 class PluginStoreCubit extends Cubit<PluginStoreState> {
   PluginStoreCubit() : super(const PluginStoreState());
 
+  void safeEmit(PluginStoreState state) {
+    try {
+      emit(state);
+    } catch (e, stackTrace) {
+      logger.w('safeEmit error', error: e, stackTrace: stackTrace);
+    }
+  }
+
   Future<void> loadCloudPlugins() async {
-    emit(state.copyWith(cloudLoading: true, cloudError: ''));
+    safeEmit(state.copyWith(cloudLoading: true, cloudError: ''));
 
     try {
       final payload = await _fetchCloudPluginListWithCdnFallback();
@@ -87,7 +95,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
           .where((item) => item.manifest.uuid.trim().isNotEmpty)
           .toList();
 
-      emit(
+      safeEmit(
         state.copyWith(
           cloudPlugins: entries,
           cloudLoading: false,
@@ -96,7 +104,9 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       );
     } catch (e, stackTrace) {
       logger.w('拉取云端插件列表失败', error: e, stackTrace: stackTrace);
-      emit(state.copyWith(cloudLoading: false, cloudError: '云端组件列表加载失败: $e'));
+      safeEmit(
+        state.copyWith(cloudLoading: false, cloudError: '云端组件列表加载失败: $e'),
+      );
     }
   }
 
@@ -235,16 +245,16 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   }
 
   void _beginInstall(String message) {
-    emit(state.copyWith(installing: true, installMessage: message));
+    safeEmit(state.copyWith(installing: true, installMessage: message));
   }
 
   void _reportInstallFailure(String message) {
-    emit(state.copyWith(installing: false, installMessage: ''));
+    safeEmit(state.copyWith(installing: false, installMessage: ''));
     showErrorToast(message);
   }
 
   void _reportInstallSuccess(String message) {
-    emit(state.copyWith(installing: false, installMessage: ''));
+    safeEmit(state.copyWith(installing: false, installMessage: ''));
     showSuccessToast(message);
   }
 

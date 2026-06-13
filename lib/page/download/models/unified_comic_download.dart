@@ -124,7 +124,7 @@ class UnifiedComicDownloadChapter {
                 UnifiedComicDownloadImage.fromMap(Map<String, dynamic>.from(e)),
           )
           .toList(),
-      extern: _readExternFirst(map),
+      extern: Map<String, dynamic>.from(map['extern'] as Map? ?? const {}),
     );
   }
 
@@ -275,7 +275,7 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
     }
 
     final detail = Map<String, dynamic>.from(decoded);
-    final extension = _readExternFirst(detail);
+    final extension = Map<String, dynamic>.from(detail['extern'] as Map? ?? const {});
     final rawDownloadChapters =
         (extension['downloadChapters'] as List?) ?? const [];
 
@@ -292,12 +292,4 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
   }
 }
 
-Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
-  final extern = map['extern'] as Map?;
-  if (extern != null && extern.isNotEmpty) {
-    return Map<String, dynamic>.from(extern);
-  }
-  return Map<String, dynamic>.from(
-    map['extension'] as Map? ?? const <String, dynamic>{},
-  );
-}
+

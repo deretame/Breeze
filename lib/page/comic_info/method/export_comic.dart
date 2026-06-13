@@ -151,15 +151,8 @@ Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
   final detail = Map<String, dynamic>.from(
     jsonDecode(download.detailJson) as Map<String, dynamic>,
   );
-  final extern = _readExternFirst(detail);
+  final extern = Map<String, dynamic>.from(detail['extern'] as Map? ?? const {});
   extern['version'] = mainVersion;
-  // TODO(导入导出兼容):
-  // 1. 当前导出主写 extern（不再主写 extension）。
-  // 2. 后续实现“导入漫画”时，需要同时兼容读取 extern 与 extension：
-  //    - 先读取 extern；
-  //    - 若 extern 为空，再回退读取 extension；
-  //    - 读取后统一归一到 extern 再参与后续流程。
-  // 3. 导入完成后，建议把历史 extension 数据迁移为 extern，并保留一次性兜底回退，避免老包导入失败。
   detail['extern'] = extern;
   return detail;
 }
@@ -185,7 +178,7 @@ Future<String?> _tryDownloadCover(
   required String from,
 }) async {
   final cover = _decodeMap(download.cover);
-  final ext = _readExternFirst(cover);
+  final ext = Map<String, dynamic>.from(cover['extern'] as Map? ?? const {});
   final url = cover['url']?.toString() ?? '';
   final path = ext['path']?.toString() ?? '$comicId.jpg';
   if (url.isEmpty && path.isEmpty) {
@@ -398,7 +391,7 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
       return const <UnifiedComicDownloadStoredChapter>[];
     }
     final detail = Map<String, dynamic>.from(decoded);
-    final extern = _readExternFirst(detail);
+    final extern = Map<String, dynamic>.from(detail['extern'] as Map? ?? const {});
     final rawDownloadChapters =
         (extern['downloadChapters'] as List?) ?? const <dynamic>[];
     return rawDownloadChapters
@@ -440,7 +433,7 @@ Map<String, dynamic> _buildProcessedDetail(
     processed['eps'] = updatedEps;
   }
 
-  final extern = _readExternFirst(processed);
+  final extern = Map<String, dynamic>.from(processed['extern'] as Map? ?? const {});
   final rawDownloadChapters =
       ((extern['downloadChapters'] as List?) ?? const [])
           .whereType<Map>()
@@ -571,16 +564,6 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
   } catch (_) {
     return const <Map<String, dynamic>>[];
   }
-}
-
-Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
-  final extern = map['extern'] as Map?;
-  if (extern != null && extern.isNotEmpty) {
-    return Map<String, dynamic>.from(extern);
-  }
-  return Map<String, dynamic>.from(
-    map['extension'] as Map? ?? const <String, dynamic>{},
-  );
 }
 
 Future<String> _chapterRoot(UnifiedComicDownload download) async {

@@ -151,7 +151,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
           const Padding(
             padding: EdgeInsets.all(32),
             child: Center(
-              child: Text('暂无可用插件', style: TextStyle(color: Colors.grey)),
+              child: Text(
+                '暂无可用插件，去插件商店安装一个吧~',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
           )
         else

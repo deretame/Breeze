@@ -461,8 +461,21 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     WindowLogic.saveWindowState(context);
   }
 
+  @override
+  void onWindowMaximize() {
+    super.onWindowMaximize();
+    WindowLogic.saveWindowStateImmediately(context);
+  }
+
+  @override
+  void onWindowUnmaximize() {
+    super.onWindowUnmaximize();
+    WindowLogic.saveWindowStateImmediately(context);
+  }
+
   /// 立即隐藏窗口再退出，让用户感知不到 Dart VM 清理的延迟
-  void _forceExit() {
+  Future<void> _forceExit() async {
+    await WindowLogic.saveWindowStateImmediately(context);
     // 强杀，降低延迟
     // nuclearKillProcess();
     if (Platform.isWindows) {
@@ -476,46 +489,91 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   void onWindowClose() async {
+    final closeBehavior = await WindowLogic.loadCloseBehavior();
+    switch (closeBehavior) {
+      case DesktopCloseBehavior.hide:
+        await _hideWindow();
+        return;
+      case DesktopCloseBehavior.close:
+        await _forceExit();
+        return;
+      case DesktopCloseBehavior.ask:
+        break;
+    }
+
     final dialogContext = appRouter.navigatorKey.currentContext;
     if (dialogContext == null || !dialogContext.mounted) {
-      _forceExit();
+      await _forceExit();
       return;
     }
     showDialog(
       context: dialogContext,
       builder: (context) {
-        return AlertDialog(
-          title: Text('提示'),
-          content: Text('隐藏到托盘或关闭程序'),
-          actions: [
-            TextButton(
-              child: Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('关闭'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _forceExit();
-              },
-            ),
-            TextButton(
-              child: Text('隐藏'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _hideWindow();
-              },
-            ),
-          ],
+        var rememberChoice = false;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('提示'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('隐藏到托盘或关闭程序'),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: const Text('记住我的选择'),
+                    value: rememberChoice,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        rememberChoice = value ?? false;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('取消'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('关闭'),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    if (rememberChoice) {
+                      await WindowLogic.saveCloseBehavior(
+                        DesktopCloseBehavior.close,
+                      );
+                    }
+                    await _forceExit();
+                  },
+                ),
+                TextButton(
+                  child: const Text('隐藏'),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    if (rememberChoice) {
+                      await WindowLogic.saveCloseBehavior(
+                        DesktopCloseBehavior.hide,
+                      );
+                    }
+                    await _hideWindow();
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
   /// 隐藏窗口到任务栏托盘，不退出程序
-  void _hideWindow() {
+  Future<void> _hideWindow() async {
+    await WindowLogic.saveWindowStateImmediately(context);
     if (Platform.isWindows) {
       NativeWindow.hide();
     } else {
@@ -524,7 +582,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   Future<void> _performGracefulExit() async {
-    _forceExit();
+    await _forceExit();
   }
 
   @override

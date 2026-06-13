@@ -66,7 +66,7 @@ dependencies:
   # 文件、媒体与平台能力
   path_provider: ^2.1.5 # 文件: 常用目录路径
   path: ^1.9.0 # 文件: 路径处理
-  open_file: ^3.5.10 # 文件: 系统打开文件
+  open_file: ^4.0.0 # 文件: 系统打开文件
   image_picker: ^1.1.2 # 媒体: 图片与相机选择
   crop_your_image: ^2.0.0 # 媒体: 图片裁剪
   archive: ^4.0.0 # 文件: 压缩解压
@@ -84,7 +84,7 @@ dependencies:
   # 后台任务与通知
   flutter_foreground_task: ^9.1.0 # 后台: 前台任务
   background_downloader: ^9.5.4 # 后台: 下载任务
-  flutter_local_notifications: ^21.0.0 # 通知: 本地通知
+  flutter_local_notifications: ^22.0.0 # 通知: 本地通知
 
   # 安全、工具与运行时
   encrypter_plus: ^5.1.0 # 安全: AES/RSA 加密
@@ -99,7 +99,7 @@ dependencies:
   intl: ^0.20.2 # 国际化: 文案与格式化
   code_assets: ^1.0.0 # FFI: hooks/build.dart 使用的目标平台配置类型
   native_toolchain_rust: ^1.0.4 # FFI: Rust 构建工具
-  hooks: ^1.0.3 # FFI: Dart 构建钩子
+  hooks: ^2.0.2 # FFI: Dart 构建钩子
   flutter_rust_bridge: ^2.10.0 # FFI: Flutter-Rust 桥接
   ffi: ^2.2.0 # FFI: Dart 原生互操作
   sentry_flutter: ^9.14.0 # 监控: 崩溃与异常上报

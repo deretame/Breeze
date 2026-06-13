@@ -24,6 +24,7 @@ class NativeWindow {
   NativeWindow._();
 
   static int _hwnd = 0;
+  static bool _shouldMaximizeOnShow = false;
   static win32.HWND get _windowHandle => win32.HWND(Pointer.fromAddress(_hwnd));
 
   /// 初始化，缓存窗口句柄（在 window ready 之后调用一次）
@@ -31,6 +32,9 @@ class NativeWindow {
     final className = 'FLUTTER_RUNNER_WIN32_WINDOW'.toNativeUtf16();
     _hwnd = _findWindow(className, nullptr);
     calloc.free(className);
+    if (_hwnd != 0) {
+      _shouldMaximizeOnShow = _isZoomed(_hwnd) != 0;
+    }
   }
 
   static bool get isReady => _hwnd != 0;
@@ -42,17 +46,26 @@ class NativeWindow {
 
   /// 同步最大化
   static void maximize() {
-    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_MAXIMIZE);
+    if (_hwnd != 0) {
+      _shouldMaximizeOnShow = true;
+      win32.ShowWindow(_windowHandle, win32.SW_MAXIMIZE);
+    }
   }
 
   /// 同步还原
   static void restore() {
-    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_RESTORE);
+    if (_hwnd != 0) {
+      _shouldMaximizeOnShow = false;
+      win32.ShowWindow(_windowHandle, win32.SW_RESTORE);
+    }
   }
 
-  /// 同步隐藏
+  /// 同步隐藏，缓存当前最大化状态
   static void hide() {
-    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_HIDE);
+    if (_hwnd != 0) {
+      _shouldMaximizeOnShow = _isZoomed(_hwnd) != 0;
+      win32.ShowWindow(_windowHandle, win32.SW_HIDE);
+    }
   }
 
   static void destroy() {
@@ -74,7 +87,7 @@ class NativeWindow {
   /// 同步判断是否最大化
   static bool get isMaximized => _hwnd != 0 && _isZoomed(_hwnd) != 0;
 
-  /// 同步切换最大化/还原
+  /// 同步切换最大化/还原（通过调用 maximize/restore 自动维护状态）
   static void toggleMaximize() {
     if (isMaximized) {
       restore();
@@ -83,10 +96,14 @@ class NativeWindow {
     }
   }
 
-  /// 显示窗口并获得焦点
+  /// 显示窗口并获得焦点，自动恢复隐藏前的最大化状态
   static void show() {
     if (_hwnd != 0) {
-      win32.ShowWindow(_windowHandle, win32.SW_RESTORE);
+      if (_shouldMaximizeOnShow) {
+        win32.ShowWindow(_windowHandle, win32.SW_MAXIMIZE);
+      } else {
+        win32.ShowWindow(_windowHandle, win32.SW_RESTORE);
+      }
       windowManager.focus();
     }
   }

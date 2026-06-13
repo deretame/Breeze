@@ -74,7 +74,7 @@ class ComicReadSnapshotComic {
       id: map['id']?.toString() ?? '',
       source: map['source']?.toString() ?? '',
       title: map['title']?.toString() ?? '',
-      extern: _externMap(map),
+      extern: _asMap(map['extern']),
     );
   }
 }
@@ -102,7 +102,7 @@ class ComicReadSnapshotChapter {
       pages: _resolvePages(
         map,
       ).map((item) => ComicReadSnapshotPage.fromMap(_asMap(item))).toList(),
-      extern: _externMap(map),
+      extern: _asMap(map['extern']),
     );
   }
 }
@@ -125,7 +125,7 @@ class ComicReadSnapshotChapterRef {
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
       order: _toInt(map['order'], 0),
-      extern: _externMap(map),
+      extern: _asMap(map['extern']),
     );
   }
 }
@@ -151,7 +151,7 @@ class ComicReadSnapshotPage {
       name: map['name']?.toString() ?? map['originalName']?.toString() ?? '',
       path: map['path']?.toString() ?? '',
       url: map['url']?.toString() ?? map['fileServer']?.toString() ?? '',
-      extern: _externMap(map),
+      extern: _asMap(map['extern']),
     );
   }
 }
@@ -162,14 +162,6 @@ List<dynamic> _resolvePages(Map<String, dynamic> map) {
     return pages;
   }
   return _asList(map['docs']);
-}
-
-Map<String, dynamic> _externMap(Map<String, dynamic> map) {
-  final extern = _asMap(map['extern']);
-  if (extern.isNotEmpty) {
-    return extern;
-  }
-  return _asMap(map['extension']);
 }
 
 Map<String, dynamic> _asMap(dynamic value) {

@@ -173,9 +173,7 @@ UnifiedComicCover _coverFromStored(
   final data = _decodeMapString(cover);
   final coverId = data['id']?.toString() ?? comicId;
   final url = data['url']?.toString() ?? '';
-  final extern = asMap(data['extern']);
-  final extension = asMap(data['extension']);
-  final coverExtern = extern.isNotEmpty ? extern : extension;
+  final coverExtern = asMap(data['extern']);
   final rawPath = data['path']?.toString().trim() ?? '';
   final resolvedPath = rawPath.isNotEmpty
       ? rawPath

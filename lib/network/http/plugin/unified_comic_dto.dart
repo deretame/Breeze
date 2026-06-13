@@ -102,7 +102,7 @@ class UnifiedPluginChapterDoc {
       path: map['path']?.toString() ?? '',
       url: map['url']?.toString() ?? map['fileServer']?.toString() ?? '',
       id: map['id']?.toString() ?? '',
-      extern: _readExternFirst(map),
+      extern: asMap(map['extern']),
     );
   }
 
@@ -144,7 +144,7 @@ class UnifiedPluginChapter {
       length: _toInt(map['length'], docs.length),
       epPages: map['epPages']?.toString() ?? docs.length.toString(),
       docs: docs,
-      extern: _readExternFirst(map),
+      extern: asMap(map['extern']),
     );
   }
 
@@ -278,10 +278,4 @@ int _toInt(dynamic value, int fallback) {
   return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
 
-Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
-  final extern = asMap(map['extern']);
-  if (extern.isNotEmpty) {
-    return extern;
-  }
-  return asMap(map['extension']);
-}
+

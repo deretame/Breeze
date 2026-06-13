@@ -192,16 +192,23 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                                     ).colorScheme.primaryContainer,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 280,
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        state.maskedKeywords[index],
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimaryContainer,
+                                      Flexible(
+                                        child: Text(
+                                          state.maskedKeywords[index],
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimaryContainer,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 4),

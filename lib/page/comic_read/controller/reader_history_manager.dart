@@ -34,6 +34,7 @@ class ReaderHistoryManager {
   DateTime? _lastUpdateTime;
   bool _isInserting = false;
   bool _isLoading = true; // 对应原本的 _loading，但这其实是数据是否准备好的标志
+  normal.ComicInfo? _comicInfo; // 用于存储解析后的 comicInfo 数据，避免重复解析
 
   ReaderHistoryManager({
     required this.comicId,
@@ -57,6 +58,8 @@ class ReaderHistoryManager {
     } finally {
       query.close();
     }
+
+    _comicInfo = _resolveNormalComicInfo(comicInfo);
 
     _startTimer();
   }
@@ -107,13 +110,12 @@ class ReaderHistoryManager {
     // 写入数据库
     _isInserting = true;
     try {
-      final normalInfo = _resolveNormalComicInfo();
       final timestamp = DateTime.now().toUtc();
       final payload = <String, dynamic>{
         'dbRootPath': p.dirname(objectbox.store.directoryPath),
         'source': from,
         'comicId': comicId,
-        'normalInfo': _serializeComicInfoForWorker(normalInfo),
+        'normalInfo': _serializeComicInfoForWorker(_comicInfo!),
         'chapterId': epInfo.epId,
         'chapterTitle': epInfo.epName,
         'chapterOrder': getCurrentChapterOrder(),
@@ -133,14 +135,12 @@ class ReaderHistoryManager {
     }
   }
 
-  normal.ComicInfo _resolveNormalComicInfo() {
+  normal.ComicInfo _resolveNormalComicInfo(dynamic comicInfo) {
     if (comicInfo is PluginComicDetailSource) {
-      return (comicInfo as PluginComicDetailSource).normalInfo.comicInfo;
+      return (comicInfo).normalInfo.comicInfo;
     }
     if (comicInfo is UnifiedComicDownload) {
-      final detail =
-          jsonDecode((comicInfo as UnifiedComicDownload).detailJson)
-              as Map<String, dynamic>;
+      final detail = jsonDecode((comicInfo).detailJson) as Map<String, dynamic>;
       return normal.NormalComicAllInfo.fromJson(detail).comicInfo;
     }
 

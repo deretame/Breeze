@@ -285,21 +285,33 @@ Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
       .find();
   final existingByUuid = {for (final item in existing) item.uuid: item};
 
-  final upserts = <PluginInfo>[
-    _buildBuiltinPluginInfo(
-      existingByUuid[_kBikaPluginUuid],
-      uuid: _kBikaPluginUuid,
-      builtinBundle: getJsBundle(name: _kBikaPluginUuid),
-      now: now,
-    ),
-    _buildBuiltinPluginInfo(
-      existingByUuid[_kJmPluginUuid],
-      uuid: _kJmPluginUuid,
-      builtinBundle: getJsBundle(name: _kJmPluginUuid),
-      now: now,
-    ),
-  ];
-  objectbox.pluginInfoBox.putMany(upserts);
+  final upserts = <PluginInfo>[];
+
+  final bikaHistorys = objectbox.bikaHistoryBox.getAll().length;
+  if (bikaHistorys > 0) {
+    upserts.add(
+      _buildBuiltinPluginInfo(
+        existingByUuid[_kBikaPluginUuid],
+        uuid: _kBikaPluginUuid,
+        builtinBundle: getJsBundle(name: _kBikaPluginUuid),
+        now: now,
+      ),
+    );
+  }
+
+  final jmHistorys = objectbox.jmHistoryBox.getAll().length;
+  if (jmHistorys > 0) {
+    upserts.add(
+      _buildBuiltinPluginInfo(
+        existingByUuid[_kJmPluginUuid],
+        uuid: _kJmPluginUuid,
+        builtinBundle: getJsBundle(name: _kJmPluginUuid),
+        now: now,
+      ),
+    );
+  }
+
+  if (upserts.isNotEmpty) objectbox.pluginInfoBox.putMany(upserts);
 }
 
 PluginInfo _buildBuiltinPluginInfo(

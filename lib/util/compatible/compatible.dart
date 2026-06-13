@@ -7,9 +7,10 @@ import 'package:zephyr/main.dart';
 import 'migration_v1_to_v2.dart';
 import 'migration_v2_to_v3.dart';
 import 'migration_v3_to_v4.dart';
+import 'migration_v4_to_v5.dart';
 
 const _defaultCompatibleVersion = 'v1';
-const _latestCompatibleVersion = 'v4';
+const _latestCompatibleVersion = 'v5';
 
 Future<void> ensureCompatibleMigration(BuildContext context) async {
   try {
@@ -39,6 +40,13 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
 
     if (version == 'v3') {
       await migrateV3ToV4();
+      await setCompatibleVersion('v4');
+      version = 'v4';
+      migrated = true;
+    }
+
+    if (version == 'v4') {
+      await migrateV4ToV5();
       await setCompatibleVersion(_latestCompatibleVersion);
       migrated = true;
     }

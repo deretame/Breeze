@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
@@ -491,7 +492,7 @@ class _ComicInfoState extends State<_ComicInfo>
     final displayPath = Platform.isAndroid
         ? _simplifyAndroidPathForLog(path)
         : path;
-    debugPrint('Exported comic path: $displayPath');
+    logger.d('Exported comic path: $displayPath');
   }
 
   String _simplifyAndroidPathForLog(String path) {

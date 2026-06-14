@@ -191,13 +191,23 @@ Future<String?> _tryDownloadCover(
     return null;
   }
   try {
-    return await downloadPicture(
+    final temp = await getCachePicture(
       from: from,
       url: url,
       path: path,
       cartoonId: comicId,
       pictureType: PictureType.cover,
     );
+
+    await downloadPicture(
+      from: from,
+      url: url,
+      path: path,
+      cartoonId: comicId,
+      pictureType: PictureType.cover,
+    );
+
+    return temp;
   } catch (_) {
     return null;
   }
@@ -287,27 +297,34 @@ Future<List<File>> _resolveChapterFiles({
   required String taskChapterId,
   required List<UnifiedComicDownloadImage> images,
 }) async {
-  final ordered = <File>[];
-
-  for (final image in images) {
-    try {
-      final cachedPath = await getCachePicture(
-        from: pluginId,
-        url: image.url,
-        path: image.path,
-        cartoonId: comicId,
-        chapterId: chapterId,
-      );
-      final file = File(cachedPath);
-      if (await file.exists()) {
-        ordered.add(file);
-      }
-    } catch (_) {
-      continue;
+  final futures = images.map((image) async {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final cachedPath = await getCachePicture(
+          from: pluginId,
+          url: image.url,
+          path: image.path,
+          cartoonId: comicId,
+          chapterId: chapterId,
+        );
+        final file = File(cachedPath);
+        if (await file.exists()) {
+          await downloadPicture(
+            from: pluginId,
+            url: image.url,
+            path: image.path,
+            cartoonId: comicId,
+            chapterId: chapterId,
+          );
+          return file;
+        }
+      } catch (_) {}
     }
-  }
+    return null;
+  });
 
-  return ordered;
+  final results = await Future.wait(futures);
+  return results.whereType<File>().toList();
 }
 
 List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(

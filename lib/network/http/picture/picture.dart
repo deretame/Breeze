@@ -32,7 +32,7 @@ Future<String> getCachePicture({
   String path = '',
   String cartoonId = '1',
   String chapterId = '',
-  PictureType pictureType = PictureType.comic,
+  PictureType pictureType = PictureType.page,
   Map<String, dynamic>? extern,
 }) async {
   final resolvedFrom = normalizePluginId(from);
@@ -58,8 +58,7 @@ Future<String> getCachePicture({
   final cachePath = await getCachePath();
   final downloadPath = await getDownloadPath();
 
-  final encodePicturePath =
-      '${path.trim().let((path) => encodePath(path: path))}.${path.split('.').last}';
+  final encodePicturePath = path.trim().let((path) => encodePath(path: path));
   final encodeCartoonId = cartoonId.trim().let(
     (path) => encodePath(path: path),
   );
@@ -187,7 +186,7 @@ Future<String> downloadPicture({
   String cartoonId = '',
   String chapterId = '',
   String path = '',
-  PictureType pictureType = PictureType.comic,
+  PictureType pictureType = PictureType.page,
   String? qjsName,
   String qjsTaskGroupKey = '',
   bool retry = false,
@@ -208,8 +207,7 @@ Future<String> downloadPicture({
     return '404';
   }
 
-  final encodePicturePath =
-      '${path.trim().let((path) => encodePath(path: path))}.${path.split('.').last}';
+  final encodePicturePath = path.trim().let((path) => encodePath(path: path));
   final encodeCartoonId = cartoonId.trim().let(
     (path) => encodePath(path: path),
   );
@@ -537,15 +535,15 @@ Future<void> decodeAndSaveImage(
     throw Exception('404');
   }
 
+  final imageInfo = ImageInfo(
+    imgData: imgData,
+    chapterId: chapterId,
+    fileName: fileName,
+    url: url,
+  );
+
   try {
-    await antiObfuscationPicture(
-      imageInfo: ImageInfo(
-        imgData: imgData,
-        chapterId: chapterId,
-        fileName: fileName,
-        url: url,
-      ),
-    );
+    await antiObfuscationPicture(imageInfo: imageInfo);
   } catch (e, s) {
     logger.e(e, stackTrace: s);
     rethrow;

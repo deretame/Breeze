@@ -277,5 +277,3 @@ int _toInt(dynamic value, int fallback) {
   }
   return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
-
-

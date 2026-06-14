@@ -46,6 +46,7 @@ brotli = "8.0.2"
 webp = "0.3.1"
 serde = { version = "1", features = ["derive"] }
 serde-xml-rs = "0.8.2"
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"

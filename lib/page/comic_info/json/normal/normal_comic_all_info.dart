@@ -114,8 +114,7 @@ abstract class Ep with _$Ep {
     @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Ep;
 
-  factory Ep.fromJson(Map<String, dynamic> json) =>
-      _$EpFromJson(json);
+  factory Ep.fromJson(Map<String, dynamic> json) => _$EpFromJson(json);
 }
 
 @freezed

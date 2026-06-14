@@ -61,3 +61,6 @@ Future<Uint8List> compressExtreme({required List<int> data}) =>
 
 Future<Uint8List> decompressExtreme({required List<int> data}) =>
     RustLib.instance.api.crateApiSimpleDecompressExtreme(data: data);
+
+String encodePath({required String path}) =>
+    RustLib.instance.api.crateApiSimpleEncodePath(path: path);

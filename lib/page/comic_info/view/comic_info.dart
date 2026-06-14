@@ -317,6 +317,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     ComicParticularsWidget(
                       comicInfo: comicInfo,
                       from: widget.from,
+                      type: _type,
                       onContinueRead: hasHistory
                           ? () => goToComicRead(
                               context,

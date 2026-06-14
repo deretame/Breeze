@@ -138,15 +138,13 @@ class _DiscoverPageState extends State<DiscoverPage> {
           ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
 
     return ListView(
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 40),
       children: [
         const SizedBox(height: 16),
         _buildPluginStoreButton(),
         const SizedBox(height: 8),
-        _buildSectionHeader('扩展插件'),
+        _buildSectionHeader('插件管理'),
         if (visiblePlugins.isEmpty)
           const Padding(
             padding: EdgeInsets.all(32),

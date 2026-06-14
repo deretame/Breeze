@@ -6,6 +6,7 @@ use flutter_rust_bridge::frb;
 use rquickjs_playground::{configure_http_client, current_http_client_config};
 use std::sync::Once;
 use std::sync::atomic::Ordering;
+use xxhash_rust::xxh3::xxh3_128;
 
 static ENABLE_STACKTRACE: Once = Once::new();
 static ENABLE_LOG: Once = Once::new();
@@ -100,4 +101,10 @@ pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
 #[frb]
 pub async fn decompress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
     compressed::decompress_extreme(data).await
+}
+
+#[frb(sync)]
+pub fn encode_path(path: &str) -> Result<String> {
+    let hash = xxh3_128(path.as_bytes()).to_string();
+    Ok(format!("f_{hash}"))
 }

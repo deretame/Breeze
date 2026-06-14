@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show min;
 
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
@@ -11,9 +12,9 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
-import 'package:zephyr/type/enum.dart';
 
 const Set<String> _kWindowsReservedNames = {
   'CON',
@@ -110,8 +111,9 @@ Future<String> _exportComicAsZip(
 
   final coverPath = await _tryDownloadCover(download, comicId, from: from);
   if (coverPath != null) {
+    final coverExt = await _detectImageExtension(File(coverPath));
     packInfo.originalImagePaths.add(coverPath);
-    packInfo.packImagePaths.add('cover.jpg');
+    packInfo.packImagePaths.add('cover$coverExt');
   }
 
   for (final chapter in chapterEntries) {
@@ -151,7 +153,9 @@ Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
   final detail = Map<String, dynamic>.from(
     jsonDecode(download.detailJson) as Map<String, dynamic>,
   );
-  final extern = Map<String, dynamic>.from(detail['extern'] as Map? ?? const {});
+  final extern = Map<String, dynamic>.from(
+    detail['extern'] as Map? ?? const {},
+  );
   extern['version'] = mainVersion;
   detail['extern'] = extern;
   return detail;
@@ -167,9 +171,11 @@ Future<void> _exportCover(
   if (path == null) {
     return;
   }
-  final coverFile = File(p.join(comicDir, 'cover.jpg'));
-  await coverFile.create(recursive: true);
-  await File(path).copy(coverFile.path);
+  final srcFile = File(path);
+  final ext = await _detectImageExtension(srcFile);
+  final destFile = File(p.join(comicDir, 'cover$ext'));
+  await destFile.create(recursive: true);
+  await srcFile.copy(destFile.path);
 }
 
 Future<String?> _tryDownloadCover(
@@ -227,8 +233,6 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
   // Keep persisted chapter order exactly as stored.
   // Do not reorder by name/order here, otherwise exported page sequence may drift.
 
-  final chapterRoot = await _chapterRoot(download);
-  final chapterRootLegacy = await _chapterRootLegacy(download);
   final usedFolderNames = <String>{};
   final result = <_ExportChapterEntry>[];
   final hasMultipleChapters = chapters.length > 1;
@@ -253,8 +257,6 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
       comicId: download.comicId,
       chapterId: chapterId,
       taskChapterId: taskChapterId,
-      chapterRoot: chapterRoot,
-      chapterRootLegacy: chapterRootLegacy,
       images: chapter.images,
     );
     final numberedImages = <_ExportImageEntry>[];
@@ -262,7 +264,7 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
     for (var imageIndex = 0; imageIndex < files.length; imageIndex++) {
       final file = files[imageIndex];
       final indexLabel = (imageIndex + 1).toString().padLeft(numberWidth, '0');
-      final extension = _safeExportExtension(file.path);
+      final extension = await _detectImageExtension(file);
       numberedImages.add(
         _ExportImageEntry(
           source: file,
@@ -283,100 +285,29 @@ Future<List<File>> _resolveChapterFiles({
   required String comicId,
   required String chapterId,
   required String taskChapterId,
-  required String chapterRoot,
-  required String chapterRootLegacy,
   required List<UnifiedComicDownloadImage> images,
 }) async {
   final ordered = <File>[];
-  final usedPaths = <String>{};
-  final existingCandidateDirs = <Directory>[];
-  final candidateDirs = <Directory>[];
-  if (chapterId.trim().isNotEmpty) {
-    candidateDirs.add(Directory(p.join(chapterRoot, chapterId)));
-    candidateDirs.add(Directory(p.join(chapterRootLegacy, chapterId)));
-  }
-  candidateDirs.add(Directory(chapterRoot));
-  candidateDirs.add(Directory(chapterRootLegacy));
-  for (final dir in candidateDirs) {
-    if (await dir.exists()) {
-      existingCandidateDirs.add(dir);
-    }
-  }
 
-  Future<File?> tryByPath(String rawPath) async {
-    final trimmed = rawPath.trim();
-    if (trimmed.isEmpty) return null;
-    final baseName = p.basename(trimmed);
-    for (final dir in existingCandidateDirs) {
-      final file = File(p.join(dir.path, baseName));
-      if (await file.exists()) {
-        return file;
-      }
-    }
-    if (p.isAbsolute(trimmed)) {
-      final file = File(trimmed);
-      if (await file.exists()) {
-        return file;
-      }
-    }
-    return null;
-  }
-
-  Future<File?> tryByName(String rawName) async {
-    final trimmed = rawName.trim();
-    if (trimmed.isEmpty) return null;
-    final baseName = p.basename(trimmed);
-    for (final dir in existingCandidateDirs) {
-      final file = File(p.join(dir.path, baseName));
-      if (await file.exists()) {
-        return file;
-      }
-    }
-    return null;
-  }
-
-  Future<File?> tryById(String rawId) async {
-    final id = rawId.trim();
-    if (id.isEmpty) return null;
-    final path = await getStoredPicturePathById(
-      from: pluginId,
-      cartoonId: comicId,
-      chapterId: chapterId.trim().isNotEmpty ? chapterId : taskChapterId,
-      imageId: id,
-    );
-    if (path == null) return null;
-    final file = File(path);
-    if (await file.exists()) {
-      return file;
-    }
-    return null;
-  }
-
-  // Strict per-image order: path -> name -> id.
   for (final image in images) {
-    File? hit = await tryByPath(image.path);
-    hit ??= await tryByName(image.name);
-    hit ??= await tryById(image.id);
-    if (hit == null) {
+    try {
+      final cachedPath = await getCachePicture(
+        from: pluginId,
+        url: image.url,
+        path: image.path,
+        cartoonId: comicId,
+        chapterId: chapterId,
+      );
+      final file = File(cachedPath);
+      if (await file.exists()) {
+        ordered.add(file);
+      }
+    } catch (_) {
       continue;
     }
-    if (usedPaths.add(hit.path)) {
-      ordered.add(hit);
-    }
-  }
-  if (ordered.isNotEmpty) {
-    return ordered;
   }
 
-  // Last resort only when metadata mapping cannot find any file.
-  for (final dir in existingCandidateDirs) {
-    final files = await dir.list().where((e) => e is File).cast<File>().toList()
-      ..sort((a, b) => a.path.compareTo(b.path));
-    if (files.isNotEmpty) {
-      return files;
-    }
-  }
-  return const <File>[];
+  return ordered;
 }
 
 List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
@@ -391,7 +322,9 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
       return const <UnifiedComicDownloadStoredChapter>[];
     }
     final detail = Map<String, dynamic>.from(decoded);
-    final extern = Map<String, dynamic>.from(detail['extern'] as Map? ?? const {});
+    final extern = Map<String, dynamic>.from(
+      detail['extern'] as Map? ?? const {},
+    );
     final rawDownloadChapters =
         (extern['downloadChapters'] as List?) ?? const <dynamic>[];
     return rawDownloadChapters
@@ -433,7 +366,9 @@ Map<String, dynamic> _buildProcessedDetail(
     processed['eps'] = updatedEps;
   }
 
-  final extern = Map<String, dynamic>.from(processed['extern'] as Map? ?? const {});
+  final extern = Map<String, dynamic>.from(
+    processed['extern'] as Map? ?? const {},
+  );
   final rawDownloadChapters =
       ((extern['downloadChapters'] as List?) ?? const [])
           .whereType<Map>()
@@ -462,7 +397,7 @@ Map<String, dynamic> _buildProcessedDetail(
           ? Map<String, dynamic>.from(rawImages[imageIndex])
           : <String, dynamic>{};
       imageBase['name'] = image.exportFileName;
-      imageBase['path'] = p.join(chapter.folderName, image.exportFileName);
+      imageBase['path'] = image.exportFileName;
       updatedImages.add(imageBase);
     }
 
@@ -566,16 +501,6 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
   }
 }
 
-Future<String> _chapterRoot(UnifiedComicDownload download) async {
-  final base = await getDownloadPath();
-  return p.join(base, download.source, 'original', download.comicId, 'comic');
-}
-
-Future<String> _chapterRootLegacy(UnifiedComicDownload download) async {
-  final base = await getDownloadPath();
-  return p.join(base, download.source, 'original', download.comicId);
-}
-
 class _ExportChapterEntry {
   const _ExportChapterEntry({required this.folderName, required this.images});
 
@@ -588,4 +513,108 @@ class _ExportImageEntry {
 
   final File source;
   final String exportFileName;
+}
+
+Future<String> _detectImageExtension(File file) async {
+  try {
+    final raf = await file.open(mode: FileMode.read);
+    final header = await raf.read(16);
+    await raf.close();
+    final mimeType = lookupMimeType(file.path, headerBytes: header);
+    if (mimeType != null) {
+      switch (mimeType) {
+        // 现代图片格式
+        case 'image/jpeg':
+          return '.jpg';
+        case 'image/png':
+          return '.png';
+        case 'image/gif':
+          return '.gif';
+        case 'image/webp':
+          return '.webp';
+        case 'image/avif':
+          return '.avif';
+        case 'image/jxl':
+          return '.jxl';
+        case 'image/heif':
+        case 'image/heic':
+          return '.heic';
+        case 'image/jp2':
+          return '.jp2';
+        case 'image/bmp':
+          return '.bmp';
+        case 'image/tiff':
+          return '.tiff';
+        case 'image/x-icon':
+        case 'image/vnd.microsoft.icon':
+          return '.ico';
+        case 'image/svg+xml':
+          return '.svg';
+        case 'image/x-tga':
+          return '.tga';
+        case 'image/x-pcx':
+          return '.pcx';
+        case 'image/x-portable-anymap':
+          return '.pnm';
+        case 'image/x-portable-bitmap':
+          return '.pbm';
+        case 'image/x-portable-graymap':
+          return '.pgm';
+        case 'image/x-portable-pixmap':
+          return '.ppm';
+        case 'image/x-xbitmap':
+          return '.xbm';
+        case 'image/x-xpixmap':
+          return '.xpm';
+        case 'image/x-photoshop':
+        case 'image/vnd.adobe.photoshop':
+          return '.psd';
+        case 'image/x-cmu-raster':
+          return '.ras';
+        case 'image/x-dcx':
+          return '.dcx';
+        case 'image/x-wmf':
+          return '.wmf';
+        case 'image/x-rgb':
+          return '.rgb';
+
+        // 视频格式
+        case 'video/webm':
+          return '.webm';
+        case 'video/mp4':
+          return '.mp4';
+        case 'video/ogg':
+          return '.ogv';
+        case 'video/quicktime':
+          return '.mov';
+        case 'video/x-msvideo':
+          return '.avi';
+        case 'video/x-matroska':
+          return '.mkv';
+        case 'video/mpeg':
+          return '.mpeg';
+        case 'video/3gpp':
+          return '.3gp';
+        case 'video/x-flv':
+          return '.flv';
+        case 'video/x-ms-wmv':
+          return '.wmv';
+        case 'video/x-m4v':
+          return '.m4v';
+        case 'video/x-ms-asf':
+          return '.asf';
+        case 'video/x-ms-asx':
+          return '.asx';
+        case 'video/x-ms-wmx':
+          return '.wmx';
+        case 'video/avi':
+          return '.avi';
+        case 'video/x-ms-dvr':
+          return '.dvr-ms';
+        default:
+          break;
+      }
+    }
+  } catch (_) {}
+  return _safeExportExtension(file.path);
 }

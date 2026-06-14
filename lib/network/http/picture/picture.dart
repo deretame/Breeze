@@ -57,7 +57,34 @@ Future<String> getCachePicture({
 
   final cachePath = await getCachePath();
   final downloadPath = await getDownloadPath();
-  final cacheFilePath = _buildStoredFilePath(
+
+  final encodePicturePath =
+      '${path.trim().let((path) => encodePath(path: path))}.${path.split('.').last}';
+  final encodeCartoonId = cartoonId.trim().let(
+    (path) => encodePath(path: path),
+  );
+  final encodeChapterId = chapterId.trim().let(
+    (path) => encodePath(path: path),
+  );
+
+  final newCacheFilePath = _buildStoredFilePath(
+    cachePath,
+    resolvedFrom,
+    encodePicturePath,
+    encodeCartoonId,
+    pictureType == PictureType.cover ? '' : encodeChapterId,
+  );
+
+  final newDownloadFilePath = _buildStoredFilePath(
+    downloadPath,
+    resolvedFrom,
+    encodePicturePath,
+    encodeCartoonId,
+    pictureType == PictureType.cover ? '' : encodeChapterId,
+    rootFolder: 'original',
+  );
+
+  final oldCacheFilePath = _buildStoredFilePath(
     cachePath,
     resolvedFrom,
     path,
@@ -65,7 +92,7 @@ Future<String> getCachePicture({
     pictureType == PictureType.cover ? '' : chapterId,
   );
 
-  final downloadFilePath = _buildStoredFilePath(
+  final oldDownloadFilePath = _buildStoredFilePath(
     downloadPath,
     resolvedFrom,
     path,
@@ -74,14 +101,19 @@ Future<String> getCachePicture({
     rootFolder: 'original',
   );
 
-  // logger.d(
-  //   'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
-  // );
-
-  final existingFilePath = await checkFileExists(
-    cacheFilePath,
-    downloadFilePath,
+  // 优先使用新（编码后）路径查找
+  String existingFilePath = await checkFileExists(
+    newCacheFilePath,
+    newDownloadFilePath,
   );
+
+  if (existingFilePath.isEmpty) {
+    // 未找到，回退到旧（未编码）路径
+    existingFilePath = await checkFileExists(
+      oldCacheFilePath,
+      oldDownloadFilePath,
+    );
+  }
 
   if (existingFilePath.isNotEmpty) {
     // 双重检查文件确实存在且可读
@@ -127,23 +159,23 @@ Future<String> getCachePicture({
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
-      cacheFilePath,
+      newCacheFilePath,
       url,
     );
     // 验证文件已成功保存
-    if (await File(cacheFilePath).exists()) {
-      return cacheFilePath;
+    if (await File(newCacheFilePath).exists()) {
+      return newCacheFilePath;
     } else {
       throw Exception('图片保存失败');
     }
   }
 
   // 保存图片
-  await saveImage(imageData, cacheFilePath);
+  await saveImage(imageData, newCacheFilePath);
 
   // 验证文件已成功保存
-  if (await File(cacheFilePath).exists()) {
-    return cacheFilePath;
+  if (await File(newCacheFilePath).exists()) {
+    return newCacheFilePath;
   } else {
     throw Exception('图片保存失败');
   }
@@ -171,28 +203,37 @@ Future<String> downloadPicture({
   if (url.contains("404")) {
     return "404";
   }
-  final directPath = path.trim();
-  if (directPath.isEmpty) {
+
+  if (path.trim().isEmpty) {
     return '404';
   }
+
+  final encodePicturePath =
+      '${path.trim().let((path) => encodePath(path: path))}.${path.split('.').last}';
+  final encodeCartoonId = cartoonId.trim().let(
+    (path) => encodePath(path: path),
+  );
+  final encodeChapterId = chapterId.trim().let(
+    (path) => encodePath(path: path),
+  );
 
   final downloadPath = await getDownloadPath();
   final cachePath = await getCachePath();
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     resolvedFrom,
-    path,
-    cartoonId,
-    pictureType == PictureType.cover ? '' : chapterId,
+    encodePicturePath,
+    encodeCartoonId,
+    pictureType == PictureType.cover ? '' : encodeChapterId,
     rootFolder: 'original',
   );
 
   final downloadFilePath = _buildStoredFilePath(
     downloadPath,
     resolvedFrom,
-    path,
-    cartoonId,
-    pictureType == PictureType.cover ? '' : chapterId,
+    encodePicturePath,
+    encodeCartoonId,
+    pictureType == PictureType.cover ? '' : encodeChapterId,
     rootFolder: 'original',
   );
 
@@ -324,70 +365,6 @@ String normalizeStoredAssetPath(String rawPath, {bool allowEmpty = false}) {
     return sanitized;
   }
   throw StateError('normalizeStoredAssetPath received invalid path: $rawPath');
-}
-
-Future<String?> getStoredPicturePathById({
-  required String from,
-  required String cartoonId,
-  String chapterId = '',
-  required String imageId,
-  String rootFolder = 'original',
-}) async {
-  if (imageId.trim().isEmpty) {
-    return null;
-  }
-
-  final basePath = await getDownloadPath();
-  final pluginId = normalizePluginId(from);
-  final baseSegments = <String>[basePath, pluginId];
-  final legacyBaseSegments = <String>[basePath, from];
-  if (rootFolder.trim().isNotEmpty) {
-    baseSegments.add(rootFolder.trim());
-  }
-  if (cartoonId.trim().isNotEmpty) {
-    baseSegments.add(cartoonId.trim());
-  }
-
-  final candidateDirs = <Directory>[];
-  if (chapterId.trim().isNotEmpty) {
-    candidateDirs.add(
-      Directory(file_path.joinAll([...baseSegments, chapterId.trim()])),
-    );
-    candidateDirs.add(
-      Directory(file_path.joinAll([...legacyBaseSegments, chapterId.trim()])),
-    );
-    candidateDirs.add(
-      Directory(
-        file_path.joinAll([...baseSegments, 'comic', chapterId.trim()]),
-      ),
-    );
-    candidateDirs.add(
-      Directory(
-        file_path.joinAll([...legacyBaseSegments, 'comic', chapterId.trim()]),
-      ),
-    );
-  } else {
-    candidateDirs.add(Directory(file_path.joinAll(baseSegments)));
-    candidateDirs.add(Directory(file_path.joinAll(legacyBaseSegments)));
-  }
-
-  for (final dir in candidateDirs) {
-    if (!await dir.exists()) {
-      continue;
-    }
-    final entries = await dir
-        .list()
-        .where((e) => e is File)
-        .cast<File>()
-        .toList();
-    entries.sort((a, b) => a.path.compareTo(b.path));
-    for (final file in entries) {
-      if (file_path.basenameWithoutExtension(file.path) == imageId) {
-        return file.path;
-      }
-    }
-  }
-  return null;
 }
 
 Future<String> checkFileExists(String cachePath, String downloadPath) async {
@@ -526,11 +503,6 @@ Future<void> saveImage(Uint8List imageData, String filePath) async {
       throw Exception('图片数据为空');
     }
 
-    // 基本的图片格式验证（检查文件头）
-    if (!_isValidImageData(imageData)) {
-      logger.w('警告：图片数据可能无效，但仍尝试保存: $filePath');
-    }
-
     // 确保目录存在
     await ensureDirectoryExists(filePath);
 
@@ -546,42 +518,6 @@ Future<void> saveImage(Uint8List imageData, String filePath) async {
     logger.e('保存图片失败: $e');
     throw Exception('保存图片失败: $e 404');
   }
-}
-
-/// 验证图片数据是否有效（检查常见图片格式的文件头）
-bool _isValidImageData(Uint8List data) {
-  if (data.length < 4) return false;
-
-  // JPEG: FF D8 FF
-  if (data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF) {
-    return true;
-  }
-
-  // PNG: 89 50 4E 47
-  if (data[0] == 0x89 &&
-      data[1] == 0x50 &&
-      data[2] == 0x4E &&
-      data[3] == 0x47) {
-    return true;
-  }
-
-  // GIF: 47 49 46 38
-  if (data[0] == 0x47 &&
-      data[1] == 0x49 &&
-      data[2] == 0x46 &&
-      data[3] == 0x38) {
-    return true;
-  }
-
-  // WebP: 52 49 46 46 (RIFF)
-  if (data[0] == 0x52 &&
-      data[1] == 0x49 &&
-      data[2] == 0x46 &&
-      data[3] == 0x46) {
-    return true;
-  }
-
-  return false;
 }
 
 Future<void> ensureDirectoryExists(String filePath) async {

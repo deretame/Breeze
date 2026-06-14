@@ -275,7 +275,9 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
     }
 
     final detail = Map<String, dynamic>.from(decoded);
-    final extension = Map<String, dynamic>.from(detail['extern'] as Map? ?? const {});
+    final extension = Map<String, dynamic>.from(
+      detail['extern'] as Map? ?? const {},
+    );
     final rawDownloadChapters =
         (extension['downloadChapters'] as List?) ?? const [];
 
@@ -291,5 +293,3 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
     return const <UnifiedComicDownloadStoredChapter>[];
   }
 }
-
-

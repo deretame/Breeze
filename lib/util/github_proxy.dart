@@ -1,6 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
 
+List<String> mirrorBaseUrls = [
+  "https://v4.gh-proxy.org/",
+  "https://gh-proxy.org/",
+  "https://v6.gh-proxy.org/",
+  "https://cdn.gh-proxy.org/",
+];
+
 /// 传入标准的 GitHub API URL，函数自动处理降级和代理
 /// 示例输入: https://api.github.com/repos/deretame/Breeze/releases/latest
 Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
@@ -12,8 +19,7 @@ Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
   }
 
   final List<String> urls = [
-    "https://api.windy-78.xyz/proxy?path=$repoPath", // 私有加速 (Rust)
-    "https://gh-proxy.org/https://api.github.com$repoPath", // 公共代理
+    ...mirrorBaseUrls.map((base) => "${base}https://api.github.com$repoPath"),
     "https://api.github.com$repoPath", // 官方直连
   ];
 
@@ -59,7 +65,7 @@ Future<void> smartDownload(String url, String savePath) async {
   List<String> downloadUrls = [];
 
   if (githubRegex.hasMatch(url)) {
-    downloadUrls = ["https://gh-proxy.org/$url", url];
+    downloadUrls = [...mirrorBaseUrls.map((base) => "$base$url"), url];
     logger.d("检测到 GitHub Release 链接，已规划加速路径");
   } else {
     downloadUrls = [url];

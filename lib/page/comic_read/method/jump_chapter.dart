@@ -178,4 +178,8 @@ class JumpChapter {
 
     return false;
   }
+
+  /// 用于章节选择对话框定位初始滚动位置
+  int currentChapterIndexIn(List<UnifiedComicChapterRef> refs) =>
+      refs.indexWhere(_matchesCurrentChapter);
 }

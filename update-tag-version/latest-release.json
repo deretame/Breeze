@@ -67,7 +67,7 @@
       "state": "uploaded",
       "size": 25067522,
       "digest": "sha256:993bf92e535933e8280dc6186db0cd75339eece4ee78f754e4e1c04fd6144805",
-      "download_count": 0,
+      "download_count": 846,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:51Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/app-arm64-v8a-release-v3.0.16.apk"
@@ -103,7 +103,7 @@
       "state": "uploaded",
       "size": 23752118,
       "digest": "sha256:f13acdcf549fc668ec4f5b0f320897958dc529f8065ab6cff1a520cc92d78f47",
-      "download_count": 0,
+      "download_count": 7,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:51Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/app-armeabi-v7a-release-v3.0.16.apk"
@@ -139,7 +139,7 @@
       "state": "uploaded",
       "size": 25858238,
       "digest": "sha256:c764f5cee7e965731c689e7de0036d8befb90404114fb519af2e7b276622fc6d",
-      "download_count": 0,
+      "download_count": 4,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:51Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/app-x86_64-release-v3.0.16.apk"
@@ -175,7 +175,7 @@
       "state": "uploaded",
       "size": 23362078,
       "digest": "sha256:94bbdcd27d02bc4bbda496d45ac85e14f716cbe45434a012ab08efdd7e33a5e9",
-      "download_count": 0,
+      "download_count": 32,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:51Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/Breeze-iOS-v3.0.16.ipa"
@@ -211,7 +211,7 @@
       "state": "uploaded",
       "size": 47044812,
       "digest": "sha256:b4ddb301fcf9a3bf0a1a668263d27320ccf7f84f6312f6534652b0083fe0aa89",
-      "download_count": 0,
+      "download_count": 7,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:51Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/Breeze-macOS-v3.0.16.dmg"
@@ -247,7 +247,7 @@
       "state": "uploaded",
       "size": 17971968,
       "digest": "sha256:12cb6a05e66b6b46c9aa3ac52367b5f4b0578fe20e1db2fa4d9c06868b064f82",
-      "download_count": 0,
+      "download_count": 5,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:50Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/breeze-v3.0.16.flatpak"
@@ -283,7 +283,7 @@
       "state": "uploaded",
       "size": 29062144,
       "digest": "sha256:6774f9305ace2055e2736d2be5de6a68391f2db821227cce480fabe9d8deb9e9",
-      "download_count": 0,
+      "download_count": 28,
       "created_at": "2026-06-15T03:52:49Z",
       "updated_at": "2026-06-15T03:52:51Z",
       "browser_download_url": "https://github.com/deretame/Breeze/releases/download/v3.0.16/windows-installer-v3.0.16.exe"
@@ -291,5 +291,17 @@
   ],
   "tarball_url": "https://api.github.com/repos/deretame/Breeze/tarball/v3.0.16",
   "zipball_url": "https://api.github.com/repos/deretame/Breeze/zipball/v3.0.16",
-  "body": "## 📝 更新日志\n## [v3.0.16]\n\n### 功能更新\n\n- 桌面端添加记忆隐藏/关闭功能\n- 桌面端添加记忆最大化功能\n\n### bug修复\n\n- 修复禁漫部分情况下不会反混淆的问题\n- 修复导出时图片缺失导致导出不全的问题\n- 优化存储路径，避免部分漫画名存在非法路径导致无法正常观看的问题\n- 修复因屏蔽关键词过长导致无法删除的问题\n\n### 优化\n\n- 优化导出逻辑，优化导出后的图片后缀名\n- 优化阅读页性能\n- 优化获取最新版数据以及获取插件列表的性能\n\n### 杂项\n\n- 优化桌面端关闭逻辑，修复部分近期数据可能丢失的问题\n- 优化桌面端打开逻辑，避免出现多个独立实例\n\n---\n\n### 📦 推荐下载\n| 平台 | 下载链接 |\n| :--- | :--- |\n| **Windows** | [windows-installer-v3.0.16.exe](https://github.com/deretame/Breeze/releases/download/v3.0.16/windows-installer-v3.0.16.exe) |\n| **macOS** | [Breeze-macOS-v3.0.16.dmg](https://github.com/deretame/Breeze/releases/download/v3.0.16/Breeze-macOS-v3.0.16.dmg) |\n| **Android** | [app-arm64-v8a-release-v3.0.16.apk](https://github.com/deretame/Breeze/releases/download/v3.0.16/app-arm64-v8a-release-v3.0.16.apk) |\n| **iOS** | [Breeze-iOS-v3.0.16.ipa](https://github.com/deretame/Breeze/releases/download/v3.0.16/Breeze-iOS-v3.0.16.ipa) |\n| **Linux** | [breeze-v3.0.16.flatpak](https://github.com/deretame/Breeze/releases/download/v3.0.16/breeze-v3.0.16.flatpak) |\n\n> 💡 **不知道该下载哪个文件？**\n> 请查看 [详细安装指南](https://github.com/deretame/Breeze#-%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85)。\n"
+  "body": "## 📝 更新日志\n## [v3.0.16]\n\n### 功能更新\n\n- 桌面端添加记忆隐藏/关闭功能\n- 桌面端添加记忆最大化功能\n\n### bug修复\n\n- 修复禁漫部分情况下不会反混淆的问题\n- 修复导出时图片缺失导致导出不全的问题\n- 优化存储路径，避免部分漫画名存在非法路径导致无法正常观看的问题\n- 修复因屏蔽关键词过长导致无法删除的问题\n\n### 优化\n\n- 优化导出逻辑，优化导出后的图片后缀名\n- 优化阅读页性能\n- 优化获取最新版数据以及获取插件列表的性能\n\n### 杂项\n\n- 优化桌面端关闭逻辑，修复部分近期数据可能丢失的问题\n- 优化桌面端打开逻辑，避免出现多个独立实例\n\n---\n\n### 📦 推荐下载\n| 平台 | 下载链接 |\n| :--- | :--- |\n| **Windows** | [windows-installer-v3.0.16.exe](https://github.com/deretame/Breeze/releases/download/v3.0.16/windows-installer-v3.0.16.exe) |\n| **macOS** | [Breeze-macOS-v3.0.16.dmg](https://github.com/deretame/Breeze/releases/download/v3.0.16/Breeze-macOS-v3.0.16.dmg) |\n| **Android** | [app-arm64-v8a-release-v3.0.16.apk](https://github.com/deretame/Breeze/releases/download/v3.0.16/app-arm64-v8a-release-v3.0.16.apk) |\n| **iOS** | [Breeze-iOS-v3.0.16.ipa](https://github.com/deretame/Breeze/releases/download/v3.0.16/Breeze-iOS-v3.0.16.ipa) |\n| **Linux** | [breeze-v3.0.16.flatpak](https://github.com/deretame/Breeze/releases/download/v3.0.16/breeze-v3.0.16.flatpak) |\n\n> 💡 **不知道该下载哪个文件？**\n> 请查看 [详细安装指南](https://github.com/deretame/Breeze#-%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85)。\n",
+  "reactions": {
+    "url": "https://api.github.com/repos/deretame/Breeze/releases/339317331/reactions",
+    "total_count": 1,
+    "+1": 1,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+  }
 }

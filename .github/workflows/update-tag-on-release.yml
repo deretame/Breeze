@@ -1,0 +1,82 @@
+name: Update Tag Version on Release
+
+on:
+  workflow_run:
+    workflows: ["Breeze Multi-Platform Parallel Release"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+  S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+
+jobs:
+  update-tag:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Fetch latest release data
+        id: latest-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RESPONSE=$(curl -sL \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/deretame/Breeze/releases/latest)
+
+          TAG_NAME=$(printf '%s' "$RESPONSE" | jq -r '.tag_name // empty')
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
+            echo "Failed to extract tag_name from latest release"
+            printf '%s' "$RESPONSE" > response_debug.json
+            exit 1
+          fi
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          printf '%s' "$RESPONSE" > update-tag-version/latest-release.json
+          echo "Fetched latest release: $TAG_NAME"
+
+      - name: Commit release data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update-tag-version/latest-release.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: update latest release to ${{ steps.latest-release.outputs.tag_name }}"
+          git push
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: update-tag-version/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: update-tag-version
+
+      - name: Upload tag to S3
+        env:
+          accessKey: ${{ env.S3_ACCESS_KEY }}
+          secretKey: ${{ env.S3_SECRET_KEY }}
+        run: node index.js ${{ steps.latest-release.outputs.tag_name }}
+        working-directory: update-tag-version

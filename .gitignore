@@ -73,3 +73,5 @@ rust/js/jm_http_bundle/package-lock.json
 .you/
 # Third-party local clones
 third_party/llrt/
+
+node_modules

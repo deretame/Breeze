@@ -15,9 +15,6 @@ import 'package:zephyr/util/github_proxy.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-const _cloudPluginListCdnPath =
-    'gh/deretame/Breeze-plugin-list@latest/plugins_data.json';
-
 const _cloudPluginListDirectUrl =
     'https://raw.githubusercontent.com/deretame/Breeze-plugin-list/main/plugins_data.json';
 
@@ -31,10 +28,10 @@ const _cdnMirrors = [
 ];
 
 const _ghCdnMirrors = [
-  // 'https://cdn.jsdmirror.com/',
-  // 'https://cdn.jsdmirror.cn/',
-  // 'https://jsd.onmicrosoft.cn/',
-  // 'https://cdn.jsdelivr.net/',
+  'https://cdn.jsdmirror.com/',
+  'https://cdn.jsdmirror.cn/',
+  'https://jsd.onmicrosoft.cn/',
+  'https://cdn.jsdelivr.net/',
 ];
 
 const _blockedPluginUuid = kDebugMode
@@ -266,8 +263,23 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       ),
     );
 
+    var version = 'latest';
+
+    try {
+      var temp = await client.get<Map<String, dynamic>>(
+        "https://breeze-version.s3.bitiful.net/plugin-list-version.json",
+      );
+
+      version = temp.data?['version'] ?? 'latest';
+    } catch (e) {
+      logger.e(e);
+      return _fetchCloudPluginListPayload(_cloudPluginListDirectUrl);
+    }
+
     for (final mirror in _ghCdnMirrors) {
-      final url = '$mirror$_cloudPluginListCdnPath';
+      final url =
+          '${mirror}gh/deretame/Breeze-plugin-list@$version/plugins_data.json';
+      logger.w('尝试使用 GitHub CDN 镜像: $url');
       try {
         final response = await client.get<String>(
           url,

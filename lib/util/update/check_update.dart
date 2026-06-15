@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -35,6 +36,43 @@ Future<String> getAppVersion() async {
 Future<GithubReleaseJson> getCloudVersion() async {
   const releasesApi =
       "https://api.github.com/repos/deretame/Breeze/releases/latest";
+
+  try {
+    var temp = await dio.get<Map<String, dynamic>>(
+      "https://breeze-version.s3.bitiful.net/breeze-version.json",
+    );
+    var version = temp.data?['version'] ?? 'latest';
+
+    const ghCdnMirrors = [
+      'https://cdn.jsdmirror.com/',
+      'https://cdn.jsdmirror.cn/',
+      'https://jsd.onmicrosoft.cn/',
+      'https://cdn.jsdelivr.net/',
+    ];
+
+    for (final mirror in ghCdnMirrors) {
+      final url =
+          '${mirror}gh/deretame/Breeze@$version/update-tag-version/latest-release.json';
+      logger.w('尝试使用 GitHub CDN 镜像: $url');
+      try {
+        final response = await dio.get<String>(
+          url,
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {'Accept': 'application/json, text/plain, */*'},
+          ),
+        );
+        final body = response.data?.trim() ?? '';
+        if ((response.statusCode ?? 0) == 200 && body.isNotEmpty) {
+          return GithubReleaseJson.fromJson(jsonDecode(body));
+        }
+      } catch (e, stackTrace) {
+        logger.w('CDN 镜像通道失败: $url', error: e, stackTrace: stackTrace);
+      }
+    }
+  } catch (e) {
+    logger.e(e);
+  }
 
   while (true) {
     try {

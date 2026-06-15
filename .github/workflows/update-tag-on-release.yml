@@ -42,7 +42,7 @@ jobs:
             exit 1
           fi
 
-          JSDELIVR_TAG="jsdelivr-${TAG_NAME}"
+          JSDELIVR_TAG="jsdelivr_${TAG_NAME}"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
           echo "jsdelivr_tag=$JSDELIVR_TAG" >> "$GITHUB_OUTPUT"
           printf '%s' "$RESPONSE" > update-tag-version/latest-release.json

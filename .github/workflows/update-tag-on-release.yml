@@ -42,28 +42,52 @@ jobs:
             exit 1
           fi
 
+          JSDELIVR_TAG="jsdelivr-${TAG_NAME}"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "jsdelivr_tag=$JSDELIVR_TAG" >> "$GITHUB_OUTPUT"
           printf '%s' "$RESPONSE" > update-tag-version/latest-release.json
           echo "Fetched latest release: $TAG_NAME"
+          echo "Jsdelivr tag will be: $JSDELIVR_TAG"
 
       - name: Commit release data
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add update-tag-version/latest-release.json
           if git diff --cached --quiet; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to commit"
             exit 0
           fi
           git commit -m "chore: update latest release to ${{ steps.latest-release.outputs.tag_name }}"
           git push
+          echo "committed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update jsdelivr tag
+        # release 触发时仅在文件有更新才需要刷新 CDN tag；手动触发时始终执行，方便重试
+        if: steps.commit.outputs.committed == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          JSDELIVR_TAG="${{ steps.latest-release.outputs.jsdelivr_tag }}"
+          echo "Creating/updating jsdelivr tag: $JSDELIVR_TAG"
+
+          # 若因重跑导致旧 tag 已存在，先删除本地和远程旧 tag
+          git tag -d "$JSDELIVR_TAG" >/dev/null 2>&1 || true
+          git push origin --delete "$JSDELIVR_TAG" >/dev/null 2>&1 || true
+
+          # 将 jsdelivr-* tag 打在包含最新 latest-release.json 的 commit 上
+          git tag "$JSDELIVR_TAG"
+          git push origin "$JSDELIVR_TAG"
+          echo "Pushed tag: $JSDELIVR_TAG"
 
       - name: Setup pnpm
+        if: steps.commit.outputs.committed == 'true' || github.event_name == 'workflow_dispatch'
         uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - name: Setup Node.js
+        if: steps.commit.outputs.committed == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -71,12 +95,15 @@ jobs:
           cache-dependency-path: update-tag-version/pnpm-lock.yaml
 
       - name: Install dependencies
+        if: steps.commit.outputs.committed == 'true' || github.event_name == 'workflow_dispatch'
         run: pnpm install
         working-directory: update-tag-version
 
       - name: Upload tag to S3
+        if: steps.commit.outputs.committed == 'true' || github.event_name == 'workflow_dispatch'
         env:
           accessKey: ${{ env.S3_ACCESS_KEY }}
           secretKey: ${{ env.S3_SECRET_KEY }}
-        run: node index.js ${{ steps.latest-release.outputs.tag_name }}
+        # 上传 jsdelivr-{releaseTag} 到 S3，客户端直接用该 tag 访问 CDN
+        run: node index.js ${{ steps.latest-release.outputs.jsdelivr_tag }}
         working-directory: update-tag-version

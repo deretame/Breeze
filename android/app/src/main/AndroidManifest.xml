@@ -21,6 +21,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- 前台服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- 下载时保持 CPU 不休眠 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 下载时保持 Wi-Fi 高性能 -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- 精确闹钟权限 -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <!-- 忽略电池优化权限 -->

@@ -53,7 +53,7 @@ Future<GithubReleaseJson> getCloudVersion() async {
     for (final mirror in ghCdnMirrors) {
       final url =
           '${mirror}gh/deretame/Breeze@$version/update-tag-version/latest-release.json';
-      logger.w('尝试使用 GitHub CDN 镜像: $url');
+      logger.d('尝试使用 GitHub CDN 镜像: $url');
       try {
         final response = await dio.get<String>(
           url,

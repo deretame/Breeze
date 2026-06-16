@@ -183,9 +183,9 @@ Future<String> getCachePicture({
 Future<String> downloadPicture({
   required String from,
   String url = '',
-  String cartoonId = '',
-  String chapterId = '',
   String path = '',
+  String cartoonId = '1',
+  String chapterId = '',
   PictureType pictureType = PictureType.page,
   String? qjsName,
   String qjsTaskGroupKey = '',
@@ -207,7 +207,10 @@ Future<String> downloadPicture({
     return '404';
   }
 
-  final encodePicturePath = path.trim().let((path) => encodePath(path: path));
+  final encodePicturePath = path
+      .let((path) => _sanitizeStoredPath(path))
+      .trim()
+      .let((path) => encodePath(path: path));
   final encodeCartoonId = cartoonId.trim().let(
     (path) => encodePath(path: path),
   );

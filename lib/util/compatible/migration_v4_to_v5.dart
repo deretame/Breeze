@@ -3,10 +3,15 @@ import 'dart:convert';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart' hide objectbox;
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/worker_isolate.dart';
 
 Future<void> migrateV4ToV5() async {
-  workerManager.execute(() async {
-    final objectboxTemp = await ObjectBox.create();
+  final dbRootPath = await getDbPath();
+  final rootIsolateToken = captureWorkerIsolateToken();
+  await workerManager.execute(() async {
+    ensureWorkerIsolateInitialized(rootIsolateToken);
+    final objectboxTemp = await ObjectBox.create(dbRootPath: dbRootPath);
     _migrateFavorites(objectboxTemp);
     _migrateHistories(objectboxTemp);
     _migrateDownloads(objectboxTemp);

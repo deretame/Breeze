@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:path/path.dart' as p;
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -73,6 +72,12 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
           normalComicInfo = _localizeDownloadDetail(
             comicInfo as UnifiedComicDownload,
           );
+          // final temp1 = comicInfo.toString();
+          // logger.d(temp1);
+          // final temp = comicInfo.chapters
+          //     .let((d) => jsonDecode(d) as Object)
+          //     .let((d) => jsonEncode(d));
+          // logger.d(temp);
         }
       } else {
         final pluginResult = await getComicDetailByPlugin(
@@ -109,10 +114,6 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       jsonDecode(comicInfo.detailJson) as Map<String, dynamic>,
     );
     final localCover = _deepCopyMap(normalComicInfo.comicInfo.cover.toJson());
-    final coverPath = localCover['path']?.toString().trim() ?? '';
-    if (coverPath.isNotEmpty) {
-      localCover['path'] = p.join(comicInfo.storageRoot, coverPath);
-    }
 
     final localCreator = _deepCopyMap(
       normalComicInfo.comicInfo.creator.toJson(),

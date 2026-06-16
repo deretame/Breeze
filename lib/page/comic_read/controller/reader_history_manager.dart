@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/cubit/string_select.dart';
@@ -8,6 +9,7 @@ import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/util/worker_isolate.dart';
 
 import '../../../main.dart'; // 引用 objectbox
 import '../../../object_box/model.dart';
@@ -122,8 +124,9 @@ class ReaderHistoryManager {
         'pageIndex': pageIndex,
         'timestamp': timestamp.toIso8601String(),
       };
+      final rootIsolateToken = captureWorkerIsolateToken();
       final historyJson = await workerManager.execute<Map<String, dynamic>>(
-        () => _upsertUnifiedHistoryOnWorker(payload),
+        () => _upsertUnifiedHistoryOnWorker(payload, rootIsolateToken),
       );
       _history = UnifiedComicHistory.fromJson(historyJson);
     } catch (e, s) {
@@ -190,7 +193,10 @@ class ReaderHistoryManager {
 
 Future<Map<String, dynamic>> _upsertUnifiedHistoryOnWorker(
   Map<String, dynamic> payload,
+  RootIsolateToken? rootIsolateToken,
 ) async {
+  ensureWorkerIsolateInitialized(rootIsolateToken);
+
   final dbRootPath = payload['dbRootPath']?.toString() ?? '';
   if (dbRootPath.trim().isEmpty) {
     throw StateError('missing dbRootPath for history worker write');

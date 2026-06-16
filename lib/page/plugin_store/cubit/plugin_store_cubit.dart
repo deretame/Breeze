@@ -279,7 +279,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     for (final mirror in _ghCdnMirrors) {
       final url =
           '${mirror}gh/deretame/Breeze-plugin-list@$version/plugins_data.json';
-      logger.w('尝试使用 GitHub CDN 镜像: $url');
+      logger.d('尝试使用 GitHub CDN 镜像: $url');
       try {
         final response = await client.get<String>(
           url,

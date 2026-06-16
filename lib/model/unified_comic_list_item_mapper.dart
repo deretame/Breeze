@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:path/path.dart' as p;
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
@@ -55,10 +56,6 @@ UnifiedComicListItem unifiedComicFromUnifiedDownload(
 ) {
   final cover = _coverFromStored(comic.source, comic.comicId, comic.cover);
   final extern = Map<String, dynamic>.from(cover.extern);
-  var storedPath = cover.path;
-  if (storedPath.isNotEmpty) {
-    storedPath = p.join(comic.storageRoot, storedPath);
-  }
   return UnifiedComicListItem(
     source: comic.source,
     id: comic.comicId,
@@ -70,8 +67,8 @@ UnifiedComicListItem unifiedComicFromUnifiedDownload(
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: UnifiedComicCover(
       id: cover.id,
-      url: '',
-      path: storedPath,
+      url: cover.url,
+      path: cover.path,
       extern: extern,
     ),
     metadata: _metadataFromString(comic.metadata),

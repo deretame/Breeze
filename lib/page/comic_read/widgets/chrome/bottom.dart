@@ -8,11 +8,11 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/type/enum.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -293,8 +293,12 @@ class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final highlightStyle = TextButton.styleFrom(
-      foregroundColor: Theme.of(context).colorScheme.primary,
+      foregroundColor: colorScheme.onPrimaryContainer,
+      backgroundColor: colorScheme.primaryContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
 
     return AlertDialog(
@@ -303,11 +307,24 @@ class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
         child: ListBody(
           children: [
             for (var i = 0; i < widget.refs.length; i++)
-              TextButton(
+              Padding(
                 key: _itemKeys[i],
-                style: i == widget.initialIndex ? highlightStyle : null,
-                child: Text(widget.refs[i].name),
-                onPressed: () => widget.onSelected(widget.refs[i]),
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: TextButton(
+                  style: i == widget.initialIndex ? highlightStyle : null,
+                  onPressed: () => widget.onSelected(widget.refs[i]),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(widget.refs[i].name)),
+                      if (i == widget.initialIndex)
+                        Icon(
+                          Icons.check_circle_rounded,
+                          size: 18,
+                          color: colorScheme.primary,
+                        ),
+                    ],
+                  ),
+                ),
               ),
           ],
         ),

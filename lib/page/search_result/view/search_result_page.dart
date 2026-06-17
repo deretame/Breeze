@@ -92,7 +92,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
       await Future.delayed(const Duration(milliseconds: 200));
       settingCubit.updateState(
         (current) =>
-            current.copyWith(searchHistory: history.take(200).toList()),
+            current.copyWith(searchHistory: history.take(300).toList()),
       );
     });
   }

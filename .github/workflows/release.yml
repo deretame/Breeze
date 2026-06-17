@@ -709,6 +709,7 @@ jobs:
           if [ -f "$CASK_FILE" ]; then
             sed -i "s/version \".*\"/version \"$CLEAN_VERSION\"/" "$CASK_FILE"
             sed -i "s/sha256 \".*\"/sha256 \"$DMG_SHA256\"/" "$CASK_FILE"
+            sed -i 's@/Breeze-macOS\.dmg"@/Breeze-macOS-#{version}.dmg"@' "$CASK_FILE"
             echo "已成功更新 $CASK_FILE"
           else
             echo "错误：未找到真正的 Cask 文件 $CASK_FILE"

@@ -225,21 +225,16 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   Future<void> _selectJumpChapter() async {
     final router = AutoRouter.of(context);
+    final initialIndex = jumpChapter.currentChapterIndexIn(chapterRefs);
     final result = await showDialog<UnifiedComicChapterRef?>(
       context: context,
       barrierDismissible: false, // 不允许点击外部区域关闭对话框
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('选择章节'),
-          content: SingleChildScrollView(child: _epSelector(context)),
-          actions: [
-            TextButton(
-              child: Text('取消'),
-              onPressed: () {
-                context.pop();
-              },
-            ),
-          ],
+        return _ChapterPickerDialog(
+          refs: chapterRefs,
+          initialIndex: initialIndex,
+          onSelected: (ep) =>
+              Navigator.of(context, rootNavigator: false).pop(ep),
         );
       },
     );
@@ -263,16 +258,65 @@ class _BottomWidgetState extends State<BottomWidget> {
       );
     }
   }
+}
 
-  Widget _epSelector(BuildContext context) {
-    return ListBody(
-      children: [
-        for (final ep in chapterRefs)
-          TextButton(
-            child: Text(ep.name),
-            onPressed: () =>
-                Navigator.of(context, rootNavigator: false).pop(ep),
-          ),
+class _ChapterPickerDialog extends StatefulWidget {
+  final List<UnifiedComicChapterRef> refs;
+  final int initialIndex;
+  final ValueChanged<UnifiedComicChapterRef> onSelected;
+
+  const _ChapterPickerDialog({
+    required this.refs,
+    required this.initialIndex,
+    required this.onSelected,
+  });
+
+  @override
+  State<_ChapterPickerDialog> createState() => _ChapterPickerDialogState();
+}
+
+class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
+  late final List<GlobalKey> _itemKeys;
+
+  @override
+  void initState() {
+    super.initState();
+    _itemKeys = List.generate(widget.refs.length, (_) => GlobalKey());
+    if (widget.initialIndex < 0) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final context = _itemKeys[widget.initialIndex].currentContext;
+      if (context == null) return;
+      Scrollable.ensureVisible(context, alignment: 0.0);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final highlightStyle = TextButton.styleFrom(
+      foregroundColor: Theme.of(context).colorScheme.primary,
+    );
+
+    return AlertDialog(
+      title: const Text('选择章节'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: [
+            for (var i = 0; i < widget.refs.length; i++)
+              TextButton(
+                key: _itemKeys[i],
+                style: i == widget.initialIndex ? highlightStyle : null,
+                child: Text(widget.refs[i].name),
+                onPressed: () => widget.onSelected(widget.refs[i]),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: const Text('取消'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ],
     );
   }

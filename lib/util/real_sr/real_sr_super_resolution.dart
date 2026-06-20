@@ -247,8 +247,16 @@ class RealSrSuperResolution {
             '${p.basenameWithoutExtension(inputPath)}_sr.png',
           );
 
+      final rawExt = await detectImageExtension(inputFile);
+      if (rawExt.isEmpty || rawExt == ".gif" || rawExt == ".webm") {
+        return;
+      }
+
+      if (rawExt == ".webp") {
+        if (await isAnimatedWebP(inputFile)) return;
+      }
+
       if (Platform.isAndroid) {
-        final rawExt = await detectImageExtension(inputFile);
         final inputExtension = rawExt.startsWith('.')
             ? rawExt.substring(1)
             : rawExt;
@@ -387,5 +395,41 @@ class RealSrUpscaleResult {
   @override
   String toString() {
     return 'RealSrUpscaleResult(success=$success, exitCode=$exitCode, outputPath=$outputPath)';
+  }
+}
+
+/// 检测 WebP 文件是否为动图
+/// 返回 true 表示是动图，false 表示静态图或读取失败
+Future<bool> isAnimatedWebP(File file) async {
+  try {
+    // 只需要读取前 20 个字节就够了（实际只需 16 个，读 20 以防万一）
+    final bytes = await file.openRead(0, 20).first;
+
+    // 长度不足则判定为非动图
+    if (bytes.length < 16) return false;
+
+    // 校验头部是否为 RIFF...WEBP (0x52= R, 0x49=I, 0x46=F)
+    // 偏移 0-3: RIFF, 偏移 8-11: WEBP
+    if (bytes[0] != 0x52 ||
+        bytes[1] != 0x49 ||
+        bytes[2] != 0x46 ||
+        bytes[3] != 0x46) {
+      return false;
+    }
+    if (bytes[8] != 0x57 ||
+        bytes[9] != 0x45 ||
+        bytes[10] != 0x42 ||
+        bytes[11] != 0x50) {
+      return false;
+    }
+
+    // 关键判断：偏移 12-15 必须是 'ANIM' (0x41=A, 0x4E=N, 0x49=I, 0x4D=M)
+    // 只要是 ANIM，就说明包含动画控制块，必然是动图
+    return bytes[12] == 0x41 &&
+        bytes[13] == 0x4E &&
+        bytes[14] == 0x49 &&
+        bytes[15] == 0x4D;
+  } catch (_) {
+    return true;
   }
 }

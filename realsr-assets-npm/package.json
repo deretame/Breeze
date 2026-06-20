@@ -1,6 +1,6 @@
 {
   "name": "breeze-realsr-assets",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "RealSR runtime assets for Breeze (models + Android JNI libs)",
   "license": "MIT",
   "repository": {
@@ -8,7 +8,6 @@
     "url": "https://github.com/your-org/breeze.git"
   },
   "files": [
-    "asset/",
-    "android/"
+    "dist"
   ]
 }

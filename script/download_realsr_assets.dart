@@ -19,7 +19,7 @@ import 'package:path/path.dart' as p;
 ///   BREEZE_REALSR_URL=https://registry.npmjs.org/breeze-realsr-assets/-/breeze-realsr-assets-1.0.1.tgz
 ///   dart script/download_realsr_assets.dart
 const _defaultUrl =
-    'https://registry.npmjs.org/breeze-realsr-assets/-/breeze-realsr-assets-1.0.1.tgz';
+    'https://registry.npmjs.org/breeze-realsr-assets/-/breeze-realsr-assets-1.0.2.tgz';
 
 final _expectedFiles = [
   p.join('asset', 'realsr', 'colors.xml'),
@@ -120,7 +120,10 @@ Future<void> _downloadFile(String url, String destPath) async {
     final response = await request.close();
 
     if (response.statusCode != 200) {
-      throw Exception('下载失败：HTTP ${response.statusCode}');
+      throw Exception(
+        '下载失败：HTTP ${response.statusCode}，URL: $url\n'
+        '请检查 npm 包版本是否已发布，或改用 --url= 指定可用地址。',
+      );
     }
 
     final total = response.headers.contentLength;
@@ -159,6 +162,65 @@ Future<void> _extractArchive(String archivePath, String destDir) async {
   final prefix = _detectTopLevelPrefix(archive);
   stdout.writeln('检测到顶层目录前缀：${prefix ?? '(无)'}');
 
+  // 先解压到临时目录，避免把 package.json 等中间文件直接写到项目根目录
+  final tempDir = await Directory.systemTemp.createTemp('breeze_realsr_');
+  final tempPath = tempDir.path;
+  try {
+    for (final file in archive.files) {
+      var name = file.name;
+      if (prefix != null && name.startsWith(prefix)) {
+        name = name.substring(prefix.length);
+      }
+      if (name.isEmpty || name.endsWith('/')) continue;
+
+      final filePath = p.join(tempPath, name);
+      final data = file.content as List<int>;
+      await File(filePath).create(recursive: true);
+      await File(filePath).writeAsBytes(data);
+    }
+
+    // 如果外层没有直接包含期望的资源文件，则尝试解压内嵌的 zip
+    if (!_expectedFilesExist(tempPath)) {
+      final nestedZips = await _findNestedZips(tempPath);
+      if (nestedZips.isNotEmpty) {
+        stdout.writeln('检测到内嵌 zip，继续解压：${nestedZips.map(p.basename).toList()}');
+        for (final zipPath in nestedZips) {
+          await _extractZipFile(zipPath, tempPath);
+        }
+      }
+    }
+
+    // 把最终资源复制到项目根目录
+    await _copyDirectoryContents(tempPath, destDir);
+  } finally {
+    await tempDir.delete(recursive: true);
+  }
+}
+
+bool _expectedFilesExist(String root) {
+  for (final relativePath in _expectedFiles) {
+    if (!File(p.join(root, relativePath)).existsSync()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+Future<List<String>> _findNestedZips(String root) async {
+  final zips = <String>[];
+  await for (final entity in Directory(root).list(recursive: true)) {
+    if (entity is File && p.extension(entity.path).toLowerCase() == '.zip') {
+      zips.add(entity.path);
+    }
+  }
+  return zips;
+}
+
+Future<void> _extractZipFile(String zipPath, String destDir) async {
+  final bytes = await File(zipPath).readAsBytes();
+  final archive = ZipDecoder().decodeBytes(bytes);
+
+  final prefix = _detectTopLevelPrefix(archive);
   for (final file in archive.files) {
     var name = file.name;
     if (prefix != null && name.startsWith(prefix)) {
@@ -170,6 +232,28 @@ Future<void> _extractArchive(String archivePath, String destDir) async {
     final data = file.content as List<int>;
     await File(filePath).create(recursive: true);
     await File(filePath).writeAsBytes(data);
+  }
+}
+
+Future<void> _copyDirectoryContents(String sourceDir, String destDir) async {
+  // 只复制资源目录（asset/ 与 android/），避免把 package.json、
+  // dist/realsr-assets-npm.zip 等中间文件带到项目根目录。
+  const resourceDirs = ['asset', 'android'];
+  for (final dirName in resourceDirs) {
+    final source = Directory(p.join(sourceDir, dirName));
+    if (!source.existsSync()) continue;
+    final dest = Directory(p.join(destDir, dirName));
+    await _copyDirectory(source, dest);
+  }
+}
+
+Future<void> _copyDirectory(Directory source, Directory dest) async {
+  await for (final entity in source.list(recursive: true)) {
+    if (entity is! File) continue;
+    final relative = p.relative(entity.path, from: source.path);
+    final destPath = p.join(dest.path, relative);
+    await File(destPath).create(recursive: true);
+    await entity.copy(destPath);
   }
 }
 

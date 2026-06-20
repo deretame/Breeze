@@ -13,6 +13,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/impeller_config.dart';
+import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -38,6 +39,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   int? _cacheSizeBytes;
   bool _cacheCalculating = false;
   DesktopCloseBehavior _desktopCloseBehavior = DesktopCloseBehavior.ask;
+  late final Future<bool> _realSrAvailable;
 
   @override
   void initState() {
@@ -45,6 +47,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     _loadImpellerConfig();
     _loadCacheSize();
     _loadDesktopCloseBehavior();
+    _realSrAvailable = isDesktop
+        ? Future.value(true)
+        : RealSrSuperResolution.isAvailable;
   }
 
   Future<void> _loadDesktopCloseBehavior() async {
@@ -215,6 +220,26 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '存储', Icons.storage_outlined),
               _cacheSettings(context),
+
+              FutureBuilder<bool>(
+                future: _realSrAvailable,
+                builder: (context, snapshot) {
+                  // iOS 当前未接入超分，整个“图片处理”区块都不应该显示
+                  if (snapshot.data != true) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      const Divider(height: 1, thickness: 0.3),
+                      _buildSectionTitle(context, '图片处理', Icons.image_outlined),
+                      _realSrSettings(context),
+                    ],
+                  );
+                },
+              ),
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
@@ -805,6 +830,16 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             },
           ),
       ],
+    );
+  }
+
+  Widget _realSrSettings(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.auto_fix_high_outlined),
+      title: const Text('图片超分（实验性）'),
+      subtitle: const Text('Real-CUGAN 自动超分设置'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => AutoRouter.of(context).push(const RealSrSettingRoute()),
     );
   }
 

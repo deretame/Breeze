@@ -111,7 +111,7 @@ Future<String> _exportComicAsZip(
 
   final coverPath = await _tryDownloadCover(download, comicId, from: from);
   if (coverPath != null) {
-    final coverExt = await _detectImageExtension(File(coverPath));
+    final coverExt = await detectImageExtension(File(coverPath));
     packInfo.originalImagePaths.add(coverPath);
     packInfo.packImagePaths.add('cover$coverExt');
   }
@@ -172,7 +172,7 @@ Future<void> _exportCover(
     return;
   }
   final srcFile = File(path);
-  final ext = await _detectImageExtension(srcFile);
+  final ext = await detectImageExtension(srcFile);
   final destFile = File(p.join(comicDir, 'cover$ext'));
   await destFile.create(recursive: true);
   await srcFile.copy(destFile.path);
@@ -274,7 +274,7 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
     for (var imageIndex = 0; imageIndex < files.length; imageIndex++) {
       final file = files[imageIndex];
       final indexLabel = (imageIndex + 1).toString().padLeft(numberWidth, '0');
-      final extension = await _detectImageExtension(file);
+      final extension = await detectImageExtension(file);
       numberedImages.add(
         _ExportImageEntry(
           source: file,
@@ -532,7 +532,7 @@ class _ExportImageEntry {
   final String exportFileName;
 }
 
-Future<String> _detectImageExtension(File file) async {
+Future<String> detectImageExtension(File file) async {
   try {
     final raf = await file.open(mode: FileMode.read);
     final header = await raf.read(16);

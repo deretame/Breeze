@@ -75,3 +75,16 @@ rust/js/jm_http_bundle/package-lock.json
 third_party/llrt/
 
 node_modules
+
+# RealSR large binaries / downloaded assets
+asset/realsr/
+android/app/src/main/jniLibs/
+breeze-realsr-assets-*.tgz
+realsr-assets-npm/dist/
+realsr-assets-npm/asset/
+realsr-assets-npm/android/
+
+# RealSR desktop CLI
+realsr-win/
+realsr-linux/
+realsr-macos/

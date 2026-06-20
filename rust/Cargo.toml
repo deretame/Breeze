@@ -43,6 +43,7 @@ chrono = "0.4.44"
 terminal_size = "0.4.4"
 ferrous-opencc = "0.3"
 brotli = "8.0.2"
+sevenz-rust = "0.6.1"
 webp = "0.3.1"
 serde = { version = "1", features = ["derive"] }
 serde-xml-rs = "0.8.2"

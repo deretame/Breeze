@@ -64,3 +64,11 @@ Future<Uint8List> decompressExtreme({required List<int> data}) =>
 
 String encodePath({required String path}) =>
     RustLib.instance.api.crateApiSimpleEncodePath(path: path);
+
+Future<void> decompress7Z({
+  required String archivePath,
+  required String destPath,
+}) => RustLib.instance.api.crateApiSimpleDecompress7Z(
+  archivePath: archivePath,
+  destPath: destPath,
+);

@@ -10,6 +10,7 @@ import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
+import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
 
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';
@@ -121,6 +122,10 @@ Future<String> getCachePicture({
       try {
         // 尝试读取文件大小以确保文件可访问
         await file.length();
+        // 超分 + WebP 转换统一封装，内部会判断分辨率并保留原文件名
+        if (pictureType == PictureType.page) {
+          await RealSrSuperResolution.upscaleAndConvertToWebp(existingFilePath);
+        }
         return existingFilePath;
       } catch (e) {
         // 文件存在但无法访问，删除并重新下载
@@ -174,6 +179,10 @@ Future<String> getCachePicture({
 
   // 验证文件已成功保存
   if (await File(newCacheFilePath).exists()) {
+    // 超分 + WebP 转换统一封装，内部会判断分辨率并保留原文件名
+    if (pictureType == PictureType.page) {
+      await RealSrSuperResolution.upscaleAndConvertToWebp(newCacheFilePath);
+    }
     return newCacheFilePath;
   } else {
     throw Exception('图片保存失败');

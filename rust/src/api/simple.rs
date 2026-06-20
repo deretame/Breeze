@@ -108,3 +108,8 @@ pub fn encode_path(path: &str) -> Result<String> {
     let hash = xxh3_128(path.as_bytes()).to_string();
     Ok(format!("f_{hash}"))
 }
+
+#[frb]
+pub async fn decompress_7z(archive_path: &str, dest_path: &str) -> Result<()> {
+    compressed::decompress_7z(archive_path, dest_path).await
+}

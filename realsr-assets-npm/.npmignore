@@ -1,0 +1,2 @@
+# 确保 asset/ 和 android/ 目录都被 npm 打包进去
+# 这个文件存在时，npm 不会使用上层 .gitignore

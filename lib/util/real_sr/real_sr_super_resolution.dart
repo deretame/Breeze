@@ -1,0 +1,391 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+import 'package:pool/pool.dart';
+import 'package:uuid/uuid.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_info/method/export_comic.dart';
+import 'package:zephyr/src/rust/api/image.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/real_sr/real_sr_settings.dart';
+import 'package:zephyr/widgets/toast.dart';
+
+/// Breeze 内置 RealSR / Real-CUGAN CLI 超分封装
+///
+/// - Android：通过 MethodChannel 调用原生 CLI
+/// - Windows / Linux / macOS：从 `deretame/breeze-binary` 下载模型后，
+///   调用 `getFilePath()/super_resolution/` 下的 realcugan-ncnn-vulkan
+class RealSrSuperResolution {
+  RealSrSuperResolution._();
+
+  static const MethodChannel _channel = MethodChannel(
+    'realsr_super_resolution',
+  );
+
+  /// GitHub 上存放桌面端模型压缩包的仓库。
+  static const String _binaryRepoBaseUrl =
+      'https://github.com/deretame/breeze-binary/raw/main';
+
+  /// 最大并发超分任务数。
+  ///
+  /// - 桌面端（Windows / Linux / macOS）默认 2，高端显卡可设更高。
+  /// - 移动设备（Android / iOS）默认 1，避免 OOM / 发热。
+  ///
+  /// 修改后会立即影响新任务，已在执行的任务不受影响。
+  static int get maxConcurrency {
+    if (_maxConcurrency != null) return _maxConcurrency!;
+    return RealSrSettings.defaultConcurrency;
+  }
+
+  static set maxConcurrency(int value) {
+    if (value < 1) {
+      throw ArgumentError.value(value, 'maxConcurrency', 'must be >= 1');
+    }
+    _maxConcurrency = value;
+    _pool = Pool(value);
+  }
+
+  static int? _maxConcurrency;
+  static Pool _pool = Pool(maxConcurrency);
+
+  /// 桌面端模型下载/解压目录：`<getFilePath()>/super_resolution`
+  static Future<String> get _modelDirectory async {
+    return p.join(await getFilePath(), 'super_resolution');
+  }
+
+  static String get _executableName => Platform.isWindows
+      ? 'realcugan-ncnn-vulkan.exe'
+      : 'realcugan-ncnn-vulkan';
+
+  static Future<String> get _executablePath async {
+    return p.join(await _modelDirectory, _executableName);
+  }
+
+  /// 当前设备是否支持内置超分。
+  ///
+  /// - Android：arm64-v8a
+  /// - Windows / Linux / macOS：存在对应平台的 realcugan-ncnn-vulkan 可执行文件
+  static Future<bool> get isAvailable async {
+    if (Platform.isAndroid) {
+      try {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        return androidInfo.supportedAbis.contains('arm64-v8a');
+      } catch (_) {
+        return false;
+      }
+    }
+
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      return File(await _executablePath).existsSync();
+    }
+
+    return false;
+  }
+
+  /// 当前平台对应的 7z 压缩包文件名。
+  static String? get _desktopAssetName {
+    if (Platform.isWindows) return 'realsr-win.7z';
+    if (Platform.isLinux) return 'realsr-linux.7z';
+    if (Platform.isMacOS) return 'realsr-macos.7z';
+    return null;
+  }
+
+  /// 下载并解压桌面端超分模型。
+  ///
+  /// 下载到缓存目录，解压到 `getFilePath()/super_resolution/`，
+  /// 解压完成后删除压缩包，并给 Linux / macOS 可执行文件授权。
+  static Future<void> downloadModel({
+    void Function(int received, int total)? onProgress,
+  }) async {
+    final assetName = _desktopAssetName;
+    if (assetName == null) {
+      throw UnsupportedError('当前平台不支持下载 RealSR 模型');
+    }
+
+    final url = '$_binaryRepoBaseUrl/$assetName';
+    final cachePath = await getCachePath();
+    final archivePath = p.join(cachePath, assetName);
+    final destDir = await _modelDirectory;
+
+    await Directory(destDir).create(recursive: true);
+
+    try {
+      await dio.download(
+        url,
+        archivePath,
+        onReceiveProgress: (received, total) {
+          if (total > 0) onProgress?.call(received, total);
+        },
+      );
+
+      await decompress7Z(archivePath: archivePath, destPath: destDir);
+
+      // Linux / macOS 需要给可执行文件授权
+      if (!Platform.isWindows) {
+        final exe = await _executablePath;
+        try {
+          await Process.run('chmod', ['+x', exe], runInShell: false);
+        } catch (e, s) {
+          logger.w('RealSR 可执行文件授权失败: $exe', error: e, stackTrace: s);
+        }
+      }
+
+      _missingModelNotified = false;
+      showSuccessToast('模型下载完成');
+    } finally {
+      try {
+        await File(archivePath).delete();
+      } catch (_) {}
+    }
+  }
+
+  /// 判断图片是否需要超分：仅当能解析出横向分辨率且小于阈值时返回 true。
+  static Future<bool> shouldUpscale(
+    String inputPath, {
+    RealSrResolutionThreshold? threshold,
+  }) async {
+    logger.d('Checking if $inputPath needs to be upscanned...');
+    final effectiveThreshold =
+        threshold ?? await RealSrSettings.loadResolutionThreshold();
+
+    ui.ImmutableBuffer? buffer;
+    ui.ImageDescriptor? descriptor;
+    try {
+      buffer = await ui.ImmutableBuffer.fromFilePath(inputPath);
+      descriptor = await ui.ImageDescriptor.encoded(buffer);
+      return descriptor.width < effectiveThreshold.maxWidth;
+    } catch (e, s) {
+      logger.w('RealSR 无法解析图片尺寸，跳过超分: $inputPath', error: e, stackTrace: s);
+      return false;
+    } finally {
+      descriptor?.dispose();
+      buffer?.dispose();
+    }
+  }
+
+  /// 手动触发资源释放。通常不需要调用，[upscale] 会自动检查。
+  static Future<void> extractAssets({bool force = false}) async {
+    await _channel.invokeMethod('extractAssets', {'force': force});
+  }
+
+  static bool _missingModelNotified = false;
+
+  /// 对单张图片做超分放大，成功后再转换为 WebP 以节省空间。
+  static Future<void> upscaleAndConvertToWebp(String inputPath) async {
+    final autoUpscale = await RealSrSettings.loadAutoUpscale();
+    if (!autoUpscale) return;
+
+    if (!await isAvailable) {
+      if (!_missingModelNotified) {
+        _missingModelNotified = true;
+        showErrorToast('模型不完整');
+      }
+      return;
+    }
+
+    final concurrency = await RealSrSettings.loadConcurrency();
+    final targetConcurrency = concurrency == 0 ? 64 : concurrency;
+    if (maxConcurrency != targetConcurrency) {
+      maxConcurrency = targetConcurrency;
+    }
+
+    final threshold = await RealSrSettings.loadResolutionThreshold();
+    if (!await shouldUpscale(inputPath, threshold: threshold)) return;
+
+    final noiseLevel = await RealSrSettings.loadNoiseLevel();
+    final tileSize = await RealSrSettings.loadTileSize();
+    await upscale(
+      inputPath: inputPath,
+      outputPath: inputPath,
+      noiseLevel: noiseLevel,
+      tileSize: tileSize,
+    );
+
+    // 超分成功后输出的是 PNG，再转换为 WebP 以节省空间
+    try {
+      await convertImageToWebp(inputPath: inputPath, imageType: 'png');
+    } catch (e, s) {
+      logger.w('WebP 转换失败，保留超分后的原图: $inputPath', error: e, stackTrace: s);
+    }
+  }
+
+  /// 对单张图片做超分放大。
+  static Future<void> upscale({
+    required String inputPath,
+    String? outputPath,
+    String executable = 'realcugan-ncnn',
+    String modelDir = 'models-pro',
+    int scale = 2,
+    RealSrNoiseLevel noiseLevel = RealSrNoiseLevel.conservative,
+    int tileSize = 0,
+    int syncGapMode = 3,
+  }) async {
+    if (!await isAvailable) return;
+
+    await _pool.withResource(() async {
+      final startAt = DateTime.now();
+      logger.d('Upscaling $inputPath to $outputPath');
+
+      final inputFile = File(inputPath);
+      if (!inputFile.existsSync()) {
+        throw ArgumentError.value(
+          inputPath,
+          'inputPath',
+          'Input file does not exist',
+        );
+      }
+
+      final out =
+          outputPath ??
+          p.join(
+            p.dirname(inputPath),
+            '${p.basenameWithoutExtension(inputPath)}_sr.png',
+          );
+
+      if (Platform.isAndroid) {
+        final rawExt = await detectImageExtension(inputFile);
+        final inputExtension = rawExt.startsWith('.')
+            ? rawExt.substring(1)
+            : rawExt;
+
+        final result = await _channel
+            .invokeMapMethod<String, dynamic>('upscale', {
+              'inputPath': inputPath,
+              'outputPath': out,
+              'inputExtension': inputExtension.isEmpty ? 'png' : inputExtension,
+              'executable': executable,
+              'modelDir': modelDir,
+              'scale': scale,
+              'noiseLevel': noiseLevel.value,
+              'tileSize': tileSize,
+              'syncGapMode': syncGapMode,
+            });
+
+        if (result == null) {
+          throw StateError('Platform channel returned null');
+        }
+
+        logger.d('Upscaling result: $result');
+      } else {
+        await _upscaleCli(
+          inputPath: inputPath,
+          outputPath: out,
+          modelDir: modelDir,
+          scale: scale,
+          noiseLevel: noiseLevel,
+          tileSize: tileSize,
+          syncGapMode: syncGapMode,
+        );
+      }
+
+      final endAt = DateTime.now();
+      final duration = endAt.difference(startAt).inMilliseconds;
+      logger.d('Upscaling took ${duration}ms');
+    });
+  }
+
+  /// 桌面端通过 Process.run 调用 realcugan-ncnn-vulkan。
+  static Future<void> _upscaleCli({
+    required String inputPath,
+    required String outputPath,
+    required String modelDir,
+    required int scale,
+    required RealSrNoiseLevel noiseLevel,
+    required int tileSize,
+    required int syncGapMode,
+  }) async {
+    final modelRoot = await _modelDirectory;
+    final exe = await _executablePath;
+    final cachePath = await getCachePath();
+    final workDir = Directory(
+      p.normalize(p.join(cachePath, 'realsr-upscale', const Uuid().v4())),
+    );
+
+    try {
+      await workDir.create(recursive: true);
+
+      // realcugan-ncnn 根据后缀判断输入格式，用真实扩展名避免格式错配导致花图。
+      final rawExt = await detectImageExtension(File(inputPath));
+      final inputExt = rawExt.startsWith('.') ? rawExt.substring(1) : rawExt;
+      final tempInput = p.join(
+        workDir.path,
+        'input.${inputExt.isEmpty ? 'png' : inputExt}',
+      );
+      final tempOutput = p.join(workDir.path, 'output.png');
+      await File(inputPath).copy(tempInput);
+
+      final modelPath = p.join(modelRoot, modelDir);
+      final result = await Process.run(
+        exe,
+        [
+          '-i',
+          tempInput,
+          '-o',
+          tempOutput,
+          '-m',
+          modelPath,
+          '-s',
+          scale.toString(),
+          '-n',
+          noiseLevel.value.toString(),
+          '-t',
+          tileSize.toString(),
+          '-c',
+          syncGapMode.toString(),
+        ],
+        runInShell: false,
+        workingDirectory: modelRoot,
+      );
+
+      if (result.exitCode != 0) {
+        throw StateError(
+          'RealSR CLI 失败 (exitCode=${result.exitCode})\n'
+          'stdout: ${result.stdout}\n'
+          'stderr: ${result.stderr}',
+        );
+      }
+
+      await File(tempOutput).copy(outputPath);
+    } finally {
+      if (workDir.existsSync()) {
+        workDir.deleteSync(recursive: true);
+      }
+    }
+  }
+}
+
+class RealSrUpscaleResult {
+  final bool success;
+  final int exitCode;
+  final String outputPath;
+  final String stdout;
+  final String stderr;
+
+  const RealSrUpscaleResult({
+    required this.success,
+    required this.exitCode,
+    required this.outputPath,
+    required this.stdout,
+    required this.stderr,
+  });
+
+  /// 如果成功，返回输出文件；否则抛出异常并附带 stderr。
+  File get outputFile {
+    if (!success) {
+      throw StateError(
+        'RealSR upscale failed (exitCode=$exitCode)\nstdout: $stdout\nstderr: $stderr',
+      );
+    }
+    return File(outputPath);
+  }
+
+  @override
+  String toString() {
+    return 'RealSrUpscaleResult(success=$success, exitCode=$exitCode, outputPath=$outputPath)';
+  }
+}

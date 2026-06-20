@@ -290,3 +290,19 @@ pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Result<Vec<u8>> {
     .await
     .context("解压线程池调度失败")? // 捕获 JoinError
 }
+
+/// 使用 sevenz-rust 解压 7z 文件到目标目录。
+pub async fn decompress_7z(archive_path: &str, dest_path: &str) -> Result<()> {
+    let archive_path = archive_path.to_string();
+    let dest_path = dest_path.to_string();
+
+    tokio::task::spawn_blocking(move || {
+        std::fs::create_dir_all(&dest_path)
+            .with_context(|| format!("创建解压目标目录失败: {}", dest_path))?;
+        sevenz_rust::decompress_file(&archive_path, &dest_path)
+            .map_err(|err| anyhow::anyhow!("7z 解压失败: {}", err))?;
+        Ok(())
+    })
+    .await
+    .context("7z 解压任务执行失败")?
+}

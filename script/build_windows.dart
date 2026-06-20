@@ -59,11 +59,7 @@ Future<void> _killProcessTree(Process process) async {
   }
 }
 
-enum WindowsBuildStage {
-  all,
-  prepare,
-  package,
-}
+enum WindowsBuildStage { all, prepare, package }
 
 WindowsBuildStage _parseBuildStage(List<String> args) {
   for (final arg in args) {

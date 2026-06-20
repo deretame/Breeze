@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -45,9 +46,12 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
     final foregroundColor = readSetting.resolveReaderForegroundColor(
       brightness,
     );
+    final pictureInfoTemp = widget.pictureInfo.copyWith(
+      pictureType: PictureType.page,
+    );
 
     return BlocProvider(
-      create: (context) => PictureBloc()..add(GetPicture(widget.pictureInfo)),
+      create: (context) => PictureBloc()..add(GetPicture(pictureInfoTemp)),
       child: SizedBox(
         width: context.screenWidth,
         child: BlocBuilder<PictureBloc, PictureLoadState>(

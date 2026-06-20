@@ -7,10 +7,11 @@ import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/page/comic_info/method/export_comic.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
-import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class FullScreenImagePage extends StatelessWidget {
@@ -81,15 +82,20 @@ class FullScreenImagePage extends StatelessWidget {
   // 桌面端保存逻辑：弹出目录选择器
   Future<String> _saveImageWithSelector(String inputImagePath) async {
     final inputFile = File(inputImagePath);
-    final ext = p.extension(inputImagePath).toLowerCase();
+    final ext = await detectImageExtension(inputFile);
+
+    final rawName = inputFile.uri.pathSegments.last;
+    final suggestedName = p.extension(rawName).isEmpty
+        ? '$rawName$ext'
+        : rawName;
 
     final typeGroup = XTypeGroup(
       label: 'images',
-      extensions: ext.isNotEmpty ? [ext.substring(1)] : ['jpg', 'png', 'jpeg'],
+      extensions: [ext.substring(1)],
     );
 
     final result = await getSaveLocation(
-      suggestedName: inputFile.uri.pathSegments.last,
+      suggestedName: suggestedName,
       acceptedTypeGroups: [typeGroup],
     );
 
@@ -109,12 +115,29 @@ class FullScreenImagePage extends StatelessWidget {
         await Gal.requestAccess();
       }
 
-      // 将图片放入相册
-      await Gal.putImage(
-        inputImagePath,
-        album: Platform.isIOS ? null : appName,
-      );
-      showSuccessToast("图片已保存到相册！");
+      final inputFile = File(inputImagePath);
+      final ext = await detectImageExtension(inputFile);
+
+      // gal 对无后缀文件会报 NOT_SUPPORTED_FORMAT，
+      // 先根据真实文件头生成带后缀的临时文件再保存
+      final tempDir = Directory.systemTemp;
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}$ext';
+      final tempPath = p.join(tempDir.path, fileName);
+      final tempFile = await inputFile.copy(tempPath);
+
+      try {
+        // 将图片放入相册
+        await Gal.putImage(
+          tempFile.path,
+          album: Platform.isIOS ? null : appName,
+        );
+        showSuccessToast("图片已保存到相册！");
+      } finally {
+        // 清理临时文件，忽略删除失败
+        try {
+          await tempFile.delete();
+        } catch (_) {}
+      }
     } on GalException catch (e) {
       logger.e("Gal 保存异常", error: e);
       // 根据 GalException 的类型给出更精确的提示

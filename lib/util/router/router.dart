@@ -40,6 +40,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: OldRankingRoute.page),
     AutoRoute(page: QjsRuntimeDebugRoute.page),
     AutoRoute(page: CacheSettingRoute.page),
+    AutoRoute(page: RealSrSettingRoute.page),
   ];
 
   @override

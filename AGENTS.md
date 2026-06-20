@@ -202,8 +202,8 @@ flutter run --dart-define=sentry_dsn=YOUR_DSN
 
 项目提供 Dart 脚本统一处理构建：
 
-| 平台 | 命令/脚本 | 产物 |
-|------|-----------|------|
+| 平台 | 构建命令/脚本 | 产物 |
+|------|---------------|------|
 | Android | `dart ./script/build_apk.dart` | `build/app/outputs/flutter-apk/*.apk` |
 | Linux | `dart ./script/build_linux_flatpak.dart` | `breeze.flatpak` |
 | Windows | `dart ./script/build_windows.dart` | `windows-installer.exe` |
@@ -211,6 +211,8 @@ flutter run --dart-define=sentry_dsn=YOUR_DSN
 | iOS | `flutter build ios --release --no-codesign` + 打包 | `Breeze-iOS.ipa` |
 
 `build_apk.dart` 无参数时默认构建 Release 并分 ABI；带任意参数时进入快速 Debug 构建（`--debug --target-platform=android-arm64,android-x64`）。
+
+RealSR 桌面端模型不再打包进安装包，首次使用需在设置页下载。模型下载后解压到 `getFilePath()/super_resolution/`，由 `RealSrSuperResolution` 自动调用。Linux / macOS 下载完成后会自动执行 `chmod +x` 授权。
 
 ### 5.4 调试代理
 
@@ -261,8 +263,8 @@ flutter run --dart-define=sentry_dsn=YOUR_DSN
 
 ### 8.1 CI/CD 工作流
 
-- **`.github/workflows/push-build.yml`**：每次 `push` 到 `main` 触发，并行构建 Android / Linux / Windows / macOS / iOS 产物为 artifact，**不发布 Release**。
-- **`.github/workflows/release.yml`**：手动触发，输入版本号后构建全平台产物，上传符号表到 Sentry，创建 GitHub Release，更新 Homebrew Cask，并发送 Telegram 通知。
+- **`.github/workflows/push-build.yml`**：每次 `push` 到 `main` 触发，并行构建 Android / Linux / Windows / macOS / iOS 产物为 artifact，**不发布 Release**。Android 构建前会先运行 `script/download_realsr_assets.dart` 下载 RealSR 运行时资源（`.so` / 模型），因为 `asset/realsr/` 与 `android/app/src/main/jniLibs/` 被 `.gitignore` 排除。
+- **`.github/workflows/release.yml`**：手动触发，输入版本号后构建全平台产物，上传符号表到 Sentry，创建 GitHub Release，更新 Homebrew Cask，并发送 Telegram 通知。Android 构建前同样会下载 RealSR 资源。
 - **`.github/workflows/release_to_telegram.yml`**：Release `published` 时触发，向 Telegram 发送版本消息与附件。
 - **`.github/workflows/signpath-smoke.yml`**：签名通道冒烟测试，与正式构建解耦。
 
@@ -308,6 +310,7 @@ flutter run --dart-define=sentry_dsn=YOUR_DSN
 | 修改图片/下载逻辑 | `lib/util/download/`、`lib/network/http/picture/` |
 | 修改 Rust 侧能力 | `rust/src/api/`、`rust/src/qjs/`，然后运行 FRB 生成 |
 | 修改 Windows 安装器 | `windows-installer/src/`、`windows-installer/src-tauri/` |
+| 修改 RealSR 超分逻辑 | `lib/util/real_sr/real_sr_super_resolution.dart`、`lib/page/setting/real_sr/real_sr_setting_page.dart`、`rust/src/api/simple.dart` |
 | 修改 CI/CD | `.github/workflows/`、`script/` |
 
 ---

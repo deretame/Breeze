@@ -155,6 +155,14 @@ flutter:
     - asset/image/bika_image/cat_random.jpg
     - asset/image/assets/default_cover.png
     - .env.proxy
+    - path: asset/realsr/colors.xml
+      platforms: [android]
+    - path: asset/realsr/delegates.xml
+      platforms: [android]
+    - path: asset/realsr/models-pro/up2x-conservative.bin
+      platforms: [android]
+    - path: asset/realsr/models-pro/up2x-conservative.param
+      platforms: [android]
 
 objectbox:
   # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).

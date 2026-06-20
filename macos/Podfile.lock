@@ -1,0 +1,45 @@
+PODS:
+  - coreml_upscale (0.0.1):
+    - FlutterMacOS
+  - flutter_inappwebview_macos (0.0.1):
+    - FlutterMacOS
+    - OrderedSet (~> 6.0.3)
+  - FlutterMacOS (1.0.0)
+  - ObjectBox (5.3.0)
+  - objectbox_flutter_libs (0.0.1):
+    - FlutterMacOS
+    - ObjectBox (= 5.3.0)
+  - OrderedSet (6.0.3)
+
+DEPENDENCIES:
+  - coreml_upscale (from `Flutter/ephemeral/.symlinks/plugins/coreml_upscale/macos`)
+  - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - objectbox_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos`)
+
+SPEC REPOS:
+  trunk:
+    - ObjectBox
+    - OrderedSet
+
+EXTERNAL SOURCES:
+  coreml_upscale:
+    :path: Flutter/ephemeral/.symlinks/plugins/coreml_upscale/macos
+  flutter_inappwebview_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  objectbox_flutter_libs:
+    :path: Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos
+
+SPEC CHECKSUMS:
+  coreml_upscale: 8f07ea8c6ebbd7b1cd4606c483f88f150337ee24
+  flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  ObjectBox: 2aae8ad350012cb53c6e7848064307cf68617f73
+  objectbox_flutter_libs: c6ec3df598aa194da1cdf929fc9640bbc8f58be1
+  OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
+
+PODFILE CHECKSUM: 346bfb2deb41d4a6ebd6f6799f92188bde2d246f
+
+COCOAPODS: 1.16.2

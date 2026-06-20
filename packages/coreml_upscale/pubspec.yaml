@@ -1,0 +1,21 @@
+name: coreml_upscale
+description: CoreML image super-resolution plugin for macOS/iOS, extracted from Aidoku.
+version: 0.0.1
+homepage: https://github.com/your_name/coreml_upscale
+publish_to: none
+
+environment:
+  sdk: ^3.9.2
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: CoremlUpscalePlugin
+      macos:
+        pluginClass: CoremlUpscalePlugin

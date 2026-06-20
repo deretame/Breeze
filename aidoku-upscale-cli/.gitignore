@@ -1,0 +1,5 @@
+# SwiftPM build directory
+.build/
+
+# Test output images, users should provide their own input images
+*.png

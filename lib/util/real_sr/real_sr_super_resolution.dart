@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:coreml_upscale/coreml_upscale.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:pool/pool.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
@@ -11,14 +13,18 @@ import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/src/rust/api/image.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/coreml_model_config.dart';
+import 'package:zephyr/util/coreml_model_loader.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/real_sr/real_sr_settings.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-/// Breeze 内置 RealSR / Real-CUGAN CLI 超分封装
+/// Breeze 内置 RealSR / Real-CUGAN / CoreML 超分封装
 ///
 /// - Android：通过 MethodChannel 调用原生 CLI
-/// - Windows / Linux / macOS：从 `deretame/breeze-binary` 下载模型后，
+/// - iOS / macOS：从 `deretame/breeze-binary` 下载 `MacOS-iOS.7z` 后，
+///   调用 `CoreMLUpscale` 使用用户选择的 waifu2x / Real-CUGAN 模型
+/// - Windows / Linux：从 `deretame/breeze-binary` 下载模型后，
 ///   调用 `getFilePath()/super_resolution/` 下的 realcugan-ncnn-vulkan
 class RealSrSuperResolution {
   RealSrSuperResolution._();
@@ -69,7 +75,8 @@ class RealSrSuperResolution {
   /// 当前设备是否支持内置超分。
   ///
   /// - Android：arm64-v8a
-  /// - Windows / Linux / macOS：存在对应平台的 realcugan-ncnn-vulkan 可执行文件
+  /// - iOS / macOS：CoreML 模型已下载并解压
+  /// - Windows / Linux：存在对应平台的 realcugan-ncnn-vulkan 可执行文件
   static Future<bool> get isAvailable async {
     if (Platform.isAndroid) {
       try {
@@ -80,28 +87,67 @@ class RealSrSuperResolution {
       }
     }
 
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (Platform.isIOS || Platform.isMacOS) {
+      return _isCoreMLAvailable;
+    }
+
+    if (Platform.isWindows || Platform.isLinux) {
       return File(await _executablePath).existsSync();
     }
 
     return false;
   }
 
+  /// 检查 iOS / macOS 的 CoreML 模型是否已就绪。
+  static Future<bool> get _isCoreMLAvailable async {
+    final results = await Future.wait([
+      CoreMLModelLoader.isModelAvailable(
+        CoreMLModelConfig.defaultVariant.fileName,
+      ),
+      CoreMLModelLoader.isModelAvailable(
+        CoreMLModelConfig.families[1].variants.first.fileName,
+      ),
+    ]);
+    return results.every((e) => e);
+  }
+
   /// 当前平台对应的 7z 压缩包文件名。
   static String? get _desktopAssetName {
     if (Platform.isWindows) return 'realsr-win.7z';
     if (Platform.isLinux) return 'realsr-linux.7z';
-    if (Platform.isMacOS) return 'realsr-macos.7z';
     return null;
   }
 
-  /// 下载并解压桌面端超分模型。
+  /// 下载并解压当前平台需要的超分模型。
   ///
-  /// 下载到缓存目录，解压到 `getFilePath()/super_resolution/`，
-  /// 解压完成后删除压缩包，并给 Linux / macOS 可执行文件授权。
+  /// - iOS / macOS：下载 `MacOS-iOS.7z` 并解压 CoreML 模型。
+  /// - Windows / Linux：下载对应平台的 realcugan-ncnn-vulkan 压缩包。
+  ///
+  /// [force] 为 true 时，会先删除本地已有模型再重新下载。
   static Future<void> downloadModel({
     void Function(int received, int total)? onProgress,
+    bool force = false,
   }) async {
+    if (Platform.isIOS || Platform.isMacOS) {
+      final tempDir = await getTemporaryDirectory();
+      final modelsDir = Directory(p.join(tempDir.path, 'coreml_models'));
+
+      if (force && modelsDir.existsSync()) {
+        await modelsDir.delete(recursive: true);
+      }
+
+      // 压缩包里包含两个模型，下载任意一个都会把完整压缩包拉下来。
+      await CoreMLModelLoader.prepareModel(
+        CoreMLModelConfig.defaultVariant.fileName,
+        onProgress: onProgress,
+      );
+      // 确保另一个模型也被解压出来
+      await CoreMLModelLoader.prepareModel(
+        CoreMLModelConfig.families[1].variants.first.fileName,
+      );
+      return;
+    }
+
     final assetName = _desktopAssetName;
     if (assetName == null) {
       throw UnsupportedError('当前平台不支持下载 RealSR 模型');
@@ -112,9 +158,18 @@ class RealSrSuperResolution {
     final archivePath = p.join(cachePath, assetName);
     final destDir = await _modelDirectory;
 
+    if (force && Directory(destDir).existsSync()) {
+      await Directory(destDir).delete(recursive: true);
+    }
+
     await Directory(destDir).create(recursive: true);
 
     try {
+      // 强制重新下载时先删掉本地缓存的压缩包
+      if (force && File(archivePath).existsSync()) {
+        await File(archivePath).delete();
+      }
+
       await dio.download(
         url,
         archivePath,
@@ -279,6 +334,8 @@ class RealSrSuperResolution {
         }
 
         logger.d('Upscaling result: $result');
+      } else if (Platform.isIOS || Platform.isMacOS) {
+        await _upscaleCoreML(inputPath: inputPath, outputPath: out);
       } else {
         await _upscaleCli(
           inputPath: inputPath,
@@ -295,6 +352,24 @@ class RealSrSuperResolution {
       final duration = endAt.difference(startAt).inMilliseconds;
       logger.d('Upscaling took ${duration}ms');
     });
+  }
+
+  /// iOS / macOS 通过 CoreML 插件超分。
+  static Future<void> _upscaleCoreML({
+    required String inputPath,
+    required String outputPath,
+  }) async {
+    final family = await RealSrSettings.loadCoreMLFamily();
+    final variant = await RealSrSettings.loadCoreMLVariant(family);
+    final modelPath = await CoreMLModelLoader.prepareModel(variant.fileName);
+
+    await CoreMLUpscale.upscale(
+      inputPath: inputPath,
+      outputPath: outputPath,
+      modelPath: modelPath,
+      modelType: 'multiarray',
+      config: variant.config,
+    );
   }
 
   /// 桌面端通过 Process.run 调用 realcugan-ncnn-vulkan。

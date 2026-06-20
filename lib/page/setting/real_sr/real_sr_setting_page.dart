@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/coreml_model_config.dart';
 import 'package:zephyr/util/real_sr/real_sr_settings.dart';
 import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -49,6 +50,9 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
   int _tileSize = 0;
   RealSrNoiseLevel _noiseLevel = RealSrNoiseLevel.conservative;
 
+  CoreMLModelFamily _coreMLFamily = CoreMLModelConfig.defaultFamily;
+  CoreMLModelVariant _coreMLVariant = CoreMLModelConfig.defaultVariant;
+
   bool _isAvailable = false;
   bool _downloading = false;
   double _downloadProgress = 0;
@@ -60,6 +64,9 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
   }
 
   Future<void> _loadSettings() async {
+    final family = await RealSrSettings.loadCoreMLFamily();
+    final variant = await RealSrSettings.loadCoreMLVariant(family);
+
     final results = await Future.wait([
       RealSrSettings.loadAutoUpscale(),
       RealSrSettings.loadResolutionThreshold(),
@@ -78,6 +85,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
       _tileSize = results[3] as int;
       _noiseLevel = results[4] as RealSrNoiseLevel;
       _isAvailable = results[5] as bool;
+      _coreMLFamily = family;
+      _coreMLVariant = variant;
       _loading = false;
     });
   }
@@ -107,6 +116,23 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     setState(() => _noiseLevel = value);
   }
 
+  Future<void> _setCoreMLFamily(CoreMLModelFamily value) async {
+    final newVariant = value.variants.first;
+    await Future.wait([
+      RealSrSettings.saveCoreMLFamily(value),
+      RealSrSettings.saveCoreMLVariant(newVariant),
+    ]);
+    setState(() {
+      _coreMLFamily = value;
+      _coreMLVariant = newVariant;
+    });
+  }
+
+  Future<void> _setCoreMLVariant(CoreMLModelVariant value) async {
+    await RealSrSettings.saveCoreMLVariant(value);
+    setState(() => _coreMLVariant = value);
+  }
+
   Future<void> _downloadModel() async {
     setState(() {
       _downloading = true;
@@ -115,13 +141,14 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
 
     try {
       await RealSrSuperResolution.downloadModel(
+        force: _isAvailable,
         onProgress: (received, total) {
           if (!mounted || total <= 0) return;
           setState(() => _downloadProgress = received / total);
         },
       );
     } catch (e, s) {
-      logger.e('RealSR 模型下载失败', error: e, stackTrace: s);
+      logger.e('模型下载失败', error: e, stackTrace: s);
       showErrorToast('模型下载失败: $e');
     } finally {
       if (mounted) {
@@ -185,8 +212,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     return RealSrResolutionThreshold.p1080;
   }
 
-  bool get _isDesktop =>
-      Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+  bool get _usesCoreML => Platform.isIOS || Platform.isMacOS;
 
   Widget _buildContent(BuildContext context) {
     return ListView(
@@ -195,11 +221,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
         SwitchListTile(
           secondary: const Icon(Icons.auto_fix_high_outlined),
           title: const Text('自动超分'),
-          subtitle: Text(
-            _isDesktop && !_isAvailable
-                ? '模型未下载，开启后无法自动超分'
-                : '下载或加载图片时自动调用 Real-CUGAN 超分',
-          ),
+          subtitle: Text(!_isAvailable ? '模型未下载，开启后无法自动超分' : '下载或加载图片时自动调用超分'),
           thumbIcon: kSettingSwitchThumbIcon,
           value: _autoUpscale,
           onChanged: _setAutoUpscale,
@@ -264,62 +286,138 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
             ),
           ),
         ),
-        ListTile(
-          leading: const Icon(Icons.grid_on_outlined),
-          title: const Text('分块大小'),
-          subtitle: const Text('遇到崩溃可设置较小值，0为不分块，桌面端可尝试设置为0'),
-          trailing: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _realSrTileSizeOptions.contains(_tileSize) ? _tileSize : 0,
-              icon: const Icon(Icons.expand_more),
-              onChanged: (int? value) {
-                if (value != null) _setTileSize(value);
-              },
-              items: _realSrTileSizeOptions.map((value) {
-                return DropdownMenuItem<int>(
-                  value: value,
-                  child: Text(_realSrTileSizeLabels[value] ?? '$value'),
-                );
-              }).toList(),
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 15,
+
+        // iOS / macOS 使用 CoreML，分块大小由模型决定，不显示可配置项。
+        if (!_usesCoreML)
+          ListTile(
+            leading: const Icon(Icons.grid_on_outlined),
+            title: const Text('分块大小'),
+            subtitle: const Text('遇到崩溃可设置较小值，0为不分块，桌面端可尝试设置为0'),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _realSrTileSizeOptions.contains(_tileSize)
+                    ? _tileSize
+                    : 0,
+                icon: const Icon(Icons.expand_more),
+                onChanged: (int? value) {
+                  if (value != null) _setTileSize(value);
+                },
+                items: _realSrTileSizeOptions.map((value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(_realSrTileSizeLabels[value] ?? '$value'),
+                  );
+                }).toList(),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),
-        ),
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
         _buildSectionTitle(context, '模型'),
-        ListTile(
-          leading: const Icon(Icons.healing_outlined),
-          title: const Text('降噪级别'),
-          subtitle: const Text('保守适合普通漫画，降噪级别越高涂抹感越强'),
-          trailing: DropdownButtonHideUnderline(
-            child: DropdownButton<RealSrNoiseLevel>(
-              value: _noiseLevel,
-              icon: const Icon(Icons.expand_more),
-              onChanged: (RealSrNoiseLevel? value) {
-                if (value != null) _setNoiseLevel(value);
-              },
-              items: RealSrNoiseLevel.values
-                  .map(
-                    (value) => DropdownMenuItem<RealSrNoiseLevel>(
-                      value: value,
-                      child: Text(value.label),
-                    ),
-                  )
-                  .toList(),
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 15,
+
+        // iOS / macOS：使用 CoreML，模型族 + 变体 + 分块信息。
+        if (_usesCoreML) ...[
+          ListTile(
+            leading: const Icon(Icons.speed_outlined),
+            title: const Text('模型'),
+            subtitle: const Text('切换模型族会重置对应的变体选项'),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<CoreMLModelFamily>(
+                value: _coreMLFamily,
+                icon: const Icon(Icons.expand_more),
+                onChanged: (CoreMLModelFamily? value) {
+                  if (value != null) _setCoreMLFamily(value);
+                },
+                items: CoreMLModelConfig.families
+                    .map(
+                      (value) => DropdownMenuItem<CoreMLModelFamily>(
+                        value: value,
+                        child: Text(value.label),
+                      ),
+                    )
+                    .toList(),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),
-        ),
+          ListTile(
+            leading: const Icon(Icons.healing_outlined),
+            title: const Text('降噪级别'),
+            subtitle: const Text('该选项随所选模型变化'),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<CoreMLModelVariant>(
+                value: _coreMLVariant,
+                icon: const Icon(Icons.expand_more),
+                onChanged: (CoreMLModelVariant? value) {
+                  if (value != null) _setCoreMLVariant(value);
+                },
+                items: _coreMLFamily.variants
+                    .map(
+                      (value) => DropdownMenuItem<CoreMLModelVariant>(
+                        value: value,
+                        child: Text(value.displayName),
+                      ),
+                    )
+                    .toList(),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.grid_view_outlined),
+            title: const Text('分块信息'),
+            subtitle: Text(_coreMLBlockInfo),
+            trailing: Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: const Duration(seconds: 5),
+              message:
+                  'blockSize 是模型输入尺寸，包含反射边距；\n'
+                  '内容块 = blockSize - 2×shrinkSize，才是真正拼接输出的区域。',
+              child: const Icon(Icons.help_outline),
+            ),
+          ),
+        ] else
+          // Android / Windows / Linux：继续使用通用降噪级别。
+          ListTile(
+            leading: const Icon(Icons.healing_outlined),
+            title: const Text('降噪级别'),
+            subtitle: const Text('保守适合普通漫画，降噪级别越高涂抹感越强'),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<RealSrNoiseLevel>(
+                value: _noiseLevel,
+                icon: const Icon(Icons.expand_more),
+                onChanged: (RealSrNoiseLevel? value) {
+                  if (value != null) _setNoiseLevel(value);
+                },
+                items: RealSrNoiseLevel.values
+                    .map(
+                      (value) => DropdownMenuItem<RealSrNoiseLevel>(
+                        value: value,
+                        child: Text(value.label),
+                      ),
+                    )
+                    .toList(),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
 
-        if (_isDesktop) ...[
+        // Android 使用内置 Asset，不需要手动下载；其他平台需要。
+        if (!Platform.isAndroid) ...[
           const SizedBox(height: 8),
           const Divider(height: 1, thickness: 0.3),
           _buildSectionTitle(context, '模型管理'),
@@ -329,6 +427,14 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
         const SizedBox(height: 32),
       ],
     );
+  }
+
+  String get _coreMLBlockInfo {
+    final blockSize = _coreMLVariant.config['blockSize'] as int? ?? 0;
+    final shrinkSize = _coreMLVariant.config['shrinkSize'] as int? ?? 0;
+    final contentSize = CoreMLModelConfig.contentBlockSize(_coreMLVariant);
+    return '内容块 $contentSize×$contentSize，模型输入 $blockSize×$blockSize'
+        '（含 ${shrinkSize}px 反射边距）';
   }
 
   Widget _buildModelManagementTile(BuildContext context) {
@@ -365,7 +471,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     return ListTile(
       leading: const Icon(Icons.warning_amber_rounded),
       title: const Text('模型未下载'),
-      subtitle: const Text('使用桌面端超分前需要先下载模型'),
+      subtitle: const Text('使用超分前需要先下载模型'),
       trailing: ElevatedButton(
         onPressed: _downloadModel,
         child: const Text('下载模型'),

@@ -7,6 +7,10 @@ import 'package:path/path.dart' as p;
 
 void main(List<String> args) async {
   await build(args, (input, output) async {
+    if (!input.config.buildCodeAssets) {
+      return;
+    }
+
     final extraCargoEnvironmentVariables = _extraCargoEnvironmentVariables(
       input.config.code,
       input.packageRoot.toFilePath(),
@@ -62,7 +66,7 @@ Map<String, String> _iosEnvironmentVariables(CodeConfig codeConfig) {
   final cFlags = '$minimumVersionFlag -isysroot $sdkRoot';
   final rustFlags = '-C link-arg=$minimumVersionFlag';
 
-  return <String, String>{
+  final env = <String, String>{
     'SDKROOT': sdkRoot,
     'IPHONEOS_DEPLOYMENT_TARGET': deploymentTarget,
     'CARGO_TARGET_${targetTripleEnv}_LINKER': linker,
@@ -74,6 +78,14 @@ Map<String, String> _iosEnvironmentVariables(CodeConfig codeConfig) {
     'CXX': linker,
     'LD': linker,
   };
+
+  // rquickjs-sys 的 bindgen 会把 Rust target triple 直接传给 clang；
+  // aarch64-apple-ios-sim 不被 clang 识别，需要额外指定它能识别的 triple。
+  if (targetTriple == 'aarch64-apple-ios-sim') {
+    env['BINDGEN_EXTRA_CLANG_ARGS'] = '--target=aarch64-apple-ios-simulator';
+  }
+
+  return env;
 }
 
 String _runXcrun(List<String> arguments) {
@@ -124,7 +136,8 @@ Map<String, String> _androidEnvironmentVariables(
     'CLANG_PATH': clangBinary.replaceAll('\\', '/'),
     'LIBCLANG_PATH': _libClangPath(llvmBase).replaceAll('\\', '/'),
     'BINDGEN_EXTRA_CLANG_ARGS': bindgenArgs,
-    'PATH': '${p.join(llvmBase, 'bin')}${_pathSep()}${Platform.environment['PATH'] ?? ''}',
+    'PATH':
+        '${p.join(llvmBase, 'bin')}${_pathSep()}${Platform.environment['PATH'] ?? ''}',
   };
 }
 

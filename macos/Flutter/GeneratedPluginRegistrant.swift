@@ -7,6 +7,7 @@ import Foundation
 
 import battery_plus
 import connectivity_plus
+import coreml_upscale
 import device_info_plus
 import dynamic_color
 import file_selector_macos
@@ -26,6 +27,7 @@ import window_manager
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   BatteryPlusMacosPlugin.register(with: registry.registrar(forPlugin: "BatteryPlusMacosPlugin"))
   ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
+  CoremlUpscalePlugin.register(with: registry.registrar(forPlugin: "CoremlUpscalePlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   DynamicColorPlugin.register(with: registry.registrar(forPlugin: "DynamicColorPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))

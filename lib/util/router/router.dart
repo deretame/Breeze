@@ -11,6 +11,7 @@ class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
     AutoRoute(page: AppBootstrapRoute.page, initial: true),
+    AutoRoute(page: CoreMLUpscaleDebugRoute.page),
     AutoRoute(page: NavigationBar.page),
     AutoRoute(page: LoginRoute.page),
     AutoRoute(page: ComicListRoute.page),

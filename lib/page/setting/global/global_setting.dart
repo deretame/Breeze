@@ -47,7 +47,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     _loadImpellerConfig();
     _loadCacheSize();
     _loadDesktopCloseBehavior();
-    _realSrAvailable = isDesktop
+    // iOS / macOS / Windows / Linux 支持下载模型，所以始终显示入口；
+    // Android 只在设备支持（arm64-v8a）时显示。
+    _realSrAvailable =
+        (Platform.isIOS ||
+            Platform.isMacOS ||
+            Platform.isWindows ||
+            Platform.isLinux)
         ? Future.value(true)
         : RealSrSuperResolution.isAvailable;
   }
@@ -224,7 +230,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               FutureBuilder<bool>(
                 future: _realSrAvailable,
                 builder: (context, snapshot) {
-                  // iOS 当前未接入超分，整个“图片处理”区块都不应该显示
+                  // 当前平台不支持超分时，隐藏“图片处理”区块
                   if (snapshot.data != true) {
                     return const SizedBox.shrink();
                   }
@@ -265,6 +271,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     context.pushRoute(const QjsRuntimeDebugRoute());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.memory_outlined),
+                  title: const Text('CoreML 超分调试'),
+                  subtitle: const Text('使用绝对路径模型测试 CoreML 超分'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    context.pushRoute(const CoreMLUpscaleDebugRoute());
                   },
                 ),
               ],
@@ -837,7 +852,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     return ListTile(
       leading: const Icon(Icons.auto_fix_high_outlined),
       title: const Text('图片超分（实验性）'),
-      subtitle: const Text('Real-CUGAN 自动超分设置'),
+      subtitle: const Text('试验性功能,可能不稳定'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => AutoRouter.of(context).push(const RealSrSettingRoute()),
     );

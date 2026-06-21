@@ -24,6 +24,8 @@ class RealSrSettings {
   static const _keyCoreMLVariant = 'realsr_coreml_variant';
   static const _keyAndroidNcnnMode = 'realsr_android_ncnn_mode';
   static const _keyAndroidNcnnNoise = 'realsr_android_ncnn_noise';
+  static const _keyDesktopNcnnMode = 'realsr_desktop_ncnn_mode';
+  static const _keyDesktopNcnnNoise = 'realsr_desktop_ncnn_noise';
 
   /// 根据当前运行平台返回推荐的默认并发数。
   ///
@@ -163,5 +165,35 @@ class RealSrSettings {
   static Future<void> saveAndroidNcnnNoise(AndroidNcnnNoise value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyAndroidNcnnNoise, value.name);
+  }
+
+  /// 桌面端（Windows / Linux）使用的 NCNN 超分模式。
+  static Future<AndroidNcnnMode> loadDesktopNcnnMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString(_keyDesktopNcnnMode);
+    return AndroidNcnnMode.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => AndroidNcnnModelConfig.defaultMode,
+    );
+  }
+
+  static Future<void> saveDesktopNcnnMode(AndroidNcnnMode value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyDesktopNcnnMode, value.name);
+  }
+
+  /// 桌面端（Windows / Linux）使用的 NCNN 降噪档位。
+  static Future<AndroidNcnnNoise> loadDesktopNcnnNoise() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString(_keyDesktopNcnnNoise);
+    return AndroidNcnnNoise.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => AndroidNcnnModelConfig.defaultNoise,
+    );
+  }
+
+  static Future<void> saveDesktopNcnnNoise(AndroidNcnnNoise value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyDesktopNcnnNoise, value.name);
   }
 }

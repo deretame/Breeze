@@ -17,6 +17,7 @@ import 'package:zephyr/util/coreml_model_config.dart';
 import 'package:zephyr/util/coreml_model_loader.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/real_sr/android_ncnn_model_config.dart';
+import 'package:zephyr/util/real_sr/desktop_ncnn_model_config.dart';
 import 'package:zephyr/util/real_sr/real_sr_settings.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -26,7 +27,8 @@ import 'package:zephyr/widgets/toast.dart';
 /// - iOS / macOS：从 `deretame/breeze-binary` 下载 `MacOS-iOS.7z` 后，
 ///   调用 `CoreMLUpscale` 使用用户选择的 waifu2x / Real-CUGAN 模型
 /// - Windows / Linux：从 `deretame/breeze-binary` 下载模型后，
-///   调用 `getFilePath()/super_resolution/` 下的 realcugan-ncnn-vulkan
+///   调用 `getFilePath()/super_resolution/` 下的 waifu2x-ncnn-vulkan
+///   或 realcugan-ncnn-vulkan
 class RealSrSuperResolution {
   RealSrSuperResolution._();
 
@@ -65,14 +67,6 @@ class RealSrSuperResolution {
     return p.join(await getFilePath(), 'super_resolution');
   }
 
-  static String get _executableName => Platform.isWindows
-      ? 'realcugan-ncnn-vulkan.exe'
-      : 'realcugan-ncnn-vulkan';
-
-  static Future<String> get _executablePath async {
-    return p.join(await _modelDirectory, _executableName);
-  }
-
   /// 当前设备是否支持内置超分（包含模型/可执行文件是否已就绪）。
   ///
   /// - Android：arm64-v8a 且 NCNN 模型已下载并解压
@@ -98,7 +92,10 @@ class RealSrSuperResolution {
     }
 
     if (Platform.isWindows || Platform.isLinux) {
-      return File(await _executablePath).existsSync();
+      final modelRoot = await _modelDirectory;
+      final mode = await RealSrSettings.loadDesktopNcnnMode();
+      final exeName = DesktopNcnnModelConfig.executableNameFor(mode);
+      return File(p.join(modelRoot, exeName)).existsSync();
     }
 
     return false;
@@ -265,11 +262,14 @@ class RealSrSuperResolution {
 
       // Linux / macOS 需要给可执行文件授权
       if (Platform.isLinux || Platform.isMacOS) {
-        final exe = await _executablePath;
-        try {
-          await Process.run('chmod', ['+x', exe], runInShell: false);
-        } catch (e, s) {
-          logger.w('RealSR 可执行文件授权失败: $exe', error: e, stackTrace: s);
+        final modelRoot = await _modelDirectory;
+        for (final name in ['realcugan-ncnn-vulkan', 'waifu2x-ncnn-vulkan']) {
+          final exe = p.join(modelRoot, name);
+          try {
+            await Process.run('chmod', ['+x', exe], runInShell: false);
+          } catch (e, s) {
+            logger.w('RealSR 可执行文件授权失败: $exe', error: e, stackTrace: s);
+          }
         }
       }
 
@@ -334,7 +334,6 @@ class RealSrSuperResolution {
     }
 
     final tileSize = await RealSrSettings.loadTileSize();
-    final noiseLevel = await RealSrSettings.loadNoiseLevel();
 
     // Android NCNN 通过 OpenCV imwrite 写图，只能按扩展名识别格式；
     // 输出路径若带 webp/jpg 等扩展名会崩溃。因此 Android 先写到临时 PNG，
@@ -350,7 +349,6 @@ class RealSrSuperResolution {
         await upscale(
           inputPath: inputPath,
           outputPath: tempOutput,
-          noiseLevel: noiseLevel,
           tileSize: tileSize,
         );
 
@@ -370,12 +368,37 @@ class RealSrSuperResolution {
       return;
     }
 
-    await upscale(
-      inputPath: inputPath,
-      outputPath: inputPath,
-      noiseLevel: noiseLevel,
-      tileSize: tileSize,
-    );
+    // Windows / Linux：根据用户选择的策略与降噪档位，解析到具体 CLI 与模型。
+    if (Platform.isWindows || Platform.isLinux) {
+      final mode = await RealSrSettings.loadDesktopNcnnMode();
+      final noise = await RealSrSettings.loadDesktopNcnnNoise();
+      final variant = DesktopNcnnModelConfig.variantFor(
+        mode: mode,
+        noise: noise,
+      );
+      final noiseLevel = RealSrNoiseLevel.values.firstWhere(
+        (e) => e.value == variant.noise,
+        orElse: () => RealSrNoiseLevel.conservative,
+      );
+
+      await upscale(
+        inputPath: inputPath,
+        outputPath: inputPath,
+        executable: variant.displayName,
+        modelDir: variant.modelDir,
+        scale: variant.scale,
+        noiseLevel: noiseLevel,
+        tileSize: tileSize,
+      );
+    } else {
+      final noiseLevel = await RealSrSettings.loadNoiseLevel();
+      await upscale(
+        inputPath: inputPath,
+        outputPath: inputPath,
+        noiseLevel: noiseLevel,
+        tileSize: tileSize,
+      );
+    }
 
     // 超分成功后输出的是 PNG，再转换为 WebP 以节省空间
     try {
@@ -389,7 +412,7 @@ class RealSrSuperResolution {
   static Future<void> upscale({
     required String inputPath,
     String? outputPath,
-    String executable = 'realcugan-ncnn',
+    String executable = 'realcugan-ncnn-vulkan',
     String modelDir = 'models-pro',
     int scale = 2,
     RealSrNoiseLevel noiseLevel = RealSrNoiseLevel.conservative,
@@ -465,6 +488,7 @@ class RealSrSuperResolution {
           await _upscaleCli(
             inputPath: pngInputPath,
             outputPath: out,
+            executable: executable,
             modelDir: modelDir,
             scale: scale,
             noiseLevel: noiseLevel,
@@ -558,10 +582,11 @@ class RealSrSuperResolution {
     );
   }
 
-  /// 桌面端通过 Process.run 调用 realcugan-ncnn-vulkan。
+  /// 桌面端通过 Process.run 调用 waifu2x-ncnn-vulkan / realcugan-ncnn-vulkan。
   static Future<void> _upscaleCli({
     required String inputPath,
     required String outputPath,
+    required String executable,
     required String modelDir,
     required int scale,
     required RealSrNoiseLevel noiseLevel,
@@ -569,7 +594,8 @@ class RealSrSuperResolution {
     required int syncGapMode,
   }) async {
     final modelRoot = await _modelDirectory;
-    final exe = await _executablePath;
+    final exe = p.join(modelRoot, executable);
+    final isWaifu2x = executable.toLowerCase().contains('waifu2x');
     final cachePath = await getCachePath();
     final workDir = Directory(
       p.normalize(p.join(cachePath, 'realsr-upscale', const Uuid().v4())),
@@ -578,7 +604,7 @@ class RealSrSuperResolution {
     try {
       await workDir.create(recursive: true);
 
-      // realcugan-ncnn 根据后缀判断输入格式，用真实扩展名避免格式错配导致花图。
+      // CLI 根据后缀判断输入格式，用真实扩展名避免格式错配导致花图。
       final rawExt = await detectImageExtension(File(inputPath));
       final inputExt = rawExt.startsWith('.') ? rawExt.substring(1) : rawExt;
       final tempInput = p.join(
@@ -589,31 +615,34 @@ class RealSrSuperResolution {
       await File(inputPath).copy(tempInput);
 
       final modelPath = p.join(modelRoot, modelDir);
+      final args = [
+        '-i',
+        tempInput,
+        '-o',
+        tempOutput,
+        '-s',
+        scale.toString(),
+        '-n',
+        noiseLevel.value.toString(),
+        '-m',
+        modelPath,
+        '-g',
+        '0',
+        '-t',
+        tileSize.toString(),
+        if (!isWaifu2x) ...['-c', syncGapMode.toString()],
+      ];
       final result = await Process.run(
         exe,
-        [
-          '-i',
-          tempInput,
-          '-o',
-          tempOutput,
-          '-m',
-          modelPath,
-          '-s',
-          scale.toString(),
-          '-n',
-          noiseLevel.value.toString(),
-          '-t',
-          tileSize.toString(),
-          '-c',
-          syncGapMode.toString(),
-        ],
+        args,
         runInShell: false,
         workingDirectory: modelRoot,
       );
 
       if (result.exitCode != 0) {
         throw StateError(
-          'RealSR CLI 失败 (exitCode=${result.exitCode})\n'
+          '${isWaifu2x ? 'waifu2x' : 'Real-CUGAN'} CLI 失败 '
+          '(exitCode=${result.exitCode})\n'
           'stdout: ${result.stdout}\n'
           'stderr: ${result.stderr}',
         );

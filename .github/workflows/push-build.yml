@@ -136,6 +136,12 @@ jobs:
           path: third_party/ncnn-src
           key: ${{ runner.os }}-android-ncnn-src-${{ hashFiles('script/build_ncnn_static_android.py') }}
 
+      - name: 缓存 RealSR-NCNN-Android 源码
+        uses: actions/cache@v5
+        with:
+          path: third_party/RealSR-NCNN-Android
+          key: ${{ runner.os }}-android-realsr-src-${{ hashFiles('script/build_waifu2x_cli_android.py') }}
+
       - name: 准备 Android waifu2x CLI 依赖
         run: |
           python3 script/prepare_android_waifu2x_deps.py

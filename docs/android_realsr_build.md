@@ -76,10 +76,11 @@ python script/build_waifu2x_cli_android.py
 
 这个脚本会：
 
-1. 使用 `android/app/src/main/cpp/waifu2x_cli/CMakeLists.txt` 构建 `waifu2x-ncnn` 可执行文件。
-2. 用 NDK 的 `llvm-strip` 去除符号，减小体积。
-3. 把可执行文件重命名为 `libwaifu2x_cli.so`（这样 Gradle 才会把它当作 native library 打进 APK）。
-4. 复制到：
+1. 检查 `third_party/RealSR-NCNN-Android` 是否存在；若缺失，自动从上游仓库克隆对应 commit 的源码。
+2. 使用 `android/app/src/main/cpp/waifu2x_cli/CMakeLists.txt` 构建 `waifu2x-ncnn` 可执行文件。
+3. 用 NDK 的 `llvm-strip` 去除符号，减小体积。
+4. 把可执行文件重命名为 `libwaifu2x_cli.so`（这样 Gradle 才会把它当作 native library 打进 APK）。
+5. 复制到：
    - `third_party/android_ncnn_deps/waifu2x-cli-android/arm64-v8a/libwaifu2x_cli.so`
    - `android/app/src/main/jniLibs/arm64-v8a/libwaifu2x_cli.so`
 

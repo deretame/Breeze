@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/coreml_model_config.dart';
+import 'package:zephyr/util/real_sr/android_ncnn_model_config.dart';
+import 'package:zephyr/util/real_sr/desktop_ncnn_model_config.dart';
 import 'package:zephyr/util/real_sr/real_sr_settings.dart';
 import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -48,7 +50,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
       RealSrResolutionThreshold.p720;
   int _concurrency = 2;
   int _tileSize = 0;
-  RealSrNoiseLevel _noiseLevel = RealSrNoiseLevel.conservative;
+  AndroidNcnnMode _desktopNcnnMode = DesktopNcnnModelConfig.defaultMode;
+  AndroidNcnnNoise _desktopNcnnNoise = DesktopNcnnModelConfig.defaultNoise;
 
   CoreMLModelFamily _coreMLFamily = CoreMLModelConfig.defaultFamily;
   CoreMLModelVariant _coreMLVariant = CoreMLModelConfig.defaultVariant;
@@ -72,7 +75,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
       RealSrSettings.loadResolutionThreshold(),
       RealSrSettings.loadConcurrency(),
       RealSrSettings.loadTileSize(),
-      RealSrSettings.loadNoiseLevel(),
+      RealSrSettings.loadDesktopNcnnMode(),
+      RealSrSettings.loadDesktopNcnnNoise(),
       RealSrSuperResolution.isAvailable,
     ]);
 
@@ -83,8 +87,9 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
       _resolutionThreshold = results[1] as RealSrResolutionThreshold;
       _concurrency = results[2] as int;
       _tileSize = results[3] as int;
-      _noiseLevel = results[4] as RealSrNoiseLevel;
-      _isAvailable = results[5] as bool;
+      _desktopNcnnMode = results[4] as AndroidNcnnMode;
+      _desktopNcnnNoise = results[5] as AndroidNcnnNoise;
+      _isAvailable = results[6] as bool;
       _coreMLFamily = family;
       _coreMLVariant = variant;
       _loading = false;
@@ -111,9 +116,14 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     setState(() => _tileSize = value);
   }
 
-  Future<void> _setNoiseLevel(RealSrNoiseLevel value) async {
-    await RealSrSettings.saveNoiseLevel(value);
-    setState(() => _noiseLevel = value);
+  Future<void> _setDesktopNcnnMode(AndroidNcnnMode value) async {
+    await RealSrSettings.saveDesktopNcnnMode(value);
+    setState(() => _desktopNcnnMode = value);
+  }
+
+  Future<void> _setDesktopNcnnNoise(AndroidNcnnNoise value) async {
+    await RealSrSettings.saveDesktopNcnnNoise(value);
+    setState(() => _desktopNcnnNoise = value);
   }
 
   Future<void> _setCoreMLFamily(CoreMLModelFamily value) async {
@@ -394,22 +404,22 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
             title: Text('Android 超分'),
             subtitle: Text('当前使用 waifu2x upconv 动漫模型，2 倍放大'),
           ),
-        ] else
-          // Windows / Linux：继续使用通用降噪级别。
+        ] else ...[
+          // Windows / Linux：与 Android 保持一致的策略 + 降噪档位。
           ListTile(
-            leading: const Icon(Icons.healing_outlined),
-            title: const Text('降噪级别'),
-            subtitle: const Text('保守适合普通漫画，降噪级别越高涂抹感越强'),
+            leading: const Icon(Icons.speed_outlined),
+            title: const Text('超分策略'),
+            subtitle: const Text('效率优先使用 waifu2x，质量优先使用 Real-CUGAN'),
             trailing: DropdownButtonHideUnderline(
-              child: DropdownButton<RealSrNoiseLevel>(
-                value: _noiseLevel,
+              child: DropdownButton<AndroidNcnnMode>(
+                value: _desktopNcnnMode,
                 icon: const Icon(Icons.expand_more),
-                onChanged: (RealSrNoiseLevel? value) {
-                  if (value != null) _setNoiseLevel(value);
+                onChanged: (AndroidNcnnMode? value) {
+                  if (value != null) _setDesktopNcnnMode(value);
                 },
-                items: RealSrNoiseLevel.values
+                items: AndroidNcnnMode.values
                     .map(
-                      (value) => DropdownMenuItem<RealSrNoiseLevel>(
+                      (value) => DropdownMenuItem<AndroidNcnnMode>(
                         value: value,
                         child: Text(value.label),
                       ),
@@ -422,6 +432,33 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
               ),
             ),
           ),
+          ListTile(
+            leading: const Icon(Icons.healing_outlined),
+            title: const Text('降噪级别'),
+            subtitle: const Text('保守适合普通漫画，降噪级别越高涂抹感越强'),
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<AndroidNcnnNoise>(
+                value: _desktopNcnnNoise,
+                icon: const Icon(Icons.expand_more),
+                onChanged: (AndroidNcnnNoise? value) {
+                  if (value != null) _setDesktopNcnnNoise(value);
+                },
+                items: AndroidNcnnNoise.values
+                    .map(
+                      (value) => DropdownMenuItem<AndroidNcnnNoise>(
+                        value: value,
+                        child: Text(value.label),
+                      ),
+                    )
+                    .toList(),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),

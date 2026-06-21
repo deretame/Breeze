@@ -24,6 +24,9 @@ ABIS = ["arm64-v8a"]
 ANDROID_PLATFORM = "android-24"
 BUILD_PARALLEL = os.cpu_count() or 4
 
+UPSTREAM_REPO = "https://github.com/tumuyan/RealSR-NCNN-Android.git"
+UPSTREAM_COMMIT = "0eb16763761e46f55c6223439ca1ad20216bc4ab"
+
 
 def project_root() -> Path:
     return Path(__file__).resolve().parent.parent
@@ -42,7 +45,50 @@ def run(args: list[str], cwd: Path) -> None:
     subprocess.run(args, cwd=cwd, check=True)
 
 
+def ensure_upstream_source() -> None:
+    """Clone the upstream RealSR-NCNN-Android source if it is missing.
+
+    The waifu2x CLI CMakeLists.txt references source files under
+    third_party/RealSR-NCNN-Android. This directory is not tracked in the
+    main repository, so we fetch it on demand to keep CI/local builds working.
+    """
+    target = project_root() / "third_party" / "RealSR-NCNN-Android"
+    marker = (
+        target
+        / "RealSR-NCNN-Android-CLI"
+        / "Waifu2x"
+        / "src"
+        / "main"
+        / "jni"
+        / "main.cpp"
+    )
+    if marker.exists():
+        return
+
+    print(f"Upstream source missing, cloning {UPSTREAM_REPO} ...")
+    if target.exists():
+        shutil.rmtree(target)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "clone", UPSTREAM_REPO, str(target)],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(target), "checkout", UPSTREAM_COMMIT],
+        check=True,
+    )
+
+    # Verify the expected source files are present.
+    if not marker.exists():
+        raise RuntimeError(
+            f"waifu2x source not found after clone: {marker}"
+        )
+    print(f"Upstream source ready at: {target}")
+
+
 def build_abi(abi: str) -> None:
+    ensure_upstream_source()
+
     src_dir = project_root() / "android" / "app" / "src" / "main" / "cpp" / "waifu2x_cli"
     build_dir = project_root() / "build" / f"waifu2x-cli-android-{abi.replace('-', '_')}"
     fake_so_name = "libwaifu2x_cli.so"

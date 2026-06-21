@@ -391,3 +391,17 @@
 ### 优化
 
 - 优化安卓端后台下载体验，降低因被系统冻结导致无法正常下载的概率
+
+## [v3.0.18]
+
+### 功能更新
+
+- 添加图片自动超分功能（实验性，可能不稳定）
+
+### 优化
+
+- 阅读界面章节选择对话框定位到当前章节并高亮的功能 by @Enigma-Soul in https://github.com/deretame/Breeze/pull/135
+
+#### New Contributors
+
+- @Enigma-Soul made their first contribution in https://github.com/deretame/Breeze/pull/135

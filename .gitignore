@@ -89,3 +89,12 @@ realsr-assets-npm/android/
 realsr-win/
 realsr-linux/
 realsr-macos/
+
+# Android NCNN runtime model package (upload to release hosting, do not commit)
+realsr-android.7z
+
+# Android NCNN native build dependencies
+third_party/android_ncnn_deps/
+
+# ncnn source (cloned during static Android build)
+third_party/ncnn-src/

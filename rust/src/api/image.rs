@@ -28,6 +28,23 @@ pub fn convert_image_to_webp(input_path: String, image_type: String) -> Result<(
     Ok(())
 }
 
+/// 将图片转换为 PNG。
+///
+/// 格式校验（仅支持 jpg/png/非动图 webp）请在 Dart 侧完成，本函数只负责解码并输出 PNG。
+/// 转换后的 PNG 写入 [output_path]。
+#[frb]
+pub fn convert_image_to_png(input_path: String, output_path: String) -> Result<()> {
+    let input_bytes =
+        std::fs::read(&input_path).with_context(|| format!("读取输入文件失败: {}", input_path))?;
+
+    let img = image::load_from_memory(&input_bytes).map_err(|e| anyhow!("解析图片失败: {}", e))?;
+
+    img.save_with_format(&output_path, ImageFormat::Png)
+        .with_context(|| format!("写入 PNG 文件失败: {}", output_path))?;
+
+    Ok(())
+}
+
 fn load_image(bytes: &[u8], image_type: &str) -> Result<DynamicImage> {
     let format = match image_type.to_lowercase().as_str() {
         "png" => Some(ImageFormat::Png),

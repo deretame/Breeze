@@ -21,3 +21,15 @@ Future<void> convertImageToWebp({
   inputPath: inputPath,
   imageType: imageType,
 );
+
+/// 将图片转换为 PNG。
+///
+/// 格式校验（仅支持 jpg/png/非动图 webp）请在 Dart 侧完成，本函数只负责解码并输出 PNG。
+/// 转换后的 PNG 写入 [output_path]。
+Future<void> convertImageToPng({
+  required String inputPath,
+  required String outputPath,
+}) => RustLib.instance.api.crateApiImageConvertImageToPng(
+  inputPath: inputPath,
+  outputPath: outputPath,
+);

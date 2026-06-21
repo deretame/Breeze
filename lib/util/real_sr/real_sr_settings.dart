@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/real_sr/android_ncnn_model_config.dart';
 import 'package:zephyr/util/coreml_model_config.dart';
 
 bool get _isDesktop =>
@@ -21,6 +22,8 @@ class RealSrSettings {
   static const _keyTileSize = 'realsr_tile_size';
   static const _keyCoreMLFamily = 'realsr_coreml_family';
   static const _keyCoreMLVariant = 'realsr_coreml_variant';
+  static const _keyAndroidNcnnMode = 'realsr_android_ncnn_mode';
+  static const _keyAndroidNcnnNoise = 'realsr_android_ncnn_noise';
 
   /// 根据当前运行平台返回推荐的默认并发数。
   ///
@@ -130,5 +133,35 @@ class RealSrSettings {
   static Future<void> saveCoreMLVariant(CoreMLModelVariant value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyCoreMLVariant, value.fileName);
+  }
+
+  /// Android 使用的 NCNN 超分模式，默认效率优先（waifu2x）。
+  static Future<AndroidNcnnMode> loadAndroidNcnnMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString(_keyAndroidNcnnMode);
+    return AndroidNcnnMode.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => AndroidNcnnModelConfig.defaultMode,
+    );
+  }
+
+  static Future<void> saveAndroidNcnnMode(AndroidNcnnMode value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAndroidNcnnMode, value.name);
+  }
+
+  /// Android 使用的 NCNN 降噪档位，默认无降噪（适合漫画）。
+  static Future<AndroidNcnnNoise> loadAndroidNcnnNoise() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString(_keyAndroidNcnnNoise);
+    return AndroidNcnnNoise.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => AndroidNcnnModelConfig.defaultNoise,
+    );
+  }
+
+  static Future<void> saveAndroidNcnnNoise(AndroidNcnnNoise value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAndroidNcnnNoise, value.name);
   }
 }

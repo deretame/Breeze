@@ -103,6 +103,9 @@ jobs:
       - name: 安装 Android NDK
         run: yes | sdkmanager "ndk;${{ steps.ndk-config.outputs.ndk_version }}"
 
+      - name: 安装 Android CMake
+        run: yes | sdkmanager "cmake;3.22.1"
+
       - name: 设置 NDK 环境变量
         run: |
           NDK_VER=${{ steps.ndk-config.outputs.ndk_version }}
@@ -118,9 +121,29 @@ jobs:
       - name: 拉取 Flutter 依赖
         run: fvm flutter pub get
 
-      - name: 下载 RealSR Android 资源
+      - name: 缓存 Android waifu2x CLI 依赖
+        uses: actions/cache@v5
+        with:
+          path: third_party/android_ncnn_deps
+          key: ${{ runner.os }}-android-waifu2x-deps-${{ hashFiles('script/prepare_android_waifu2x_deps.py', 'script/build_ncnn_static_android.py', 'script/build_waifu2x_cli_android.py', 'android/app/src/main/cpp/waifu2x_cli/CMakeLists.txt') }}
+
+      - name: 缓存 ncnn 源码
+        uses: actions/cache@v5
+        with:
+          path: third_party/ncnn-src
+          key: ${{ runner.os }}-android-ncnn-src-${{ hashFiles('script/build_ncnn_static_android.py') }}
+
+      - name: 准备 Android waifu2x CLI 依赖
         run: |
-          fvm dart run script/download_realsr_assets.dart
+          python3 script/prepare_android_waifu2x_deps.py
+
+      - name: 编译 Android 静态 ncnn
+        run: |
+          python3 script/build_ncnn_static_android.py
+
+      - name: 编译 Android waifu2x CLI
+        run: |
+          python3 script/build_waifu2x_cli_android.py
 
       - name: 运行 Android 构建脚本
         env:

@@ -48,14 +48,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     _loadCacheSize();
     _loadDesktopCloseBehavior();
     // iOS / macOS / Windows / Linux 支持下载模型，所以始终显示入口；
-    // Android 只在设备支持（arm64-v8a）时显示。
-    _realSrAvailable =
-        (Platform.isIOS ||
-            Platform.isMacOS ||
-            Platform.isWindows ||
-            Platform.isLinux)
-        ? Future.value(true)
-        : RealSrSuperResolution.isAvailable;
+    // Android 只在设备支持（arm64-v8a）时显示，不依赖模型是否已下载。
+    _realSrAvailable = RealSrSuperResolution.isDeviceSupported;
   }
 
   Future<void> _loadDesktopCloseBehavior() async {

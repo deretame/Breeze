@@ -35,6 +35,7 @@ Future<String> getCachePicture({
   String chapterId = '',
   PictureType pictureType = PictureType.page,
   Map<String, dynamic>? extern,
+  int index = 0,
 }) async {
   final resolvedFrom = normalizePluginId(from);
   if (resolvedFrom.isEmpty) {
@@ -168,6 +169,9 @@ Future<String> getCachePicture({
     );
     // 验证文件已成功保存
     if (await File(newCacheFilePath).exists()) {
+      if (pictureType == PictureType.page) {
+        await RealSrSuperResolution.upscaleAndConvertToWebp(newCacheFilePath);
+      }
       return newCacheFilePath;
     } else {
       throw Exception('图片保存失败');

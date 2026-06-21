@@ -387,8 +387,15 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
               child: const Icon(Icons.help_outline),
             ),
           ),
+        ] else if (Platform.isAndroid) ...[
+          // Android：固定使用 waifu2x upconv CLI，不暴露策略/降噪选项。
+          const ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('Android 超分'),
+            subtitle: Text('当前使用 waifu2x upconv 动漫模型，2 倍放大'),
+          ),
         ] else
-          // Android / Windows / Linux：继续使用通用降噪级别。
+          // Windows / Linux：继续使用通用降噪级别。
           ListTile(
             leading: const Icon(Icons.healing_outlined),
             title: const Text('降噪级别'),
@@ -416,13 +423,10 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
             ),
           ),
 
-        // Android 使用内置 Asset，不需要手动下载；其他平台需要。
-        if (!Platform.isAndroid) ...[
-          const SizedBox(height: 8),
-          const Divider(height: 1, thickness: 0.3),
-          _buildSectionTitle(context, '模型管理'),
-          _buildModelManagementTile(context),
-        ],
+        const SizedBox(height: 8),
+        const Divider(height: 1, thickness: 0.3),
+        _buildSectionTitle(context, '模型管理'),
+        _buildModelManagementTile(context),
 
         const SizedBox(height: 32),
       ],

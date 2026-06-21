@@ -11,7 +11,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import java.io.File
-import java.util.UUID
 import io.flutter.embedding.android.FlutterFragment
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterShellArgs
@@ -158,99 +157,18 @@ class MainActivity: FlutterFragmentActivity() {
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, REALSR_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
-                "extractAssets" -> {
-                    val force = call.argument<Boolean>("force") ?: false
+                "getWaifu2xCliPath" -> {
                     Thread {
                         try {
-                            extractRealSrAssets(applicationContext, force)
-                            runOnUiThread { result.success(true) }
-                        } catch (e: Exception) {
-                            runOnUiThread { result.error("EXTRACT_ERROR", e.message, e.stackTraceToString()) }
-                        }
-                    }.start()
-                }
-                "upscale" -> {
-                    val inputPath = call.argument<String>("inputPath")
-                    val outputPath = call.argument<String>("outputPath")
-                    if (inputPath == null || outputPath == null) {
-                        result.error("BAD_ARGS", "inputPath and outputPath are required", null)
-                        return@setMethodCallHandler
-                    }
-                    val inputExtension = call.argument<String>("inputExtension") ?: "png"
-                    val executable = call.argument<String>("executable") ?: "realcugan-ncnn"
-                    val modelDir = call.argument<String>("modelDir") ?: "models-pro"
-                    val scale = call.argument<Int>("scale") ?: 2
-                    val noiseLevel = call.argument<Int>("noiseLevel") ?: -1
-                    val tileSize = call.argument<Int>("tileSize") ?: 0
-                    val syncGapMode = call.argument<Int>("syncGapMode") ?: 3
-                    Thread {
-                        try {
-                            ensureRealSrAssetsExtracted(applicationContext)
-                            val workDir = File(applicationContext.cacheDir, "realsr/${UUID.randomUUID()}")
                             val nativeLibDir = applicationInfo.nativeLibraryDir
-                            val exeFile = File(nativeLibDir, executableToLibName(executable))
-                            if (!exeFile.exists() || !exeFile.canExecute()) {
-                                runOnUiThread { result.error("NOT_FOUND", "$executable (${exeFile.name}) not found or not executable in $nativeLibDir", null) }
+                            val cli = File(nativeLibDir, "libwaifu2x_cli.so")
+                            if (!cli.exists()) {
+                                runOnUiThread { result.error("CLI_NOT_FOUND", "libwaifu2x_cli.so not found in $nativeLibDir", null) }
                                 return@Thread
                             }
-                            File(outputPath).parentFile?.mkdirs()
-
-                            // realcugan-ncnn 根据路径后缀判断图片格式，
-                            // Dart 侧已通过文件头检测到真实扩展名并传进来。
-                            val tempInput = File(workDir, "input_tmp.$inputExtension")
-                            val tempOutput = File(workDir, "output_tmp.png")
-                            File(inputPath).inputStream().use { input ->
-                                tempInput.outputStream().use { output -> input.copyTo(output) }
-                            }
-
-                            val cmd = mutableListOf(
-                                exeFile.absolutePath,
-                                "-i", tempInput.absolutePath,
-                                "-o", tempOutput.absolutePath,
-                                "-m", modelDir,
-                                "-s", scale.toString(),
-                                "-n", noiseLevel.toString()
-                            )
-                            if (tileSize > 0) {
-                                cmd.add("-t")
-                                cmd.add(tileSize.toString())
-                            }
-                            if (syncGapMode in 0..3) {
-                                cmd.add("-c")
-                                cmd.add(syncGapMode.toString())
-                            }
-                            val pb = ProcessBuilder(cmd).apply {
-                                directory(workDir)
-                                environment()["LD_LIBRARY_PATH"] = nativeLibDir
-                                redirectErrorStream(false)
-                            }
-                            val process = pb.start()
-                            val stdout = process.inputStream.bufferedReader().use { it.readText() }
-                            val stderr = process.errorStream.bufferedReader().use { it.readText() }
-                            val exitCode = process.waitFor()
-
-                            if (exitCode == 0 && tempOutput.exists()) {
-                                tempOutput.inputStream().use { input ->
-                                    File(outputPath).outputStream().use { output -> input.copyTo(output) }
-                                }
-                            }
-                            tempInput.delete()
-                            tempOutput.delete()
-                            workDir.deleteRecursively()
-
-                            runOnUiThread {
-                                result.success(
-                                    mapOf(
-                                        "success" to (exitCode == 0),
-                                        "exitCode" to exitCode,
-                                        "outputPath" to outputPath,
-                                        "stdout" to stdout,
-                                        "stderr" to stderr
-                                    )
-                                )
-                            }
+                            runOnUiThread { result.success(cli.absolutePath) }
                         } catch (e: Exception) {
-                            runOnUiThread { result.error("UPSCALE_ERROR", e.message, e.stackTraceToString()) }
+                            runOnUiThread { result.error("GET_CLI_PATH_ERROR", e.message, e.stackTraceToString()) }
                         }
                     }.start()
                 }
@@ -337,68 +255,6 @@ class MainActivity: FlutterFragmentActivity() {
             "processPrivateDirty" to (pmi?.totalPrivateDirty?.toLong()?.times(1024) ?: 0L),
             "processSharedDirty" to (pmi?.totalSharedDirty?.toLong()?.times(1024) ?: 0L)
         )
-    }
-
-    private fun executableToLibName(executable: String): String {
-        return when (executable) {
-            "realcugan-ncnn" -> "librealcugan_ncnn.so"
-            "realsr-ncnn" -> "librealsr_ncnn.so"
-            "waifu2x-ncnn" -> "libwaifu2x_ncnn.so"
-            "srmd-ncnn" -> "libsrmd_ncnn.so"
-            "mnnsr-ncnn" -> "libmnnsr_ncnn.so"
-            "resize-ncnn" -> "libresize_ncnn.so"
-            else -> "lib$executable.so"
-        }
-    }
-
-    private fun ensureRealSrAssetsExtracted(context: Context) {
-        val workDir = File(context.cacheDir, "realsr")
-        val marker = File(workDir, ".extracted_v2")
-        if (marker.exists()) {
-            return
-        }
-        extractRealSrAssets(context, false)
-    }
-
-    private fun extractRealSrAssets(context: Context, force: Boolean) {
-        val workDir = File(context.cacheDir, "realsr")
-        val marker = File(workDir, ".extracted_v2")
-        if (!force && marker.exists()) {
-            return
-        }
-        Log.i("RealSR", "Extracting model assets to ${workDir.absolutePath}")
-        if (workDir.exists()) {
-            workDir.deleteRecursively()
-        }
-        workDir.mkdirs()
-        val assetRoot = "flutter_assets/asset/realsr"
-        val entries = context.assets.list(assetRoot) ?: emptyArray()
-        for (entry in entries) {
-            // 只复制模型目录和少量配置；可执行文件/动态库从 jniLibs 读取
-            if (entry.startsWith("models-") || entry == "colors.xml" || entry == "delegates.xml") {
-                // 直接把子项复制到 workDir，避免多出一层 realsr/ 目录
-                copyAssetPath(context.assets, "$assetRoot/$entry", workDir)
-            }
-        }
-        marker.createNewFile()
-        Log.i("RealSR", "Model assets extraction finished")
-    }
-
-    private fun copyAssetPath(assetManager: android.content.res.AssetManager, assetPath: String, destDir: File) {
-        val entries = assetManager.list(assetPath)
-        if (entries == null || entries.isEmpty()) {
-            val outFile = File(destDir, assetPath.substringAfterLast("/"))
-            assetManager.open(assetPath).use { input ->
-                outFile.outputStream().use { output -> input.copyTo(output) }
-            }
-            Log.d("RealSR", "Copied ${outFile.absolutePath}, size=${outFile.length()}")
-        } else {
-            val dir = File(destDir, assetPath.substringAfterLast("/"))
-            dir.mkdirs()
-            for (entry in entries) {
-                copyAssetPath(assetManager, "$assetPath/$entry", dir)
-            }
-        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

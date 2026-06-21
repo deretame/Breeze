@@ -16,12 +16,13 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/coreml_model_config.dart';
 import 'package:zephyr/util/coreml_model_loader.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/real_sr/android_ncnn_model_config.dart';
 import 'package:zephyr/util/real_sr/real_sr_settings.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// Breeze 内置 RealSR / Real-CUGAN / CoreML 超分封装
 ///
-/// - Android：通过 MethodChannel 调用原生 CLI
+/// - Android：调用 bundled 的 waifu2x-ncnn CLI
 /// - iOS / macOS：从 `deretame/breeze-binary` 下载 `MacOS-iOS.7z` 后，
 ///   调用 `CoreMLUpscale` 使用用户选择的 waifu2x / Real-CUGAN 模型
 /// - Windows / Linux：从 `deretame/breeze-binary` 下载模型后，
@@ -72,16 +73,21 @@ class RealSrSuperResolution {
     return p.join(await _modelDirectory, _executableName);
   }
 
-  /// 当前设备是否支持内置超分。
+  /// 当前设备是否支持内置超分（包含模型/可执行文件是否已就绪）。
   ///
-  /// - Android：arm64-v8a
+  /// - Android：arm64-v8a 且 NCNN 模型已下载并解压
   /// - iOS / macOS：CoreML 模型已下载并解压
   /// - Windows / Linux：存在对应平台的 realcugan-ncnn-vulkan 可执行文件
   static Future<bool> get isAvailable async {
     if (Platform.isAndroid) {
       try {
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        return androidInfo.supportedAbis.contains('arm64-v8a');
+        if (!await isDeviceSupported) return false;
+        return _isAndroidNcnnAvailable(
+          variant: AndroidNcnnModelConfig.variantFor(
+            mode: AndroidNcnnModelConfig.defaultMode,
+            noise: AndroidNcnnModelConfig.defaultNoise,
+          ),
+        );
       } catch (_) {
         return false;
       }
@@ -98,6 +104,81 @@ class RealSrSuperResolution {
     return false;
   }
 
+  /// 当前设备平台是否支持超分（不检查模型是否已下载）。
+  ///
+  /// 用于在设置页显示入口；Android 仅要求 arm64-v8a，其他平台默认支持。
+  static Future<bool> get isDeviceSupported async {
+    if (Platform.isAndroid) {
+      try {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        return androidInfo.supportedAbis.contains('arm64-v8a');
+      } catch (_) {
+        return false;
+      }
+    }
+
+    if (Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isWindows ||
+        Platform.isLinux) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// 检查 Android NCNN 模型是否已就绪。
+  static Future<bool> _isAndroidNcnnAvailable({
+    required NcnnModelVariant variant,
+  }) async {
+    final modelRoot = await _modelDirectory;
+    final modelDir = p.join(modelRoot, variant.modelDir);
+    final modelFiles = _androidModelFilesFor(variant);
+    for (final relative in modelFiles) {
+      if (!File(p.join(modelDir, relative)).existsSync()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// 返回指定 Android NCNN 变体所需的模型文件相对路径列表。
+  static List<String> _androidModelFilesFor(NcnnModelVariant variant) {
+    final modelDir = variant.modelDir.toLowerCase();
+    final isWaifu2x =
+        modelDir.contains('models-cunet') || modelDir.contains('models-upconv');
+
+    if (!isWaifu2x) {
+      final suffix = variant.noise == -1
+          ? 'conservative'
+          : variant.noise == 0
+          ? 'no-denoise'
+          : 'denoise${variant.noise}x';
+      return [
+        'up${variant.scale}x-$suffix.param',
+        'up${variant.scale}x-$suffix.bin',
+      ];
+    }
+
+    if (isWaifu2x) {
+      if (variant.noise == -1) {
+        return ['scale2.0x_model.param', 'scale2.0x_model.bin'];
+      }
+      if (variant.scale == 1) {
+        return [
+          'noise${variant.noise}_model.param',
+          'noise${variant.noise}_model.bin',
+        ];
+      }
+      return [
+        'noise${variant.noise}_scale2.0x_model.param',
+        'noise${variant.noise}_scale2.0x_model.bin',
+      ];
+    }
+
+    return [];
+  }
+
   /// 检查 iOS / macOS 的 CoreML 模型是否已就绪。
   static Future<bool> get _isCoreMLAvailable async {
     final results = await Future.wait([
@@ -112,7 +193,8 @@ class RealSrSuperResolution {
   }
 
   /// 当前平台对应的 7z 压缩包文件名。
-  static String? get _desktopAssetName {
+  static String? get _assetName {
+    if (Platform.isAndroid) return 'realsr-android.7z';
     if (Platform.isWindows) return 'realsr-win.7z';
     if (Platform.isLinux) return 'realsr-linux.7z';
     return null;
@@ -120,6 +202,7 @@ class RealSrSuperResolution {
 
   /// 下载并解压当前平台需要的超分模型。
   ///
+  /// - Android：下载 `realsr-android.7z` 并解压 NCNN 模型。
   /// - iOS / macOS：下载 `MacOS-iOS.7z` 并解压 CoreML 模型。
   /// - Windows / Linux：下载对应平台的 realcugan-ncnn-vulkan 压缩包。
   ///
@@ -148,7 +231,7 @@ class RealSrSuperResolution {
       return;
     }
 
-    final assetName = _desktopAssetName;
+    final assetName = _assetName;
     if (assetName == null) {
       throw UnsupportedError('当前平台不支持下载 RealSR 模型');
     }
@@ -181,7 +264,7 @@ class RealSrSuperResolution {
       await decompress7Z(archivePath: archivePath, destPath: destDir);
 
       // Linux / macOS 需要给可执行文件授权
-      if (!Platform.isWindows) {
+      if (Platform.isLinux || Platform.isMacOS) {
         final exe = await _executablePath;
         try {
           await Process.run('chmod', ['+x', exe], runInShell: false);
@@ -204,7 +287,7 @@ class RealSrSuperResolution {
     String inputPath, {
     RealSrResolutionThreshold? threshold,
   }) async {
-    logger.d('Checking if $inputPath needs to be upscanned...');
+    logger.d('Checking if $inputPath needs to be upscaled...');
     final effectiveThreshold =
         threshold ?? await RealSrSettings.loadResolutionThreshold();
 
@@ -221,11 +304,6 @@ class RealSrSuperResolution {
       descriptor?.dispose();
       buffer?.dispose();
     }
-  }
-
-  /// 手动触发资源释放。通常不需要调用，[upscale] 会自动检查。
-  static Future<void> extractAssets({bool force = false}) async {
-    await _channel.invokeMethod('extractAssets', {'force': force});
   }
 
   static bool _missingModelNotified = false;
@@ -250,10 +328,48 @@ class RealSrSuperResolution {
     }
 
     final threshold = await RealSrSettings.loadResolutionThreshold();
-    if (!await shouldUpscale(inputPath, threshold: threshold)) return;
+    if (!await shouldUpscale(inputPath, threshold: threshold)) {
+      logger.d('Input $inputPath does not need to be upscaled.');
+      return;
+    }
 
-    final noiseLevel = await RealSrSettings.loadNoiseLevel();
     final tileSize = await RealSrSettings.loadTileSize();
+    final noiseLevel = await RealSrSettings.loadNoiseLevel();
+
+    // Android NCNN 通过 OpenCV imwrite 写图，只能按扩展名识别格式；
+    // 输出路径若带 webp/jpg 等扩展名会崩溃。因此 Android 先写到临时 PNG，
+    // 转 WebP 后再覆盖回原路径。
+    if (Platform.isAndroid) {
+      final cacheDir = await getCachePath();
+      final tempOutput = p.join(
+        cacheDir,
+        'realsr_output_${const Uuid().v4()}.png',
+      );
+
+      try {
+        await upscale(
+          inputPath: inputPath,
+          outputPath: tempOutput,
+          noiseLevel: noiseLevel,
+          tileSize: tileSize,
+        );
+
+        // 超分成功后输出的是 PNG，再转换为 WebP 以节省空间
+        await convertImageToWebp(inputPath: tempOutput, imageType: 'png');
+        await File(tempOutput).rename(inputPath);
+      } catch (e, s) {
+        logger.w('Android 超分/WebP 转换失败: $inputPath', error: e, stackTrace: s);
+        rethrow;
+      } finally {
+        try {
+          if (File(tempOutput).existsSync()) {
+            await File(tempOutput).delete();
+          }
+        } catch (_) {}
+      }
+      return;
+    }
+
     await upscale(
       inputPath: inputPath,
       outputPath: inputPath,
@@ -280,7 +396,10 @@ class RealSrSuperResolution {
     int tileSize = 0,
     int syncGapMode = 3,
   }) async {
-    if (!await isAvailable) return;
+    if (!await isAvailable) {
+      logger.d('Upscaling $inputPath to $outputPath...');
+      return;
+    }
 
     await _pool.withResource(() async {
       final startAt = DateTime.now();
@@ -303,55 +422,122 @@ class RealSrSuperResolution {
           );
 
       final rawExt = await detectImageExtension(inputFile);
-      if (rawExt.isEmpty || rawExt == ".gif" || rawExt == ".webm") {
+      final normalizedExt = rawExt.toLowerCase();
+      const supportedFormats = {'.jpg', '.jpeg', '.png', '.webp'};
+      if (!supportedFormats.contains(normalizedExt)) {
+        logger.w('RealSR 不支持的图片格式，跳过超分: $inputPath ($rawExt)');
         return;
       }
 
-      if (rawExt == ".webp") {
-        if (await isAnimatedWebP(inputFile)) return;
+      if (normalizedExt == '.webp' && await isAnimatedWebP(inputFile)) {
+        logger.w('RealSR 不支持动图 WebP，跳过超分: $inputPath');
+        return;
       }
 
-      if (Platform.isAndroid) {
-        final inputExtension = rawExt.startsWith('.')
-            ? rawExt.substring(1)
-            : rawExt;
-
-        final result = await _channel
-            .invokeMapMethod<String, dynamic>('upscale', {
-              'inputPath': inputPath,
-              'outputPath': out,
-              'inputExtension': inputExtension.isEmpty ? 'png' : inputExtension,
-              'executable': executable,
-              'modelDir': modelDir,
-              'scale': scale,
-              'noiseLevel': noiseLevel.value,
-              'tileSize': tileSize,
-              'syncGapMode': syncGapMode,
-            });
-
-        if (result == null) {
-          throw StateError('Platform channel returned null');
-        }
-
-        logger.d('Upscaling result: $result');
-      } else if (Platform.isIOS || Platform.isMacOS) {
-        await _upscaleCoreML(inputPath: inputPath, outputPath: out);
-      } else {
-        await _upscaleCli(
-          inputPath: inputPath,
-          outputPath: out,
-          modelDir: modelDir,
-          scale: scale,
-          noiseLevel: noiseLevel,
-          tileSize: tileSize,
-          syncGapMode: syncGapMode,
+      // 超分引擎统一按 PNG 输入处理，先转换到临时 PNG。
+      String pngInputPath = inputPath;
+      File? tempPngFile;
+      if (normalizedExt != '.png') {
+        final cacheDir = await getCachePath();
+        pngInputPath = p.join(
+          cacheDir,
+          'realsr_input_${const Uuid().v4()}.png',
         );
+        tempPngFile = File(pngInputPath);
+        await convertImageToPng(inputPath: inputPath, outputPath: pngInputPath);
+      }
+
+      try {
+        if (Platform.isAndroid) {
+          final variant = AndroidNcnnModelConfig.variantFor(
+            mode: AndroidNcnnModelConfig.defaultMode,
+            noise: AndroidNcnnModelConfig.defaultNoise,
+          );
+          await _upscaleAndroidCli(
+            inputPath: pngInputPath,
+            outputPath: out,
+            variant: variant,
+            tileSize: tileSize,
+          );
+        } else if (Platform.isIOS || Platform.isMacOS) {
+          await _upscaleCoreML(inputPath: pngInputPath, outputPath: out);
+        } else {
+          await _upscaleCli(
+            inputPath: pngInputPath,
+            outputPath: out,
+            modelDir: modelDir,
+            scale: scale,
+            noiseLevel: noiseLevel,
+            tileSize: tileSize,
+            syncGapMode: syncGapMode,
+          );
+        }
+      } finally {
+        if (tempPngFile != null && tempPngFile.existsSync()) {
+          await tempPngFile.delete();
+        }
       }
 
       final endAt = DateTime.now();
       final duration = endAt.difference(startAt).inMilliseconds;
       logger.d('Upscaling took ${duration}ms');
     });
+  }
+
+  /// Android 通过 bundled waifu2x CLI 超分。
+  static Future<void> _upscaleAndroidCli({
+    required String inputPath,
+    required String outputPath,
+    required NcnnModelVariant variant,
+    required int tileSize,
+  }) async {
+    final exePath = await _prepareAndroidCli();
+    final modelRoot = await _modelDirectory;
+    final modelPath = p.join(modelRoot, variant.modelDir);
+
+    final result = await Process.run(
+      exePath,
+      [
+        '-i',
+        inputPath,
+        '-o',
+        outputPath,
+        '-s',
+        variant.scale.toString(),
+        '-n',
+        variant.noise.toString(),
+        '-m',
+        modelPath,
+        '-g',
+        '0',
+        '-t',
+        tileSize.toString(),
+      ],
+      runInShell: false,
+      workingDirectory: modelRoot,
+    );
+
+    if (result.exitCode != 0) {
+      throw StateError(
+        'waifu2x CLI 失败 (exitCode=${result.exitCode})\n'
+        'stdout: ${result.stdout}\n'
+        'stderr: ${result.stderr}',
+      );
+    }
+  }
+
+  static String? _androidCliPath;
+
+  /// 获取 APK 中 bundled 的 waifu2x CLI 路径（位于 nativeLibraryDir）。
+  static Future<String> _prepareAndroidCli() async {
+    if (_androidCliPath != null) return _androidCliPath!;
+
+    final path = await _channel.invokeMethod<String>('getWaifu2xCliPath');
+    if (path == null || path.isEmpty) {
+      throw StateError('getWaifu2xCliPath returned empty path');
+    }
+    _androidCliPath = path;
+    return path;
   }
 
   /// iOS / macOS 通过 CoreML 插件超分。

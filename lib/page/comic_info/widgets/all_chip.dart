@@ -48,7 +48,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                 ),
                 side: BorderSide(color: context.textColor),
                 label: Text(
-                  processText(title).let(t2s),
+                  processText(title).let(convertChineseForDisplay),
                   style: TextStyle(fontSize: 12, color: context.textColor),
                 ),
               );
@@ -58,7 +58,9 @@ class _AllChipWidgetState extends State<AllChipWidget> {
               onTap: () => _onTap(index, item),
               onLongPress: () {
                 Clipboard.setData(ClipboardData(text: processText(item.name)));
-                showSuccessToast("已将${item.name.let(t2s)}复制到剪贴板");
+                showSuccessToast(
+                  "已将${item.name.let(convertChineseForDisplay)}复制到剪贴板",
+                );
               },
               child: Chip(
                 backgroundColor: context.backgroundColor,
@@ -66,7 +68,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 label: Text(
-                  processText(item.name).let(t2s),
+                  processText(item.name).let(convertChineseForDisplay),
                   style: TextStyle(
                     fontSize: 12,
                     color: context.theme.colorScheme.primary,

@@ -33,6 +33,34 @@ extension SyncServiceTypeExtension on SyncServiceType {
   }
 }
 
+// 简繁转换模式:off 不转换;simplified 转简体;traditional 转繁体
+enum ChineseConvertMode { off, simplified, traditional }
+
+extension ChineseConvertModeExtension on ChineseConvertMode {
+  String get label {
+    switch (this) {
+      case ChineseConvertMode.off:
+        return '关闭';
+      case ChineseConvertMode.simplified:
+        return '简体中文';
+      case ChineseConvertMode.traditional:
+        return '繁体中文';
+    }
+  }
+
+  // 对应的 OpenCC 配置文件名;off 时返回空字符串(不转换)
+  String get openccConfig {
+    switch (this) {
+      case ChineseConvertMode.off:
+        return '';
+      case ChineseConvertMode.simplified:
+        return 'tw2sp.json';
+      case ChineseConvertMode.traditional:
+        return 's2twp.json';
+    }
+  }
+}
+
 const Color readerBackgroundBlack = Colors.black;
 const Color readerBackgroundWhite = Colors.white;
 const Color readerBackgroundGrey = Color(0xFF2D2D2D);
@@ -96,6 +124,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(AppLockSettingState()) AppLockSettingState appLockSetting,
     @Default("") String compatibleVersion,
     @Default(CacheSettingState()) CacheSettingState cacheSetting,
+    @Default(ChineseConvertMode.off) ChineseConvertMode chineseConvertMode,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>

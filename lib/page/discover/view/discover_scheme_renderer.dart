@@ -158,7 +158,7 @@ class DiscoverSchemeRenderer {
                 borderRadius: BorderRadius.circular(10),
               ),
               label: Text(
-                label.let(t2s),
+                label.let(convertChineseForDisplay),
                 style: TextStyle(
                   fontSize: 12,
                   color: context.theme.colorScheme.primary,
@@ -224,7 +224,7 @@ class DiscoverSchemeRenderer {
               ),
               const SizedBox(height: 5),
               Text(
-                title.let(t2s),
+                title.let(convertChineseForDisplay),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -262,8 +262,8 @@ class DiscoverSchemeRenderer {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                title: title.let(t2s),
-                subtitle: subtitle.let(t2s),
+                title: title.let(convertChineseForDisplay),
+                subtitle: subtitle.let(convertChineseForDisplay),
                 onTap: _isActionable(section['action'])
                     ? () => onAction(asJsonMap(section['action']))
                     : null,
@@ -299,7 +299,7 @@ class DiscoverSchemeRenderer {
       children: [
         if (title.trim().isNotEmpty)
           SectionHeader(
-            title: title.let(t2s),
+            title: title.let(convertChineseForDisplay),
             onTap: _isActionable(action) ? () => onAction(action) : null,
           ),
         ComicSimplifyEntryGridView(

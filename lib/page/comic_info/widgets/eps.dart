@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../util/router/router.gr.dart';
 
@@ -78,7 +80,7 @@ class EpButtonWidget extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                title,
+                title.let(convertChineseForDisplay),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: context.theme.textTheme.titleSmall?.copyWith(

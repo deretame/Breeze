@@ -63,6 +63,12 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
       : CacheSettingState.fromJson(
           json['cacheSetting'] as Map<String, dynamic>,
         ),
+  chineseConvertMode:
+      $enumDecodeNullable(
+        _$ChineseConvertModeEnumMap,
+        json['chineseConvertMode'],
+      ) ??
+      ChineseConvertMode.off,
 );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -95,12 +101,20 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'appLockSetting': instance.appLockSetting.toJson(),
       'compatibleVersion': instance.compatibleVersion,
       'cacheSetting': instance.cacheSetting.toJson(),
+      'chineseConvertMode':
+          _$ChineseConvertModeEnumMap[instance.chineseConvertMode]!,
     };
 
 const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+const _$ChineseConvertModeEnumMap = {
+  ChineseConvertMode.off: 'off',
+  ChineseConvertMode.simplified: 'simplified',
+  ChineseConvertMode.traditional: 'traditional',
 };
 
 _CacheSettingState _$CacheSettingStateFromJson(Map<String, dynamic> json) =>

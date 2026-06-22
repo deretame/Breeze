@@ -193,6 +193,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
+              _chineseConvertMode(state, globalSettingCubit),
               socks5ProxyEdit(context, state.socks5Proxy),
               if (!Platform.isIOS) _customExportPath(state, globalSettingCubit),
               _updateAccelerate(state, globalSettingCubit),
@@ -452,6 +453,37 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           items: SyncServiceType.values
               .map(
                 (value) => DropdownMenuItem<SyncServiceType>(
+                  value: value,
+                  child: Text(value.label),
+                ),
+              )
+              .toList(),
+          style: TextStyle(color: context.textColor, fontSize: 15),
+        ),
+      ),
+    );
+  }
+
+  Widget _chineseConvertMode(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return ListTile(
+      leading: const Icon(Icons.translate_outlined),
+      title: const Text('简繁转换'),
+      subtitle: const Text('将漫画标题、简介、章节、评论等转为简体或繁体'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<ChineseConvertMode>(
+          value: state.chineseConvertMode,
+          icon: const Icon(Icons.expand_more),
+          onChanged: (ChineseConvertMode? value) {
+            if (value == null || value == state.chineseConvertMode) {
+              return;
+            }
+            cubit.updateState(
+              (current) => current.copyWith(chineseConvertMode: value),
+            );
+          },
+          items: ChineseConvertMode.values
+              .map(
+                (value) => DropdownMenuItem<ChineseConvertMode>(
                   value: value,
                   child: Text(value.label),
                 ),

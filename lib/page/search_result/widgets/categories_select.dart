@@ -24,7 +24,7 @@ Future<Map<String, bool>?> showCategoryDialog(
                 children: [
                   for (final entry in tempMap.entries)
                     CheckboxListTile(
-                      title: Text(entry.key.let(t2s)),
+                      title: Text(entry.key.let(convertChineseForDisplay)),
                       value: entry.value,
                       onChanged: (bool? newValue) {
                         setState(() {

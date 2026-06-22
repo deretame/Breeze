@@ -44,7 +44,7 @@ Future<Set<String>?> showMultiChoiceListDialog(
                       controlAffinity: ListTileControlAffinity.leading,
                       value: isSelected,
                       title: Text(
-                        option.label.let(t2s),
+                        option.label.let(convertChineseForDisplay),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

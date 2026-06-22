@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
 import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
+import '../../util/sundry.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
 
@@ -123,7 +125,7 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
             ),
             padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
             child: Text(
-              info.title,
+              info.title.let(convertChineseForDisplay),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 12.0,
@@ -265,7 +267,7 @@ class ComicSimplifyEntry extends StatelessWidget {
             ),
             padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
             child: Text(
-              info.title,
+              info.title.let(convertChineseForDisplay),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 12.0,
@@ -340,11 +342,11 @@ class ComicSimplifyEntry extends StatelessWidget {
     logger.d(type);
     switch (type) {
       case ComicEntryType.favorite:
-        return ("删除收藏", "确定要删除（${info.title}）的收藏记录吗？");
+        return ("删除收藏", "确定要删除（${info.title.let(convertChineseForDisplay)}）的收藏记录吗？");
       case ComicEntryType.history:
-        return ("删除历史记录", "确定要删除（${info.title}）的历史记录吗？");
+        return ("删除历史记录", "确定要删除（${info.title.let(convertChineseForDisplay)}）的历史记录吗？");
       case ComicEntryType.download:
-        return ("删除下载记录", "确定要删除（${info.title}）的下载记录及文件吗？");
+        return ("删除下载记录", "确定要删除（${info.title.let(convertChineseForDisplay)}）的下载记录及文件吗？");
       default:
         return ("", "");
     }

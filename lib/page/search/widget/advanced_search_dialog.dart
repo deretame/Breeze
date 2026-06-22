@@ -89,7 +89,9 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
         final name = info?['name']?.toString().trim();
         return ChoiceChip(
           label: Text(
-            (name?.isNotEmpty == true ? name! : plugin.uuid).let(t2s),
+            (name?.isNotEmpty == true ? name! : plugin.uuid).let(
+              convertChineseForDisplay,
+            ),
           ),
           selected: _tempState.from == plugin.uuid,
           onSelected: (selected) {
@@ -117,7 +119,7 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
       runSpacing: 8,
       children: sortOptions.entries.map((entry) {
         return ChoiceChip(
-          label: Text(entry.value.let(t2s)),
+          label: Text(entry.value.let(convertChineseForDisplay)),
           selected: _tempState.sortBy == entry.key,
           onSelected: (selected) {
             if (selected) {

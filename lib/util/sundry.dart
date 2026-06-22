@@ -1,6 +1,7 @@
 // 一些工具函数
 import 'dart:convert';
 
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -9,6 +10,15 @@ import 'package:zephyr/src/rust/api/qjs.dart';
 // 用来简化调用，将繁体中文转换为简体中文
 String t2s(String text) {
   return openccConvert(text: text, config: 'tw2sp.json');
+}
+
+// 按全局设置转换漫画文本用于显示;关闭时原样返回。
+// 与 t2s 的区别:t2s 固定转简体(用于搜索/屏蔽词的繁简无关匹配),
+// 本函数受用户「简繁转换」开关控制,仅作用于显示层。
+String convertChineseForDisplay(String text) {
+  final mode = globalSetting.chineseConvertMode;
+  if (mode == ChineseConvertMode.off || text.isEmpty) return text;
+  return openccConvert(text: text, config: mode.openccConfig);
 }
 
 String onSavePluginConfig(String name, String key, String value) {

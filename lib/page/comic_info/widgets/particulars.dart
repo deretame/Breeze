@@ -10,7 +10,9 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo;
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -226,7 +228,10 @@ class _InfoColumnState extends State<_InfoColumn> {
           ],
         ),
         const SizedBox(height: 12),
-        SelectableText(widget.comicInfo.title, style: titleStyle),
+        SelectableText(
+          widget.comicInfo.title.let(convertChineseForDisplay),
+          style: titleStyle,
+        ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -234,7 +239,7 @@ class _InfoColumnState extends State<_InfoColumn> {
           children: widget.comicInfo.titleMeta
               .map(
                 (item) => _MetaPill(
-                  label: item.name,
+                  label: item.name.let(convertChineseForDisplay),
                   onTap: item.onTap.isEmpty
                       ? null
                       : () => handleComicInfoAction(

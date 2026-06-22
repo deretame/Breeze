@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 import '../../../widgets/creator_link_card.dart';
 
 // 显示上传者信息
@@ -21,7 +23,7 @@ class CreatorInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CreatorLinkCard(
-      creatorName: creator.name,
+      creatorName: creator.name.let(convertChineseForDisplay),
       avatarUrl: creator.avatar.url,
       avatarPath: creator.avatar.path,
       imageKey: imageKey,

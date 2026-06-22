@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comments/cubit/cubit.dart';
 import 'package:zephyr/page/comments/model/model.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 
 @RoutePage(name: 'PluginCommentsScaffoldRoute')
@@ -208,7 +210,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.authorName,
+                      item.authorName.let(convertChineseForDisplay),
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.primary,
@@ -216,7 +218,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item.content,
+                      item.content.let(convertChineseForDisplay),
                       style: textTheme.bodyMedium?.copyWith(
                         height: 1.5,
                         fontSize: 14,

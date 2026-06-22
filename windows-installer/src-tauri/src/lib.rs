@@ -3,10 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
-use xz2::read::XzDecoder;
 
-/// Release.tar.xz embedded directly into the binary
-const RELEASE_ARCHIVE: &[u8] = include_bytes!("../resources/Release.tar.xz");
+/// Release.7z embedded directly into the binary
+const RELEASE_ARCHIVE: &[u8] = include_bytes!("../resources/Release.7z");
 const ROOT_PUBSPEC: &str = include_str!("../../../pubspec.yaml");
 
 const LOG_FILE_NAME: &str = "breeze-install-log.json";
@@ -106,9 +105,7 @@ fn try_shutdown_app() -> Result<String, String> {
             }
             Ok("已发送关闭信号，但软件可能仍在运行".to_string())
         }
-        Err(_) => {
-            Ok("软件未在运行".to_string())
-        }
+        Err(_) => Ok("软件未在运行".to_string()),
     }
 }
 
@@ -205,6 +202,13 @@ fn register_uninstall_entry_internal(
     Err("仅支持在 Windows 上注册卸载信息".to_string())
 }
 
+/// Extract a 7z archive into `dest` using the same code path as the installer.
+/// Kept as a separate function so it can be unit-tested.
+fn extract_7z(archive_bytes: &[u8], dest: &Path) -> Result<(), String> {
+    let cursor = Cursor::new(archive_bytes);
+    sevenz_rust2::decompress(cursor, dest).map_err(|e| format!("解压安装文件失败: {}", e))
+}
+
 #[tauri::command]
 fn perform_install(install_path: String) -> Result<String, String> {
     // 2. Create zephyr directory if it doesn't exist
@@ -219,13 +223,8 @@ fn perform_install(install_path: String) -> Result<String, String> {
         fs::remove_dir_all(&release_dir).map_err(|e| format!("无法清理旧版本: {}", e))?;
     }
 
-    // 4. Extract embedded Release.tar.xz into zephyr directory (streaming)
-    let cursor = Cursor::new(RELEASE_ARCHIVE);
-    let xz_decoder = XzDecoder::new(cursor);
-    let mut archive = tar::Archive::new(xz_decoder);
-    archive
-        .unpack(&zephyr_dir)
-        .map_err(|e| format!("解压安装文件失败: {}", e))?;
+    // 4. Extract embedded Release.7z into zephyr directory
+    extract_7z(RELEASE_ARCHIVE, &zephyr_dir)?;
 
     // 5. Verify the expected executable exists
     let exe_path = zephyr_dir.join("Release").join("zephyr.exe");
@@ -272,4 +271,66 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn make_temp_dir() -> PathBuf {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
+        let dir = std::env::temp_dir().join(format!("breeze_7z_test_{}", now));
+        fs::create_dir_all(&dir).expect("创建临时目录失败");
+        dir
+    }
+
+    fn cleanup_dir(path: &Path) {
+        let _ = fs::remove_dir_all(path);
+    }
+
+    /// Ensure 7z archives containing long paths can be unpacked by the
+    /// installer's `sevenz_rust2` decompression path.
+    #[test]
+    fn sevenz_roundtrip_with_long_paths() {
+        let base = make_temp_dir();
+
+        // 1. Build a fake "Release" directory with a >100 char filename.
+        //    Put it under a wrapper so that sevenz-rust2 archives the
+        //    "Release" directory itself (matching the build script's
+        //    `7zr a Release.7z Release` output).
+        let wrapper_dir = base.join("wrapper");
+        let release_dir = wrapper_dir.join("Release");
+        fs::create_dir_all(&release_dir).unwrap();
+        let long_name = "a".repeat(120) + ".txt";
+        fs::write(release_dir.join(&long_name), "long file content").unwrap();
+        fs::write(release_dir.join("normal.txt"), "normal content").unwrap();
+
+        // 2. Create a 7z archive with sevenz-rust2.
+        let archive_path = base.join("Release.7z");
+        sevenz_rust2::compress_to_path(&wrapper_dir, &archive_path).expect("创建 7z 测试归档失败");
+
+        // 3. Extract with the same function used by the installer.
+        let archive_bytes = fs::read(&archive_path).unwrap();
+        let extract_dir = base.join("extracted");
+        fs::create_dir_all(&extract_dir).unwrap();
+        extract_7z(&archive_bytes, &extract_dir).expect("sevenz-rust2 解压失败");
+
+        // 4. Verify the long-path file was reconstructed correctly.
+        let extracted_long = extract_dir.join("Release").join(&long_name);
+        assert!(
+            extracted_long.exists(),
+            "长路径文件未正确解压: {}",
+            extracted_long.display()
+        );
+        assert_eq!(
+            fs::read_to_string(&extracted_long).unwrap(),
+            "long file content"
+        );
+
+        cleanup_dir(&base);
+    }
 }

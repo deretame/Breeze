@@ -69,7 +69,6 @@ dependencies:
   open_file: ^4.0.0 # 文件: 系统打开文件
   image_picker: ^1.1.2 # 媒体: 图片与相机选择
   crop_your_image: ^2.0.0 # 媒体: 图片裁剪
-  archive: ^4.0.0 # 文件: 压缩解压
   gal: ^2.3.2 # 媒体: 保存到系统相册
   pool: ^1.5.2 # 工具: 并发资源池
   window_manager: ^0.5.1 # 桌面: 窗口控制

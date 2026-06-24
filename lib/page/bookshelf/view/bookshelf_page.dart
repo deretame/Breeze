@@ -670,18 +670,20 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
       title: const Text('筛选'),
       content: SizedBox(
         width: 420,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSortSection(context),
-            const SizedBox(height: 16),
-            if (_showFolderSection) ...[
-              _buildFolderSection(context),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSortSection(context),
               const SizedBox(height: 16),
+              if (_showFolderSection) ...[
+                _buildFolderSection(context),
+                const SizedBox(height: 16),
+              ],
+              _buildSourceSection(context),
             ],
-            _buildSourceSection(context),
-          ],
+          ),
         ),
       ),
       actions: [

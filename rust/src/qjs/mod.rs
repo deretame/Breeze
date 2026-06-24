@@ -1167,7 +1167,15 @@ async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
         return Err(anyhow!("bundle_url 不能为空"));
     }
 
-    let response = reqwest::get(bundle_url)
+    // 与全局 TLS 校验开关保持一致，规避 reqwest 0.13 在部分证书场景下的验证失败问题
+    let http_config = current_http_client_config();
+    let client = reqwest::Client::builder()
+        .danger_accept_invalid_certs(http_config.disable_tls_verify)
+        .build()
+        .with_context(|| "创建 bundle 下载客户端失败")?;
+    let response = client
+        .get(bundle_url)
+        .send()
         .await
         .with_context(|| format!("下载 bundle 失败: {bundle_url}"))?
         .error_for_status()

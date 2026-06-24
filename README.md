@@ -40,12 +40,6 @@
     ```bash
     flutter pub get
     ```
-2.  **桥接层依赖**:
-    进入 Rust 编译辅助目录执行，确保桥接层的 Pub 依赖同步（这对生成某些 `bridge_generated` 文件至关重要）：
-    ```bash
-    cd rust_builder
-    flutter pub get
-    ```
 
 ### 4. 各平台特定说明
 

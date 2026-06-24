@@ -22,21 +22,13 @@ impl Default for HttpClientConfig {
 }
 
 pub(crate) struct HttpClientState {
-    client: Option<Client>,
     config: HttpClientConfig,
-    auto_system_proxy: bool,
-    system_proxy_fingerprint: Option<String>,
-    last_system_proxy_check_at: Option<Instant>,
 }
 
 impl Default for HttpClientState {
     fn default() -> Self {
         Self {
-            client: None,
             config: HttpClientConfig::default(),
-            auto_system_proxy: false,
-            system_proxy_fingerprint: None,
-            last_system_proxy_check_at: None,
         }
     }
 }
@@ -286,10 +278,6 @@ pub fn configure_http_client(config: HttpClientConfig) -> AnyResult<()> {
     let mut state = http_client_state_cell()
         .lock()
         .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
-    state.client = None;
-    state.auto_system_proxy = false;
-    state.system_proxy_fingerprint = None;
-    state.last_system_proxy_check_at = None;
     state.config = config;
     Ok(())
 }
@@ -318,46 +306,10 @@ fn worker_http_config() -> HttpClientConfig {
 }
 
 fn http_client() -> AnyResult<Client> {
-    let now = Instant::now();
-    let mut state = http_client_state_cell()
+    let state = http_client_state_cell()
         .lock()
         .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
-    let config = state.config.clone();
-    let mut need_rebuild = state.client.is_none();
-
-    if state.auto_system_proxy {
-        let need_check = state
-            .last_system_proxy_check_at
-            .map(|last| now.saturating_duration_since(last) >= HTTP_SYSTEM_PROXY_REFRESH_INTERVAL)
-            .unwrap_or(true);
-        if need_check {
-            let fingerprint = current_system_proxy_fingerprint();
-            if state.system_proxy_fingerprint != fingerprint {
-                need_rebuild = true;
-            }
-            state.system_proxy_fingerprint = fingerprint;
-            state.last_system_proxy_check_at = Some(now);
-        }
-    }
-
-    if need_rebuild {
-        let (client, auto_system_proxy) = build_http_client(&config)?;
-        state.client = Some(client);
-        state.config = config;
-        state.auto_system_proxy = auto_system_proxy;
-        if auto_system_proxy {
-            state.system_proxy_fingerprint = current_system_proxy_fingerprint();
-            state.last_system_proxy_check_at = Some(Instant::now());
-        } else {
-            state.system_proxy_fingerprint = None;
-            state.last_system_proxy_check_at = None;
-        }
-    }
-
-    Ok(state
-        .client
-        .clone()
-        .ok_or_else(|| anyhow!("HTTP client 未初始化"))?)
+    build_http_client(&state.config)
 }
 
 fn normalize_http_proxy_url(raw: &str) -> String {
@@ -376,17 +328,8 @@ fn normalize_socks5_proxy_url(raw: &str) -> String {
     format!("socks5h://{value}")
 }
 
-fn supports_auto_system_proxy() -> bool {
-    cfg!(any(
-        target_os = "windows",
-        target_os = "macos",
-        target_os = "linux"
-    ))
-}
-
-fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {
+fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
     let mut builder = Client::builder().timeout(Duration::from_secs(30));
-    let mut has_explicit_proxy = false;
 
     if config.use_http_proxy {
         if let Some(proxy_raw) = config.http_proxy.as_deref() {
@@ -394,14 +337,12 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {
             let proxy = Proxy::all(&proxy_url)
                 .with_context(|| format!("解析 HTTP 代理地址失败: {proxy_url}"))?;
             builder = builder.proxy(proxy);
-            has_explicit_proxy = true;
         } else if config.use_socks5_proxy {
             if let Some(proxy_raw) = config.socks5_proxy.as_deref() {
                 let proxy_url = normalize_socks5_proxy_url(proxy_raw);
                 let proxy = Proxy::all(&proxy_url)
                     .with_context(|| format!("解析 socks5 代理地址失败: {proxy_url}"))?;
                 builder = builder.proxy(proxy);
-                has_explicit_proxy = true;
             }
         }
     } else if config.use_socks5_proxy {
@@ -410,7 +351,6 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {
             let proxy = Proxy::all(&proxy_url)
                 .with_context(|| format!("解析 socks5 代理地址失败: {proxy_url}"))?;
             builder = builder.proxy(proxy);
-            has_explicit_proxy = true;
         }
     }
 
@@ -418,68 +358,8 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {
         builder = builder.danger_accept_invalid_certs(true);
     }
 
-    let auto_system_proxy = !has_explicit_proxy && supports_auto_system_proxy();
-    if !has_explicit_proxy && !auto_system_proxy {
-        builder = builder.no_proxy();
-    }
-
     let client = builder.build().context("创建 HTTP client 失败")?;
-    Ok((client, auto_system_proxy))
-}
-
-fn env_var_or_empty(name: &str) -> String {
-    std::env::var(name).unwrap_or_default()
-}
-
-#[cfg(target_os = "macos")]
-fn macos_system_proxy_fingerprint() -> Option<String> {
-    let out = Command::new("scutil").arg("--proxy").output().ok()?;
-    if !out.status.success() {
-        return None;
-    }
-    Some(String::from_utf8_lossy(&out.stdout).trim().to_string())
-}
-
-#[cfg(windows)]
-fn windows_internet_settings_fingerprint() -> Option<String> {
-    let key = CURRENT_USER
-        .open("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings")
-        .ok()?;
-    let proxy_enable = key.get_u32("ProxyEnable").unwrap_or(0);
-    let proxy_server = key.get_string("ProxyServer").unwrap_or_default();
-    let auto_config_url = key.get_string("AutoConfigURL").unwrap_or_default();
-    let auto_detect = key.get_u32("AutoDetect").unwrap_or(0);
-    Some(format!(
-        "proxyEnable={proxy_enable};proxyServer={proxy_server};autoConfigUrl={auto_config_url};autoDetect={auto_detect}"
-    ))
-}
-
-fn current_system_proxy_fingerprint() -> Option<String> {
-    let env_fingerprint = format!(
-        "ALL_PROXY={};all_proxy={};HTTP_PROXY={};http_proxy={};HTTPS_PROXY={};https_proxy={};NO_PROXY={};no_proxy={}",
-        env_var_or_empty("ALL_PROXY"),
-        env_var_or_empty("all_proxy"),
-        env_var_or_empty("HTTP_PROXY"),
-        env_var_or_empty("http_proxy"),
-        env_var_or_empty("HTTPS_PROXY"),
-        env_var_or_empty("https_proxy"),
-        env_var_or_empty("NO_PROXY"),
-        env_var_or_empty("no_proxy")
-    );
-    #[cfg(windows)]
-    {
-        let win_fingerprint = windows_internet_settings_fingerprint().unwrap_or_default();
-        return Some(format!("{env_fingerprint};{win_fingerprint}"));
-    }
-    #[cfg(target_os = "macos")]
-    {
-        let mac_fingerprint = macos_system_proxy_fingerprint().unwrap_or_default();
-        return Some(format!("{env_fingerprint};{mac_fingerprint}"));
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        Some(env_fingerprint)
-    }
+    Ok(client)
 }
 
 pub fn http_request_start(

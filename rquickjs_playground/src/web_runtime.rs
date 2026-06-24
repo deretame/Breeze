@@ -24,26 +24,21 @@ use std::io::Write;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
-#[cfg(target_os = "macos")]
-use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::{self, TryRecvError};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+use filetime::{FileTime, set_file_times};
 use getrandom::fill as random_fill;
 use hmac::{Hmac, Mac};
 use pbkdf2::pbkdf2_hmac;
 use reqwest::multipart::{Form as MultipartForm, Part as MultipartPart};
 use reqwest::{Client, Method, Proxy};
+use rquickjs::{Ctx, Function, function::Func};
 use sha1::Sha1;
 use sha2::{Digest, Sha256, Sha512};
-#[cfg(windows)]
-use windows_registry::CURRENT_USER;
-
-use filetime::{FileTime, set_file_times};
-use rquickjs::{Ctx, Function, function::Func};
 use tokio::net::lookup_host;
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
@@ -404,7 +399,6 @@ static BRIDGE_ROUTE_ASYNC_HANDLERS: OnceLock<Mutex<HashMap<String, BridgeRouteAs
 static BRIDGE_ROUTE_BLOCKING_HANDLERS: OnceLock<
     Mutex<HashMap<String, BridgeRouteBlockingHandler>>,
 > = OnceLock::new();
-const HTTP_SYSTEM_PROXY_REFRESH_INTERVAL: Duration = Duration::from_secs(3);
 const BRIDGE_BINARY_PROTOCOL: &str = "bridge-binary-v1";
 const BRIDGE_ARGS_JSON_MAX_BYTES_DEFAULT: usize = 8 * 1024 * 1024;
 const BRIDGE_RETURN_BINARY_MAX_BYTES_DEFAULT: usize = 32 * 1024 * 1024;

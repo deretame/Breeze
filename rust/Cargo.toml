@@ -8,28 +8,40 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.12.0"
-image = { version = "0.25.6", default-features = false, features = [
+image = { version = "0.25.10", default-features = false, features = [
     "jpeg",
     "png",
     "webp",
 ] }
 md5 = "0.8.0"
 base64 = "0.22.1"
-log = "0.4.27"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+log = "0.4.33"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }
 tracing-log = "0.2"
-tracing-appender = "0.2"
-env_logger = "0.11.8"
-anyhow = "1.0.98"
+tracing-appender = "0.2.5"
+env_logger = "0.11.10"
+anyhow = "1.0.102"
 dashmap = "6.1.0"
-serde_json = "1.0"
-tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.12", default-features = false, features = [
-    "rustls-tls",
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = ["full"] }
+reqwest = { version = "0.13.4", default-features = false, features = [
+    "http2",
+    "json",
+    "stream",
+    "charset",
+    "gzip",
+    "brotli",
+    "deflate",
+    "zstd",
+    "cookies",
+    "multipart",
+    "rustls",
+    "system-proxy",
+    "socks",
 ] }
 reqwest_dav = "0.3.3"
-url = "2"
+url = "2.5.8"
 tokio-tar = "0.3.1"
 zip = { version = "8.2.0", default-features = false, features = [
     "deflate",
@@ -40,15 +52,15 @@ lazy_static = "1.5.0"
 flate2 = "1.1.9"
 zstd = "0.13.3"
 rquickjs_playground = { path = "../rquickjs_playground" }
-chrono = "0.4.44"
+chrono = "0.4.45"
 terminal_size = "0.4.4"
-ferrous-opencc = "0.3"
-brotli = "8.0.2"
+ferrous-opencc = "0.4.0"
+brotli = "8.0.4"
 sevenz-rust = "0.6.1"
 webp = "0.3.1"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "1.0.228", features = ["derive"] }
 serde-xml-rs = "0.8.2"
-xxhash-rust = { version = "0.8", features = ["xxh3"] }
+xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"
@@ -58,9 +70,6 @@ rustls-platform-verifier = "0.7.0"
 
 [target.'cfg(any(target_os = "ios", target_os = "macos"))'.dependencies]
 oslog = "0.2.0"
-
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(frb_expand)"] }
 
 [build-dependencies]
 ureq = "3.3.0"

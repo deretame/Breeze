@@ -17,6 +17,7 @@ const USER_AGENT: &str = "Breeze-build-script";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo::rustc-check-cfg=cfg(frb_expand)");
 
     let manifest_dir = PathBuf::from(
         env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR must be available"),

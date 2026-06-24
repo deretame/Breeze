@@ -69,8 +69,16 @@ export interface BridgeApi {
   call(name: "crypto.md5_hex", input: string): Promise<string>;
   call(name: "crypto.sha1_hex", input: string): Promise<string>;
   call(name: "crypto.sha512_hex", input: string): Promise<string>;
-  call(name: "crypto.hmac_sha1_hex", key: string, input: string): Promise<string>;
-  call(name: "crypto.hmac_sha512_hex", key: string, input: string): Promise<string>;
+  call(
+    name: "crypto.hmac_sha1_hex",
+    key: string,
+    input: string,
+  ): Promise<string>;
+  call(
+    name: "crypto.hmac_sha512_hex",
+    key: string,
+    input: string,
+  ): Promise<string>;
   call(
     name: "crypto.aes_ecb_pkcs7_decrypt_b64",
     payloadB64: string,
@@ -141,8 +149,16 @@ export interface RuntimeFacadeApi extends HostRuntimeApi {
   hmacSha1Hex(key: string, input: string): Promise<string>;
   hmacSha512Hex(key: string, input: string): Promise<string>;
   aesEcbPkcs7DecryptB64(payloadB64: string, keyRaw: string): Promise<string>;
-  aesCbcPkcs7EncryptB64(payloadB64: string, keyRaw: string, ivRaw: string): Promise<string>;
-  aesCbcPkcs7DecryptB64(payloadB64: string, keyRaw: string, ivRaw: string): Promise<string>;
+  aesCbcPkcs7EncryptB64(
+    payloadB64: string,
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<string>;
+  aesCbcPkcs7DecryptB64(
+    payloadB64: string,
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<string>;
   aesGcmEncryptB64(
     payloadB64: string,
     keyRaw: string,

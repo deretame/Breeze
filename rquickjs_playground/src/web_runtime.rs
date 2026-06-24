@@ -338,6 +338,7 @@ pub fn install_host_bindings(
         globals.set("__fs_task_drop", Func::from(fs_task_drop))?;
     }
     globals.set("__sourcemap_lookup", Func::from(sourcemap_lookup))?;
+    crate::html::js_binding::install(ctx)?;
     Ok(())
 }
 

@@ -120,19 +120,36 @@ export const runtime = {
     ) as Promise<number>;
   },
   md5Hex(input: string) {
-    return requireApi("bridge").call("crypto.md5_hex", input) as Promise<string>;
+    return requireApi("bridge").call(
+      "crypto.md5_hex",
+      input,
+    ) as Promise<string>;
   },
   sha1Hex(input: string) {
-    return requireApi("bridge").call("crypto.sha1_hex", input) as Promise<string>;
+    return requireApi("bridge").call(
+      "crypto.sha1_hex",
+      input,
+    ) as Promise<string>;
   },
   sha512Hex(input: string) {
-    return requireApi("bridge").call("crypto.sha512_hex", input) as Promise<string>;
+    return requireApi("bridge").call(
+      "crypto.sha512_hex",
+      input,
+    ) as Promise<string>;
   },
   hmacSha1Hex(key: string, input: string) {
-    return requireApi("bridge").call("crypto.hmac_sha1_hex", key, input) as Promise<string>;
+    return requireApi("bridge").call(
+      "crypto.hmac_sha1_hex",
+      key,
+      input,
+    ) as Promise<string>;
   },
   hmacSha512Hex(key: string, input: string) {
-    return requireApi("bridge").call("crypto.hmac_sha512_hex", key, input) as Promise<string>;
+    return requireApi("bridge").call(
+      "crypto.hmac_sha512_hex",
+      key,
+      input,
+    ) as Promise<string>;
   },
   aesEcbPkcs7DecryptB64(payloadB64: string, keyRaw: string) {
     return requireApi("bridge").call(
@@ -157,7 +174,12 @@ export const runtime = {
       ivRaw,
     ) as Promise<string>;
   },
-  aesGcmEncryptB64(payloadB64: string, keyRaw: string, nonceRaw: string, aadB64?: string) {
+  aesGcmEncryptB64(
+    payloadB64: string,
+    keyRaw: string,
+    nonceRaw: string,
+    aadB64?: string,
+  ) {
     return requireApi("bridge").call(
       "crypto.aes_gcm_encrypt_b64",
       payloadB64,
@@ -166,7 +188,12 @@ export const runtime = {
       aadB64 ?? null,
     ) as Promise<string>;
   },
-  aesGcmDecryptB64(payloadB64: string, keyRaw: string, nonceRaw: string, aadB64?: string) {
+  aesGcmDecryptB64(
+    payloadB64: string,
+    keyRaw: string,
+    nonceRaw: string,
+    aadB64?: string,
+  ) {
     return requireApi("bridge").call(
       "crypto.aes_gcm_decrypt_b64",
       payloadB64,
@@ -175,14 +202,10 @@ export const runtime = {
       aadB64 ?? null,
     ) as Promise<string>;
   },
-  gzipCompress(
-    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
-  ) {
+  gzipCompress(input: Uint8Array | ArrayBuffer | ArrayBufferView | number[]) {
     return requireApi("bridge").gzipCompress(input);
   },
-  gzipDecompress(
-    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
-  ) {
+  gzipDecompress(input: Uint8Array | ArrayBuffer | ArrayBufferView | number[]) {
     return requireApi("bridge").gzipDecompress(input);
   },
   bridgeCall(name: string, ...args: unknown[]) {

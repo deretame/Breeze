@@ -5,9 +5,19 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node"],
-    "lib": ["ES2020", "DOM"],
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "cases/**/*.ts", "types/**/*.d.ts", "*.mjs"]
+  "include": [
+    "src/**/*.ts",
+    "cases/**/*.ts",
+    "types/**/*.d.ts",
+    "*.mjs"
+  ]
 }

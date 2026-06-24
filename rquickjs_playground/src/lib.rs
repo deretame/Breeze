@@ -1,4 +1,5 @@
 pub mod host_runtime;
+pub mod html;
 pub mod source_map;
 pub mod web_runtime;
 

@@ -113,3 +113,29 @@ pub fn encode_path(path: &str) -> Result<String> {
 pub async fn decompress_7z(archive_path: &str, dest_path: &str) -> Result<()> {
     compressed::decompress_7z(archive_path, dest_path).await
 }
+
+#[cfg(test)]
+mod tests {
+    use rquickjs_playground::html::Document;
+
+    use super::enable_rust_log;
+
+    #[test]
+    fn html5ever_debug_logs_are_suppressed() {
+        // Initialize the same logging pipeline used by the app.
+        enable_rust_log(true);
+
+        // This HTML is large enough to trigger html5ever's tree-builder debug logging.
+        let html = std::iter::repeat("<div><span>hello</span></div>")
+            .take(100)
+            .fold("<html><body>".to_string(), |mut acc, s| {
+                acc.push_str(s);
+                acc
+            })
+            + "</body></html>";
+
+        let doc = Document::parse(&html);
+        let sel = doc.select("span").unwrap();
+        assert!(!sel.is_empty());
+    }
+}

@@ -31,15 +31,14 @@ pub(crate) fn setup_log_to_console(enabled: bool) {
             let writer = LogcatMakeWriter::new(LogcatTag::Fixed("windcore".to_owned()))
                 .expect("Failed to initialize logcat writer");
 
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(
+            init_subscriber(
+                tracing_subscriber::registry().with(filter).with(
                     fmt::layer()
                         .with_writer(writer)
                         .event_format(BoxedFormatter { with_ansi: false }),
-                )
-                .try_init()
-                .expect("Failed to initialize tracing subscriber (Android)");
+                ),
+                "Android",
+            );
 
             tracing::info!("Tracing initialized (Android)");
             return;
@@ -47,22 +46,24 @@ pub(crate) fn setup_log_to_console(enabled: bool) {
 
         #[cfg(any(target_os = "ios", target_os = "macos"))]
         {
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
-                .try_init()
-                .expect("Failed to initialize tracing subscriber (iOS/macOS)");
+            init_subscriber(
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true })),
+                "iOS/macOS",
+            );
             tracing::info!("Tracing initialized (iOS/macOS)");
             return;
         }
 
         #[cfg(target_family = "wasm")]
         {
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(fmt::layer().event_format(BoxedFormatter { with_ansi: false }))
-                .try_init()
-                .expect("Failed to initialize tracing subscriber (WASM)");
+            init_subscriber(
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: false })),
+                "WASM",
+            );
             tracing::info!("Tracing initialized (WASM)");
             return;
         }
@@ -74,14 +75,36 @@ pub(crate) fn setup_log_to_console(enabled: bool) {
             not(target_os = "macos")
         ))]
         {
-            tracing_subscriber::registry()
-                .with(filter)
-                .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
-                .try_init()
-                .expect("Failed to initialize tracing subscriber (Desktop)");
+            init_subscriber(
+                tracing_subscriber::registry()
+                    .with(filter)
+                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true })),
+                "Desktop",
+            );
             tracing::info!("Tracing initialized (Desktop)");
         }
     });
+}
+
+fn init_subscriber<S>(subscriber: S, platform: &str)
+where
+    S: tracing::Subscriber + Send + Sync + 'static,
+{
+    use tracing_log::{AsLog, LogTracer};
+
+    tracing::dispatcher::set_global_default(subscriber.into())
+        .unwrap_or_else(|_| panic!("Failed to initialize tracing subscriber ({platform})"));
+
+    // html5ever / selectors emit a huge amount of DEBUG records through the `log`
+    // crate. `tracing-log` forwards those records as tracing events whose
+    // metadata target is "log", so `EnvFilter` cannot suppress them by crate
+    // name. Drop them at the LogTracer level instead.
+    LogTracer::builder()
+        .with_max_level(tracing::metadata::LevelFilter::current().as_log())
+        .ignore_crate("html5ever")
+        .ignore_crate("selectors")
+        .init()
+        .unwrap_or_else(|_| panic!("Failed to initialize log tracer ({platform})"));
 }
 
 fn default_log_level(enabled: bool) -> String {

@@ -1,7 +1,5 @@
 use base64::Engine as _;
-use rquickjs::{
-    AsyncContext, AsyncRuntime, Ctx, Function, Value as JsValue, async_with, function::Func,
-};
+use rquickjs::{AsyncContext, AsyncRuntime, Ctx, Function, Value as JsValue, function::Func};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::{HashMap, VecDeque};
@@ -460,20 +458,22 @@ impl HostRuntime {
         let id = task_id;
         let script_owned = script.to_owned();
         tokio::spawn(async move {
-            let result: Result<String, String> = async_with!(&ctx => |ctx| {
-                let value: JsValue = ctx.eval(script_owned.as_str())
-                    .map_err(|e: rquickjs::Error| format!("eval失败: {e}"))?;
-                if let Some(promise) = value.as_promise() {
-                    let r = promise.clone().into_future::<JsValue>().await;
-                    match r {
-                        Ok(v) => serialize_js_value(&ctx, v),
-                        Err(e) => Err(format!("Promise rejected: {e}")),
+            let result: Result<String, String> = ctx
+                .async_with(async |ctx| {
+                    let value: JsValue = ctx
+                        .eval(script_owned.as_str())
+                        .map_err(|e: rquickjs::Error| format!("eval失败: {e}"))?;
+                    if let Some(promise) = value.as_promise() {
+                        let r = promise.clone().into_future::<JsValue>().await;
+                        match r {
+                            Ok(v) => serialize_js_value(&ctx, v),
+                            Err(e) => Err(format!("Promise rejected: {e}")),
+                        }
+                    } else {
+                        serialize_js_value(&ctx, value)
                     }
-                } else {
-                    serialize_js_value(&ctx, value)
-                }
-            })
-            .await;
+                })
+                .await;
             let outcome = result.unwrap_or_else(|e| {
                 format!("{{\"ok\":false,\"error\":\"{}\"}}", e.replace('"', "\\\""))
             });
@@ -594,18 +594,22 @@ impl HostRuntime {
                 let id = task_id;
                 let script_owned = script.to_owned();
                 tokio::spawn(async move {
-                    let result: Result<String, String> = async_with!(&ctx => |ctx| {
-                        let value: JsValue = ctx.eval(script_owned.as_str()).map_err(|e: rquickjs::Error| format!("eval失败: {e}"))?;
-                        if let Some(promise) = value.as_promise() {
-                            let r = promise.clone().into_future::<JsValue>().await;
-                            match r {
-                                Ok(v) => serialize_js_value(&ctx, v),
-                                Err(e) => Err(format!("Promise rejected: {e}")),
+                    let result: Result<String, String> = ctx
+                        .async_with(async |ctx| {
+                            let value: JsValue = ctx
+                                .eval(script_owned.as_str())
+                                .map_err(|e: rquickjs::Error| format!("eval失败: {e}"))?;
+                            if let Some(promise) = value.as_promise() {
+                                let r = promise.clone().into_future::<JsValue>().await;
+                                match r {
+                                    Ok(v) => serialize_js_value(&ctx, v),
+                                    Err(e) => Err(format!("Promise rejected: {e}")),
+                                }
+                            } else {
+                                serialize_js_value(&ctx, value)
                             }
-                        } else {
-                            serialize_js_value(&ctx, value)
-                        }
-                    }).await;
+                        })
+                        .await;
                     let outcome = result.unwrap_or_else(|e| {
                         format!("{{\"ok\":false,\"error\":\"{}\"}}", e.replace('"', "\\\""))
                     });

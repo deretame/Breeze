@@ -8,18 +8,18 @@ default = ["host-fs"]
 host-fs = []
 
 [dependencies]
-rquickjs = { version = "0.11.0", features = ["bindgen", "futures", "parallel", "loader", "macro"] }
-serde_json = "1.0.145"
+rquickjs = { version = "0.12.0", features = ["bindgen", "futures", "parallel", "loader", "macro"] }
+serde_json = "1.0.150"
 serde = { version = "1.0.228", features = ["derive"] }
-axum = "0.8.6"
-tokio = { version = "1", features = [
+axum = "0.8.9"
+tokio = { version = "1.52.3", features = [
     "rt-multi-thread",
     "rt",
     "macros",
     "sync",
     "time",
 ] }
-reqwest = { version = "0.13.3", default-features = false, features = [
+reqwest = { version = "0.13.4", default-features = false, features = [
     "http2",
     "json",
     "stream",
@@ -34,26 +34,26 @@ reqwest = { version = "0.13.3", default-features = false, features = [
     "system-proxy",
     "socks",
 ] }
-anyhow = "1.0.98"
-tracing = "0.1.41"
+anyhow = "1.0.102"
+tracing = "0.1.44"
 base64 = "0.22.1"
-filetime = "0.2.26"
-getrandom = "0.3.4"
+filetime = "0.2.29"
+getrandom = "0.4.3"
 hmac = "0.12.1"
 sha1 = "0.10.6"
 sha2 = "0.10.9"
 pbkdf2 = "0.12.2"
-uuid = { version = "1.18.1", features = ["v4", "fast-rng"] }
-url = "2.5.7"
+uuid = { version = "1.23.3", features = ["v4", "fast-rng"] }
+url = "2.5.8"
 md5 = "0.8.0"
 aes = "0.8.4"
 cbc = "0.1.2"
 aes-gcm = "0.10.3"
-flate2 = "1.1.2"
-srcmap-sourcemap = "0.3.6"
-scraper = "0.23"
-ego-tree = "0.10"
-regex = "1"
+flate2 = "1.1.9"
+srcmap-sourcemap = "0.3.9"
+scraper = "0.23.1"
+ego-tree = "0.10.0"
+regex = "1.12.4"
 
 [target.'cfg(windows)'.dependencies]
 windows-registry = "0.6.1"

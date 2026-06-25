@@ -1061,6 +1061,14 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
       _jumpChapter.haveNext = false;
       return;
     }
+    // 同步身份字段：滑到章末自动切章时，"跳转章节"面板靠这些字段
+    // 判定当前章节高亮，缺失则永远停在进入阅读器时的那一章
+    final chapter = chapters[index];
+    _jumpChapter.chapterId = resolveUnifiedComicChapterKey(chapter);
+    _jumpChapter.requestId = chapter.requestId.trim();
+    _jumpChapter.storageChapterId = chapter.storageChapterId.trim();
+    _jumpChapter.logicalKey = chapter.logicalKey.trim();
+    _jumpChapter.chapterExtern = Map<String, dynamic>.from(chapter.extern);
     _jumpChapter.havePrev = index > 0;
     _jumpChapter.haveNext = index < chapters.length - 1;
   }

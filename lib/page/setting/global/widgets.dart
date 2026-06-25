@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/util/socks5_proxy.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/router/router.gr.dart';
@@ -18,8 +19,13 @@ Widget changeThemeColor(BuildContext context) {
   );
 }
 
-Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
+Widget socks5ProxyEdit(
+  BuildContext context,
+  String currentProxy, {
+  required bool enabled,
+}) {
   return ListTile(
+    enabled: enabled,
     leading: const Icon(Icons.router_outlined),
     title: const Text('SOCKS5 代理'),
     subtitle: Text(
@@ -28,6 +34,7 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
       overflow: TextOverflow.ellipsis,
     ),
     trailing: const Icon(Icons.chevron_right),
+    // enabled=false 时 ListTile 自身禁用点击，无需在此再判空
     onTap: () async {
       final globalSettingCubit = context.read<GlobalSettingCubit>();
       var inputValue = currentProxy;
@@ -62,7 +69,9 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
         globalSettingCubit.updateState(
           (current) => current.copyWith(socks5Proxy: result),
         );
-        showSuccessToast('设置成功，重启生效');
+        // 地址变更后即时应用（开关已开启则走新地址，关闭则无副作用）
+        await applySocks5Proxy(globalSettingCubit.state);
+        showSuccessToast('设置成功');
       }
     },
   );

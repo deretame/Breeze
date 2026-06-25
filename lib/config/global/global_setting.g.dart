@@ -31,6 +31,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
           .toList() ??
       const [],
   socks5Proxy: json['socks5Proxy'] as String? ?? '',
+  socks5ProxyEnabled: json['socks5ProxyEnabled'] as bool? ?? false,
   needCleanCache: json['needCleanCache'] as bool? ?? false,
   comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
   disableBika: json['disableBika'] as bool? ?? false,
@@ -83,6 +84,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'syncSetting': instance.syncSetting.toJson(),
       'maskedKeywords': instance.maskedKeywords,
       'socks5Proxy': instance.socks5Proxy,
+      'socks5ProxyEnabled': instance.socks5ProxyEnabled,
       'needCleanCache': instance.needCleanCache,
       'comicChoice': instance.comicChoice,
       'disableBika': instance.disableBika,

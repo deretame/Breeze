@@ -1763,6 +1763,16 @@ pub fn set_socks5_proxy(proxy: String) -> Result<()> {
     .map_err(|err| anyhow!("设置 socks5 代理失败: {err}"))
 }
 
+/// 关闭代理：保留当前 TLS / 私网设置，仅清除代理字段
+pub fn disable_proxy() -> Result<()> {
+    let mut config = current_http_client_config();
+    config.use_http_proxy = false;
+    config.use_socks5_proxy = false;
+    config.http_proxy = None;
+    config.socks5_proxy = None;
+    configure_http_client(config).map_err(|err| anyhow!("关闭代理失败: {err}"))
+}
+
 pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
     let mut config = current_http_client_config();
     config.disable_tls_verify = !enabled;

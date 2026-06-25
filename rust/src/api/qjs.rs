@@ -215,6 +215,11 @@ pub fn set_socks5_proxy(proxy: String) -> Result<()> {
 }
 
 #[frb(sync)]
+pub fn disable_proxy() -> Result<()> {
+    crate::qjs::disable_proxy()
+}
+
+#[frb(sync)]
 pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
     crate::qjs::set_tls_verify_enabled(enabled)
 }

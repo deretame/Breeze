@@ -17,7 +17,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:logger/logger.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -44,6 +43,7 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/rust_loader.dart';
+import 'package:zephyr/util/socks5_proxy.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 
 late final ObjectBox objectbox;
@@ -285,11 +285,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     await clearCache(await getCachePath());
   }
 
-  if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
-    final proxy = globalSettingCubit.state.socks5Proxy;
-    SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
-    await setSocks5Proxy(proxy: proxy);
-  }
+  await applySocks5Proxy(globalSettingCubit.state);
 
   // 设置日志转发（包含flutter和qjs的日志）
   final logAddress = globalSettingCubit.state.logAddress;

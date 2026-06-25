@@ -14,6 +14,7 @@ import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
+import 'package:zephyr/util/socks5_proxy.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -194,7 +195,12 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
               _chineseConvertMode(state, globalSettingCubit),
-              socks5ProxyEdit(context, state.socks5Proxy),
+              _socks5ProxySwitch(state, globalSettingCubit),
+              socks5ProxyEdit(
+                context,
+                state.socks5Proxy,
+                enabled: state.socks5ProxyEnabled,
+              ),
               if (!Platform.isIOS) _customExportPath(state, globalSettingCubit),
               _updateAccelerate(state, globalSettingCubit),
 
@@ -423,6 +429,26 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         cubit.updateState(
           (current) => current.copyWith(updateAccelerate: value),
         );
+      },
+    );
+  }
+
+  Widget _socks5ProxySwitch(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.vpn_lock_outlined),
+      title: const Text('SOCKS5 代理'),
+      subtitle: const Text('关闭后代理服务器地址不可修改'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.socks5ProxyEnabled,
+      onChanged: (bool value) async {
+        cubit.updateState(
+          (current) => current.copyWith(socks5ProxyEnabled: value),
+        );
+        // 运行时即时生效，无需重启
+        await applySocks5Proxy(state.copyWith(socks5ProxyEnabled: value));
       },
     );
   }

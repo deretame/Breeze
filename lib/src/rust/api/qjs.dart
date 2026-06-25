@@ -224,6 +224,8 @@ Future<void> setHttpProxy({required String proxy}) =>
 Future<void> setSocks5Proxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
 
+void disableProxy() => RustLib.instance.api.crateApiQjsDisableProxy();
+
 void setTlsVerifyEnabled({required bool enabled}) =>
     RustLib.instance.api.crateApiQjsSetTlsVerifyEnabled(enabled: enabled);
 

@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/rust_loader.dart';
+import 'package:zephyr/util/socks5_proxy.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/util/download/platform/android_download_runner.dart';
 
@@ -30,9 +30,8 @@ class MyTaskHandler extends TaskHandler {
     await workerManager.init(isolatesCount: Platform.numberOfProcessors);
     final setting = objectbox.userSettingBox.get(1);
     final globalSetting = setting?.globalSetting;
-    if (globalSetting?.socks5Proxy != null &&
-        globalSetting!.socks5Proxy.isNotEmpty) {
-      SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');
+    if (globalSetting != null) {
+      await applySocks5Proxy(globalSetting);
     }
 
     const initializationSettingsAndroid = AndroidInitializationSettings(

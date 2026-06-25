@@ -106,6 +106,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(SyncSettingState()) SyncSettingState syncSetting,
     @Default([]) List<String> maskedKeywords,
     @Default('') String socks5Proxy,
+    @Default(false) bool socks5ProxyEnabled,
     @Default(false) bool needCleanCache,
     @Default(1) int comicChoice,
     @Default(false) bool disableBika,

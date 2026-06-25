@@ -18,6 +18,8 @@ import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/shared_download.dart';
+import 'package:zephyr/network/sync/sync_device_id.dart';
+import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/util/get_path.dart';
 
 class _ResolvedDownloadChapter {
@@ -44,6 +46,7 @@ Future<void> unifiedDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
 ) async {
+  await ensureSyncDeviceId();
   logger.d('unifiedDownloadTask received payload=${task.toJson()}');
   final pluginId = (task.from).trim();
   final from = pluginId;
@@ -424,6 +427,9 @@ Future<void> _saveUnifiedDownload({
       .find();
   objectbox.unifiedDownloadBox.removeMany(temp.map((e) => e.id).toList());
   objectbox.unifiedDownloadBox.put(entity);
+
+  // 同时建立根目录下载链接，用于新的文件夹书架视图
+  ComicLinkService.addComic(key, null, ComicFolderType.download);
 }
 
 Map<String, dynamic> _deepCopyMap(Object value) {

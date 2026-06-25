@@ -702,3 +702,54 @@ Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
       'debug': instance.debug,
       'debugUrl': instance.debugUrl,
     };
+
+ComicFolder _$ComicFolderFromJson(Map<String, dynamic> json) => ComicFolder(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  syncId: json['syncId'] as String? ?? '',
+  parentSyncId: json['parentSyncId'] as String?,
+  uniqueKey: json['uniqueKey'] as String,
+  name: json['name'] as String,
+  typeData: json['typeData'] as String,
+  versionVectorJson: json['versionVectorJson'] as String,
+  deletedAt: (json['deletedAt'] as num?)?.toInt(),
+  createdAt: (json['createdAt'] as num).toInt(),
+  updatedAt: (json['updatedAt'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ComicFolderToJson(ComicFolder instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'syncId': instance.syncId,
+      'parentSyncId': instance.parentSyncId,
+      'uniqueKey': instance.uniqueKey,
+      'name': instance.name,
+      'typeData': instance.typeData,
+      'versionVectorJson': instance.versionVectorJson,
+      'deletedAt': instance.deletedAt,
+      'createdAt': instance.createdAt,
+      'updatedAt': instance.updatedAt,
+    };
+
+ComicLink _$ComicLinkFromJson(Map<String, dynamic> json) => ComicLink(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  uniqueKey: json['uniqueKey'] as String,
+  comicUniqueKey: json['comicUniqueKey'] as String,
+  folderSyncId: json['folderSyncId'] as String?,
+  typeData: json['typeData'] as String,
+  versionVectorJson: json['versionVectorJson'] as String,
+  deletedAt: (json['deletedAt'] as num?)?.toInt(),
+  createdAt: (json['createdAt'] as num).toInt(),
+  updatedAt: (json['updatedAt'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ComicLinkToJson(ComicLink instance) => <String, dynamic>{
+  'id': instance.id,
+  'uniqueKey': instance.uniqueKey,
+  'comicUniqueKey': instance.comicUniqueKey,
+  'folderSyncId': instance.folderSyncId,
+  'typeData': instance.typeData,
+  'versionVectorJson': instance.versionVectorJson,
+  'deletedAt': instance.deletedAt,
+  'createdAt': instance.createdAt,
+  'updatedAt': instance.updatedAt,
+};

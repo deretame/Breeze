@@ -1,15 +1,21 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 
 const String syncDataVersion = 'v1';
+
+enum _VectorRelation { equal, leftDominates, rightDominates, conflict }
 
 abstract class ComicSyncRemoteAdapter {
   Future<void> testConnection();
@@ -123,10 +129,29 @@ class ComicSyncCore {
     final histories = objectbox.unifiedHistoryBox.getAll();
     histories.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
+    final folders = objectbox.comicFolderBox
+        .getAll()
+        .where(
+          (f) =>
+              f.type == ComicFolderType.favorite ||
+              f.type == ComicFolderType.history,
+        )
+        .toList();
+    final links = objectbox.comicLinkBox
+        .getAll()
+        .where(
+          (l) =>
+              l.type == ComicFolderType.favorite ||
+              l.type == ComicFolderType.history,
+        )
+        .toList();
+
     final data = {
       'version': syncDataVersion,
       'favorites': favorites.map((e) => _stripLocalId(e.toJson())).toList(),
       'histories': histories.map((e) => _stripLocalId(e.toJson())).toList(),
+      'folders': folders.map((e) => _stripLocalId(e.toJson())).toList(),
+      'links': links.map((e) => _stripLocalId(e.toJson())).toList(),
     };
 
     final raw = utf8.encode(jsonEncode(data));
@@ -155,12 +180,21 @@ class ComicSyncCore {
     return raw;
   }
 
+  static int _mergeUnifiedDataInIsolate(Store store, Map<String, dynamic> arg) {
+    syncDeviceId = arg['_deviceId'] as String;
+    return mergeUnifiedData(store, arg['_data'] as Map<String, dynamic>);
+  }
+
   static int mergeUnifiedData(Store store, Map<String, dynamic> data) {
     final favoriteBox = store.box<UnifiedComicFavorite>();
     final historyBox = store.box<UnifiedComicHistory>();
+    final folderBox = store.box<ComicFolder>();
+    final linkBox = store.box<ComicLink>();
 
     final localFavorites = favoriteBox.getAll();
     final localHistories = historyBox.getAll();
+    var localFolders = folderBox.getAll();
+    var localLinks = linkBox.getAll();
 
     final cloudFavorites = _parseJsonList(
       data['favorites'],
@@ -168,6 +202,19 @@ class ComicSyncCore {
     final cloudHistories = _parseJsonList(
       data['histories'],
     ).map(UnifiedComicHistory.fromJson).toList();
+    var cloudFolders = _parseJsonList(
+      data['folders'],
+    ).map(ComicFolder.fromJson).toList();
+    var cloudLinks = _parseJsonList(
+      data['links'],
+    ).map(ComicLink.fromJson).toList();
+
+    // 旧数据可能没有 syncId，先兜底补一遍，确保后续按 syncId 合并能正常进行。
+    for (final folder in [...localFolders, ...cloudFolders]) {
+      if (folder.syncId.isEmpty) {
+        folder.syncId = const Uuid().v4();
+      }
+    }
 
     final mergedFavorites = _mergeByUniqueKey(
       localFavorites,
@@ -181,6 +228,65 @@ class ComicSyncCore {
       keyOf: (item) => item.uniqueKey,
       updatedAtOf: (item) => item.updatedAt,
     );
+    var mergedFolders = _mergeByVersionVector<ComicFolder>(
+      localFolders,
+      cloudFolders,
+      keyOf: (item) => item.syncId,
+      vectorJsonOf: (item) => item.versionVectorJson,
+      updatedAtMsOf: (item) => item.updatedAt,
+      updateOf: (item, vector, updatedAt) {
+        item.versionVectorJson = vector;
+        item.updatedAt = updatedAt;
+      },
+    );
+
+    // 先把 folder 的 uniqueKey 索引建起来，给 link 补 folderSyncId 用。
+    var folderByUniqueKey = <String, ComicFolder>{
+      for (final folder in mergedFolders) folder.uniqueKey: folder,
+    };
+
+    // 补齐旧版 folder 的 parentSyncId（旧版 uniqueKey 为 path|type）。
+    for (final folder in mergedFolders) {
+      _ensureFolderParentSyncId(folder, folder.typeData, folderByUniqueKey);
+    }
+    // parentSyncId 可能已更新，重建索引。
+    folderByUniqueKey = {
+      for (final folder in mergedFolders) folder.uniqueKey: folder,
+    };
+
+    for (final link in [...localLinks, ...cloudLinks]) {
+      _ensureLinkFolderSyncId(link, folderByUniqueKey);
+    }
+
+    var mergedLinks = _mergeByVersionVector<ComicLink>(
+      localLinks,
+      cloudLinks,
+      keyOf: (item) =>
+          '${item.comicUniqueKey}|${item.folderSyncId ?? ''}|${item.typeData}',
+      vectorJsonOf: (item) => item.versionVectorJson,
+      updatedAtMsOf: (item) => item.updatedAt,
+      updateOf: (item, vector, updatedAt) {
+        item.versionVectorJson = vector;
+        item.updatedAt = updatedAt;
+      },
+    );
+
+    // 将旧版 path|type 格式的 folder uniqueKey 规范化为
+    // parentSyncId|name|type，保证后续本地查询/冲突处理一致。
+    _normalizeFolderUniqueKeys(mergedFolders);
+
+    // 处理相同 uniqueKey 但不同 syncId 的文件夹冲突：选一个 winner，
+    // 内容合并进去，输家从列表中移除。
+    _resolveFolderUniqueKeyConflicts(mergedFolders, mergedLinks);
+
+    _repairOrphanLinks(mergedFolders, mergedLinks);
+
+    // 兜底：从旧版本同步过来的记录可能没有 syncId，在这里补齐。
+    for (final folder in mergedFolders) {
+      if (folder.syncId.isEmpty) {
+        folder.syncId = const Uuid().v4();
+      }
+    }
 
     for (final item in mergedFavorites) {
       item.id = 0;
@@ -188,17 +294,35 @@ class ComicSyncCore {
     for (final item in mergedHistories) {
       item.id = 0;
     }
+    for (final item in mergedFolders) {
+      item.id = 0;
+    }
+    for (final item in mergedLinks) {
+      item.id = 0;
+    }
 
     favoriteBox.removeAll();
     historyBox.removeAll();
+    folderBox.removeAll();
+    linkBox.removeAll();
+
     if (mergedFavorites.isNotEmpty) {
       favoriteBox.putMany(mergedFavorites);
     }
     if (mergedHistories.isNotEmpty) {
       historyBox.putMany(mergedHistories);
     }
+    if (mergedFolders.isNotEmpty) {
+      folderBox.putMany(mergedFolders);
+    }
+    if (mergedLinks.isNotEmpty) {
+      linkBox.putMany(mergedLinks);
+    }
 
-    return mergedFavorites.length + mergedHistories.length;
+    return mergedFavorites.length +
+        mergedHistories.length +
+        mergedFolders.length +
+        mergedLinks.length;
   }
 
   static String extractFileName(String remotePath) {
@@ -261,6 +385,554 @@ class ComicSyncCore {
       }
     }
     return merged.values.toList();
+  }
+
+  // ==================== 版本向量合并（ComicFolder / ComicLink） ====================
+
+  static List<T> _mergeByVersionVector<T extends Object>(
+    List<T> local,
+    List<T> cloud, {
+    required String Function(T item) keyOf,
+    required String Function(T item) vectorJsonOf,
+    required int Function(T item) updatedAtMsOf,
+    required void Function(T item, String newVectorJson, int newUpdatedAtMs)
+    updateOf,
+  }) {
+    final localMap = {for (final item in local) keyOf(item): item};
+    final cloudMap = {for (final item in cloud) keyOf(item): item};
+    final merged = <T>[];
+    final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+
+    for (final key in {...localMap.keys, ...cloudMap.keys}) {
+      final localItem = localMap[key];
+      final cloudItem = cloudMap[key];
+      if (localItem == null) {
+        merged.add(cloudItem!);
+        continue;
+      }
+      if (cloudItem == null) {
+        merged.add(localItem);
+        continue;
+      }
+
+      final localVector = _parseVersionVector(vectorJsonOf(localItem));
+      final cloudVector = _parseVersionVector(vectorJsonOf(cloudItem));
+      final relation = _compareVersionVectors(localVector, cloudVector);
+
+      switch (relation) {
+        case _VectorRelation.equal:
+        case _VectorRelation.leftDominates:
+          merged.add(localItem);
+        case _VectorRelation.rightDominates:
+          merged.add(cloudItem);
+        case _VectorRelation.conflict:
+          final localUpdatedAt = updatedAtMsOf(localItem);
+          final cloudUpdatedAt = updatedAtMsOf(cloudItem);
+          final winner = localUpdatedAt >= cloudUpdatedAt
+              ? localItem
+              : cloudItem;
+          final loser = identical(winner, localItem) ? cloudItem : localItem;
+          final winnerVector = _parseVersionVector(vectorJsonOf(winner));
+          final loserVector = _parseVersionVector(vectorJsonOf(loser));
+          final mergedVector = _mergeVectors(winnerVector, loserVector);
+          final bumpedVector = _bumpVector(mergedVector);
+          updateOf(winner, _encodeVersionVector(bumpedVector), now);
+          merged.add(winner);
+      }
+    }
+    return merged;
+  }
+
+  static Map<String, int> _parseVersionVector(String json) {
+    if (json.trim().isEmpty) return <String, int>{};
+    try {
+      final map = jsonDecode(json) as Map<String, dynamic>;
+      return map.map((k, v) => MapEntry(k, (v as num).toInt()));
+    } catch (_) {
+      return <String, int>{};
+    }
+  }
+
+  static String _encodeVersionVector(Map<String, int> vector) {
+    return jsonEncode(vector);
+  }
+
+  static _VectorRelation _compareVersionVectors(
+    Map<String, int> a,
+    Map<String, int> b,
+  ) {
+    final keys = {...a.keys, ...b.keys};
+    var leftGreater = false;
+    var rightGreater = false;
+    for (final key in keys) {
+      final av = a[key] ?? 0;
+      final bv = b[key] ?? 0;
+      if (av > bv) leftGreater = true;
+      if (bv > av) rightGreater = true;
+    }
+    if (!leftGreater && !rightGreater) return _VectorRelation.equal;
+    if (leftGreater && !rightGreater) return _VectorRelation.leftDominates;
+    if (rightGreater && !leftGreater) return _VectorRelation.rightDominates;
+    return _VectorRelation.conflict;
+  }
+
+  static Map<String, int> _mergeVectors(
+    Map<String, int> a,
+    Map<String, int> b,
+  ) {
+    final keys = {...a.keys, ...b.keys};
+    return {for (final key in keys) key: max(a[key] ?? 0, b[key] ?? 0)};
+  }
+
+  static Map<String, int> _bumpVector(Map<String, int> vector) {
+    final copy = Map<String, int>.from(vector);
+    copy[syncDeviceId] = (copy[syncDeviceId] ?? 0) + 1;
+    return copy;
+  }
+
+  static String _parentFolderPath(String path) {
+    final trimmed = path.endsWith('/')
+        ? path.substring(0, path.length - 1)
+        : path;
+    final index = trimmed.lastIndexOf('/');
+    if (index <= 0) return '';
+    return trimmed.substring(0, index);
+  }
+
+  static String _linkUniqueKey(
+    String comicUniqueKey,
+    String? folderSyncId,
+    String typeData,
+  ) {
+    return '$comicUniqueKey|${folderSyncId ?? ''}|$typeData';
+  }
+
+  /// 从旧版 folder uniqueKey（path|type）中解析 path。
+  static String? _folderPathFromUniqueKey(String uniqueKey, String typeData) {
+    final suffix = '|$typeData';
+    if (!uniqueKey.endsWith(suffix)) return null;
+    return uniqueKey.substring(0, uniqueKey.length - suffix.length);
+  }
+
+  /// 从旧版 link uniqueKey（comic|folderPath|type）中解析 folderPath。
+  /// 若无法解析或不是旧格式，返回 null。
+  static String? _folderPathFromLinkUniqueKey(String uniqueKey) {
+    final lastPipe = uniqueKey.lastIndexOf('|');
+    if (lastPipe <= 0) return null;
+    final secondLastPipe = uniqueKey.lastIndexOf('|', lastPipe - 1);
+    if (secondLastPipe < 0) return null;
+    final folderPath = uniqueKey.substring(secondLastPipe + 1, lastPipe);
+    // 旧格式 folderPath 以 '/' 开头；新格式为 syncId（UUID），不用于路径。
+    return folderPath.startsWith('/') ? folderPath : null;
+  }
+
+  /// 收集 [rootSyncId] 下所有后代文件夹的 syncId（包含自身）。
+  static Set<String> _collectSubtreeSyncIds(
+    String rootSyncId,
+    List<ComicFolder> folders,
+    String typeData,
+  ) {
+    final childrenByParent = <String, List<ComicFolder>>{};
+    for (final folder in folders) {
+      if (folder.typeData != typeData) continue;
+      childrenByParent
+          .putIfAbsent(folder.parentSyncId ?? '', () => [])
+          .add(folder);
+    }
+    final result = <String>{rootSyncId};
+    final queue = [rootSyncId];
+    while (queue.isNotEmpty) {
+      final parentId = queue.removeLast();
+      for (final child in childrenByParent[parentId] ?? const []) {
+        if (result.add(child.syncId)) queue.add(child.syncId);
+      }
+    }
+    return result;
+  }
+
+  /// 将 folder uniqueKey 规范化为 parentSyncId|name|type。
+  static void _normalizeFolderUniqueKeys(List<ComicFolder> folders) {
+    for (final folder in folders) {
+      folder.uniqueKey =
+          '${folder.parentSyncId ?? ''}|${folder.name}|${folder.typeData}';
+    }
+  }
+
+  static void _ensureFolderParentSyncId(
+    ComicFolder folder,
+    String typeData,
+    Map<String, ComicFolder> folderByUniqueKey,
+  ) {
+    if (folder.parentSyncId != null && folder.parentSyncId!.isNotEmpty) return;
+    // 旧版数据 uniqueKey 为 path|type，可从中反推出 parentSyncId。
+    if (!folder.uniqueKey.startsWith('/')) return;
+    final path = _folderPathFromUniqueKey(folder.uniqueKey, typeData);
+    if (path == null || path.isEmpty) return;
+    final parentPath = _parentFolderPath(path);
+    if (parentPath.isEmpty) return;
+    final parent = folderByUniqueKey['$parentPath|$typeData'];
+    if (parent != null && parent.deletedAt == null) {
+      folder.parentSyncId = parent.syncId;
+    }
+  }
+
+  static void _ensureLinkFolderSyncId(
+    ComicLink link,
+    Map<String, ComicFolder> folderByUniqueKey,
+  ) {
+    if (link.folderSyncId != null && link.folderSyncId!.isNotEmpty) return;
+    final folderPath = _folderPathFromLinkUniqueKey(link.uniqueKey);
+    if (folderPath == null || folderPath.isEmpty) return;
+    final folder = folderByUniqueKey['$folderPath|${link.typeData}'];
+    if (folder != null) {
+      link.folderSyncId = folder.syncId;
+    }
+  }
+
+  /// 处理同一个 parentSyncId|name|type（或旧版 path|type）下存在多个 syncId
+  /// 的文件夹冲突。
+  ///
+  /// 对每一组 uniqueKey 相同的文件夹（无论 active 还是 tombstone），
+  /// 按版本向量 / LWW 选一个 winner：
+  /// - winner 是 active：把输家的直接链接迁到 winner，输家从列表中移除。
+  /// - winner 是 tombstone：把输家（及其子树）tombstone，并清理对应链接。
+  static void _resolveFolderUniqueKeyConflicts(
+    List<ComicFolder> folders,
+    List<ComicLink> links,
+  ) {
+    final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+    final keyMap = <String, List<ComicFolder>>{};
+    for (final folder in folders) {
+      keyMap.putIfAbsent(folder.uniqueKey, () => []).add(folder);
+    }
+
+    final conflicts = keyMap.values.where((group) => group.length > 1).toList();
+
+    for (final group in conflicts) {
+      if (group.length < 2) continue;
+
+      var winner = group.first;
+      for (final candidate in group.skip(1)) {
+        winner = _resolveFolderConflict(winner, candidate);
+      }
+
+      if (winner.deletedAt != null) {
+        // winner 是 tombstone：整棵子树都应该被清理。
+        _tombstoneFolderSubtree(winner, folders, links, now);
+      }
+
+      for (final loser in group) {
+        if (identical(loser, winner)) continue;
+        if (winner.deletedAt != null) {
+          _tombstoneFolderSubtree(loser, folders, links, now);
+        } else {
+          _mergeFolderLinks(loser, winner, folders, links, now);
+        }
+        folders.remove(loser);
+      }
+    }
+  }
+
+  static ComicFolder _resolveFolderConflict(ComicFolder a, ComicFolder b) {
+    final aVector = _parseVersionVector(a.versionVectorJson);
+    final bVector = _parseVersionVector(b.versionVectorJson);
+    final relation = _compareVersionVectors(aVector, bVector);
+    return switch (relation) {
+      _VectorRelation.equal || _VectorRelation.leftDominates => a,
+      _VectorRelation.rightDominates => b,
+      _VectorRelation.conflict => a.updatedAt >= b.updatedAt ? a : b,
+    };
+  }
+
+  /// 把 [loser] 文件夹下的直接子文件夹和链接合并到 [winner]，并提升 winner 的版本向量。
+  static void _mergeFolderLinks(
+    ComicFolder loser,
+    ComicFolder winner,
+    List<ComicFolder> folders,
+    List<ComicLink> links,
+    int now,
+  ) {
+    winner
+      ..versionVectorJson = _encodeVersionVector(
+        _bumpVector(
+          _mergeVectors(
+            _parseVersionVector(winner.versionVectorJson),
+            _parseVersionVector(loser.versionVectorJson),
+          ),
+        ),
+      )
+      ..updatedAt = now;
+
+    // 把 loser 的直接子文件夹挂到 winner 下。
+    for (final child in folders) {
+      if (child.deletedAt != null) continue;
+      if (child.typeData != loser.typeData) continue;
+      if (child.parentSyncId != loser.syncId) continue;
+      child
+        ..parentSyncId = winner.syncId
+        ..updatedAt = now;
+    }
+
+    for (var i = links.length - 1; i >= 0; i--) {
+      final link = links[i];
+      if (link.deletedAt != null) continue;
+      if (link.folderSyncId != loser.syncId) continue;
+
+      final existingWinnerLink = links.firstWhereOrNull(
+        (l) =>
+            l.deletedAt == null &&
+            l.folderSyncId == winner.syncId &&
+            l.comicUniqueKey == link.comicUniqueKey &&
+            l.typeData == link.typeData,
+      );
+      if (existingWinnerLink != null) {
+        final kept = _resolveLinkConflict(existingWinnerLink, link, now);
+        final removed = identical(kept, existingWinnerLink)
+            ? link
+            : existingWinnerLink;
+        links.remove(removed);
+        // 保留的 link 必须指向 winner 文件夹。
+        if (kept.folderSyncId != winner.syncId) {
+          kept
+            ..folderSyncId = winner.syncId
+            ..uniqueKey =
+                '${kept.comicUniqueKey}|${winner.syncId}|${kept.typeData}';
+        }
+      } else {
+        link
+          ..folderSyncId = winner.syncId
+          ..uniqueKey =
+              '${link.comicUniqueKey}|${winner.syncId}|${link.typeData}'
+          ..versionVectorJson = _encodeVersionVector(
+            _bumpVector(_parseVersionVector(link.versionVectorJson)),
+          )
+          ..updatedAt = now;
+      }
+    }
+  }
+
+  /// 比较两个指向同一文件夹的 link，返回应该保留的那个，并提升其版本向量。
+  /// 另一个 link 会被调用方从列表中移除，因此这里不设置 deletedAt。
+  static ComicLink _resolveLinkConflict(ComicLink a, ComicLink b, int now) {
+    final aVector = _parseVersionVector(a.versionVectorJson);
+    final bVector = _parseVersionVector(b.versionVectorJson);
+    final relation = _compareVersionVectors(aVector, bVector);
+
+    final ComicLink winner;
+    final ComicLink loser;
+    switch (relation) {
+      case _VectorRelation.equal:
+      case _VectorRelation.leftDominates:
+        winner = a;
+        loser = b;
+      case _VectorRelation.rightDominates:
+        winner = b;
+        loser = a;
+      case _VectorRelation.conflict:
+        if (a.updatedAt >= b.updatedAt) {
+          winner = a;
+          loser = b;
+        } else {
+          winner = b;
+          loser = a;
+        }
+    }
+
+    final mergedVector = _mergeVectors(
+      _parseVersionVector(winner.versionVectorJson),
+      _parseVersionVector(loser.versionVectorJson),
+    );
+    winner
+      ..versionVectorJson = _encodeVersionVector(_bumpVector(mergedVector))
+      ..updatedAt = now;
+    return winner;
+  }
+
+  /// 把 [root] 文件夹及其子树全部 tombstone，并清理指向它们的 active link。
+  static void _tombstoneFolderSubtree(
+    ComicFolder root,
+    List<ComicFolder> folders,
+    List<ComicLink> links,
+    int now,
+  ) {
+    final type = root.typeData;
+    final subtreeSyncIds = _collectSubtreeSyncIds(root.syncId, folders, type);
+
+    for (final folder in folders) {
+      if (folder.typeData != type) continue;
+      if (folder.deletedAt != null) continue;
+      if (!subtreeSyncIds.contains(folder.syncId)) continue;
+      folder
+        ..deletedAt = now
+        ..updatedAt = now
+        ..versionVectorJson = _encodeVersionVector(
+          _bumpVector(_parseVersionVector(folder.versionVectorJson)),
+        );
+    }
+
+    for (final link in links) {
+      if (link.deletedAt != null) continue;
+      if (link.typeData != type) continue;
+      if (link.folderSyncId != null &&
+          subtreeSyncIds.contains(link.folderSyncId)) {
+        link
+          ..deletedAt = now
+          ..updatedAt = now
+          ..versionVectorJson = _encodeVersionVector(
+            _bumpVector(_parseVersionVector(link.versionVectorJson)),
+          );
+      }
+    }
+  }
+
+  /// 修复 active Link 指向已删除/不存在文件夹的孤儿问题。
+  ///
+  /// 先按 folderSyncId 处理，再按路径补全祖先文件夹，最后补齐 link 的指向。
+  static void _repairOrphanLinks(
+    List<ComicFolder> folders,
+    List<ComicLink> links,
+  ) {
+    final folderBySyncId = <String, ComicFolder>{};
+    final childrenByParentSyncId = <String, List<ComicFolder>>{};
+    for (final folder in folders) {
+      if (folder.syncId.isNotEmpty) folderBySyncId[folder.syncId] = folder;
+      childrenByParentSyncId
+          .putIfAbsent(folder.parentSyncId ?? '', () => [])
+          .add(folder);
+    }
+    final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+
+    for (final link in links) {
+      if (link.deletedAt != null) continue;
+
+      // 1) 如果 link 有 folderSyncId，先按 syncId 处理 tombstone 冲突。
+      final folderSyncId = link.folderSyncId;
+      if (folderSyncId != null && folderSyncId.isNotEmpty) {
+        final folder = folderBySyncId[folderSyncId];
+        if (folder != null) {
+          if (folder.deletedAt != null) {
+            final linkVector = _parseVersionVector(link.versionVectorJson);
+            final folderVector = _parseVersionVector(folder.versionVectorJson);
+            final relation = _compareVersionVectors(linkVector, folderVector);
+            final shouldResurrect = switch (relation) {
+              _VectorRelation.leftDominates => true,
+              _VectorRelation.conflict => link.updatedAt >= folder.updatedAt,
+              _VectorRelation.equal => link.updatedAt >= folder.updatedAt,
+              _VectorRelation.rightDominates => false,
+            };
+            if (shouldResurrect) {
+              folder
+                ..deletedAt = null
+                ..versionVectorJson = _encodeVersionVector(
+                  _bumpVector(_mergeVectors(linkVector, folderVector)),
+                )
+                ..updatedAt = now;
+            } else {
+              link
+                ..deletedAt = now
+                ..versionVectorJson = _encodeVersionVector(
+                  _bumpVector(_mergeVectors(linkVector, folderVector)),
+                )
+                ..updatedAt = now;
+              continue;
+            }
+          }
+          link.uniqueKey = _linkUniqueKey(
+            link.comicUniqueKey,
+            folder.syncId,
+            link.typeData,
+          );
+          continue;
+        }
+      }
+
+      // 2) 从旧版 uniqueKey 中解析目标路径，并按路径补全祖先文件夹。
+      final targetPath = _folderPathFromLinkUniqueKey(link.uniqueKey);
+      if (targetPath == null || targetPath.isEmpty) {
+        link
+          ..folderSyncId = null
+          ..uniqueKey = _linkUniqueKey(
+            link.comicUniqueKey,
+            null,
+            link.typeData,
+          );
+        continue;
+      }
+
+      final segments = targetPath
+          .split('/')
+          .where((segment) => segment.isNotEmpty)
+          .toList();
+      String? currentParentSyncId;
+      ComicFolder? deepestFolder;
+
+      for (final segment in segments) {
+        final siblings =
+            childrenByParentSyncId[currentParentSyncId ?? ''] ?? const [];
+        var folder = siblings.firstWhereOrNull(
+          (f) => f.name == segment && f.typeData == link.typeData,
+        );
+
+        if (folder == null) {
+          final linkVector = _parseVersionVector(link.versionVectorJson);
+          final newSyncId = const Uuid().v4();
+          folder = ComicFolder(
+            syncId: newSyncId,
+            parentSyncId: currentParentSyncId,
+            uniqueKey: '${currentParentSyncId ?? ''}|$segment|${link.typeData}',
+            name: segment,
+            typeData: link.typeData,
+            versionVectorJson: _encodeVersionVector(_bumpVector(linkVector)),
+            createdAt: now,
+            updatedAt: now,
+          );
+          folders.add(folder);
+          folderBySyncId[newSyncId] = folder;
+          childrenByParentSyncId
+              .putIfAbsent(currentParentSyncId ?? '', () => [])
+              .add(folder);
+        } else if (folder.deletedAt != null) {
+          final linkVector = _parseVersionVector(link.versionVectorJson);
+          final folderVector = _parseVersionVector(folder.versionVectorJson);
+          final relation = _compareVersionVectors(linkVector, folderVector);
+          final shouldResurrect = switch (relation) {
+            _VectorRelation.leftDominates => true,
+            _VectorRelation.conflict => link.updatedAt >= folder.updatedAt,
+            _VectorRelation.equal => link.updatedAt >= folder.updatedAt,
+            _VectorRelation.rightDominates => false,
+          };
+          if (shouldResurrect) {
+            folder
+              ..deletedAt = null
+              ..versionVectorJson = _encodeVersionVector(
+                _bumpVector(_mergeVectors(linkVector, folderVector)),
+              )
+              ..updatedAt = now;
+          } else {
+            link
+              ..deletedAt = now
+              ..versionVectorJson = _encodeVersionVector(
+                _bumpVector(_mergeVectors(linkVector, folderVector)),
+              )
+              ..updatedAt = now;
+            break;
+          }
+        }
+        currentParentSyncId = folder.syncId;
+        deepestFolder = folder;
+      }
+
+      // 3) 最终补齐 link 的 folderSyncId 和 uniqueKey。
+      if (link.deletedAt == null && deepestFolder != null) {
+        link
+          ..folderSyncId = deepestFolder.syncId
+          ..uniqueKey = _linkUniqueKey(
+            link.comicUniqueKey,
+            deepestFolder.syncId,
+            link.typeData,
+          );
+      }
+    }
   }
 
   static List<int> _encryptBytes(List<int> bytes) {
@@ -331,11 +1003,15 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
     final cloudData = await ComicSyncCore.decodeCompressedPayload(
       remoteData.bytes,
     );
+    final mergeArg = <String, dynamic>{
+      '_data': cloudData,
+      '_deviceId': syncDeviceId,
+    };
     final count = await objectbox.store
         .runInTransactionAsync<int, Map<String, dynamic>>(
           TxMode.write,
-          ComicSyncCore.mergeUnifiedData,
-          cloudData,
+          ComicSyncCore._mergeUnifiedDataInIsolate,
+          mergeArg,
         );
     logger.d(
       '[sync][comic] decision=apply_remote remoteFile=${remoteData.path} mergedCount=$count',

@@ -464,7 +464,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     );
   }
 
-  Widget _chineseConvertMode(GlobalSettingState state, GlobalSettingCubit cubit) {
+  Widget _chineseConvertMode(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
     return ListTile(
       leading: const Icon(Icons.translate_outlined),
       title: const Text('简繁转换'),

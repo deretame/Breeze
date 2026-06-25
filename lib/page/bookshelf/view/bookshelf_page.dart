@@ -82,7 +82,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
         body: TabBarView(
           controller: _tabController,
           children: [
-            LocalShelfPage(
+            FolderShelfPage(
               mode: ShelfPageMode.favorite,
               refreshSignal: _refreshSignals[0],
             ),
@@ -90,7 +90,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
               mode: ShelfPageMode.history,
               refreshSignal: _refreshSignals[1],
             ),
-            LocalShelfPage(
+            FolderShelfPage(
               mode: ShelfPageMode.download,
               refreshSignal: _refreshSignals[2],
             ),

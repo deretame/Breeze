@@ -352,10 +352,9 @@ class _ComicInfoState extends State<_ComicInfo>
                             ],
                             if (comicInfo.description.trim().isNotEmpty)
                               _DescriptionCard(
-                                description:
-                                    comicInfo.description.let(
-                                      convertChineseForDisplay,
-                                    ),
+                                description: comicInfo.description.let(
+                                  convertChineseForDisplay,
+                                ),
                               ),
                           ],
                         ),

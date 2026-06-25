@@ -12,6 +12,7 @@ import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
@@ -267,6 +268,10 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                 temp.updatedAt = DateTime.now().toUtc();
                 objectbox.unifiedFavoriteBox.put(temp);
                 FavoriteFolderService.removeMemberFromAllFolders(uniqueKey);
+                ComicLinkService.removeComicFromAll(
+                  uniqueKey,
+                  ComicFolderType.favorite,
+                );
               }
             }
             break;
@@ -280,6 +285,10 @@ class _LocalShelfPageState extends State<LocalShelfPage>
               temp.updatedAt = DateTime.now().toUtc();
               objectbox.unifiedHistoryBox.put(temp);
             }
+            ComicLinkService.removeComicFromAll(
+              uniqueKey,
+              ComicFolderType.history,
+            );
             break;
           case ShelfPageMode.download:
             if (!inAllFolder) {
@@ -292,6 +301,10 @@ class _LocalShelfPageState extends State<LocalShelfPage>
               if (temp != null) {
                 objectbox.unifiedDownloadBox.remove(temp.id);
                 DownloadFolderService.removeMemberFromAllFolders(uniqueKey);
+                ComicLinkService.removeComicFromAll(
+                  uniqueKey,
+                  ComicFolderType.download,
+                );
                 final downloadPath = await getDownloadPath();
                 final path = p.join(
                   downloadPath,

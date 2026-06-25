@@ -11,6 +11,7 @@ part 'model.g.dart';
 
 @Entity()
 @JsonSerializable()
+@Deprecated("不再使用，仅作为迁移时作为参考数据结构")
 class BikaComicHistory {
   @Id()
   int id;
@@ -134,6 +135,7 @@ class BikaComicHistory {
 
 @Entity()
 @JsonSerializable()
+@Deprecated("不再使用，仅作为迁移时作为参考数据结构")
 class BikaComicDownload {
   @Id()
   int id;
@@ -251,6 +253,7 @@ class BikaComicDownload {
 
 @Entity()
 @JsonSerializable()
+@Deprecated("不再使用，仅作为迁移时作为参考数据结构")
 class JmFavorite {
   @Id()
   int id;
@@ -313,6 +316,7 @@ class JmFavorite {
 
 @Entity()
 @JsonSerializable()
+@Deprecated("不再使用，仅作为迁移时作为参考数据结构")
 class JmHistory {
   @Id()
   int id;
@@ -385,6 +389,7 @@ class JmHistory {
 
 @Entity()
 @JsonSerializable()
+@Deprecated("不再使用，仅作为迁移时作为参考数据结构")
 class JmDownload {
   @Id()
   int id;
@@ -1006,6 +1011,139 @@ class PluginInfo {
 
   factory PluginInfo.fromJson(Map<String, dynamic> json) =>
       _$PluginInfoFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+/// 漫画文件夹/链接类型：收藏、历史、下载
+enum ComicFolderType { favorite, history, download }
+
+@Entity()
+@JsonSerializable()
+class ComicFolder {
+  @Id()
+  int id;
+
+  /// 全局稳定同步 ID，创建后不变，跨设备同步时使用。
+  @JsonKey(defaultValue: '')
+  @Index()
+  String syncId;
+
+  /// 父文件夹的 syncId，null 表示根目录
+  @Index()
+  String? parentSyncId;
+
+  /// 复合唯一键：parentSyncId|name|typeData
+  @Unique()
+  String uniqueKey;
+
+  /// 显示名称
+  String name;
+
+  /// 实际存储的枚举名称：favorite / history / download
+  String typeData;
+
+  @Transient()
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ComicFolderType get type => ComicFolderType.values.byName(typeData);
+
+  @Transient()
+  set type(ComicFolderType value) => typeData = value.name;
+
+  /// 版本向量 JSON 字符串
+  String versionVectorJson;
+
+  /// 软删除时间戳（毫秒），null 表示未删除
+  int? deletedAt;
+
+  /// 创建时间戳（毫秒）
+  int createdAt;
+
+  /// 最后修改时间戳（毫秒）
+  int updatedAt;
+
+  ComicFolder({
+    this.id = 0,
+    required this.syncId,
+    this.parentSyncId,
+    required this.uniqueKey,
+    required this.name,
+    required this.typeData,
+    required this.versionVectorJson,
+    this.deletedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  Map<String, dynamic> toJson() => _$ComicFolderToJson(this);
+
+  factory ComicFolder.fromJson(Map<String, dynamic> json) =>
+      _$ComicFolderFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class ComicLink {
+  @Id()
+  int id;
+
+  /// 复合唯一键：comicUniqueKey|folderSyncId|typeData
+  @Unique()
+  String uniqueKey;
+
+  /// 漫画全局唯一标识（如 UnifiedComicFavorite 的 uniqueKey）
+  String comicUniqueKey;
+
+  /// 所属文件夹的 syncId，null 表示根目录
+  @Index()
+  String? folderSyncId;
+
+  /// 实际存储的枚举名称：favorite / history / download
+  String typeData;
+
+  @Transient()
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ComicFolderType get type => ComicFolderType.values.byName(typeData);
+
+  @Transient()
+  set type(ComicFolderType value) => typeData = value.name;
+
+  /// 版本向量 JSON 字符串
+  String versionVectorJson;
+
+  /// 软删除时间戳（毫秒），null 表示未删除
+  int? deletedAt;
+
+  /// 创建时间戳（毫秒）
+  int createdAt;
+
+  /// 最后修改时间戳（毫秒）
+  int updatedAt;
+
+  ComicLink({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.comicUniqueKey,
+    this.folderSyncId,
+    required this.typeData,
+    required this.versionVectorJson,
+    this.deletedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  Map<String, dynamic> toJson() => _$ComicLinkToJson(this);
+
+  factory ComicLink.fromJson(Map<String, dynamic> json) =>
+      _$ComicLinkFromJson(json);
 
   @override
   String toString() {

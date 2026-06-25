@@ -44,6 +44,7 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/rust_loader.dart';
+import 'package:zephyr/network/sync/sync_device_id.dart';
 
 late final ObjectBox objectbox;
 
@@ -107,6 +108,9 @@ class MyAlwaysLogFilter extends LogFilter {
 Future<void> main(List<String> args) async {
   // 1. 基础初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 先生成本地同步设备 ID，后续文件夹/链接的版本向量会使用它
+  await ensureSyncDeviceId();
 
   // desktop_webview_linux 必需的标题栏子进程入口
   // 不添加会导致 Linux 下 WebView 窗口关闭时 segfault 崩溃

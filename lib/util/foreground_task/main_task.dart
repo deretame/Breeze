@@ -9,6 +9,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/rust_loader.dart';
+import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/util/download/platform/android_download_runner.dart';
 
 @pragma('vm:entry-point')
@@ -25,6 +26,7 @@ class MyTaskHandler extends TaskHandler {
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     objectbox = await ObjectBox.create();
     await initRustLib();
+    await ensureSyncDeviceId();
     await workerManager.init(isolatesCount: Platform.numberOfProcessors);
     final setting = objectbox.userSettingBox.get(1);
     final globalSetting = setting?.globalSetting;

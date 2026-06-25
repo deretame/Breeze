@@ -1819,6 +1819,145 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(20, 5951662380810661930),
+    name: 'ComicFolder',
+    lastPropertyId: const obx_int.IdUid(11, 1502995240696988760),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7530366601534165036),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2819658474195305107),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(15, 4539255899627405574),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 4798258782262617077),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8088632644062705582),
+        name: 'typeData',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 1869428163902306143),
+        name: 'versionVectorJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 3144729636209224889),
+        name: 'deletedAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3212018534701581046),
+        name: 'createdAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 9181532296599013101),
+        name: 'updatedAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 8375883542689202016),
+        name: 'syncId',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(17, 1313375952819106360),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 1502995240696988760),
+        name: 'parentSyncId',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(19, 7281532206111805739),
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(21, 2846814895392849236),
+    name: 'ComicLink',
+    lastPropertyId: const obx_int.IdUid(11, 3203585948984648343),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 1347869042209517271),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 9105928052990577228),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(16, 2581774133068551162),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3277290404072063104),
+        name: 'typeData',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 3591964857247039370),
+        name: 'versionVectorJson',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1487048651610032562),
+        name: 'deletedAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 4079319114386416735),
+        name: 'createdAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 1403147734286138928),
+        name: 'updatedAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 4469442100489612731),
+        name: 'comicUniqueKey',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 3203585948984648343),
+        name: 'folderSyncId',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(18, 4566677426593540158),
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1864,8 +2003,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(19, 3096208290767984506),
-    lastIndexId: const obx_int.IdUid(14, 8839680506101054869),
+    lastEntityId: const obx_int.IdUid(21, 2846814895392849236),
+    lastIndexId: const obx_int.IdUid(19, 7281532206111805739),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -1957,6 +2096,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
       8788850099976239757,
       328827950385735598,
       2490628595983957882,
+      4280874279179197961,
+      3842766463624819454,
+      5968257070431639977,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -4192,6 +4334,186 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    ComicFolder: obx_int.EntityDefinition<ComicFolder>(
+      model: _entities[16],
+      toOneRelations: (ComicFolder object) => [],
+      toManyRelations: (ComicFolder object) => {},
+      getId: (ComicFolder object) => object.id,
+      setId: (ComicFolder object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ComicFolder object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final nameOffset = fbb.writeString(object.name);
+        final typeDataOffset = fbb.writeString(object.typeData);
+        final versionVectorJsonOffset = fbb.writeString(
+          object.versionVectorJson,
+        );
+        final syncIdOffset = fbb.writeString(object.syncId);
+        final parentSyncIdOffset = object.parentSyncId == null
+            ? null
+            : fbb.writeString(object.parentSyncId!);
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(3, nameOffset);
+        fbb.addOffset(4, typeDataOffset);
+        fbb.addOffset(5, versionVectorJsonOffset);
+        fbb.addInt64(6, object.deletedAt);
+        fbb.addInt64(7, object.createdAt);
+        fbb.addInt64(8, object.updatedAt);
+        fbb.addOffset(9, syncIdOffset);
+        fbb.addOffset(10, parentSyncIdOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final syncIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 22, '');
+        final parentSyncIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 24);
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final typeDataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final versionVectorJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final deletedAtParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          16,
+        );
+        final createdAtParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final updatedAtParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          0,
+        );
+        final object = ComicFolder(
+          id: idParam,
+          syncId: syncIdParam,
+          parentSyncId: parentSyncIdParam,
+          uniqueKey: uniqueKeyParam,
+          name: nameParam,
+          typeData: typeDataParam,
+          versionVectorJson: versionVectorJsonParam,
+          deletedAt: deletedAtParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+        );
+
+        return object;
+      },
+    ),
+    ComicLink: obx_int.EntityDefinition<ComicLink>(
+      model: _entities[17],
+      toOneRelations: (ComicLink object) => [],
+      toManyRelations: (ComicLink object) => {},
+      getId: (ComicLink object) => object.id,
+      setId: (ComicLink object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ComicLink object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final typeDataOffset = fbb.writeString(object.typeData);
+        final versionVectorJsonOffset = fbb.writeString(
+          object.versionVectorJson,
+        );
+        final comicUniqueKeyOffset = fbb.writeString(object.comicUniqueKey);
+        final folderSyncIdOffset = object.folderSyncId == null
+            ? null
+            : fbb.writeString(object.folderSyncId!);
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(4, typeDataOffset);
+        fbb.addOffset(5, versionVectorJsonOffset);
+        fbb.addInt64(6, object.deletedAt);
+        fbb.addInt64(7, object.createdAt);
+        fbb.addInt64(8, object.updatedAt);
+        fbb.addOffset(9, comicUniqueKeyOffset);
+        fbb.addOffset(10, folderSyncIdOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final comicUniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 22, '');
+        final folderSyncIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 24);
+        final typeDataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final versionVectorJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final deletedAtParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          16,
+        );
+        final createdAtParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          18,
+          0,
+        );
+        final updatedAtParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          20,
+          0,
+        );
+        final object = ComicLink(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          comicUniqueKey: comicUniqueKeyParam,
+          folderSyncId: folderSyncIdParam,
+          typeData: typeDataParam,
+          versionVectorJson: versionVectorJsonParam,
+          deletedAt: deletedAtParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -5598,5 +5920,106 @@ class DownloadFolderItem_ {
   /// See [DownloadFolderItem.deleted].
   static final deleted = obx.QueryBooleanProperty<DownloadFolderItem>(
     _entities[15].properties[6],
+  );
+}
+
+/// [ComicFolder] entity fields to define ObjectBox queries.
+class ComicFolder_ {
+  /// See [ComicFolder.id].
+  static final id = obx.QueryIntegerProperty<ComicFolder>(
+    _entities[16].properties[0],
+  );
+
+  /// See [ComicFolder.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<ComicFolder>(
+    _entities[16].properties[1],
+  );
+
+  /// See [ComicFolder.name].
+  static final name = obx.QueryStringProperty<ComicFolder>(
+    _entities[16].properties[2],
+  );
+
+  /// See [ComicFolder.typeData].
+  static final typeData = obx.QueryStringProperty<ComicFolder>(
+    _entities[16].properties[3],
+  );
+
+  /// See [ComicFolder.versionVectorJson].
+  static final versionVectorJson = obx.QueryStringProperty<ComicFolder>(
+    _entities[16].properties[4],
+  );
+
+  /// See [ComicFolder.deletedAt].
+  static final deletedAt = obx.QueryIntegerProperty<ComicFolder>(
+    _entities[16].properties[5],
+  );
+
+  /// See [ComicFolder.createdAt].
+  static final createdAt = obx.QueryIntegerProperty<ComicFolder>(
+    _entities[16].properties[6],
+  );
+
+  /// See [ComicFolder.updatedAt].
+  static final updatedAt = obx.QueryIntegerProperty<ComicFolder>(
+    _entities[16].properties[7],
+  );
+
+  /// See [ComicFolder.syncId].
+  static final syncId = obx.QueryStringProperty<ComicFolder>(
+    _entities[16].properties[8],
+  );
+
+  /// See [ComicFolder.parentSyncId].
+  static final parentSyncId = obx.QueryStringProperty<ComicFolder>(
+    _entities[16].properties[9],
+  );
+}
+
+/// [ComicLink] entity fields to define ObjectBox queries.
+class ComicLink_ {
+  /// See [ComicLink.id].
+  static final id = obx.QueryIntegerProperty<ComicLink>(
+    _entities[17].properties[0],
+  );
+
+  /// See [ComicLink.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<ComicLink>(
+    _entities[17].properties[1],
+  );
+
+  /// See [ComicLink.typeData].
+  static final typeData = obx.QueryStringProperty<ComicLink>(
+    _entities[17].properties[2],
+  );
+
+  /// See [ComicLink.versionVectorJson].
+  static final versionVectorJson = obx.QueryStringProperty<ComicLink>(
+    _entities[17].properties[3],
+  );
+
+  /// See [ComicLink.deletedAt].
+  static final deletedAt = obx.QueryIntegerProperty<ComicLink>(
+    _entities[17].properties[4],
+  );
+
+  /// See [ComicLink.createdAt].
+  static final createdAt = obx.QueryIntegerProperty<ComicLink>(
+    _entities[17].properties[5],
+  );
+
+  /// See [ComicLink.updatedAt].
+  static final updatedAt = obx.QueryIntegerProperty<ComicLink>(
+    _entities[17].properties[6],
+  );
+
+  /// See [ComicLink.comicUniqueKey].
+  static final comicUniqueKey = obx.QueryStringProperty<ComicLink>(
+    _entities[17].properties[7],
+  );
+
+  /// See [ComicLink.folderSyncId].
+  static final folderSyncId = obx.QueryStringProperty<ComicLink>(
+    _entities[17].properties[8],
   );
 }

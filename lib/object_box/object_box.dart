@@ -31,6 +31,9 @@ class ObjectBox {
   late final Box<PluginConfig> _pluginConfigBox;
   late final Box<PluginInfo> _pluginInfoBox;
 
+  late final Box<ComicFolder> _comicFolderBox;
+  late final Box<ComicLink> _comicLinkBox;
+
   void close() {
     store.close();
   }
@@ -56,6 +59,9 @@ class ObjectBox {
 
     _pluginConfigBox = store.box<PluginConfig>();
     _pluginInfoBox = store.box<PluginInfo>();
+
+    _comicFolderBox = store.box<ComicFolder>();
+    _comicLinkBox = store.box<ComicLink>();
   }
 
   static Future<ObjectBox> create({String? dbRootPath}) async {
@@ -127,6 +133,10 @@ class ObjectBox {
 
   Box<PluginInfo> get pluginInfoBox => _pluginInfoBox;
 
+  Box<ComicFolder> get comicFolderBox => _comicFolderBox;
+
+  Box<ComicLink> get comicLinkBox => _comicLinkBox;
+
   void dumpAllData() {
     logger.d("========= ObjectBox Data Dump Start =========");
 
@@ -164,6 +174,8 @@ class ObjectBox {
     _dumpBoxData<DownloadTask>(_downloadTaskBox, "DownloadTask");
     _dumpBoxData<PluginConfig>(_pluginConfigBox, "PluginConfig");
     _dumpBoxData<PluginInfo>(_pluginInfoBox, "PluginInfo");
+    _dumpBoxData<ComicFolder>(_comicFolderBox, "ComicFolder");
+    _dumpBoxData<ComicLink>(_comicLinkBox, "ComicLink");
 
     logger.d("=========  ObjectBox Data Dump End  =========");
   }

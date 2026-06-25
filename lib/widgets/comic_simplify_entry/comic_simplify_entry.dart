@@ -342,11 +342,20 @@ class ComicSimplifyEntry extends StatelessWidget {
     logger.d(type);
     switch (type) {
       case ComicEntryType.favorite:
-        return ("删除收藏", "确定要删除（${info.title.let(convertChineseForDisplay)}）的收藏记录吗？");
+        return (
+          "删除收藏",
+          "确定要删除（${info.title.let(convertChineseForDisplay)}）的收藏记录吗？",
+        );
       case ComicEntryType.history:
-        return ("删除历史记录", "确定要删除（${info.title.let(convertChineseForDisplay)}）的历史记录吗？");
+        return (
+          "删除历史记录",
+          "确定要删除（${info.title.let(convertChineseForDisplay)}）的历史记录吗？",
+        );
       case ComicEntryType.download:
-        return ("删除下载记录", "确定要删除（${info.title.let(convertChineseForDisplay)}）的下载记录及文件吗？");
+        return (
+          "删除下载记录",
+          "确定要删除（${info.title.let(convertChineseForDisplay)}）的下载记录及文件吗？",
+        );
       default:
         return ("", "");
     }

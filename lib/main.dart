@@ -26,6 +26,7 @@ import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
@@ -44,7 +45,6 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/rust_loader.dart';
-import 'package:zephyr/network/sync/sync_device_id.dart';
 
 late final ObjectBox objectbox;
 
@@ -686,7 +686,12 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                   actions: <Type, Action<Intent>>{
                     EscapeIntent: CallbackAction<EscapeIntent>(
                       onInvoke: (intent) {
-                        appRouter.maybePop();
+                        // 先让当前焦点失焦，避免 pop 时 InputDecorator 才第一次变 dirty；
+                        // 再把 pop 推迟到下一帧，让失焦引发的重建在当前帧完成。
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          appRouter.maybePop();
+                        });
                         return null;
                       },
                     ),

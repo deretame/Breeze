@@ -750,11 +750,7 @@ fn crypto_aes_ecb_pkcs7_encrypt_bytes(input: Vec<u8>, key: String) -> AnyResult<
     Ok(json!(cipher))
 }
 
-fn crypto_aes_cbc_pkcs7_decrypt_bytes(
-    input: Vec<u8>,
-    key: String,
-    iv: String,
-) -> AnyResult<Value> {
+fn crypto_aes_cbc_pkcs7_decrypt_bytes(input: Vec<u8>, key: String, iv: String) -> AnyResult<Value> {
     let mut payload = input;
     let plain = match key.len() {
         16 => CbcDecryptor::<Aes128>::new_from_slices(key.as_bytes(), iv.as_bytes())
@@ -782,11 +778,7 @@ fn crypto_aes_cbc_pkcs7_decrypt_bytes(
     Ok(json!(plain))
 }
 
-fn crypto_aes_cbc_pkcs7_encrypt_bytes(
-    input: Vec<u8>,
-    key: String,
-    iv: String,
-) -> AnyResult<Value> {
+fn crypto_aes_cbc_pkcs7_encrypt_bytes(input: Vec<u8>, key: String, iv: String) -> AnyResult<Value> {
     let mut buf = input.clone();
     let msg_len = buf.len();
     buf.resize(msg_len + 16, 0);
@@ -834,7 +826,8 @@ fn crypto_aes_gcm_decrypt_bytes(
     let aad = aad.unwrap_or_default();
     let out = match key.len() {
         16 => {
-            let cipher = Aes128Gcm::new_from_slice(key.as_bytes()).context("AES-128 GCM 参数无效")?;
+            let cipher =
+                Aes128Gcm::new_from_slice(key.as_bytes()).context("AES-128 GCM 参数无效")?;
             cipher
                 .decrypt(
                     Nonce::from_slice(nonce.as_bytes()),
@@ -846,7 +839,8 @@ fn crypto_aes_gcm_decrypt_bytes(
                 .map_err(|_| anyhow!("AES-128 GCM 解密失败"))?
         }
         32 => {
-            let cipher = Aes256Gcm::new_from_slice(key.as_bytes()).context("AES-256 GCM 参数无效")?;
+            let cipher =
+                Aes256Gcm::new_from_slice(key.as_bytes()).context("AES-256 GCM 参数无效")?;
             cipher
                 .decrypt(
                     Nonce::from_slice(nonce.as_bytes()),
@@ -876,7 +870,8 @@ fn crypto_aes_gcm_encrypt_bytes(
     let aad = aad.unwrap_or_default();
     let out = match key.len() {
         16 => {
-            let cipher = Aes128Gcm::new_from_slice(key.as_bytes()).context("AES-128 GCM 参数无效")?;
+            let cipher =
+                Aes128Gcm::new_from_slice(key.as_bytes()).context("AES-128 GCM 参数无效")?;
             cipher
                 .encrypt(
                     Nonce::from_slice(nonce.as_bytes()),
@@ -888,7 +883,8 @@ fn crypto_aes_gcm_encrypt_bytes(
                 .map_err(|_| anyhow!("AES-128 GCM 加密失败"))?
         }
         32 => {
-            let cipher = Aes256Gcm::new_from_slice(key.as_bytes()).context("AES-256 GCM 参数无效")?;
+            let cipher =
+                Aes256Gcm::new_from_slice(key.as_bytes()).context("AES-256 GCM 参数无效")?;
             cipher
                 .encrypt(
                     Nonce::from_slice(nonce.as_bytes()),
@@ -1105,20 +1101,14 @@ fn bridge_call_inner(
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             let key = require_str_arg(&args, 1, "key")?;
             let nonce = require_str_arg(&args, 2, "nonce")?;
-            let aad = args
-                .get(3)
-                .map(|v| parse_u8_json_value(v))
-                .transpose()?;
+            let aad = args.get(3).map(|v| parse_u8_json_value(v)).transpose()?;
             crypto_aes_gcm_decrypt_bytes(input, key, nonce, aad)
         }
         "crypto.aes_gcm_encrypt" => {
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             let key = require_str_arg(&args, 1, "key")?;
             let nonce = require_str_arg(&args, 2, "nonce")?;
-            let aad = args
-                .get(3)
-                .map(|v| parse_u8_json_value(v))
-                .transpose()?;
+            let aad = args.get(3).map(|v| parse_u8_json_value(v)).transpose()?;
             crypto_aes_gcm_encrypt_bytes(input, key, nonce, aad)
         }
         "compression.gzip_decompress" => {
@@ -1284,20 +1274,14 @@ async fn bridge_call_inner_async(
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             let key = require_str_arg(&args, 1, "key")?;
             let nonce = require_str_arg(&args, 2, "nonce")?;
-            let aad = args
-                .get(3)
-                .map(|v| parse_u8_json_value(v))
-                .transpose()?;
+            let aad = args.get(3).map(|v| parse_u8_json_value(v)).transpose()?;
             crypto_aes_gcm_decrypt_bytes(input, key, nonce, aad)
         }
         "crypto.aes_gcm_encrypt" => {
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             let key = require_str_arg(&args, 1, "key")?;
             let nonce = require_str_arg(&args, 2, "nonce")?;
-            let aad = args
-                .get(3)
-                .map(|v| parse_u8_json_value(v))
-                .transpose()?;
+            let aad = args.get(3).map(|v| parse_u8_json_value(v)).transpose()?;
             crypto_aes_gcm_encrypt_bytes(input, key, nonce, aad)
         }
         "compression.gzip_decompress" => {

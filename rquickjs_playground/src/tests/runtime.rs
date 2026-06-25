@@ -898,6 +898,85 @@ fn runtime_crypto_bridge_aes_roundtrip_smoke() {
 }
 
 #[test]
+fn runtime_crypto_bridge_bytes_roundtrip_smoke() {
+    let script = r#"
+      (async () => {
+        const encoder = new TextEncoder();
+        const plain = encoder.encode("bridge crypto bytes roundtrip");
+        const keyRaw = "0123456789abcdef";
+        const ivRaw = "abcdef9876543210";
+        const nonceRaw = "123456789012";
+
+        const ecbEncrypted = await bridge.call(
+          "crypto.aes_ecb_pkcs7_encrypt",
+          plain,
+          keyRaw,
+        );
+        const ecbDecrypted = await bridge.call(
+          "crypto.aes_ecb_pkcs7_decrypt",
+          ecbEncrypted,
+          keyRaw,
+        );
+
+        const cbcEncrypted = await bridge.call(
+          "crypto.aes_cbc_pkcs7_encrypt",
+          plain,
+          keyRaw,
+          ivRaw,
+        );
+        const cbcDecrypted = await bridge.call(
+          "crypto.aes_cbc_pkcs7_decrypt",
+          cbcEncrypted,
+          keyRaw,
+          ivRaw,
+        );
+
+        const gcmEncrypted = await bridge.call(
+          "crypto.aes_gcm_encrypt",
+          plain,
+          keyRaw,
+          nonceRaw,
+        );
+        const gcmDecrypted = await bridge.call(
+          "crypto.aes_gcm_decrypt",
+          gcmEncrypted,
+          keyRaw,
+          nonceRaw,
+        );
+
+        const hmacKey = "hmac-key";
+        const hmacInput = encoder.encode("binary hmac input");
+        const hmacOut = await bridge.call("crypto.hmac_sha512", hmacKey, hmacInput);
+
+        const shaOut = await bridge.call("crypto.sha1", plain);
+
+        return JSON.stringify({
+          ecbRoundtrip: new TextDecoder().decode(ecbDecrypted),
+          cbcRoundtrip: new TextDecoder().decode(cbcDecrypted),
+          gcmRoundtrip: new TextDecoder().decode(gcmDecrypted),
+          ecbIsBytes: ecbDecrypted instanceof Uint8Array,
+          cbcIsBytes: cbcDecrypted instanceof Uint8Array,
+          gcmIsBytes: gcmDecrypted instanceof Uint8Array,
+          hmacLength: hmacOut.length,
+          shaLength: shaOut.length,
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["ecbRoundtrip"], "bridge crypto bytes roundtrip");
+    assert_eq!(parsed["cbcRoundtrip"], "bridge crypto bytes roundtrip");
+    assert_eq!(parsed["gcmRoundtrip"], "bridge crypto bytes roundtrip");
+    assert_eq!(parsed["ecbIsBytes"], true);
+    assert_eq!(parsed["cbcIsBytes"], true);
+    assert_eq!(parsed["gcmIsBytes"], true);
+    assert_eq!(parsed["hmacLength"], 128);
+    assert_eq!(parsed["shaLength"], 40);
+}
+
+#[test]
 fn runtime_stats_exposed() {
     let script = r#"
       (async () => {

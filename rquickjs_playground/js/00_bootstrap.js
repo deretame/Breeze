@@ -710,6 +710,80 @@
     return String(out.base64 || out);
   }
 
+  function bridgeCall(name, ...args) {
+    const bridge = globalThis.__web && globalThis.__web.bridge;
+    if (!bridge || typeof bridge.call !== "function") {
+      throw new TypeError("bridge 不可用");
+    }
+    return bridge.call(name, ...args);
+  }
+
+  function md5(data) {
+    return bridgeCall("crypto.md5", toBytes(data));
+  }
+
+  function sha1(data) {
+    return bridgeCall("crypto.sha1", toBytes(data));
+  }
+
+  function sha512(data) {
+    return bridgeCall("crypto.sha512", toBytes(data));
+  }
+
+  function hmacSha1(key, data) {
+    return bridgeCall("crypto.hmac_sha1", key, toBytes(data));
+  }
+
+  function hmacSha512(key, data) {
+    return bridgeCall("crypto.hmac_sha512", key, toBytes(data));
+  }
+
+  function aesEcbPkcs7Decrypt(data, keyRaw) {
+    return bridgeCall("crypto.aes_ecb_pkcs7_decrypt", toBytes(data), keyRaw);
+  }
+
+  function aesEcbPkcs7Encrypt(data, keyRaw) {
+    return bridgeCall("crypto.aes_ecb_pkcs7_encrypt", toBytes(data), keyRaw);
+  }
+
+  function aesCbcPkcs7Decrypt(data, keyRaw, ivRaw) {
+    return bridgeCall(
+      "crypto.aes_cbc_pkcs7_decrypt",
+      toBytes(data),
+      keyRaw,
+      ivRaw,
+    );
+  }
+
+  function aesCbcPkcs7Encrypt(data, keyRaw, ivRaw) {
+    return bridgeCall(
+      "crypto.aes_cbc_pkcs7_encrypt",
+      toBytes(data),
+      keyRaw,
+      ivRaw,
+    );
+  }
+
+  function aesGcmDecrypt(data, keyRaw, nonceRaw, aad) {
+    return bridgeCall(
+      "crypto.aes_gcm_decrypt",
+      toBytes(data),
+      keyRaw,
+      nonceRaw,
+      aad == null ? null : toBytes(aad),
+    );
+  }
+
+  function aesGcmEncrypt(data, keyRaw, nonceRaw, aad) {
+    return bridgeCall(
+      "crypto.aes_gcm_encrypt",
+      toBytes(data),
+      keyRaw,
+      nonceRaw,
+      aad == null ? null : toBytes(aad),
+    );
+  }
+
   function normalizeDigestAlgorithm(digest) {
     const alg = String(digest || "").toLowerCase();
     if (alg === "sha1" || alg === "sha-1") return "sha1";
@@ -804,8 +878,19 @@
   const cryptoModule = {
     createHash,
     createHmac,
+    md5,
+    sha1,
+    sha512,
+    hmacSha1,
+    hmacSha512,
+    aesEcbPkcs7Decrypt,
+    aesEcbPkcs7Encrypt,
+    aesCbcPkcs7Encrypt,
+    aesCbcPkcs7Decrypt,
     aesCbcPkcs7EncryptB64,
     aesCbcPkcs7DecryptB64,
+    aesGcmEncrypt,
+    aesGcmDecrypt,
     aesGcmEncryptB64,
     aesGcmDecryptB64,
     randomBytes,

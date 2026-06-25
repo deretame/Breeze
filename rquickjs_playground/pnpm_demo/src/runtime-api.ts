@@ -151,6 +151,35 @@ export const runtime = {
       input,
     ) as Promise<string>;
   },
+  md5(input: Uint8Array | ArrayBuffer | ArrayBufferView | number[]) {
+    return requireApi("bridge").call("crypto.md5", input) as Promise<string>;
+  },
+  sha1(input: Uint8Array | ArrayBuffer | ArrayBufferView | number[]) {
+    return requireApi("bridge").call("crypto.sha1", input) as Promise<string>;
+  },
+  sha512(input: Uint8Array | ArrayBuffer | ArrayBufferView | number[]) {
+    return requireApi("bridge").call("crypto.sha512", input) as Promise<string>;
+  },
+  hmacSha1(
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ) {
+    return requireApi("bridge").call(
+      "crypto.hmac_sha1",
+      key,
+      input,
+    ) as Promise<string>;
+  },
+  hmacSha512(
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ) {
+    return requireApi("bridge").call(
+      "crypto.hmac_sha512",
+      key,
+      input,
+    ) as Promise<string>;
+  },
   aesEcbPkcs7DecryptB64(payloadB64: string, keyRaw: string) {
     return requireApi("bridge").call(
       "crypto.aes_ecb_pkcs7_decrypt_b64",
@@ -201,6 +230,78 @@ export const runtime = {
       nonceRaw,
       aadB64 ?? null,
     ) as Promise<string>;
+  },
+  aesEcbPkcs7Decrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+  ) {
+    return requireApi("bridge").call(
+      "crypto.aes_ecb_pkcs7_decrypt",
+      input,
+      keyRaw,
+    ) as Promise<Uint8Array>;
+  },
+  aesEcbPkcs7Encrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+  ) {
+    return requireApi("bridge").call(
+      "crypto.aes_ecb_pkcs7_encrypt",
+      input,
+      keyRaw,
+    ) as Promise<Uint8Array>;
+  },
+  aesCbcPkcs7Encrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    ivRaw: string,
+  ) {
+    return requireApi("bridge").call(
+      "crypto.aes_cbc_pkcs7_encrypt",
+      input,
+      keyRaw,
+      ivRaw,
+    ) as Promise<Uint8Array>;
+  },
+  aesCbcPkcs7Decrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    ivRaw: string,
+  ) {
+    return requireApi("bridge").call(
+      "crypto.aes_cbc_pkcs7_decrypt",
+      input,
+      keyRaw,
+      ivRaw,
+    ) as Promise<Uint8Array>;
+  },
+  aesGcmEncrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | null,
+  ) {
+    return requireApi("bridge").call(
+      "crypto.aes_gcm_encrypt",
+      input,
+      keyRaw,
+      nonceRaw,
+      aad ?? null,
+    ) as Promise<Uint8Array>;
+  },
+  aesGcmDecrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | null,
+  ) {
+    return requireApi("bridge").call(
+      "crypto.aes_gcm_decrypt",
+      input,
+      keyRaw,
+      nonceRaw,
+      aad ?? null,
+    ) as Promise<Uint8Array>;
   },
   gzipCompress(input: Uint8Array | ArrayBuffer | ArrayBufferView | number[]) {
     return requireApi("bridge").gzipCompress(input);

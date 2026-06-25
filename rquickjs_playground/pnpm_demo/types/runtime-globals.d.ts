@@ -1,5 +1,7 @@
 export {};
 
+/// <reference path="./breeze-html.d.ts" />
+
 export type NativeChainStep = string | { op: string; extraInputId?: number };
 
 export interface FsApi {
@@ -111,6 +113,64 @@ export interface BridgeApi {
     aadB64?: string | null,
   ): Promise<string>;
   call(
+    name: "crypto.md5",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  call(
+    name: "crypto.sha1",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  call(
+    name: "crypto.sha512",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  call(
+    name: "crypto.hmac_sha1",
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  call(
+    name: "crypto.hmac_sha512",
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  call(
+    name: "crypto.aes_ecb_pkcs7_decrypt",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+  ): Promise<Uint8Array>;
+  call(
+    name: "crypto.aes_ecb_pkcs7_encrypt",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+  ): Promise<Uint8Array>;
+  call(
+    name: "crypto.aes_cbc_pkcs7_encrypt",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<Uint8Array>;
+  call(
+    name: "crypto.aes_cbc_pkcs7_decrypt",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<Uint8Array>;
+  call(
+    name: "crypto.aes_gcm_encrypt",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | null,
+  ): Promise<Uint8Array>;
+  call(
+    name: "crypto.aes_gcm_decrypt",
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | null,
+  ): Promise<Uint8Array>;
+  call(
     name: "compression.gzip_decompress",
     input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
   ): Promise<number[]>;
@@ -171,6 +231,53 @@ export interface RuntimeFacadeApi extends HostRuntimeApi {
     nonceRaw: string,
     aadB64?: string | null,
   ): Promise<string>;
+  md5(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  sha1(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  sha512(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  hmacSha1(
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  hmacSha512(
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+  ): Promise<string>;
+  aesEcbPkcs7Decrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+  ): Promise<Uint8Array>;
+  aesEcbPkcs7Encrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+  ): Promise<Uint8Array>;
+  aesCbcPkcs7Encrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<Uint8Array>;
+  aesCbcPkcs7Decrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<Uint8Array>;
+  aesGcmEncrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | null,
+  ): Promise<Uint8Array>;
+  aesGcmDecrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | null,
+  ): Promise<Uint8Array>;
   gzipCompress(
     input: Uint8Array | ArrayBuffer | ArrayBufferView | number[],
   ): Promise<Uint8Array>;
@@ -203,6 +310,53 @@ export interface CryptoApi {
     algorithm: "sha256" | "sha-256",
     key: string | ArrayBuffer | ArrayBufferView,
   ): CryptoHash;
+  md5(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+  ): Promise<string>;
+  sha1(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+  ): Promise<string>;
+  sha512(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+  ): Promise<string>;
+  hmacSha1(
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+  ): Promise<string>;
+  hmacSha512(
+    key: string,
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+  ): Promise<string>;
+  aesEcbPkcs7Decrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+    keyRaw: string,
+  ): Promise<Uint8Array>;
+  aesEcbPkcs7Encrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+    keyRaw: string,
+  ): Promise<Uint8Array>;
+  aesCbcPkcs7Encrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<Uint8Array>;
+  aesCbcPkcs7Decrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+    keyRaw: string,
+    ivRaw: string,
+  ): Promise<Uint8Array>;
+  aesGcmEncrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string | null,
+  ): Promise<Uint8Array>;
+  aesGcmDecrypt(
+    input: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string,
+    keyRaw: string,
+    nonceRaw: string,
+    aad?: Uint8Array | ArrayBuffer | ArrayBufferView | number[] | string | null,
+  ): Promise<Uint8Array>;
   randomBytes(size: number): Buffer;
 }
 

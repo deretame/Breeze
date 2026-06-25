@@ -73,9 +73,9 @@ pub fn bridge_route_mode(name: &str) -> Option<BridgeRouteMode> {
         | "native.put"
         | "native.take"
         | "native.exec"
+        | "crypto.md5_hex"
         | "crypto.sha1_hex"
         | "crypto.sha512_hex"
-        | "crypto.md5_hex"
         | "crypto.hmac_sha1_hex"
         | "crypto.hmac_sha512_hex"
         | "crypto.aes_ecb_pkcs7_decrypt_b64"
@@ -83,6 +83,17 @@ pub fn bridge_route_mode(name: &str) -> Option<BridgeRouteMode> {
         | "crypto.aes_cbc_pkcs7_decrypt_b64"
         | "crypto.aes_gcm_encrypt_b64"
         | "crypto.aes_gcm_decrypt_b64"
+        | "crypto.md5"
+        | "crypto.sha1"
+        | "crypto.sha512"
+        | "crypto.hmac_sha1"
+        | "crypto.hmac_sha512"
+        | "crypto.aes_ecb_pkcs7_decrypt"
+        | "crypto.aes_ecb_pkcs7_encrypt"
+        | "crypto.aes_cbc_pkcs7_decrypt"
+        | "crypto.aes_cbc_pkcs7_encrypt"
+        | "crypto.aes_gcm_decrypt"
+        | "crypto.aes_gcm_encrypt"
         | "compression.gzip_decompress"
         | "compression.gzip_compress" => Some(BridgeRouteMode::Sync),
         _ => None,
@@ -698,6 +709,206 @@ fn crypto_aes_gcm_decrypt_b64(
     Ok(json!(BASE64_STANDARD.encode(out)))
 }
 
+fn crypto_md5_bytes(input: Vec<u8>) -> AnyResult<Value> {
+    let digest = md5::compute(&input);
+    Ok(json!(format!("{:x}", digest)))
+}
+
+fn crypto_sha1_bytes(input: Vec<u8>) -> AnyResult<Value> {
+    let mut hasher = Sha1::new();
+    hasher.update(&input);
+    Ok(json!(format!("{:x}", hasher.finalize())))
+}
+
+fn crypto_sha512_bytes(input: Vec<u8>) -> AnyResult<Value> {
+    let mut hasher = Sha512::new();
+    hasher.update(&input);
+    Ok(json!(format!("{:x}", hasher.finalize())))
+}
+
+fn crypto_hmac_sha1_bytes(key: String, input: Vec<u8>) -> AnyResult<Value> {
+    let mut mac = <Hmac<Sha1> as Mac>::new_from_slice(key.as_bytes())
+        .map_err(|_| anyhow!("HMAC-SHA1 密钥无效"))?;
+    mac.update(&input);
+    Ok(json!(format!("{:x}", mac.finalize().into_bytes())))
+}
+
+fn crypto_hmac_sha512_bytes(key: String, input: Vec<u8>) -> AnyResult<Value> {
+    let mut mac = <Hmac<Sha512> as Mac>::new_from_slice(key.as_bytes())
+        .map_err(|_| anyhow!("HMAC-SHA512 密钥无效"))?;
+    mac.update(&input);
+    Ok(json!(format!("{:x}", mac.finalize().into_bytes())))
+}
+
+fn crypto_aes_ecb_pkcs7_decrypt_bytes(input: Vec<u8>, key: String) -> AnyResult<Value> {
+    let plain = super::aes_ecb_decrypt_pkcs7_b64(&input, key.as_bytes())?;
+    Ok(json!(plain))
+}
+
+fn crypto_aes_ecb_pkcs7_encrypt_bytes(input: Vec<u8>, key: String) -> AnyResult<Value> {
+    let cipher = super::aes_ecb_encrypt_pkcs7_b64(&input, key.as_bytes())?;
+    Ok(json!(cipher))
+}
+
+fn crypto_aes_cbc_pkcs7_decrypt_bytes(
+    input: Vec<u8>,
+    key: String,
+    iv: String,
+) -> AnyResult<Value> {
+    let mut payload = input;
+    let plain = match key.len() {
+        16 => CbcDecryptor::<Aes128>::new_from_slices(key.as_bytes(), iv.as_bytes())
+            .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?
+            .decrypt_padded_mut::<Pkcs7>(&mut payload)
+            .map_err(|_| anyhow!("AES-128 CBC 解密失败"))?
+            .to_vec(),
+        24 => CbcDecryptor::<Aes192>::new_from_slices(key.as_bytes(), iv.as_bytes())
+            .map_err(|_| anyhow!("AES-192 CBC 参数无效"))?
+            .decrypt_padded_mut::<Pkcs7>(&mut payload)
+            .map_err(|_| anyhow!("AES-192 CBC 解密失败"))?
+            .to_vec(),
+        32 => CbcDecryptor::<Aes256>::new_from_slices(key.as_bytes(), iv.as_bytes())
+            .map_err(|_| anyhow!("AES-256 CBC 参数无效"))?
+            .decrypt_padded_mut::<Pkcs7>(&mut payload)
+            .map_err(|_| anyhow!("AES-256 CBC 解密失败"))?
+            .to_vec(),
+        _ => {
+            return Err(anyhow!(
+                "AES CBC 密钥长度必须是 16/24/32 字节，当前: {}",
+                key.len()
+            ));
+        }
+    };
+    Ok(json!(plain))
+}
+
+fn crypto_aes_cbc_pkcs7_encrypt_bytes(
+    input: Vec<u8>,
+    key: String,
+    iv: String,
+) -> AnyResult<Value> {
+    let mut buf = input.clone();
+    let msg_len = buf.len();
+    buf.resize(msg_len + 16, 0);
+    let out = match key.len() {
+        16 => {
+            let cipher = CbcEncryptor::<Aes128>::new_from_slices(key.as_bytes(), iv.as_bytes())
+                .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?;
+            cipher
+                .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
+                .map_err(|_| anyhow!("AES-128 CBC 加密失败"))?
+                .to_vec()
+        }
+        24 => {
+            let cipher = CbcEncryptor::<Aes192>::new_from_slices(key.as_bytes(), iv.as_bytes())
+                .map_err(|_| anyhow!("AES-192 CBC 参数无效"))?;
+            cipher
+                .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
+                .map_err(|_| anyhow!("AES-192 CBC 加密失败"))?
+                .to_vec()
+        }
+        32 => {
+            let cipher = CbcEncryptor::<Aes256>::new_from_slices(key.as_bytes(), iv.as_bytes())
+                .map_err(|_| anyhow!("AES-256 CBC 参数无效"))?;
+            cipher
+                .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
+                .map_err(|_| anyhow!("AES-256 CBC 加密失败"))?
+                .to_vec()
+        }
+        _ => {
+            return Err(anyhow!(
+                "AES CBC 密钥长度必须是 16/24/32 字节，当前: {}",
+                key.len()
+            ));
+        }
+    };
+    Ok(json!(out))
+}
+
+fn crypto_aes_gcm_decrypt_bytes(
+    input: Vec<u8>,
+    key: String,
+    nonce: String,
+    aad: Option<Vec<u8>>,
+) -> AnyResult<Value> {
+    let aad = aad.unwrap_or_default();
+    let out = match key.len() {
+        16 => {
+            let cipher = Aes128Gcm::new_from_slice(key.as_bytes()).context("AES-128 GCM 参数无效")?;
+            cipher
+                .decrypt(
+                    Nonce::from_slice(nonce.as_bytes()),
+                    AeadPayload {
+                        msg: &input,
+                        aad: &aad,
+                    },
+                )
+                .map_err(|_| anyhow!("AES-128 GCM 解密失败"))?
+        }
+        32 => {
+            let cipher = Aes256Gcm::new_from_slice(key.as_bytes()).context("AES-256 GCM 参数无效")?;
+            cipher
+                .decrypt(
+                    Nonce::from_slice(nonce.as_bytes()),
+                    AeadPayload {
+                        msg: &input,
+                        aad: &aad,
+                    },
+                )
+                .map_err(|_| anyhow!("AES-256 GCM 解密失败"))?
+        }
+        _ => {
+            return Err(anyhow!(
+                "AES GCM 密钥长度必须是 16/32 字节，当前: {}",
+                key.len()
+            ));
+        }
+    };
+    Ok(json!(out))
+}
+
+fn crypto_aes_gcm_encrypt_bytes(
+    input: Vec<u8>,
+    key: String,
+    nonce: String,
+    aad: Option<Vec<u8>>,
+) -> AnyResult<Value> {
+    let aad = aad.unwrap_or_default();
+    let out = match key.len() {
+        16 => {
+            let cipher = Aes128Gcm::new_from_slice(key.as_bytes()).context("AES-128 GCM 参数无效")?;
+            cipher
+                .encrypt(
+                    Nonce::from_slice(nonce.as_bytes()),
+                    AeadPayload {
+                        msg: &input,
+                        aad: &aad,
+                    },
+                )
+                .map_err(|_| anyhow!("AES-128 GCM 加密失败"))?
+        }
+        32 => {
+            let cipher = Aes256Gcm::new_from_slice(key.as_bytes()).context("AES-256 GCM 参数无效")?;
+            cipher
+                .encrypt(
+                    Nonce::from_slice(nonce.as_bytes()),
+                    AeadPayload {
+                        msg: &input,
+                        aad: &aad,
+                    },
+                )
+                .map_err(|_| anyhow!("AES-256 GCM 加密失败"))?
+        }
+        _ => {
+            return Err(anyhow!(
+                "AES GCM 密钥长度必须是 16/32 字节，当前: {}",
+                key.len()
+            ));
+        }
+    };
+    Ok(json!(out))
+}
+
 fn compression_gzip_decompress(input: Vec<u8>) -> AnyResult<Value> {
     let mut decoder = GzDecoder::new(input.as_slice());
     let mut out = Vec::new();
@@ -846,6 +1057,70 @@ fn bridge_call_inner(
                 .map(ToString::to_string);
             crypto_aes_gcm_decrypt_b64(payload_b64, key_raw, nonce_raw, aad_b64)
         }
+        "crypto.md5" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_md5_bytes(input)
+        }
+        "crypto.sha1" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_sha1_bytes(input)
+        }
+        "crypto.sha512" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_sha512_bytes(input)
+        }
+        "crypto.hmac_sha1" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
+            crypto_hmac_sha1_bytes(key, input)
+        }
+        "crypto.hmac_sha512" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
+            crypto_hmac_sha512_bytes(key, input)
+        }
+        "crypto.aes_ecb_pkcs7_decrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            crypto_aes_ecb_pkcs7_decrypt_bytes(input, key)
+        }
+        "crypto.aes_ecb_pkcs7_encrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            crypto_aes_ecb_pkcs7_encrypt_bytes(input, key)
+        }
+        "crypto.aes_cbc_pkcs7_decrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let iv = require_str_arg(&args, 2, "iv")?;
+            crypto_aes_cbc_pkcs7_decrypt_bytes(input, key, iv)
+        }
+        "crypto.aes_cbc_pkcs7_encrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let iv = require_str_arg(&args, 2, "iv")?;
+            crypto_aes_cbc_pkcs7_encrypt_bytes(input, key, iv)
+        }
+        "crypto.aes_gcm_decrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let nonce = require_str_arg(&args, 2, "nonce")?;
+            let aad = args
+                .get(3)
+                .map(|v| parse_u8_json_value(v))
+                .transpose()?;
+            crypto_aes_gcm_decrypt_bytes(input, key, nonce, aad)
+        }
+        "crypto.aes_gcm_encrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let nonce = require_str_arg(&args, 2, "nonce")?;
+            let aad = args
+                .get(3)
+                .map(|v| parse_u8_json_value(v))
+                .transpose()?;
+            crypto_aes_gcm_encrypt_bytes(input, key, nonce, aad)
+        }
         "compression.gzip_decompress" => {
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             compression_gzip_decompress(input)
@@ -960,6 +1235,70 @@ async fn bridge_call_inner_async(
                 .and_then(|v| v.as_str())
                 .map(ToString::to_string);
             crypto_aes_gcm_decrypt_b64(payload_b64, key_raw, nonce_raw, aad_b64)
+        }
+        "crypto.md5" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_md5_bytes(input)
+        }
+        "crypto.sha1" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_sha1_bytes(input)
+        }
+        "crypto.sha512" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_sha512_bytes(input)
+        }
+        "crypto.hmac_sha1" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
+            crypto_hmac_sha1_bytes(key, input)
+        }
+        "crypto.hmac_sha512" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
+            crypto_hmac_sha512_bytes(key, input)
+        }
+        "crypto.aes_ecb_pkcs7_decrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            crypto_aes_ecb_pkcs7_decrypt_bytes(input, key)
+        }
+        "crypto.aes_ecb_pkcs7_encrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            crypto_aes_ecb_pkcs7_encrypt_bytes(input, key)
+        }
+        "crypto.aes_cbc_pkcs7_decrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let iv = require_str_arg(&args, 2, "iv")?;
+            crypto_aes_cbc_pkcs7_decrypt_bytes(input, key, iv)
+        }
+        "crypto.aes_cbc_pkcs7_encrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let iv = require_str_arg(&args, 2, "iv")?;
+            crypto_aes_cbc_pkcs7_encrypt_bytes(input, key, iv)
+        }
+        "crypto.aes_gcm_decrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let nonce = require_str_arg(&args, 2, "nonce")?;
+            let aad = args
+                .get(3)
+                .map(|v| parse_u8_json_value(v))
+                .transpose()?;
+            crypto_aes_gcm_decrypt_bytes(input, key, nonce, aad)
+        }
+        "crypto.aes_gcm_encrypt" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            let key = require_str_arg(&args, 1, "key")?;
+            let nonce = require_str_arg(&args, 2, "nonce")?;
+            let aad = args
+                .get(3)
+                .map(|v| parse_u8_json_value(v))
+                .transpose()?;
+            crypto_aes_gcm_encrypt_bytes(input, key, nonce, aad)
         }
         "compression.gzip_decompress" => {
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;

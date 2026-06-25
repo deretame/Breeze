@@ -1,4 +1,4 @@
-use aes::cipher::BlockDecrypt;
+use aes::cipher::{BlockDecrypt, BlockEncrypt};
 use aes::{Aes128, Aes192, Aes256};
 use aes_gcm::{
     Aes128Gcm, Aes256Gcm, Nonce,
@@ -612,6 +612,53 @@ fn aes_ecb_decrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
         return Err(anyhow!("AES ECB PKCS7 填充无效"));
     }
     out.truncate(out.len() - pad_len);
+    Ok(out)
+}
+
+fn aes_ecb_encrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
+    let pad_len = 16 - (payload.len() % 16);
+    let mut out = vec![0u8; payload.len() + pad_len];
+    out[..payload.len()].copy_from_slice(payload);
+    for b in out[payload.len()..].iter_mut() {
+        *b = pad_len as u8;
+    }
+
+    match key.len() {
+        16 => {
+            let cipher =
+                Aes128::new_from_slice(key).map_err(|_| anyhow!("AES-128 密钥长度无效"))?;
+            for chunk in out.chunks_exact_mut(16) {
+                let mut block = aes::cipher::Block::<Aes128>::clone_from_slice(chunk);
+                cipher.encrypt_block(&mut block);
+                chunk.copy_from_slice(&block);
+            }
+        }
+        24 => {
+            let cipher =
+                Aes192::new_from_slice(key).map_err(|_| anyhow!("AES-192 密钥长度无效"))?;
+            for chunk in out.chunks_exact_mut(16) {
+                let mut block = aes::cipher::Block::<Aes192>::clone_from_slice(chunk);
+                cipher.encrypt_block(&mut block);
+                chunk.copy_from_slice(&block);
+            }
+        }
+        32 => {
+            let cipher =
+                Aes256::new_from_slice(key).map_err(|_| anyhow!("AES-256 密钥长度无效"))?;
+            for chunk in out.chunks_exact_mut(16) {
+                let mut block = aes::cipher::Block::<Aes256>::clone_from_slice(chunk);
+                cipher.encrypt_block(&mut block);
+                chunk.copy_from_slice(&block);
+            }
+        }
+        _ => {
+            return Err(anyhow!(
+                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {}",
+                key.len()
+            ));
+        }
+    }
+
     Ok(out)
 }
 

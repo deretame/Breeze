@@ -18,6 +18,7 @@
     "src/**/*.ts",
     "cases/**/*.ts",
     "types/**/*.d.ts",
+    "types/**/*.ts",
     "*.mjs"
   ]
 }

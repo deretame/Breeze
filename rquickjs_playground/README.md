@@ -326,22 +326,22 @@ const copy = structuredClone({ a: 1, b: [2, 3] });
 
 ## 推荐入口
 
-如果你在写插件，优先用统一入口 `runtime`。
+如果你在写插件，优先用统一入口 `hostRuntime`。
 
 ### 例子
 
 ```ts
-import { runtime } from "../src/runtime-api";
+import { hostRuntime } from "../types/runtime-api";
 
-const md5 = await runtime.md5Hex("text");
-const sha1 = await runtime.sha1Hex("text");
-const sha512 = await runtime.sha512Hex("text");
-const key = runtime.uuidv4();
-const data = await runtime.gzipCompress(new Uint8Array([1, 2, 3]));
+const md5 = await hostRuntime.md5Hex("text");
+const sha1 = await hostRuntime.sha1Hex("text");
+const sha512 = await hostRuntime.sha512Hex("text");
+const key = hostRuntime.uuidv4();
+const data = await hostRuntime.gzipCompress(new Uint8Array([1, 2, 3]));
 ```
 
 ### 这样做的好处
 
 - 不用记 `bridge.call("crypto.md5_hex", ...)` 这种长路由名
 - 常用能力有短方法
-- 需要特殊路由时仍然可以直接用 `runtime.bridge.call(...)`
+- 需要特殊路由时仍然可以直接用 `hostRuntime.bridge.call(...)`

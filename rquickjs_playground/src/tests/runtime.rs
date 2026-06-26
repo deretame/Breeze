@@ -694,14 +694,21 @@ fn runtime_crypto_hash_and_hmac_basic() {
         const hmacBase64 = crypto.createHmac("sha256", "key").update(text).digest("base64");
         const random = crypto.randomBytes(16);
 
+        const sha256Hex = await crypto.sha256(text);
+        const hmacSha256Hex = await crypto.hmacSha256("key", text);
+
         return JSON.stringify({
           hasGlobal: typeof globalThis.crypto === "object",
           hasCreateHash: typeof crypto.createHash === "function",
           hasCreateHmac: typeof crypto.createHmac === "function",
           hasRandomBytes: typeof crypto.randomBytes === "function",
+          hasSha256: typeof crypto.sha256 === "function",
+          hasHmacSha256: typeof crypto.hmacSha256 === "function",
           shaHex,
           hmacHex,
           hmacBase64,
+          sha256Hex,
+          hmacSha256Hex,
           randomLen: random.length,
           randomIsBuffer: Buffer.isBuffer(random)
         });
@@ -714,6 +721,8 @@ fn runtime_crypto_hash_and_hmac_basic() {
     assert_eq!(parsed["hasGlobal"], true);
     assert_eq!(parsed["hasCreateHash"], true);
     assert_eq!(parsed["hasCreateHmac"], true);
+    assert_eq!(parsed["hasSha256"], true);
+    assert_eq!(parsed["hasHmacSha256"], true);
     assert_eq!(parsed["hasRandomBytes"], true);
     assert_eq!(parsed["randomLen"], 16);
     assert_eq!(parsed["randomIsBuffer"], true);
@@ -728,6 +737,14 @@ fn runtime_crypto_hash_and_hmac_basic() {
     assert_eq!(
         parsed["hmacBase64"],
         "97yD9DBThCSxMpjmqm+xQ+9NWaFJRhdZl0edvC0aPNg="
+    );
+    assert_eq!(
+        parsed["sha256Hex"],
+        "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+    );
+    assert_eq!(
+        parsed["hmacSha256Hex"],
+        "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8"
     );
 }
 

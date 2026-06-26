@@ -75,8 +75,10 @@ pub fn bridge_route_mode(name: &str) -> Option<BridgeRouteMode> {
         | "native.exec"
         | "crypto.md5_hex"
         | "crypto.sha1_hex"
+        | "crypto.sha256_hex"
         | "crypto.sha512_hex"
         | "crypto.hmac_sha1_hex"
+        | "crypto.hmac_sha256_hex"
         | "crypto.hmac_sha512_hex"
         | "crypto.aes_ecb_pkcs7_decrypt_b64"
         | "crypto.aes_cbc_pkcs7_encrypt_b64"
@@ -85,8 +87,10 @@ pub fn bridge_route_mode(name: &str) -> Option<BridgeRouteMode> {
         | "crypto.aes_gcm_decrypt_b64"
         | "crypto.md5"
         | "crypto.sha1"
+        | "crypto.sha256"
         | "crypto.sha512"
         | "crypto.hmac_sha1"
+        | "crypto.hmac_sha256"
         | "crypto.hmac_sha512"
         | "crypto.aes_ecb_pkcs7_decrypt"
         | "crypto.aes_ecb_pkcs7_encrypt"
@@ -486,6 +490,12 @@ fn crypto_sha512_hex(input: String) -> AnyResult<Value> {
     Ok(json!(format!("{:x}", hasher.finalize())))
 }
 
+fn crypto_sha256_hex(input: String) -> AnyResult<Value> {
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+    Ok(json!(format!("{:x}", hasher.finalize())))
+}
+
 fn crypto_hmac_sha1_hex(key: String, input: String) -> AnyResult<Value> {
     let mut mac = <Hmac<Sha1> as Mac>::new_from_slice(key.as_bytes())
         .map_err(|_| anyhow!("HMAC-SHA1 密钥无效"))?;
@@ -496,6 +506,13 @@ fn crypto_hmac_sha1_hex(key: String, input: String) -> AnyResult<Value> {
 fn crypto_hmac_sha512_hex(key: String, input: String) -> AnyResult<Value> {
     let mut mac = <Hmac<Sha512> as Mac>::new_from_slice(key.as_bytes())
         .map_err(|_| anyhow!("HMAC-SHA512 密钥无效"))?;
+    mac.update(input.as_bytes());
+    Ok(json!(format!("{:x}", mac.finalize().into_bytes())))
+}
+
+fn crypto_hmac_sha256_hex(key: String, input: String) -> AnyResult<Value> {
+    let mut mac = <Hmac<Sha256> as Mac>::new_from_slice(key.as_bytes())
+        .map_err(|_| anyhow!("HMAC-SHA256 密钥无效"))?;
     mac.update(input.as_bytes());
     Ok(json!(format!("{:x}", mac.finalize().into_bytes())))
 }
@@ -726,6 +743,12 @@ fn crypto_sha512_bytes(input: Vec<u8>) -> AnyResult<Value> {
     Ok(json!(format!("{:x}", hasher.finalize())))
 }
 
+fn crypto_sha256_bytes(input: Vec<u8>) -> AnyResult<Value> {
+    let mut hasher = Sha256::new();
+    hasher.update(&input);
+    Ok(json!(format!("{:x}", hasher.finalize())))
+}
+
 fn crypto_hmac_sha1_bytes(key: String, input: Vec<u8>) -> AnyResult<Value> {
     let mut mac = <Hmac<Sha1> as Mac>::new_from_slice(key.as_bytes())
         .map_err(|_| anyhow!("HMAC-SHA1 密钥无效"))?;
@@ -736,6 +759,13 @@ fn crypto_hmac_sha1_bytes(key: String, input: Vec<u8>) -> AnyResult<Value> {
 fn crypto_hmac_sha512_bytes(key: String, input: Vec<u8>) -> AnyResult<Value> {
     let mut mac = <Hmac<Sha512> as Mac>::new_from_slice(key.as_bytes())
         .map_err(|_| anyhow!("HMAC-SHA512 密钥无效"))?;
+    mac.update(&input);
+    Ok(json!(format!("{:x}", mac.finalize().into_bytes())))
+}
+
+fn crypto_hmac_sha256_bytes(key: String, input: Vec<u8>) -> AnyResult<Value> {
+    let mut mac = <Hmac<Sha256> as Mac>::new_from_slice(key.as_bytes())
+        .map_err(|_| anyhow!("HMAC-SHA256 密钥无效"))?;
     mac.update(&input);
     Ok(json!(format!("{:x}", mac.finalize().into_bytes())))
 }
@@ -1002,6 +1032,10 @@ fn bridge_call_inner(
             let input = require_str_arg(&args, 0, "input")?;
             crypto_sha1_hex(input)
         }
+        "crypto.sha256_hex" => {
+            let input = require_str_arg(&args, 0, "input")?;
+            crypto_sha256_hex(input)
+        }
         "crypto.sha512_hex" => {
             let input = require_str_arg(&args, 0, "input")?;
             crypto_sha512_hex(input)
@@ -1010,6 +1044,11 @@ fn bridge_call_inner(
             let key = require_str_arg(&args, 0, "key")?;
             let input = require_str_arg(&args, 1, "input")?;
             crypto_hmac_sha1_hex(key, input)
+        }
+        "crypto.hmac_sha256_hex" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = require_str_arg(&args, 1, "input")?;
+            crypto_hmac_sha256_hex(key, input)
         }
         "crypto.hmac_sha512_hex" => {
             let key = require_str_arg(&args, 0, "key")?;
@@ -1061,6 +1100,10 @@ fn bridge_call_inner(
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             crypto_sha1_bytes(input)
         }
+        "crypto.sha256" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_sha256_bytes(input)
+        }
         "crypto.sha512" => {
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             crypto_sha512_bytes(input)
@@ -1069,6 +1112,11 @@ fn bridge_call_inner(
             let key = require_str_arg(&args, 0, "key")?;
             let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
             crypto_hmac_sha1_bytes(key, input)
+        }
+        "crypto.hmac_sha256" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
+            crypto_hmac_sha256_bytes(key, input)
         }
         "crypto.hmac_sha512" => {
             let key = require_str_arg(&args, 0, "key")?;
@@ -1175,6 +1223,10 @@ async fn bridge_call_inner_async(
             let input = require_str_arg(&args, 0, "input")?;
             crypto_sha1_hex(input)
         }
+        "crypto.sha256_hex" => {
+            let input = require_str_arg(&args, 0, "input")?;
+            crypto_sha256_hex(input)
+        }
         "crypto.sha512_hex" => {
             let input = require_str_arg(&args, 0, "input")?;
             crypto_sha512_hex(input)
@@ -1183,6 +1235,11 @@ async fn bridge_call_inner_async(
             let key = require_str_arg(&args, 0, "key")?;
             let input = require_str_arg(&args, 1, "input")?;
             crypto_hmac_sha1_hex(key, input)
+        }
+        "crypto.hmac_sha256_hex" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = require_str_arg(&args, 1, "input")?;
+            crypto_hmac_sha256_hex(key, input)
         }
         "crypto.hmac_sha512_hex" => {
             let key = require_str_arg(&args, 0, "key")?;
@@ -1234,6 +1291,10 @@ async fn bridge_call_inner_async(
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             crypto_sha1_bytes(input)
         }
+        "crypto.sha256" => {
+            let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
+            crypto_sha256_bytes(input)
+        }
         "crypto.sha512" => {
             let input = parse_u8_json_value(require_arg(&args, 0, "input")?)?;
             crypto_sha512_bytes(input)
@@ -1242,6 +1303,11 @@ async fn bridge_call_inner_async(
             let key = require_str_arg(&args, 0, "key")?;
             let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
             crypto_hmac_sha1_bytes(key, input)
+        }
+        "crypto.hmac_sha256" => {
+            let key = require_str_arg(&args, 0, "key")?;
+            let input = parse_u8_json_value(require_arg(&args, 1, "input")?)?;
+            crypto_hmac_sha256_bytes(key, input)
         }
         "crypto.hmac_sha512" => {
             let key = require_str_arg(&args, 0, "key")?;

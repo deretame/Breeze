@@ -726,12 +726,20 @@
     return bridgeCall("crypto.sha1", toBytes(data));
   }
 
+  function sha256(data) {
+    return bridgeCall("crypto.sha256", toBytes(data));
+  }
+
   function sha512(data) {
     return bridgeCall("crypto.sha512", toBytes(data));
   }
 
   function hmacSha1(key, data) {
     return bridgeCall("crypto.hmac_sha1", key, toBytes(data));
+  }
+
+  function hmacSha256(key, data) {
+    return bridgeCall("crypto.hmac_sha256", key, toBytes(data));
   }
 
   function hmacSha512(key, data) {
@@ -880,8 +888,10 @@
     createHmac,
     md5,
     sha1,
+    sha256,
     sha512,
     hmacSha1,
+    hmacSha256,
     hmacSha512,
     aesEcbPkcs7Decrypt,
     aesEcbPkcs7Encrypt,

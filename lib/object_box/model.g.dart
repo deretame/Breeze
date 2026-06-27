@@ -684,6 +684,7 @@ PluginInfo _$PluginInfoFromJson(Map<String, dynamic> json) => PluginInfo(
   lastLoadError: json['lastLoadError'] as String?,
   debug: json['debug'] as bool,
   debugUrl: json['debugUrl'] as String?,
+  installSource: json['installSource'] as String? ?? '',
 );
 
 Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
@@ -701,6 +702,7 @@ Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'debug': instance.debug,
       'debugUrl': instance.debugUrl,
+      'installSource': instance.installSource,
     };
 
 ComicFolder _$ComicFolderFromJson(Map<String, dynamic> json) => ComicFolder(

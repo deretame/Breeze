@@ -3,9 +3,12 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/plugin_store/cubit/plugin_store_cubit.dart';
 import 'package:zephyr/page/plugin_store/widgets/cloud_plugin_card.dart';
+import 'package:zephyr/page/plugin_store/widgets/installed_plugin_card.dart';
 import 'package:zephyr/page/plugin_store/widgets/plugin_store_status_banner.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
@@ -52,6 +55,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final pluginStates = context.watch<PluginRegistryCubit>().state;
     return BlocBuilder<PluginStoreCubit, PluginStoreState>(
       builder: (context, state) {
         return Scaffold(
@@ -67,6 +71,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
                   const SizedBox(height: 14),
                   _buildInstallButtons(state.installing),
                   const SizedBox(height: 16),
+                  _buildInstalledPluginsSection(state, pluginStates),
                   _buildCloudPluginsSection(state),
                 ],
               ),
@@ -74,6 +79,40 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInstalledPluginsSection(
+    PluginStoreState state,
+    Map<String, PluginRuntimeState> pluginStates,
+  ) {
+    final installed = pluginStates.values.where((s) => !s.isDeleted).toList()
+      ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    if (installed.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.download_done_outlined, size: 18),
+            const SizedBox(width: 8),
+            Text('已安装', style: Theme.of(context).textTheme.titleMedium),
+          ],
+        ),
+        const SizedBox(height: 8),
+        for (final s in installed)
+          InstalledPluginCard(
+            key: ValueKey(s.uuid),
+            pluginUuid: s.uuid,
+            isEnabled: s.isEnabled,
+            version: s.version,
+            installSource: s.installSource,
+            installing: state.installing,
+            onOpenHome: _openExternalUrl,
+          ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
@@ -122,6 +161,12 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
     final colorScheme = Theme.of(context).colorScheme;
     final query = _searchController.text.trim().toLowerCase();
     final displayPlugins = state.cloudPlugins.where((item) {
+      // 已安装的插件移至「已安装」板块，云端组件不再重复展示
+      final uuid = item.manifest.uuid;
+      final local = uuid.isEmpty
+          ? null
+          : PluginRegistryService.I.getByUuid(uuid);
+      if (local != null && !local.isDeleted) return false;
       if (query.isEmpty) return true;
       final name = item.manifest.name.toLowerCase();
       final creator = item.manifest.creatorName.toLowerCase();

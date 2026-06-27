@@ -410,10 +410,6 @@ class _DiscoverPageState extends State<DiscoverPage> {
                     );
                   },
                 ),
-                Switch(
-                  value: isEnabled,
-                  onChanged: (val) => _togglePluginEnabled(pluginUuid, val),
-                ),
               ],
             ),
           ),
@@ -473,10 +469,6 @@ class _DiscoverPageState extends State<DiscoverPage> {
         ],
       ),
     );
-  }
-
-  Future<void> _togglePluginEnabled(String uuid, bool enabled) async {
-    await PluginRegistryService.I.setEnabled(uuid, enabled);
   }
 
   void _reconcilePluginInfoCache(Map<String, PluginRuntimeState> pluginStates) {

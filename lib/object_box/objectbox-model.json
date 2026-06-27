@@ -942,7 +942,7 @@
     },
     {
       "id": "12:5269818584842768822",
-      "lastPropertyId": "18:4398518863020863280",
+      "lastPropertyId": "19:6873052902821237964",
       "name": "PluginInfo",
       "properties": [
         {
@@ -1011,6 +1011,11 @@
         {
           "id": "18:4398518863020863280",
           "name": "originScript",
+          "type": 9
+        },
+        {
+          "id": "19:6873052902821237964",
+          "name": "installSource",
           "type": 9
         }
       ],

@@ -991,6 +991,9 @@ class PluginInfo {
 
   String? debugUrl;
 
+  // 安装来源：local / network / cloud，用于「已安装」卡片更新提示
+  String installSource;
+
   PluginInfo({
     this.id = 0,
     required this.uuid,
@@ -1005,6 +1008,7 @@ class PluginInfo {
     this.lastLoadError,
     required this.debug,
     this.debugUrl,
+    this.installSource = '',
   });
 
   Map<String, dynamic> toJson() => _$PluginInfoToJson(this);

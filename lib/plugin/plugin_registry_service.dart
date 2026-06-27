@@ -31,6 +31,7 @@ class PluginRuntimeState {
     required this.insertedAt,
     required this.updatedAt,
     required this.deletedAt,
+    required this.installSource,
   });
 
   final String uuid;
@@ -45,6 +46,7 @@ class PluginRuntimeState {
   final DateTime insertedAt;
   final DateTime updatedAt;
   final DateTime? deletedAt;
+  final String installSource;
 
   bool get isActive => isEnabled && !isDeleted;
 
@@ -74,6 +76,7 @@ class PluginRuntimeState {
       insertedAt: insertedAt ?? this.insertedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: deletedAt,
+      installSource: installSource,
     );
   }
 }
@@ -1155,6 +1158,7 @@ class PluginRegistryService {
       insertedAt: item.insertedAt,
       updatedAt: item.updatedAt,
       deletedAt: item.deletedAt,
+      installSource: item.installSource,
     );
   }
 

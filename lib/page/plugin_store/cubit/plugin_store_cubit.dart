@@ -137,6 +137,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         script,
         sourceLabel: '云端组件: ${item.repo}',
         allowReplaceExisting: true,
+        installSource: 'cloud',
       );
     } catch (e) {
       _reportInstallFailure('云端下载失败: $e');
@@ -208,7 +209,12 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         bytes: bytes,
         shouldUseBrotli: fileName.toLowerCase().endsWith('.br'),
       );
-      await _savePluginByScript(script, sourceLabel: '本地文件: $fileName');
+      await _savePluginByScript(
+        script,
+        sourceLabel: '本地文件: $fileName',
+        allowReplaceExisting: true,
+        installSource: 'local',
+      );
     } catch (e) {
       _reportInstallFailure('读取本地插件失败: $e');
     }
@@ -235,9 +241,46 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         response: response,
         resolvedUrl: resolvedUrl,
       );
-      await _savePluginByScript(script, sourceLabel: '网络地址: $resolvedUrl');
+      await _savePluginByScript(
+        script,
+        sourceLabel: '网络地址: $resolvedUrl',
+        allowReplaceExisting: true,
+        installSource: 'network',
+      );
     } catch (e) {
       _reportInstallFailure('网络下载插件失败: $e');
+    }
+  }
+
+  /// 「已安装」卡片更新入口。updateUrl 通常是 GitHub release API，
+  /// 复用云端组件的解析下载逻辑（_downloadFromJsdelivrOrGitHub），
+  /// 而非 installFromNetworkUrl（它只处理脚本直链，会把 release JSON 当脚本解析报错）。
+  /// installSource 留空以保留最初安装来源。
+  Future<void> updateFromUrl(String updateUrl) async {
+    if (state.installing) {
+      return;
+    }
+    final resolvedUrl = updateUrl.trim();
+    if (resolvedUrl.isEmpty) {
+      _reportInstallFailure('URL 不能为空');
+      return;
+    }
+
+    _beginInstall('正在更新插件...');
+
+    try {
+      final script = await _downloadFromJsdelivrOrGitHub(
+        npmName: '',
+        cloudVersion: '',
+        updateUrl: resolvedUrl,
+      );
+      await _savePluginByScript(
+        script,
+        sourceLabel: '更新: $resolvedUrl',
+        allowReplaceExisting: true,
+      );
+    } catch (e) {
+      _reportInstallFailure('更新失败: $e');
     }
   }
 
@@ -455,6 +498,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   Future<void> _savePluginByScript(
     String script, {
     required String sourceLabel,
+    String installSource = '',
     bool allowReplaceExisting = false,
   }) async {
     final normalizedScript = script.trim();
@@ -481,6 +525,10 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
 
       final now = DateTime.now().toUtc();
       final existingInfo = _findExistingPluginInfoByUuid(resolvedUuid);
+      // installSource 留空表示更新，保留最初安装来源（本地插件更新后仍记为本地）
+      final effectiveInstallSource = installSource.isNotEmpty
+          ? installSource
+          : (existingInfo?.installSource ?? '');
       final infoToSave = PluginInfo(
         id: existingInfo?.id ?? 0,
         uuid: resolvedUuid,
@@ -495,6 +543,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         lastLoadError: null,
         debug: existing?.debug ?? false,
         debugUrl: existing?.debugUrl,
+        installSource: effectiveInstallSource,
       );
 
       await PluginRegistryService.I.upsert(infoToSave);

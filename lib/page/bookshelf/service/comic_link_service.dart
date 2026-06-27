@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -150,7 +151,12 @@ class ComicLinkService {
     String? folderPath,
     ComicFolderType type,
   ) {
-    final folderSyncId = _folderSyncIdByPath(folderPath, type);
+    // 允许在文件夹已经被软删除后，仍然能清理指向它的链接。
+    final folderSyncId = ComicFolderService.folderSyncIdByPath(
+      folderPath,
+      type,
+      includeDeleted: true,
+    );
     _removeComicBySyncId(comicUniqueKey, folderSyncId, type);
   }
 
@@ -179,7 +185,7 @@ class ComicLinkService {
     if (type == ComicFolderType.favorite) {
       _markFavoriteDeletedIfNoLinks(comicUniqueKey);
     } else if (type == ComicFolderType.download) {
-      _deleteDownloadIfNoLinks(comicUniqueKey);
+      unawaited(_deleteDownloadIfNoLinks(comicUniqueKey));
     }
   }
 
@@ -207,7 +213,7 @@ class ComicLinkService {
     if (type == ComicFolderType.favorite) {
       _markFavoriteDeletedIfNoLinks(comicUniqueKey);
     } else if (type == ComicFolderType.download) {
-      _deleteDownloadIfNoLinks(comicUniqueKey);
+      unawaited(_deleteDownloadIfNoLinks(comicUniqueKey));
     }
   }
 
@@ -291,7 +297,13 @@ class ComicLinkService {
   /// 移除某个文件夹及其子文件夹下的所有漫画链接。
   /// 对下载类型，当某漫画没有任何有效链接时会删除下载记录及文件。
   static void removeLinksInFolderTree(String folderPath, ComicFolderType type) {
-    final folderSyncId = _folderSyncIdByPath(folderPath, type);
+    // 文件夹可能已经被软删除（例如 FolderShelfBloc 先调 deleteFolder 再调本方法），
+    // 因此需要查找包含已删除 folder 在内的记录来获取 syncId。
+    final folderSyncId = ComicFolderService.folderSyncIdByPath(
+      folderPath,
+      type,
+      includeDeleted: true,
+    );
     if (folderSyncId == null) return;
 
     final subtreeSyncIds = _collectSubtreeSyncIds(folderSyncId, type);
@@ -321,6 +333,8 @@ class ComicLinkService {
     String rootSyncId,
     ComicFolderType type,
   ) {
+    // 文件夹可能已经被 deleteFolder 软删除，因此需要包含已删除的子孙文件夹，
+    // 确保它们下面的链接也能被一并清理。
     final result = <String>{rootSyncId};
     final queue = [rootSyncId];
     while (queue.isNotEmpty) {
@@ -329,7 +343,6 @@ class ComicLinkService {
           .query(
             ComicFolder_.typeData
                 .equals(type.name)
-                .and(ComicFolder_.deletedAt.isNull())
                 .and(ComicFolder_.parentSyncId.equals(parentId)),
           )
           .build();
@@ -345,7 +358,7 @@ class ComicLinkService {
     return result;
   }
 
-  static void _deleteDownloadIfNoLinks(String comicUniqueKey) {
+  static Future<void> _deleteDownloadIfNoLinks(String comicUniqueKey) async {
     final remaining = linksOfComic(comicUniqueKey, ComicFolderType.download);
     if (remaining.isNotEmpty) return;
 
@@ -356,12 +369,7 @@ class ComicLinkService {
     if (comic == null) return;
 
     try {
-      final storageRoot = comic.storageRoot.trim();
-      if (storageRoot.isEmpty) return;
-      final dir = Directory(storageRoot);
-      if (dir.existsSync()) {
-        dir.deleteSync(recursive: true);
-      }
+      await deleteComicDownloadDirectory(comic.source, comic.comicId);
     } catch (e, stackTrace) {
       logger.e(
         'Failed to delete download files: ${comic.storageRoot}',

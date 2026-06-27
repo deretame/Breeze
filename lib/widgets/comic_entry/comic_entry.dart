@@ -1,15 +1,12 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
+import '../../network/http/picture/picture.dart';
 import '../../object_box/objectbox.g.dart';
-import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -272,14 +269,6 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteDownloadDirectory() async {
-    final downloadPath = await getDownloadPath();
-    final target = p.join(downloadPath, comic.from, 'original', comic.id);
-    final directory = Directory(target);
-
-    if (!await directory.exists()) {
-      return;
-    }
-
-    await directory.delete(recursive: true);
+    await deleteComicDownloadDirectory(comic.from, comic.id);
   }
 }

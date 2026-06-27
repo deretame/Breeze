@@ -180,7 +180,7 @@ class ComicSyncCore {
     return raw;
   }
 
-  static int _mergeUnifiedDataInIsolate(Store store, Map<String, dynamic> arg) {
+  static int mergeUnifiedDataInIsolate(Store store, Map<String, dynamic> arg) {
     syncDeviceId = arg['_deviceId'] as String;
     return mergeUnifiedData(store, arg['_data'] as Map<String, dynamic>);
   }
@@ -234,6 +234,8 @@ class ComicSyncCore {
       keyOf: (item) => item.syncId,
       vectorJsonOf: (item) => item.versionVectorJson,
       updatedAtMsOf: (item) => item.updatedAt,
+      deterministicTieBreakerOf: (item) =>
+          jsonEncode(_stripLocalId(item.toJson())),
       updateOf: (item, vector, updatedAt) {
         item.versionVectorJson = vector;
         item.updatedAt = updatedAt;
@@ -265,6 +267,8 @@ class ComicSyncCore {
           '${item.comicUniqueKey}|${item.folderSyncId ?? ''}|${item.typeData}',
       vectorJsonOf: (item) => item.versionVectorJson,
       updatedAtMsOf: (item) => item.updatedAt,
+      deterministicTieBreakerOf: (item) =>
+          jsonEncode(_stripLocalId(item.toJson())),
       updateOf: (item, vector, updatedAt) {
         item.versionVectorJson = vector;
         item.updatedAt = updatedAt;
@@ -279,7 +283,12 @@ class ComicSyncCore {
     // 内容合并进去，输家从列表中移除。
     _resolveFolderUniqueKeyConflicts(mergedFolders, mergedLinks);
 
+    // 先修复链接指向：可能复活被 tombstone 的父文件夹，或补全旧版路径链。
     _repairOrphanLinks(mergedFolders, mergedLinks);
+
+    // 再处理仍孤儿的 active folder：把 parent 已删除/不存在的子树 tombstone，
+    // 同时清理指向这些文件夹的 active link。
+    _repairOrphanFolders(mergedFolders, mergedLinks);
 
     // 兜底：从旧版本同步过来的记录可能没有 syncId，在这里补齐。
     for (final folder in mergedFolders) {
@@ -395,6 +404,7 @@ class ComicSyncCore {
     required String Function(T item) keyOf,
     required String Function(T item) vectorJsonOf,
     required int Function(T item) updatedAtMsOf,
+    required String Function(T item) deterministicTieBreakerOf,
     required void Function(T item, String newVectorJson, int newUpdatedAtMs)
     updateOf,
   }) {
@@ -421,6 +431,31 @@ class ComicSyncCore {
 
       switch (relation) {
         case _VectorRelation.equal:
+          // 向量相等但内容可能不同（例如旧数据默认向量、并发巧合）。
+          // 用 updatedAt + 确定性内容 tie-breaker 选出唯一 winner，
+          // 并提升版本向量，确保两端收敛到同一结果。
+          final localUpdatedAt = updatedAtMsOf(localItem);
+          final cloudUpdatedAt = updatedAtMsOf(cloudItem);
+          if (localUpdatedAt == cloudUpdatedAt &&
+              deterministicTieBreakerOf(localItem) ==
+                  deterministicTieBreakerOf(cloudItem)) {
+            // 内容和 updatedAt 都完全相同：真正的 identical，无需 bump。
+            merged.add(localItem);
+            break;
+          }
+          final winner = _resolveEqualVectorConflict(
+            localItem,
+            cloudItem,
+            updatedAtMsOf: updatedAtMsOf,
+            deterministicTieBreakerOf: deterministicTieBreakerOf,
+          );
+          final loser = identical(winner, localItem) ? cloudItem : localItem;
+          final winnerVector = _parseVersionVector(vectorJsonOf(winner));
+          final loserVector = _parseVersionVector(vectorJsonOf(loser));
+          final mergedVector = _mergeVectors(winnerVector, loserVector);
+          final bumpedVector = _bumpVector(mergedVector);
+          updateOf(winner, _encodeVersionVector(bumpedVector), now);
+          merged.add(winner);
         case _VectorRelation.leftDominates:
           merged.add(localItem);
         case _VectorRelation.rightDominates:
@@ -428,9 +463,14 @@ class ComicSyncCore {
         case _VectorRelation.conflict:
           final localUpdatedAt = updatedAtMsOf(localItem);
           final cloudUpdatedAt = updatedAtMsOf(cloudItem);
-          final winner = localUpdatedAt >= cloudUpdatedAt
-              ? localItem
-              : cloudItem;
+          final T winner;
+          if (localUpdatedAt == cloudUpdatedAt) {
+            final localTie = deterministicTieBreakerOf(localItem);
+            final cloudTie = deterministicTieBreakerOf(cloudItem);
+            winner = localTie.compareTo(cloudTie) >= 0 ? localItem : cloudItem;
+          } else {
+            winner = localUpdatedAt > cloudUpdatedAt ? localItem : cloudItem;
+          }
           final loser = identical(winner, localItem) ? cloudItem : localItem;
           final winnerVector = _parseVersionVector(vectorJsonOf(winner));
           final loserVector = _parseVersionVector(vectorJsonOf(loser));
@@ -441,6 +481,23 @@ class ComicSyncCore {
       }
     }
     return merged;
+  }
+
+  static T _resolveEqualVectorConflict<T>(
+    T localItem,
+    T cloudItem, {
+    required int Function(T item) updatedAtMsOf,
+    required String Function(T item) deterministicTieBreakerOf,
+  }) {
+    final localUpdatedAt = updatedAtMsOf(localItem);
+    final cloudUpdatedAt = updatedAtMsOf(cloudItem);
+    if (localUpdatedAt != cloudUpdatedAt) {
+      return localUpdatedAt > cloudUpdatedAt ? localItem : cloudItem;
+    }
+    // updatedAt 也相同：用内容的确定性序作为最终 tie-breaker。
+    final localTie = deterministicTieBreakerOf(localItem);
+    final cloudTie = deterministicTieBreakerOf(cloudItem);
+    return localTie.compareTo(cloudTie) >= 0 ? localItem : cloudItem;
   }
 
   static Map<String, int> _parseVersionVector(String json) {
@@ -638,9 +695,15 @@ class ComicSyncCore {
     final bVector = _parseVersionVector(b.versionVectorJson);
     final relation = _compareVersionVectors(aVector, bVector);
     return switch (relation) {
-      _VectorRelation.equal || _VectorRelation.leftDominates => a,
+      _VectorRelation.leftDominates => a,
       _VectorRelation.rightDominates => b,
-      _VectorRelation.conflict => a.updatedAt >= b.updatedAt ? a : b,
+      _VectorRelation.equal ||
+      _VectorRelation.conflict => _resolveEqualVectorConflict(
+        a,
+        b,
+        updatedAtMsOf: (folder) => folder.updatedAt,
+        deterministicTieBreakerOf: (folder) => folder.syncId,
+      ),
     };
   }
 
@@ -713,6 +776,9 @@ class ComicSyncCore {
 
   /// 比较两个指向同一文件夹的 link，返回应该保留的那个，并提升其版本向量。
   /// 另一个 link 会被调用方从列表中移除，因此这里不设置 deletedAt。
+  ///
+  /// 向量相等或冲突且 updatedAt 相同时，使用内容 JSON 的确定性序作为
+  /// tie-breaker，保证不同客户端对同一对记录能选出同一个 winner。
   static ComicLink _resolveLinkConflict(ComicLink a, ComicLink b, int now) {
     final aVector = _parseVersionVector(a.versionVectorJson);
     final bVector = _parseVersionVector(b.versionVectorJson);
@@ -721,21 +787,22 @@ class ComicSyncCore {
     final ComicLink winner;
     final ComicLink loser;
     switch (relation) {
-      case _VectorRelation.equal:
       case _VectorRelation.leftDominates:
         winner = a;
         loser = b;
       case _VectorRelation.rightDominates:
         winner = b;
         loser = a;
+      case _VectorRelation.equal:
       case _VectorRelation.conflict:
-        if (a.updatedAt >= b.updatedAt) {
-          winner = a;
-          loser = b;
-        } else {
-          winner = b;
-          loser = a;
-        }
+        winner = _resolveEqualVectorConflict(
+          a,
+          b,
+          updatedAtMsOf: (link) => link.updatedAt,
+          deterministicTieBreakerOf: (link) =>
+              jsonEncode(_stripLocalId(link.toJson())),
+        );
+        loser = identical(winner, a) ? b : a;
     }
 
     final mergedVector = _mergeVectors(
@@ -781,6 +848,65 @@ class ComicSyncCore {
           ..versionVectorJson = _encodeVersionVector(
             _bumpVector(_parseVersionVector(link.versionVectorJson)),
           );
+      }
+    }
+  }
+
+  /// 修复 active Folder 的 parentSyncId 指向已删除/不存在文件夹的孤儿问题。
+  ///
+  /// 父文件夹已不存在时，该子文件夹在 UI 上已不可达，直接 tombstone，并清理
+  /// 指向这些文件夹的 active link。
+  /// 递归处理，直到没有新的孤儿 folder 产生。
+  static void _repairOrphanFolders(
+    List<ComicFolder> folders,
+    List<ComicLink> links,
+  ) {
+    final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+    final activeBySyncId = <String, ComicFolder>{};
+    for (final folder in folders) {
+      if (folder.syncId.isNotEmpty && folder.deletedAt == null) {
+        activeBySyncId[folder.syncId] = folder;
+      }
+    }
+
+    final newlyTombstoned = <String>{};
+    while (true) {
+      var changed = false;
+      for (final folder in folders) {
+        if (folder.deletedAt != null) continue;
+        final parentId = folder.parentSyncId;
+        if (parentId == null || parentId.isEmpty) continue;
+        final parent = activeBySyncId[parentId];
+        if (parent == null) {
+          folder
+            ..deletedAt = now
+            ..updatedAt = now
+            ..versionVectorJson = _encodeVersionVector(
+              _bumpVector(_parseVersionVector(folder.versionVectorJson)),
+            );
+          activeBySyncId.remove(folder.syncId);
+          newlyTombstoned.add(folder.syncId);
+          changed = true;
+        }
+      }
+      if (!changed) break;
+    }
+
+    // 同步清理指向刚被 tombstone 的文件夹的 active link。
+    if (newlyTombstoned.isNotEmpty) {
+      for (final link in links) {
+        if (link.deletedAt != null) continue;
+        final folderSyncId = link.folderSyncId;
+        if (folderSyncId != null &&
+            folderSyncId.isNotEmpty &&
+            newlyTombstoned.contains(folderSyncId)) {
+          link
+            ..deletedAt = now
+            ..updatedAt = now
+            ..versionVectorJson = _encodeVersionVector(
+              _bumpVector(_parseVersionVector(link.versionVectorJson)),
+            );
+        }
       }
     }
   }
@@ -1010,7 +1136,7 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
     final count = await objectbox.store
         .runInTransactionAsync<int, Map<String, dynamic>>(
           TxMode.write,
-          ComicSyncCore._mergeUnifiedDataInIsolate,
+          ComicSyncCore.mergeUnifiedDataInIsolate,
           mergeArg,
         );
     logger.d(

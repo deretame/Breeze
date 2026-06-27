@@ -365,6 +365,45 @@ String _sanitizeStoredPath(String path) {
   return normalizeStoredAssetPath(path);
 }
 
+/// 删除漫画下载根目录。
+///
+/// 为兼容新旧下载布局，先尝试删除编码后的路径，再尝试删除原始路径。
+Future<void> deleteComicDownloadDirectory(String from, String comicId) async {
+  final encodedRoot = await _buildComicDownloadRoot(
+    from,
+    comicId,
+    encoded: true,
+  );
+  final rawRoot = await _buildComicDownloadRoot(from, comicId, encoded: false);
+
+  await _tryDeleteDirectory(encodedRoot);
+  await _tryDeleteDirectory(rawRoot);
+}
+
+Future<String> _buildComicDownloadRoot(
+  String from,
+  String comicId, {
+  required bool encoded,
+}) async {
+  return file_path.join(
+    await getDownloadPath(),
+    normalizePluginId(from),
+    'original',
+    encoded ? encodePath(path: comicId.trim()) : comicId.trim(),
+  );
+}
+
+Future<void> _tryDeleteDirectory(String path) async {
+  final dir = Directory(path);
+  if (await dir.exists()) {
+    try {
+      await dir.delete(recursive: true);
+    } catch (e) {
+      logger.w('删除目录失败: $path, error: $e');
+    }
+  }
+}
+
 String normalizeStoredAssetPath(String rawPath, {bool allowEmpty = false}) {
   final raw = rawPath.trim();
   if (raw.isEmpty) {

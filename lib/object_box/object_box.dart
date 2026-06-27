@@ -72,6 +72,12 @@ class ObjectBox {
     return _initFuture!;
   }
 
+  /// 测试专用：重置初始化 Future，使下一次 [create] 能使用新的 [dbRootPath]。
+  /// 调用方应自行关闭旧 Store 并清理目录。
+  static void resetForTests() {
+    _initFuture = null;
+  }
+
   static Future<ObjectBox> _doInit({String? dbRootPath}) async {
     final dbPath = p.join(dbRootPath ?? await getDbPath(), "breeze_db");
 

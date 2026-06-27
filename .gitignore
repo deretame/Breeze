@@ -45,6 +45,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# ObjectBox native library downloaded for Windows unit tests
+lib/objectbox.dll
+objectbox-windows-x64.zip
+objectbox_temp/
+
 /target/
 
 # FVM Version Cache

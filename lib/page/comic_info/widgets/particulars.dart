@@ -11,9 +11,10 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -125,14 +126,13 @@ class _InfoColumnState extends State<_InfoColumn> {
         downloadPath,
         widget.from,
         'original',
-        widget.comicInfo.id,
+        encodePath(path: widget.comicInfo.id),
       );
       final dir = Directory(storagePath);
       if (!await dir.exists()) return;
 
       int totalSize = 0;
-      final entities = dir.listSync(recursive: true);
-      for (final entity in entities) {
+      await for (final entity in dir.list(recursive: true, followLinks: false)) {
         if (entity is File) {
           try {
             totalSize += await entity.length();

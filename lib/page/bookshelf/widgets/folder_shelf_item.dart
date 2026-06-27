@@ -52,7 +52,7 @@ class FolderShelfItem extends StatelessWidget {
                           : Theme.of(
                               context,
                             ).colorScheme.outline.withValues(alpha: 0.2),
-                      width: isSelected ? 2 : 1,
+                      width: isSelected ? 4 : 1,
                     ),
                   ),
                   child: Center(
@@ -68,16 +68,30 @@ class FolderShelfItem extends StatelessWidget {
                 // 选择指示器
                 if (selectionMode)
                   Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Icon(
-                      isSelected
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
-                      color: isSelected
-                          ? Colors.lightBlueAccent
-                          : Colors.white.withValues(alpha: 0.9),
-                      size: 22,
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2.5),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black87,
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isSelected ? Icons.check : Icons.radio_button_unchecked,
+                        color: isSelected ? Colors.white : Colors.black54,
+                        size: 20,
+                      ),
                     ),
                   ),
                 // 底部标题阴影

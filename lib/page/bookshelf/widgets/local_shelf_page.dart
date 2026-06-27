@@ -15,6 +15,7 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/type/enum.dart';
@@ -305,14 +306,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                   uniqueKey,
                   ComicFolderType.download,
                 );
-                final downloadPath = await getDownloadPath();
-                final path = p.join(
-                  downloadPath,
-                  entry.from,
-                  'original',
-                  entry.id,
-                );
-                await deleteDirectory(path);
+                await deleteComicDownloadDirectory(entry.from, entry.id);
               }
             }
             break;

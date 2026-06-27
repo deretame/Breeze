@@ -46,7 +46,9 @@ import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/rust_loader.dart';
 
-late final ObjectBox objectbox;
+ObjectBox? _objectbox;
+ObjectBox get objectbox => _objectbox!;
+set objectbox(ObjectBox value) => _objectbox = value;
 
 // 定义全局Dio实例
 final dio = Dio();

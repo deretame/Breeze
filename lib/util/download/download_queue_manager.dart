@@ -10,9 +10,9 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/foreground_task/task/unified_download_task.dart';
-import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -398,15 +398,8 @@ class DownloadQueueManager {
       return;
     }
     try {
-      final pluginId = normalizePluginId(source);
-      final downloadRoot = await getDownloadPath();
-      final targetDir = Directory(
-        '$downloadRoot${Platform.pathSeparator}$pluginId${Platform.pathSeparator}original${Platform.pathSeparator}${comicId.trim()}',
-      );
-      if (await targetDir.exists()) {
-        await targetDir.delete(recursive: true);
-        logger.i('已删除取消任务文件夹: ${targetDir.path}');
-      }
+      await deleteComicDownloadDirectory(source, comicId.trim());
+      logger.i('已删除取消任务文件夹: $source:$comicId');
     } catch (e, s) {
       logger.w(
         '删除取消任务文件夹失败: comicId=$comicId, source=$source',

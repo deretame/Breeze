@@ -14,14 +14,21 @@ class ComicFolderService {
   static String get _newSyncId => const Uuid().v4();
 
   /// 根据路径获取文件夹的 syncId，根目录返回 null。
-  static String? folderSyncIdByPath(String? path, ComicFolderType type) {
+  ///
+  /// [includeDeleted] 为 true 时也会查找已被软删除的文件夹，
+  /// 用于在删除后清理其下的链接等场景。
+  static String? folderSyncIdByPath(
+    String? path,
+    ComicFolderType type, {
+    bool includeDeleted = false,
+  }) {
     if (path == null || path.isEmpty) return null;
+    var condition = ComicFolder_.uniqueKey.equals(_uniqueKey(path, type));
+    if (!includeDeleted) {
+      condition = condition.and(ComicFolder_.deletedAt.isNull());
+    }
     final folder = objectbox.comicFolderBox
-        .query(
-          ComicFolder_.uniqueKey
-              .equals(_uniqueKey(path, type))
-              .and(ComicFolder_.deletedAt.isNull()),
-        )
+        .query(condition)
         .build()
         .findFirst();
     return folder?.syncId;

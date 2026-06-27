@@ -1,16 +1,13 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
+import '../../network/http/picture/picture.dart';
 import '../../object_box/objectbox.g.dart';
-import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
 import '../../util/sundry.dart';
 import 'comic_simplify_entry_info.dart';
@@ -224,81 +221,112 @@ class ComicSimplifyEntry extends StatelessWidget {
           child: SizedBox(
             width: width,
             height: height,
-            child: _buildCoverWithTitle(width, height),
+            child: _buildCoverWithTitle(context, width, height),
           ),
         );
       },
     );
   }
 
-  Widget _buildCoverWithTitle(double width, double height) {
+  Widget _buildCoverWithTitle(
+    BuildContext context,
+    double width,
+    double height,
+  ) {
     double circular = roundedCorner ? 5.0 : 0.0;
-    return Stack(
-      children: [
-        CoverWidget(
-          fileServer: info.fileServer,
-          path: info.path,
-          id: info.id,
-          pictureType: info.pictureType,
-          from: info.from,
-          roundedCorner: roundedCorner,
-          width: width,
-          height: height,
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.7),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.7],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(circular),
-                bottomRight: Radius.circular(circular),
-              ),
+    final primary = Theme.of(context).colorScheme.primary;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(circular),
+      child: Container(
+        foregroundDecoration: isSelected && selectionMode
+            ? BoxDecoration(
+                border: Border.all(color: primary, width: 4),
+                borderRadius: BorderRadius.circular(circular),
+              )
+            : null,
+        child: Stack(
+          children: [
+            CoverWidget(
+              fileServer: info.fileServer,
+              path: info.path,
+              id: info.id,
+              pictureType: info.pictureType,
+              from: info.from,
+              roundedCorner: roundedCorner,
+              width: width,
+              height: height,
             ),
-            padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
-            child: Text(
-              info.title.let(convertChineseForDisplay),
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12.0,
-                fontWeight: FontWeight.w500,
-                shadows: [
-                  Shadow(
-                    offset: const Offset(0, 1),
-                    blurRadius: 2,
-                    color: Colors.black.withValues(alpha: 0.5),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [0.0, 0.7],
                   ),
-                ],
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(circular),
+                    bottomRight: Radius.circular(circular),
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
+                child: Text(
+                  info.title.let(convertChineseForDisplay),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w500,
+                    shadows: [
+                      Shadow(
+                        offset: const Offset(0, 1),
+                        blurRadius: 2,
+                        color: Colors.black.withValues(alpha: 0.5),
+                      ),
+                    ],
+                  ),
+                  maxLines: 3, // 最多显示3行
+                  overflow: TextOverflow.ellipsis, // 超出部分显示省略号
+                  textAlign:
+                      TextAlign.start, // 文字对齐方式，也可以用 TextAlign.center 居中显示
+                ),
               ),
-              maxLines: 3, // 最多显示3行
-              overflow: TextOverflow.ellipsis, // 超出部分显示省略号
-              textAlign: TextAlign.start, // 文字对齐方式，也可以用 TextAlign.center 居中显示
             ),
-          ),
+            if (selectionMode)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: isSelected ? primary : Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2.5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black87,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    isSelected ? Icons.check : Icons.radio_button_unchecked,
+                    color: isSelected ? Colors.white : Colors.black54,
+                    size: 20,
+                  ),
+                ),
+              ),
+          ],
         ),
-        if (selectionMode)
-          Positioned(
-            top: 6,
-            right: 6,
-            child: Icon(
-              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isSelected
-                  ? Colors.lightBlueAccent
-                  : Colors.white.withValues(alpha: 0.9),
-              size: 22,
-            ),
-          ),
-      ],
+      ),
     );
   }
 
@@ -424,18 +452,12 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteDownloadDirectory(String id) async {
-    final downloadPath = await getDownloadPath();
-    final path = p.join(downloadPath, info.from, 'original', id);
-    final directory = Directory(path);
-
-    if (await directory.exists()) {
-      try {
-        await directory.delete(recursive: true);
-        logger.d('目录已成功删除: $path');
-      } catch (e) {
-        logger.e('删除目录时发生错误: $e');
-        throw Exception('删除目录失败');
-      }
+    try {
+      await deleteComicDownloadDirectory(info.from, id);
+      logger.d('目录已成功删除: $id');
+    } catch (e) {
+      logger.e('删除目录时发生错误: $e');
+      throw Exception('删除目录失败');
     }
   }
 }

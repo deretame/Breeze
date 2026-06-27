@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
+import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
@@ -99,11 +100,12 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   Widget _buildNormalHeader(BuildContext context, FolderShelfState state) {
     return Row(
       children: [
-        // 返回按钮
+        // 返回/帮助按钮
         IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(state.isRoot ? Icons.help_outline : Icons.arrow_back),
+          tooltip: state.isRoot ? '书架说明' : '返回',
           onPressed: state.isRoot
-              ? null
+              ? () => _showShelfHelpDialog(context)
               : () => context.read<FolderShelfBloc>().add(
                   const FolderShelfGoBack(),
                 ),
@@ -163,6 +165,28 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           ],
         ),
       ],
+    );
+  }
+
+  Future<void> _showShelfHelpDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('书架说明'),
+        content: const Text(
+          '• 收藏和书架是联动的：收藏一本漫画，它会出现在书架里；'
+          '只有把这本漫画从所有收藏文件夹里都删除，才会自动取消收藏。\n'
+          '• 在漫画详情页“取消收藏”，会一次性从所有收藏文件夹里移除这本漫画。\n'
+          '• 下载也是一样：只有把一本漫画从所有下载文件夹里都删除，'
+          '才会自动删除它的下载文件。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -227,90 +251,117 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   }
 
   Widget _buildBody(BuildContext context) {
-    return BlocBuilder<FolderShelfBloc, FolderShelfState>(
-      builder: (context, state) {
-        if (state.isLoading && state.folders.isEmpty && state.comics.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return BlocBuilder<BookshelfSearchCubit, BookshelfSearchState>(
+      builder: (context, searchState) {
+        return BlocBuilder<FolderShelfBloc, FolderShelfState>(
+          builder: (context, state) {
+            final keyword = searchState
+                .stateOf(state.mode)
+                .keyword
+                .trim()
+                .toLowerCase();
+            // 搜索时只展示漫画，不展示文件夹。
+            final filteredFolders = keyword.isEmpty
+                ? state.folders
+                : <ComicFolder>[];
+            final filteredComics = keyword.isEmpty
+                ? state.comics
+                : state.comics
+                      .where(
+                        (c) =>
+                            c.title.toLowerCase().contains(keyword) ||
+                            c.source.toLowerCase().contains(keyword) ||
+                            c.from.toLowerCase().contains(keyword),
+                      )
+                      .toList();
 
-        final totalCount = state.folders.length + state.comics.length;
-        if (totalCount == 0) {
-          return _buildEmptyBody(context);
-        }
+            if (state.isLoading &&
+                filteredFolders.isEmpty &&
+                filteredComics.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        final comicType = _comicEntryTypeOf(state.mode);
-        final folderSyncIdMap = _buildSyncIdMap(state.mode);
-        String folderPathOf(ComicFolder f) =>
-            ComicFolderService.folderPath(f, syncIdMap: folderSyncIdMap);
+            final totalCount = filteredFolders.length + filteredComics.length;
+            if (totalCount == 0) {
+              return _buildEmptyBody(context);
+            }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            context.read<FolderShelfBloc>().add(
-              const FolderShelfLoadRequested(),
+            final comicType = _comicEntryTypeOf(state.mode);
+            final folderSyncIdMap = _buildSyncIdMap(state.mode);
+            String folderPathOf(ComicFolder f) =>
+                ComicFolderService.folderPath(f, syncIdMap: folderSyncIdMap);
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<FolderShelfBloc>().add(
+                  const FolderShelfLoadRequested(),
+                );
+              },
+              child: GridView.builder(
+                padding: const EdgeInsets.all(10),
+                gridDelegate: buildComicSimplifyEntryGridDelegate(),
+                itemCount: totalCount,
+                itemBuilder: (context, index) {
+                  if (index < filteredFolders.length) {
+                    final folder = filteredFolders[index];
+                    final folderPath = folderPathOf(folder);
+                    final isSelected = state.selectedFolderPaths.contains(
+                      folderPath,
+                    );
+                    return FolderShelfItem(
+                      key: ValueKey('folder-${folder.uniqueKey}'),
+                      folder: folder,
+                      selectionMode: state.selectionMode,
+                      isSelected: isSelected,
+                      onTap: state.selectionMode
+                          ? () => context.read<FolderShelfBloc>().add(
+                              FolderShelfToggleFolderSelection(folderPath),
+                            )
+                          : () => context.read<FolderShelfBloc>().add(
+                              FolderShelfEnterFolder(folderPath),
+                            ),
+                      onLongPress: state.selectionMode
+                          ? () => context.read<FolderShelfBloc>().add(
+                              FolderShelfToggleFolderSelection(folderPath),
+                            )
+                          : () =>
+                                _showFolderActions(context, folder, folderPath),
+                    );
+                  }
+                  final comicIndex = index - filteredFolders.length;
+                  final comic = filteredComics[comicIndex];
+                  final comicUniqueKey = '${comic.from.trim()}:${comic.id}';
+                  final isComicSelected = state.selectedComicKeys.contains(
+                    comicUniqueKey,
+                  );
+                  return ComicSimplifyEntry(
+                    key: ValueKey('comic-${comic.from}:${comic.id}'),
+                    info: comic,
+                    type: comicType,
+                    selectionMode: state.selectionMode,
+                    isSelected: isComicSelected,
+                    refresh: () => context.read<FolderShelfBloc>().add(
+                      const FolderShelfLoadRequested(),
+                    ),
+                    onTapOverride: state.selectionMode
+                        ? (info) => context.read<FolderShelfBloc>().add(
+                            FolderShelfToggleComicSelection(
+                              '${info.from.trim()}:${info.id}',
+                            ),
+                          )
+                        : null,
+                    onLongPressOverride: state.selectionMode
+                        ? (info) => context.read<FolderShelfBloc>().add(
+                            FolderShelfToggleComicSelection(
+                              '${info.from.trim()}:${info.id}',
+                            ),
+                          )
+                        : (info) => _showComicActions(context, info),
+                  );
+                },
+              ),
             );
           },
-          child: GridView.builder(
-            padding: const EdgeInsets.all(10),
-            gridDelegate: buildComicSimplifyEntryGridDelegate(),
-            itemCount: totalCount,
-            itemBuilder: (context, index) {
-              if (index < state.folders.length) {
-                final folder = state.folders[index];
-                final folderPath = folderPathOf(folder);
-                final isSelected = state.selectedFolderPaths.contains(
-                  folderPath,
-                );
-                return FolderShelfItem(
-                  key: ValueKey('folder-${folder.uniqueKey}'),
-                  folder: folder,
-                  selectionMode: state.selectionMode,
-                  isSelected: isSelected,
-                  onTap: state.selectionMode
-                      ? () => context.read<FolderShelfBloc>().add(
-                          FolderShelfToggleFolderSelection(folderPath),
-                        )
-                      : () => context.read<FolderShelfBloc>().add(
-                          FolderShelfEnterFolder(folderPath),
-                        ),
-                  onLongPress: state.selectionMode
-                      ? () => context.read<FolderShelfBloc>().add(
-                          FolderShelfToggleFolderSelection(folderPath),
-                        )
-                      : () => _showFolderActions(context, folder, folderPath),
-                );
-              }
-              final comicIndex = index - state.folders.length;
-              final comic = state.comics[comicIndex];
-              final comicUniqueKey = '${comic.from.trim()}:${comic.id}';
-              final isComicSelected = state.selectedComicKeys.contains(
-                comicUniqueKey,
-              );
-              return ComicSimplifyEntry(
-                key: ValueKey('comic-${comic.from}:${comic.id}'),
-                info: comic,
-                type: comicType,
-                selectionMode: state.selectionMode,
-                isSelected: isComicSelected,
-                refresh: () => context.read<FolderShelfBloc>().add(
-                  const FolderShelfLoadRequested(),
-                ),
-                onTapOverride: state.selectionMode
-                    ? (info) => context.read<FolderShelfBloc>().add(
-                        FolderShelfToggleComicSelection(
-                          '${info.from.trim()}:${info.id}',
-                        ),
-                      )
-                    : null,
-                onLongPressOverride: state.selectionMode
-                    ? (info) => context.read<FolderShelfBloc>().add(
-                        FolderShelfToggleComicSelection(
-                          '${info.from.trim()}:${info.id}',
-                        ),
-                      )
-                    : (info) => _showComicActions(context, info),
-              );
-            },
-          ),
         );
       },
     );

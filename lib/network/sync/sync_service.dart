@@ -581,7 +581,19 @@ GlobalSettingState _applySyncableBlocksToState(
     json['readSetting'] = reader;
   }
 
-  return GlobalSettingState.fromJson(json);
+  // 同步设置时，以下本地/安全相关配置保持本地值不变：
+  // - 自定义导出路径、开屏密码/PIN、缓存管理配置：已从上传负载中移除；
+  // - 同步配置本身、调试日志开关/地址：仍可能出现在旧版或未来的云端块中，
+  //   这里显式跳过覆盖，确保本地值不被同步下来的内容修改。
+  final merged = GlobalSettingState.fromJson(json);
+  return merged.copyWith(
+    syncSetting: localState.syncSetting,
+    customExportPath: localState.customExportPath,
+    appLockSetting: localState.appLockSetting,
+    cacheSetting: localState.cacheSetting,
+    enableMemoryDebug: localState.enableMemoryDebug,
+    logAddress: localState.logAddress,
+  );
 }
 
 Future<void> _applyMergedGlobalState(

@@ -93,10 +93,10 @@ packages:
     dependency: "direct main"
     description:
       name: battery_plus
-      sha256: ad16fcb55b7384be6b4bbc763d5e2031ac7ea62b2d9b6b661490c7b9741155bf
+      sha256: f14567a9548ac57c010df641acbd35869429b3dc234fec0bb61b01f429285e61
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.0"
+    version: "7.1.0"
   battery_plus_platform_interface:
     dependency: transitive
     description:
@@ -253,10 +253,10 @@ packages:
     dependency: "direct main"
     description:
       name: connectivity_plus
-      sha256: "62ffa266d9a23b79fb3fcbc206afc00bb979417ba57b1324c546b5aab95ba057"
+      sha256: cad0e811a289ea2a941119dc483c204ec1684cbb9a8fc7351fe4a230b8313160
       url: "https://pub.dev"
     source: hosted
-    version: "7.1.1"
+    version: "7.2.0"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
@@ -363,10 +363,10 @@ packages:
     dependency: "direct main"
     description:
       name: device_info_plus
-      sha256: "6a642e1daa10190af89ba6cb6386c0df7d071a3592080bfe1e44faa63ae1df65"
+      sha256: "0891702f96b2e465fe567b7ec448380e6b1c14f60af552a8536d9f583b6b8442"
       url: "https://pub.dev"
     source: hosted
-    version: "13.1.0"
+    version: "13.2.0"
   device_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -1366,10 +1366,10 @@ packages:
     dependency: "direct main"
     description:
       name: package_info_plus
-      sha256: "4bf625947f6c7713ee242296a682e23e44823c09cf9d79e4f1238923c92db852"
+      sha256: f5c435dc0e0d461e5b32471a870f769b6a1cc46930637efe24fbc535314e78ad
       url: "https://pub.dev"
     source: hosted
-    version: "10.1.0"
+    version: "10.2.0"
   package_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -1430,10 +1430,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_linux
-      sha256: f7a1fe3a634fe7734c8d3f2766ad746ae2a2884abe22e241a8b301bf5cac3279
+      sha256: "58c2005f147315b11e9b4a7bc889cd5203e250cba8e3f012dae259b4972b5c16"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.2"
   path_provider_platform_interface:
     dependency: transitive
     description:

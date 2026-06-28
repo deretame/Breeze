@@ -132,7 +132,10 @@ class _InfoColumnState extends State<_InfoColumn> {
       if (!await dir.exists()) return;
 
       int totalSize = 0;
-      await for (final entity in dir.list(recursive: true, followLinks: false)) {
+      await for (final entity in dir.list(
+        recursive: true,
+        followLinks: false,
+      )) {
         if (entity is File) {
           try {
             totalSize += await entity.length();

@@ -186,7 +186,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
               ),
             ),
             Text(
-              '浏览和管理',
+              '浏览安装',
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 13,

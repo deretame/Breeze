@@ -177,4 +177,3 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
 int _toInt(Object? value, int fallback) {
   return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
-

@@ -635,7 +635,8 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
     const adapter = DownloadChapterAdapter();
     const matcher = DownloadChapterMatcher();
     final chapters = chapterRefs.map(adapter.fromChapterRef).toList();
-    final chapter = matcher.findByOrder(chapters, order) ??
+    final chapter =
+        matcher.findByOrder(chapters, order) ??
         (chapters.isNotEmpty ? chapters.first : null);
     return getPluginReadSnapshot(
       comicId,
@@ -645,9 +646,7 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
       chapter?.id,
       chapter?.effectiveRequestId ?? '',
       chapter?.id ?? '',
-      Map<String, dynamic>.from(
-        chapter?.extern ?? const <String, dynamic>{},
-      ),
+      Map<String, dynamic>.from(chapter?.extern ?? const <String, dynamic>{}),
     );
   }
 

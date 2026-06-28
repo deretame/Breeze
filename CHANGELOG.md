@@ -405,3 +405,24 @@
 #### New Contributors
 
 - @Enigma-Soul made their first contribution in https://github.com/deretame/Breeze/pull/135
+
+## [v3.0.19]
+
+### 功能更新
+
+- 书架收藏与下载添加类资源管理模式文件夹逻辑
+- 新增全局简繁转换开关(issue #128) by [@Enigma-Soul](https://github.com/deretame/Breeze/pull/143)
+
+### 优化
+
+- 修复部分情况下章节列表高亮不正确的问题 by [@Enigma-Soul](https://github.com/deretame/Breeze/pull/135)
+- 优化插件性能
+- 优化部分ui显示效果及部分文本描述
+
+### bug 修复
+
+- 修复Windows安装器在部分设备上无法正常安装的问题
+
+### 杂项
+
+- 部分设置不再跟随同步

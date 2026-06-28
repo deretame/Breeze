@@ -96,9 +96,11 @@ class CloudPluginCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              if (installed) _InstalledPill(colorScheme: colorScheme),
-              if (installed) const SizedBox(width: 8),
-              if (manifest.home.trim().isNotEmpty)
+              if (installed) ...[
+                _InstalledPill(colorScheme: colorScheme),
+                const SizedBox(width: 8),
+              ],
+              if (manifest.home.trim().isNotEmpty) ...[
                 OutlinedButton.icon(
                   onPressed: installing
                       ? null
@@ -106,7 +108,8 @@ class CloudPluginCard extends StatelessWidget {
                   icon: const Icon(Icons.open_in_new, size: 16),
                   label: const Text('主页'),
                 ),
-              if (manifest.home.trim().isNotEmpty) const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
               OutlinedButton.icon(
                 onPressed: installing ? null : onInstall,
                 icon: const Icon(Icons.download_outlined, size: 16),

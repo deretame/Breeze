@@ -72,12 +72,6 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
           normalComicInfo = _localizeDownloadDetail(
             comicInfo as UnifiedComicDownload,
           );
-          // final temp1 = comicInfo.toString();
-          // logger.d(temp1);
-          // final temp = comicInfo.chapters
-          //     .let((d) => jsonDecode(d) as Object)
-          //     .let((d) => jsonEncode(d));
-          // logger.d(temp);
         }
       } else {
         final pluginResult = await getComicDetailByPlugin(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -42,16 +43,17 @@ class EpButtonWidget extends StatelessWidget {
             ? ComicEntryType.normal
             : type;
         final chapterExtern = Map<String, dynamic>.from(doc.extern);
+        final chapter = const DownloadChapterAdapter().fromEp(doc);
         context.pushRoute(
           ComicReadRoute(
             comicInfo: allInfo,
             comicId: comicId,
             type: resolvedType,
-            order: doc.order,
-            chapterId: resolveEpisodeChapterId(doc),
-            requestId: doc.requestId.trim(),
-            storageChapterId: doc.storageChapterId.trim(),
-            logicalKey: doc.logicalKey.trim(),
+            order: chapter.order,
+            chapterId: chapter.id,
+            requestId: chapter.effectiveRequestId,
+            storageChapterId: chapter.storageId ?? '',
+            logicalKey: chapter.id,
             chapterExtern: enrichEpisodeChapterExtern(doc, chapterExtern),
             epsNumber: epsLength,
             from: from,
@@ -99,19 +101,6 @@ class EpButtonWidget extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String resolveEpisodeChapterId(Ep episode) {
-    final logicalKey = episode.logicalKey.trim();
-    if (logicalKey.isNotEmpty) {
-      return logicalKey;
-    }
-
-    if (episode.id.trim().isNotEmpty) {
-      return episode.id.trim();
-    }
-
-    return episode.order.toString();
   }
 
   Map<String, dynamic> enrichEpisodeChapterExtern(

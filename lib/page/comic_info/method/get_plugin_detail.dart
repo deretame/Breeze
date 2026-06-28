@@ -56,57 +56,6 @@ class UnifiedComicChapterRef {
   final Map<String, dynamic> extern;
 }
 
-String resolveUnifiedComicChapterKey(UnifiedComicChapterRef chapter) {
-  final logicalKey = chapter.logicalKey.trim();
-  if (logicalKey.isNotEmpty) {
-    return logicalKey;
-  }
-
-  final chapterId = chapter.id.trim();
-  if (chapterId.isNotEmpty) {
-    return chapterId;
-  }
-
-  return chapter.order.toString();
-}
-
-UnifiedComicChapterRef? resolveUnifiedComicChapterRef(
-  dynamic comicInfo,
-  String from, {
-  String? chapterId,
-  int? order,
-}) {
-  final chapters = resolveUnifiedComicChapters(comicInfo, from);
-  if (chapters.isEmpty) {
-    return null;
-  }
-
-  final normalizedChapterId = (chapterId ?? '').trim();
-  if (normalizedChapterId.isNotEmpty) {
-    for (final chapter in chapters) {
-      if (_matchesChapterRef(chapter, normalizedChapterId)) {
-        return chapter;
-      }
-    }
-  }
-
-  if (order != null) {
-    for (final chapter in chapters) {
-      if (chapter.order == order) {
-        return chapter;
-      }
-    }
-
-    for (final chapter in chapters) {
-      if (resolveUnifiedComicChapterKey(chapter) == order.toString()) {
-        return chapter;
-      }
-    }
-  }
-
-  return chapters.first;
-}
-
 Future<PluginComicDetail> getComicDetailByPlugin(
   String comicId,
   String from, {
@@ -229,18 +178,3 @@ int _toInt(Object? value, int fallback) {
   return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
 
-bool _matchesChapterRef(UnifiedComicChapterRef chapter, String candidate) {
-  if (resolveUnifiedComicChapterKey(chapter) == candidate) {
-    return true;
-  }
-  if (chapter.logicalKey.trim() == candidate) {
-    return true;
-  }
-  if (chapter.requestId.trim() == candidate) {
-    return true;
-  }
-  if (chapter.id.trim() == candidate) {
-    return true;
-  }
-  return chapter.order.toString() == candidate;
-}

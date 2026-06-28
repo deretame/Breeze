@@ -9,6 +9,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
@@ -231,15 +232,7 @@ Future<void> _copyEpisodeFiles(
 Future<List<_ExportChapterEntry>> _collectChapterEntries(
   UnifiedComicDownload download,
 ) async {
-  var chapters = _decodeStoredChaptersFromDetailJson(download.detailJson);
-  if (chapters.isEmpty) {
-    chapters = resolveStoredDownloadChapters(download);
-  }
-  if (chapters.isEmpty) {
-    chapters = _decodeListOfMaps(download.chapters)
-        .map((chapter) => UnifiedComicDownloadStoredChapter.fromMap(chapter))
-        .toList();
-  }
+  final chapters = resolveDownloadChapters(download);
   // Keep persisted chapter order exactly as stored.
   // Do not reorder by name/order here, otherwise exported page sequence may drift.
 
@@ -249,12 +242,8 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
 
   for (var chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
     final chapter = chapters[chapterIndex];
-    final chapterId = chapter.id.trim();
-    final taskChapterId = chapter.taskChapterId.trim();
-    final rawName = chapter.name.trim();
-    final fallbackName = chapterId.isNotEmpty
-        ? chapterId
-        : chapter.order.toString();
+    final rawName = chapter.displayName.trim();
+    final fallbackName = chapter.effectiveStorageId;
     final chapterPrefix = hasMultipleChapters ? '${chapterIndex + 1}.' : '';
     final folderName = _uniqueFolderName(
       '$chapterPrefix${_sanitizeFolderName(rawName.isNotEmpty ? rawName : fallbackName)}',
@@ -265,8 +254,7 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
     final files = await _resolveChapterFiles(
       pluginId: download.source,
       comicId: download.comicId,
-      chapterId: chapterId,
-      taskChapterId: taskChapterId,
+      chapterId: chapter.id,
       images: chapter.images,
     );
     final numberedImages = <_ExportImageEntry>[];
@@ -294,8 +282,7 @@ Future<List<File>> _resolveChapterFiles({
   required String pluginId,
   required String comicId,
   required String chapterId,
-  required String taskChapterId,
-  required List<UnifiedComicDownloadImage> images,
+  required List<DownloadImage> images,
 }) async {
   final futures = images.map((image) async {
     for (var attempt = 0; attempt < 3; attempt++) {
@@ -325,36 +312,6 @@ Future<List<File>> _resolveChapterFiles({
 
   final results = await Future.wait(futures);
   return results.whereType<File>().toList();
-}
-
-List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
-  String rawDetailJson,
-) {
-  if (rawDetailJson.trim().isEmpty) {
-    return const <UnifiedComicDownloadStoredChapter>[];
-  }
-  try {
-    final decoded = jsonDecode(rawDetailJson);
-    if (decoded is! Map) {
-      return const <UnifiedComicDownloadStoredChapter>[];
-    }
-    final detail = Map<String, dynamic>.from(decoded);
-    final extern = Map<String, dynamic>.from(
-      detail['extern'] as Map? ?? const {},
-    );
-    final rawDownloadChapters =
-        (extern['downloadChapters'] as List?) ?? const <dynamic>[];
-    return rawDownloadChapters
-        .whereType<Map>()
-        .map(
-          (entry) => UnifiedComicDownloadStoredChapter.fromMap(
-            Map<String, dynamic>.from(entry),
-          ),
-        )
-        .toList();
-  } catch (_) {
-    return const <UnifiedComicDownloadStoredChapter>[];
-  }
 }
 
 Map<String, dynamic> _buildProcessedDetail(
@@ -498,24 +455,6 @@ Map<String, dynamic> _decodeMap(String raw) {
     }
   } catch (_) {}
   return const <String, dynamic>{};
-}
-
-List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
-  if (raw.trim().isEmpty) {
-    return const <Map<String, dynamic>>[];
-  }
-  try {
-    final decoded = jsonDecode(raw);
-    if (decoded is! List) {
-      return const <Map<String, dynamic>>[];
-    }
-    return decoded
-        .whereType<Map>()
-        .map((entry) => Map<String, dynamic>.from(entry))
-        .toList();
-  } catch (_) {
-    return const <Map<String, dynamic>>[];
-  }
 }
 
 class _ExportChapterEntry {

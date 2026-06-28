@@ -13,6 +13,9 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
@@ -21,26 +24,6 @@ import 'package:zephyr/util/foreground_task/task/shared_download.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/util/get_path.dart';
-
-class _ResolvedDownloadChapter {
-  const _ResolvedDownloadChapter({
-    required this.chapterId,
-    required this.requestId,
-    required this.storageChapterId,
-    required this.logicalKey,
-    required this.title,
-    required this.order,
-    required this.extern,
-  });
-
-  final String chapterId;
-  final String requestId;
-  final String storageChapterId;
-  final String logicalKey;
-  final String title;
-  final int order;
-  final Map<String, dynamic> extern;
-}
 
 Future<void> unifiedDownloadTask(
   DownloadProgressReporter reporter,
@@ -162,7 +145,7 @@ Future<void> unifiedDownloadTask(
       final requestChapterId = _resolveChapterRequestId(chapter);
       final chapterExtern = _resolveChapterExtern(chapter);
       logger.d(
-        'download getChapter plugin=$pluginId comicId=${task.comicId} chapter.id=${chapter.chapterId} order=${chapter.order} requestChapterId=$requestChapterId storageChapterId=${chapter.storageChapterId} logicalKey=${chapter.logicalKey} extern=$chapterExtern',
+        'download getChapter plugin=$pluginId comicId=${task.comicId} chapter.id=${chapter.id} order=${chapter.order} requestChapterId=$requestChapterId storageChapterId=${chapter.effectiveStorageId} extern=$chapterExtern',
       );
       chapterResponses.add(
         await _getChapterByPlugin(
@@ -193,7 +176,7 @@ Future<void> unifiedDownloadTask(
             path: doc.path,
             cartoonId: task.comicId,
             chapterId: response.chapter.epId,
-            storageChapterId: selectedChapter.storageChapterId,
+            storageChapterId: selectedChapter.effectiveStorageId,
             extern: doc.extern,
           ),
         );
@@ -230,17 +213,11 @@ Future<void> unifiedDownloadTask(
   }
 }
 
-String _resolveChapterRequestId(_ResolvedDownloadChapter chapter) {
-  final requestId = chapter.requestId.trim();
-  if (requestId.isNotEmpty) {
-    return requestId;
-  }
-
-  final order = chapter.order <= 0 ? 1 : chapter.order;
-  return order.toString();
+String _resolveChapterRequestId(DownloadChapter chapter) {
+  return chapter.effectiveRequestId;
 }
 
-List<_ResolvedDownloadChapter> _resolveSelectedChapters(
+List<DownloadChapter> _resolveSelectedChapters(
   UnifiedComicDownloadInfo info,
   DownloadTaskJson task,
 ) {
@@ -248,50 +225,27 @@ List<_ResolvedDownloadChapter> _resolveSelectedChapters(
     throw StateError('DownloadTaskJson.chapterRefs 不能为空');
   }
 
+  const adapter = DownloadChapterAdapter();
+  const matcher = DownloadChapterMatcher();
+
   return task.chapterRefs.map((ref) {
-    final matched = _findMatchingChapter(info.chapters, ref);
+    final refChapter = adapter.fromTaskRef(ref);
+    final matched = _findMatchingChapter(info.chapters, refChapter, matcher);
     final matchedExtern = matched != null
         ? Map<String, dynamic>.from(matched.extern)
         : const <String, dynamic>{};
 
-    return _ResolvedDownloadChapter(
-      chapterId: ref.chapterId.trim().isNotEmpty
-          ? ref.chapterId.trim()
-          : (matched?.id.trim() ?? ''),
-      requestId: ref.requestId.trim().isNotEmpty
-          ? ref.requestId.trim()
-          : (matched?.requestId.trim() ?? ''),
-      storageChapterId: _resolveStorageChapterId(ref, matched),
-      logicalKey: ref.logicalKey.trim(),
-      title: ref.title.trim().isNotEmpty
-          ? ref.title.trim()
-          : (matched?.title ?? ''),
-      order: ref.order > 0 ? ref.order : (matched?.order ?? 0),
+    final displayName = ref.title.trim().isNotEmpty
+        ? ref.title.trim()
+        : (matched?.displayName ?? '');
+    final order = ref.order > 0 ? ref.order : (matched?.order ?? 0);
+
+    return refChapter.copyWith(
+      displayName: displayName,
+      order: order,
       extern: {...matchedExtern, ...Map<String, dynamic>.from(ref.extern)},
     );
   }).toList();
-}
-
-String _resolveStorageChapterId(
-  DownloadChapterTaskRef ref,
-  UnifiedComicDownloadChapter? matched,
-) {
-  final explicitStorageChapterId = ref.storageChapterId.trim();
-  if (explicitStorageChapterId.isNotEmpty) {
-    return explicitStorageChapterId;
-  }
-
-  final matchedStorageChapterId = matched?.storageChapterId.trim() ?? '';
-  if (matchedStorageChapterId.isNotEmpty) {
-    return matchedStorageChapterId;
-  }
-
-  final refChapterId = ref.chapterId.trim();
-  if (refChapterId.isNotEmpty) {
-    return refChapterId;
-  }
-
-  return matched?.id.trim() ?? '';
 }
 
 Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
@@ -316,7 +270,7 @@ Future<void> _saveUnifiedDownload({
   required String from,
   required DownloadTaskJson task,
   required normal.NormalComicAllInfo normalInfo,
-  required List<_ResolvedDownloadChapter> selectedChapters,
+  required List<DownloadChapter> selectedChapters,
   required List<UnifiedPluginChapterResponse> chapterResponses,
 }) async {
   final now = DateTime.now().toUtc();
@@ -325,17 +279,27 @@ Future<void> _saveUnifiedDownload({
     final response = chapterResponses[index];
     final selectedChapter = selectedChapters[index];
 
+    logger.d(
+      '_saveUnifiedDownload: index=$index, '
+      'chapter.id=${selectedChapter.id}, '
+      'requestId=${selectedChapter.effectiveRequestId}, '
+      'storageId=${selectedChapter.effectiveStorageId}, '
+      'responseEpId=${response.chapter.epId}, '
+      'imageCount=${response.chapter.docs.length}',
+    );
     storedChapters.add(
       UnifiedComicDownloadStoredChapter(
-        id: selectedChapter.storageChapterId.trim().isNotEmpty
-            ? selectedChapter.storageChapterId
-            : response.chapter.epId,
-        name: selectedChapter.title.trim().isNotEmpty
-            ? selectedChapter.title
+        // `id` 字段保持为本地存储 key，旧版本读取时仍按 storage key 理解。
+        id: selectedChapter.effectiveStorageId,
+        name: selectedChapter.displayName.trim().isNotEmpty
+            ? selectedChapter.displayName
             : response.chapter.epName,
         order: selectedChapter.order,
-        logicalKey: selectedChapter.logicalKey,
+        // `logicalKey` 写入宿主匹配 key，保证新版本通过适配器能还原出正确的 id。
+        logicalKey: selectedChapter.id,
         taskChapterId: _resolveChapterRequestId(selectedChapter),
+        // 显式保存 storageChapterId，确保显式指定了 storage key 的插件能正确还原。
+        storageChapterId: selectedChapter.effectiveStorageId,
         images: response.chapter.docs.map((doc) {
           final imageName = _resolveImageDisplayName(doc);
           final imagePath = normalizeStoredAssetPath(doc.path);
@@ -356,11 +320,14 @@ Future<void> _saveUnifiedDownload({
   final eps = storedChapters
       .map(
         (chapter) => normal.Ep(
-          id: chapter.id,
+          // Ep.id 应该是宿主匹配 key，而不是 storage key。
+          id: chapter.logicalKey,
           name: chapter.name,
           order: chapter.order,
           requestId: chapter.taskChapterId,
-          storageChapterId: chapter.id,
+          storageChapterId: chapter.storageChapterId.isNotEmpty
+              ? chapter.storageChapterId
+              : chapter.id,
           logicalKey: chapter.logicalKey,
         ),
       )
@@ -532,41 +499,23 @@ void _markTaskCompleted(String comicId) {
   }
 }
 
-UnifiedComicDownloadChapter? _findMatchingChapter(
+DownloadChapter? _findMatchingChapter(
   List<UnifiedComicDownloadChapter> chapters,
-  DownloadChapterTaskRef ref,
+  DownloadChapter refChapter,
+  DownloadChapterMatcher matcher,
 ) {
-  final logicalKey = ref.logicalKey.trim();
-  if (logicalKey.isNotEmpty) {
-    for (final chapter in chapters) {
-      if (_resolveSelectionKey(chapter) == logicalKey) {
-        return chapter;
-      }
+  const adapter = DownloadChapterAdapter();
+  for (final chapter in chapters) {
+    final candidate = adapter.fromOnlineChapter(chapter);
+    if (matcher.matches(candidate, refChapter.id)) {
+      return candidate;
     }
   }
 
-  final requestId = ref.requestId.trim();
-  if (requestId.isNotEmpty) {
+  if (refChapter.order > 0) {
     for (final chapter in chapters) {
-      if (chapter.requestId.trim() == requestId) {
-        return chapter;
-      }
-    }
-  }
-
-  final chapterId = ref.chapterId.trim();
-  if (chapterId.isNotEmpty) {
-    for (final chapter in chapters) {
-      if (chapter.id.trim() == chapterId) {
-        return chapter;
-      }
-    }
-  }
-
-  if (ref.order > 0) {
-    for (final chapter in chapters) {
-      if (chapter.order == ref.order) {
-        return chapter;
+      if (chapter.order == refChapter.order) {
+        return adapter.fromOnlineChapter(chapter);
       }
     }
   }
@@ -574,25 +523,6 @@ UnifiedComicDownloadChapter? _findMatchingChapter(
   return null;
 }
 
-Map<String, dynamic> _resolveChapterExtern(_ResolvedDownloadChapter chapter) {
+Map<String, dynamic> _resolveChapterExtern(DownloadChapter chapter) {
   return Map<String, dynamic>.from(chapter.extern);
-}
-
-String _resolveSelectionKey(UnifiedComicDownloadChapter chapter) {
-  final logicalKey = chapter.logicalKey.trim();
-  if (logicalKey.isNotEmpty) {
-    return logicalKey;
-  }
-
-  final requestId = chapter.requestId.trim();
-  if (requestId.isNotEmpty) {
-    return requestId;
-  }
-
-  final chapterId = chapter.id.trim();
-  if (chapterId.isNotEmpty) {
-    return chapterId;
-  }
-
-  return chapter.order.toString();
 }

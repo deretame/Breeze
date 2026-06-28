@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 
 class UnifiedComicDownloadImage {
   const UnifiedComicDownloadImage({
@@ -46,6 +48,7 @@ class UnifiedComicDownloadStoredChapter {
     required this.order,
     this.logicalKey = '',
     this.taskChapterId = '',
+    this.storageChapterId = '',
     this.images = const [],
   });
 
@@ -54,6 +57,7 @@ class UnifiedComicDownloadStoredChapter {
   final int order;
   final String logicalKey;
   final String taskChapterId;
+  final String storageChapterId;
   final List<UnifiedComicDownloadImage> images;
 
   factory UnifiedComicDownloadStoredChapter.fromMap(Map<String, dynamic> map) {
@@ -64,6 +68,7 @@ class UnifiedComicDownloadStoredChapter {
       order: _toInt(map['order']?.toString() ?? '', 1),
       logicalKey: map['logicalKey']?.toString() ?? '',
       taskChapterId: map['taskChapterId']?.toString() ?? '',
+      storageChapterId: map['storageChapterId']?.toString() ?? '',
       images: rawImages
           .whereType<Map>()
           .map(
@@ -80,6 +85,7 @@ class UnifiedComicDownloadStoredChapter {
     'order': order,
     'logicalKey': logicalKey,
     'taskChapterId': taskChapterId,
+    'storageChapterId': storageChapterId,
     'images': images.map((image) => image.toMap()).toList(),
   };
 }
@@ -241,6 +247,33 @@ List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(
   }
 
   return chaptersFromMain;
+}
+
+/// 统一的下载章节读取入口。
+///
+/// 优先从 `comic.chapters` 读取，若为空则从 `detailJson.extern.downloadChapters`
+/// fallback。返回的 [DownloadChapter] 已经把各种 legacy 字段（`logicalKey` /
+/// `taskChapterId` / `storageChapterId` 等）统一成语义清晰的内部模型。
+List<DownloadChapter> resolveDownloadChapters(UnifiedComicDownload comic) {
+  const adapter = DownloadChapterAdapter();
+
+  final mainChapters = _decodeListOfMaps(
+    comic.chapters,
+  ).map(adapter.fromStoredMap).toList();
+
+  if (mainChapters.any((chapter) => chapter.images.isNotEmpty)) {
+    return mainChapters;
+  }
+
+  final detailChapters = _decodeStoredChaptersFromDetailJson(
+    comic.detailJson,
+  ).map((chapter) => adapter.fromStoredMap(chapter.toMap())).toList();
+
+  if (detailChapters.isNotEmpty) {
+    return detailChapters;
+  }
+
+  return mainChapters;
 }
 
 List<Map<String, dynamic>> _decodeListOfMaps(String raw) {

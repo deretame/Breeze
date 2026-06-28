@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/download/models/unified_comic_download.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 
 class EpsWidget extends StatefulWidget {
-  final UnifiedComicDownloadChapter chapter;
+  final DownloadChapter chapter;
   final bool downloaded;
-  final Function(String selectionKey) onUpdateDownloadInfo; // 用来更新观看按钮信息
+  final Function(String selectionKey) onUpdateDownloadInfo;
 
   const EpsWidget({
     super.key,
@@ -18,12 +18,12 @@ class EpsWidget extends StatefulWidget {
 }
 
 class _EpsWidgetState extends State<EpsWidget> {
-  bool _isChecked = false; // 复选框状态
+  bool _isChecked = false;
 
   @override
   void initState() {
     super.initState();
-    _isChecked = widget.downloaded; // 初始化复选框状态
+    _isChecked = widget.downloaded;
   }
 
   @override
@@ -42,7 +42,7 @@ class _EpsWidgetState extends State<EpsWidget> {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
-        widget.onUpdateDownloadInfo(_resolveSelectionKey(widget.chapter));
+        widget.onUpdateDownloadInfo(widget.chapter.id);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -73,7 +73,7 @@ class _EpsWidgetState extends State<EpsWidget> {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                widget.chapter.title,
+                widget.chapter.displayName,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: isChecked ? FontWeight.w600 : FontWeight.w500,
@@ -87,17 +87,5 @@ class _EpsWidgetState extends State<EpsWidget> {
         ),
       ),
     );
-  }
-
-  String _resolveSelectionKey(UnifiedComicDownloadChapter chapter) {
-    final logicalKey = chapter.logicalKey.trim();
-    if (logicalKey.isNotEmpty) {
-      return logicalKey;
-    }
-    final chapterId = chapter.id.trim();
-    if (chapterId.isNotEmpty) {
-      return chapterId;
-    }
-    return chapter.order.toString();
   }
 }

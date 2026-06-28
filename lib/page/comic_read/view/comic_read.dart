@@ -18,6 +18,8 @@ import 'package:zephyr/page/comic_read/method/key.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/desktop/desktop_fullscreen_controller.dart';
 import 'package:zephyr/type/enum.dart';

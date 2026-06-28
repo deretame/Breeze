@@ -6,6 +6,9 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart' show ComicReadRoute;
 
@@ -38,28 +41,19 @@ void goToComicRead(
             ? ComicEntryType.historyAndDownload
             : ComicEntryType.history)
       : (isDownload ? ComicEntryType.download : ComicEntryType.normal);
-  final orderVal = hasHistory
-      ? _resolveHistoryOrder(allInfo, from, history)
-      : _resolveInitialOrder(allInfo, from);
-  final chapterRef = resolveUnifiedComicChapterRef(
-    allInfo,
-    from,
-    chapterId: history?.chapterId,
-    order: orderVal,
-  );
+  final chapter = _resolveChapter(allInfo, from, history);
+  final orderVal = chapter?.order ?? _resolveInitialOrder(allInfo, from);
 
   context.pushRoute(
     ComicReadRoute(
       comicId: resolvedComicId,
       order: orderVal,
-      chapterId: chapterRef != null
-          ? resolveUnifiedComicChapterKey(chapterRef)
-          : '',
-      requestId: chapterRef?.requestId.trim() ?? '',
-      storageChapterId: chapterRef?.storageChapterId.trim() ?? '',
-      logicalKey: chapterRef?.logicalKey.trim() ?? '',
+      chapterId: chapter?.id ?? '',
+      requestId: chapter?.effectiveRequestId ?? '',
+      storageChapterId: chapter?.storageId ?? '',
+      logicalKey: chapter?.id ?? '',
       chapterExtern: Map<String, dynamic>.from(
-        chapterRef?.extern ?? const <String, dynamic>{},
+        chapter?.extern ?? const <String, dynamic>{},
       ),
       epsNumber: epsCount,
       from: from,
@@ -70,57 +64,52 @@ void goToComicRead(
   );
 }
 
+DownloadChapter? _resolveChapter(
+  dynamic allInfo,
+  String from,
+  UnifiedComicHistory? history,
+) {
+  final chapterRefs = resolveUnifiedComicChapters(allInfo, from);
+  if (chapterRefs.isEmpty) {
+    return null;
+  }
+
+  const adapter = DownloadChapterAdapter();
+  const matcher = DownloadChapterMatcher();
+  final chapters = chapterRefs.map(adapter.fromChapterRef).toList();
+
+  if (history != null) {
+    // 优先按 history.chapterId 匹配（可能是 logicalKey / id / requestId）。
+    final chapterId = (history.chapterId).trim();
+    if (chapterId.isNotEmpty) {
+      final matched = matcher.find(chapters, chapterId);
+      if (matched != null) {
+        return matched;
+      }
+    }
+
+    // 再按 history.chapterOrder 匹配。
+    if (history.chapterOrder > 0) {
+      final matched = matcher.findByOrder(chapters, history.chapterOrder);
+      if (matched != null) {
+        return matched;
+      }
+    }
+
+    // 兼容老数据：chapterOrder 曾经被当 chapterId 用。
+    final matched = matcher.find(chapters, history.chapterOrder.toString());
+    if (matched != null) {
+      return matched;
+    }
+  }
+
+  return chapters.first;
+}
+
 int _resolveInitialOrder(dynamic allInfo, String from) {
   final chapters = resolveUnifiedComicChapters(allInfo, from);
   if (chapters.isEmpty) {
     return 1;
   }
-  return chapters.first.order;
-}
-
-int _resolveHistoryOrder(
-  dynamic allInfo,
-  String from,
-  UnifiedComicHistory? history,
-) {
-  if (history == null) {
-    return _resolveInitialOrder(allInfo, from);
-  }
-  final chapters = resolveUnifiedComicChapters(allInfo, from);
-  if (chapters.isEmpty) {
-    return history.chapterOrder > 0 ? history.chapterOrder : 1;
-  }
-
-  final byChapterId = chapters
-      .where(
-        (chapter) =>
-            resolveUnifiedComicChapterKey(chapter) == history.chapterId ||
-            chapter.requestId.trim() == history.chapterId ||
-            chapter.logicalKey.trim() == history.chapterId ||
-            chapter.id == history.chapterId,
-      )
-      .toList();
-  if (byChapterId.isNotEmpty) {
-    return byChapterId.first.order;
-  }
-
-  final byOrder = chapters
-      .where((chapter) => chapter.order == history.chapterOrder)
-      .toList();
-  if (byOrder.isNotEmpty) {
-    return byOrder.first.order;
-  }
-
-  final byLegacyOrderAsChapterId = chapters
-      .where(
-        (chapter) =>
-            resolveUnifiedComicChapterKey(chapter) ==
-            history.chapterOrder.toString(),
-      )
-      .toList();
-  if (byLegacyOrderAsChapterId.isNotEmpty) {
-    return byLegacyOrderAsChapterId.first.order;
-  }
-
   return chapters.first.order;
 }

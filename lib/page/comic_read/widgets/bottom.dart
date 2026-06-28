@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
@@ -245,18 +246,19 @@ class _BottomWidgetState extends State<BottomWidget> {
       },
     );
     if (result != null && mounted) {
+      final chapter = const DownloadChapterAdapter().fromChapterRef(result);
       router.replace(
         ComicReadRoute(
           key: Key(Uuid().v4()),
           comicInfo: widget.comicInfo,
           comicId: comicId,
           type: tempType,
-          order: result.order,
-          chapterId: resolveUnifiedComicChapterKey(result),
+          order: chapter.order,
+          chapterId: chapter.id,
           requestId: result.requestId.trim(),
           storageChapterId: result.storageChapterId.trim(),
-          logicalKey: result.logicalKey.trim(),
-          chapterExtern: Map<String, dynamic>.from(result.extern),
+          logicalKey: chapter.id,
+          chapterExtern: Map<String, dynamic>.from(chapter.extern),
           epsNumber: widget.epsNumber,
           from: widget.from,
           stringSelectCubit: context.read<StringSelectCubit>(),

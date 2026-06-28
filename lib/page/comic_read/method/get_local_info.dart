@@ -1,11 +1,26 @@
-import 'dart:convert';
-
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart'
     show Doc;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
+
+void _logLocalInfo(
+  int epsId,
+  DownloadChapter chapter,
+  List<DownloadImage> images,
+) {
+  logger.d(
+    'getPluginInfoFromLocal: epsId=$epsId, '
+    'chapter.id=${chapter.id}, order=${chapter.order}, '
+    'requestId=${chapter.effectiveRequestId}, '
+    'storageId=${chapter.effectiveStorageId}, '
+    'imageCount=${images.length}, '
+    'firstPath=${images.isNotEmpty ? images.first.path : ''}',
+  );
+}
 
 Future<NormalComicEpInfo> getPluginInfoFromLocal(
   String pluginId,
@@ -27,78 +42,40 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
     throw StateError('本地下载信息不存在: $resolvedPluginId:$comicId');
   }
 
-  final rawChapters = _decodeListOfMaps(download.chapters);
-  final epInfo = rawChapters.firstWhere(
-    (e) =>
-        (e['order'] as num?)?.toInt() == epsId ||
-        e['logicalKey']?.toString() == '$epsId' ||
-        e['taskChapterId']?.toString() == '$epsId',
-    orElse: () =>
-        rawChapters.isNotEmpty ? rawChapters.first : <String, dynamic>{},
-  );
+  final chapters = resolveDownloadChapters(download);
+  if (chapters.isEmpty) {
+    throw StateError('本地下载没有章节数据: $resolvedPluginId:$comicId');
+  }
 
-  final logicalKey = epInfo['logicalKey']?.toString().trim() ?? '';
-  final chapterName = epInfo['name']?.toString() ?? '';
-  final taskChapterId = epInfo['taskChapterId']?.toString().trim() ?? '';
-  final chapterId = logicalKey.isNotEmpty
-      ? logicalKey
-      : (epInfo['id']?.toString().trim().isNotEmpty == true
-            ? epInfo['id']!.toString().trim()
-            : '$epsId');
+  const matcher = DownloadChapterMatcher();
+  final targetId = epsId.toString();
 
-  final storedChapters = resolveStoredDownloadChapters(download);
-  final storedChapter = storedChapters.firstWhere(
-    (e) =>
-        (logicalKey.isNotEmpty && e.logicalKey == logicalKey) ||
-        (taskChapterId.isNotEmpty && e.taskChapterId == taskChapterId) ||
-        e.id == chapterId ||
-        e.order == epsId,
-    orElse: () => UnifiedComicDownloadStoredChapter(
-      id: chapterId,
-      name: chapterName,
-      order: epsId,
-      images: const [],
-    ),
-  );
+  // 优先按 order 查找；再按 id / requestId 查找；最后 fallback 到第一章。
+  final chapter =
+      matcher.findByOrder(chapters, epsId) ??
+      matcher.find(chapters, targetId) ??
+      chapters.first;
 
-  final orderedDocs = storedChapter.images
+  final orderedDocs = chapter.images
       .map(
         (image) => Doc(
           originalName: image.name,
           path: image.path,
           fileServer: image.url,
-          id: image.id.isNotEmpty ? image.id : chapterId,
-          storageChapterId: storedChapter.id.trim().isNotEmpty
-              ? storedChapter.id
-              : '',
+          id: image.id.isNotEmpty ? image.id : chapter.id,
+          storageChapterId: chapter.effectiveStorageId,
           extern: Map<String, dynamic>.from(image.extern),
         ),
       )
       .toList();
 
+  _logLocalInfo(epsId, chapter, chapter.images);
+
   return NormalComicEpInfo(
     length: orderedDocs.length,
     epPages: orderedDocs.length.toString(),
     docs: orderedDocs,
-    epId: chapterId,
-    epName: chapterName,
+    epId: chapter.id,
+    epName: chapter.displayName,
   );
-}
-
-List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
-  if (raw.trim().isEmpty) {
-    return const <Map<String, dynamic>>[];
-  }
-  try {
-    final decoded = jsonDecode(raw);
-    if (decoded is! List) {
-      return const <Map<String, dynamic>>[];
-    }
-    return decoded
-        .whereType<Map>()
-        .map((entry) => Map<String, dynamic>.from(entry))
-        .toList();
-  } catch (_) {
-    return const <Map<String, dynamic>>[];
-  }
 }

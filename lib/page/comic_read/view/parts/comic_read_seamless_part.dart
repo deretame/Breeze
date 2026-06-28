@@ -631,21 +631,22 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
     if (_isDownloadEntryType) {
       return getPluginInfoFromLocal(widget.from, comicId, order);
     }
-    final chapterRef = resolveUnifiedComicChapterRef(
-      comicInfo,
-      widget.from,
-      order: order,
-    );
+    final chapterRefs = resolveUnifiedComicChapters(comicInfo, widget.from);
+    const adapter = DownloadChapterAdapter();
+    const matcher = DownloadChapterMatcher();
+    final chapters = chapterRefs.map(adapter.fromChapterRef).toList();
+    final chapter = matcher.findByOrder(chapters, order) ??
+        (chapters.isNotEmpty ? chapters.first : null);
     return getPluginReadSnapshot(
       comicId,
       order,
       widget.from,
       comicInfo,
-      chapterRef != null ? resolveUnifiedComicChapterKey(chapterRef) : null,
-      chapterRef?.requestId.trim() ?? '',
-      chapterRef?.logicalKey.trim() ?? '',
+      chapter?.id,
+      chapter?.effectiveRequestId ?? '',
+      chapter?.id ?? '',
       Map<String, dynamic>.from(
-        chapterRef?.extern ?? const <String, dynamic>{},
+        chapter?.extern ?? const <String, dynamic>{},
       ),
     );
   }
@@ -1063,11 +1064,12 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
     }
     // 同步身份字段：滑到章末自动切章时，"跳转章节"面板靠这些字段
     // 判定当前章节高亮，缺失则永远停在进入阅读器时的那一章
-    final chapter = chapters[index];
-    _jumpChapter.chapterId = resolveUnifiedComicChapterKey(chapter);
-    _jumpChapter.requestId = chapter.requestId.trim();
-    _jumpChapter.storageChapterId = chapter.storageChapterId.trim();
-    _jumpChapter.logicalKey = chapter.logicalKey.trim();
+    const adapter = DownloadChapterAdapter();
+    final chapter = adapter.fromChapterRef(chapters[index]);
+    _jumpChapter.chapterId = chapter.id;
+    _jumpChapter.requestId = chapter.effectiveRequestId;
+    _jumpChapter.storageChapterId = chapter.storageId ?? '';
+    _jumpChapter.logicalKey = chapter.id;
     _jumpChapter.chapterExtern = Map<String, dynamic>.from(chapter.extern);
     _jumpChapter.havePrev = index > 0;
     _jumpChapter.haveNext = index < chapters.length - 1;

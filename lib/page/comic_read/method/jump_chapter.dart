@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -62,12 +65,14 @@ class JumpChapter {
       }
       target = chapters[index + 1];
     }
-    order = target.order;
-    chapterId = resolveUnifiedComicChapterKey(target);
-    requestId = target.requestId.trim();
-    storageChapterId = target.storageChapterId.trim();
-    logicalKey = target.logicalKey.trim();
-    chapterExtern = Map<String, dynamic>.from(target.extern);
+    const adapter = DownloadChapterAdapter();
+    final chapter = adapter.fromChapterRef(target);
+    order = chapter.order;
+    chapterId = chapter.id;
+    requestId = chapter.effectiveRequestId;
+    storageChapterId = chapter.storageId ?? '';
+    logicalKey = chapter.id;
+    chapterExtern = Map<String, dynamic>.from(chapter.extern);
 
     router.replace(
       ComicReadRoute(
@@ -112,23 +117,26 @@ class JumpChapter {
       tempType = ComicEntryType.normal;
     }
 
+    const adapter = DownloadChapterAdapter();
+    const matcher = DownloadChapterMatcher();
+    final downloadChapters = chapters.map(adapter.fromChapterRef).toList();
+
+    // 定位当前章节：优先用 chapterId / logicalKey / requestId，再按 order。
+    final target = _firstNonEmpty([logicalKey, chapterId, requestId]);
+    DownloadChapter? current;
+    if (target != null && target.isNotEmpty) {
+      current = matcher.find(downloadChapters, target);
+    }
+    current ??= matcher.findByOrder(downloadChapters, order);
+
     bool havePrev = true;
     bool haveNext = true;
-    final resolvedRef = resolveUnifiedComicChapterRef(
-      comicInfo,
-      from,
-      chapterId: chapterId,
-      order: order,
-    );
-    final currentId = resolvedRef != null
-        ? resolveUnifiedComicChapterKey(resolvedRef)
-        : '';
-    if (chapters.isEmpty) {
+    if (chapters.isEmpty || current == null) {
       havePrev = false;
       haveNext = false;
     } else {
-      final chapterIndex = chapters.indexWhere(
-        (chapter) => resolveUnifiedComicChapterKey(chapter) == currentId,
+      final chapterIndex = downloadChapters.indexWhere(
+        (chapter) => chapter.id == current!.id,
       );
       if (chapterIndex <= 0) {
         havePrev = false;
@@ -141,19 +149,18 @@ class JumpChapter {
     return JumpChapter._(
       haveNext: haveNext,
       havePrev: havePrev,
-      currentChapterIndex: order,
+      currentChapterIndex: current?.order ?? order,
       from: from,
       chapters: chapters,
-      order: order,
-      chapterId: currentId,
-      requestId: resolvedRef?.requestId.trim() ?? requestId,
-      storageChapterId:
-          resolvedRef?.storageChapterId.trim() ?? storageChapterId,
-      logicalKey: resolvedRef?.logicalKey.trim() ?? logicalKey,
+      order: current?.order ?? order,
+      chapterId: current?.id ?? chapterId,
+      requestId: current?.effectiveRequestId ?? requestId,
+      storageChapterId: current?.storageId ?? storageChapterId,
+      logicalKey: current?.id ?? logicalKey,
       chapterExtern: Map<String, dynamic>.from(
         chapterExtern.isNotEmpty
             ? chapterExtern
-            : (resolvedRef?.extern ?? const <String, dynamic>{}),
+            : (current?.extern ?? const <String, dynamic>{}),
       ),
       comicInfo: comicInfo,
       comicId: comicId,
@@ -163,20 +170,23 @@ class JumpChapter {
   }
 
   bool _matchesCurrentChapter(UnifiedComicChapterRef chapter) {
-    if (logicalKey.isNotEmpty && chapter.logicalKey.trim() == logicalKey) {
-      return true;
+    const adapter = DownloadChapterAdapter();
+    const matcher = DownloadChapterMatcher();
+    final candidate = adapter.fromChapterRef(chapter);
+    // 当前章节标识可能来自 logicalKey / chapterId / requestId，
+    // 取最可靠的一个作为匹配 target。
+    final target = _firstNonEmpty([logicalKey, chapterId, requestId]);
+    if (target == null || target.isEmpty) {
+      return false;
     }
+    return matcher.matches(candidate, target);
+  }
 
-    if (requestId.isNotEmpty && chapter.requestId.trim() == requestId) {
-      return true;
+  static String? _firstNonEmpty(List<String> values) {
+    for (final value in values) {
+      if (value.trim().isNotEmpty) return value.trim();
     }
-
-    if (chapterId.isNotEmpty) {
-      return resolveUnifiedComicChapterKey(chapter) == chapterId ||
-          chapter.id == chapterId;
-    }
-
-    return false;
+    return null;
   }
 
   /// 用于章节选择对话框定位初始滚动位置

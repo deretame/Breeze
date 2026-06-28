@@ -1,5 +1,8 @@
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/comic_read/model/comic_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 
@@ -13,23 +16,29 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   String logicalKey,
   Map<String, dynamic> chapterExtern,
 ) async {
-  final chapterRef = requestId.trim().isNotEmpty || logicalKey.trim().isNotEmpty
-      ? null
-      : resolveUnifiedComicChapterRef(
-          comicInfo,
-          from,
-          chapterId: selectedChapterId,
-          order: order,
-        );
+  const adapter = DownloadChapterAdapter();
+  const matcher = DownloadChapterMatcher();
+  DownloadChapter? chapter;
+  if (requestId.trim().isEmpty && logicalKey.trim().isEmpty) {
+    final chapterRefs = resolveUnifiedComicChapters(comicInfo, from);
+    final chapters = chapterRefs.map(adapter.fromChapterRef).toList();
+    final normalizedChapterId = (selectedChapterId ?? '').trim();
+    if (normalizedChapterId.isNotEmpty) {
+      chapter = matcher.find(chapters, normalizedChapterId);
+    }
+    chapter ??= matcher.findByOrder(chapters, order);
+    chapter ??= (chapters.isNotEmpty ? chapters.first : null);
+  }
+
   final resolvedChapterId = _resolveReadSnapshotChapterId(
-    chapterRef,
+    chapter,
     requestId,
     order,
   );
 
   final extern = <String, dynamic>{
     ...chapterExtern,
-    ...?chapterRef?.extern,
+    ...?chapter?.extern,
     'order': order,
   };
 
@@ -71,7 +80,7 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
       ? snapshot.chapter.id
       : resolvedChapterId;
   final logicalChapterId = _resolveLogicalChapterId(
-    chapterRef,
+    chapter,
     selectedChapterId,
     logicalKey,
     order,
@@ -81,7 +90,7 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
 }
 
 String _resolveReadSnapshotChapterId(
-  UnifiedComicChapterRef? chapterRef,
+  DownloadChapter? chapter,
   String requestId,
   int order,
 ) {
@@ -90,16 +99,16 @@ String _resolveReadSnapshotChapterId(
     return explicitRequestId;
   }
 
-  final requestIdFromRef = chapterRef?.requestId.trim() ?? '';
-  if (requestIdFromRef.isNotEmpty) {
-    return requestIdFromRef;
+  final requestIdFromChapter = chapter?.effectiveRequestId ?? '';
+  if (requestIdFromChapter.isNotEmpty) {
+    return requestIdFromChapter;
   }
 
   return order.toString();
 }
 
 String _resolveLogicalChapterId(
-  UnifiedComicChapterRef? chapterRef,
+  DownloadChapter? chapter,
   String? selectedChapterId,
   String logicalKey,
   int order,
@@ -110,9 +119,9 @@ String _resolveLogicalChapterId(
     return explicitLogicalKey;
   }
 
-  final logicalKeyFromRef = chapterRef?.logicalKey.trim() ?? '';
-  if (logicalKeyFromRef.isNotEmpty) {
-    return logicalKeyFromRef;
+  final logicalKeyFromChapter = chapter?.id ?? '';
+  if (logicalKeyFromChapter.isNotEmpty) {
+    return logicalKeyFromChapter;
   }
 
   final explicitSelectedChapterId = (selectedChapterId ?? '').trim();

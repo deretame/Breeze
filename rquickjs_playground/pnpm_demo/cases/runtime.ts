@@ -31,14 +31,11 @@ export default async function main() {
     );
 
   const cryptoRef = requireCryptoLike();
-  const shaHex = cryptoRef
-    .createHash("sha256")
-    .update("The quick brown fox jumps over the lazy dog")
-    .digest("hex");
-  const hmacHex = cryptoRef
-    .createHmac("sha256", "key")
-    .update("The quick brown fox jumps over the lazy dog")
-    .digest("hex");
+  const encoder = new TextEncoder();
+  const text = encoder.encode("The quick brown fox jumps over the lazy dog");
+  const key = encoder.encode("key");
+  const shaHex = cryptoRef.createHash("sha256").update(text).digest("hex");
+  const hmacHex = cryptoRef.createHmac("sha256", key).update(text).digest("hex");
 
   const ok =
     p === "/a/c.txt" &&

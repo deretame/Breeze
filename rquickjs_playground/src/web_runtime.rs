@@ -1,3 +1,10 @@
+//! Breeze QuickJS 运行时的 Web API 实现。
+//!
+//! 注意：本模块暴露的 hash / 加密 / HMAC / AES / PBKDF2 等 API 只接受原始二进制数据。
+//! 如果需要传入 base64 或字符串，请先在 JS 层转换为 Uint8Array：
+//!   - base64: 使用全局的 bytesFromBase64(base64String)
+//!   - 字符串: 使用 new TextEncoder().encode(string) 或 encodeUtf8(string)
+
 use aes::cipher::{BlockDecrypt, BlockEncrypt};
 use aes::{Aes128, Aes192, Aes256};
 use aes_gcm::{
@@ -47,6 +54,7 @@ use url::form_urlencoded;
 use uuid::Uuid;
 
 mod bridge;
+mod bridge_crypto;
 mod fs_ops;
 mod http;
 mod native_buffer;
@@ -81,8 +89,7 @@ use self::fs_ops::{
     fs_task_dispatch, fs_truncate, fs_unlink, fs_utimes, fs_write_file,
 };
 use self::http::{
-    HttpClientState, cleanup_stale_pending, cleanup_stale_pending_abort, decode_host_base64,
-    http_io_sem, http_req_pool,
+    HttpClientState, cleanup_stale_pending, cleanup_stale_pending_abort, http_io_sem, http_req_pool,
 };
 use self::native_buffer::{NATIVE_BUF_ID, native_pool, start_native_buffer_gc_loop};
 use self::state::{cleanup_stale_body_state, cleanup_stale_fetch_state};
@@ -265,21 +272,37 @@ pub fn install_host_bindings(
         }),
     )?;
     globals.set("__runtime_stats", Func::from(runtime_stats))?;
-    globals.set("__crypto_sha1_b64", Func::from(crypto_sha1_b64))?;
-    globals.set("__crypto_sha256_b64", Func::from(crypto_sha256_b64))?;
-    globals.set("__crypto_sha512_b64", Func::from(crypto_sha512_b64))?;
-    globals.set("__crypto_hmac_sha1_b64", Func::from(crypto_hmac_sha1_b64))?;
+    globals.set("__crypto_sha1_bytes", Func::from(crypto_sha1_bytes))?;
+    globals.set("__crypto_sha256_bytes", Func::from(crypto_sha256_bytes))?;
+    globals.set("__crypto_sha512_bytes", Func::from(crypto_sha512_bytes))?;
     globals.set(
-        "__crypto_hmac_sha256_b64",
-        Func::from(crypto_hmac_sha256_b64),
+        "__crypto_hmac_sha1_bytes",
+        Func::from(crypto_hmac_sha1_bytes),
     )?;
     globals.set(
-        "__crypto_hmac_sha512_b64",
-        Func::from(crypto_hmac_sha512_b64),
+        "__crypto_hmac_sha256_bytes",
+        Func::from(crypto_hmac_sha256_bytes),
     )?;
     globals.set(
-        "__crypto_random_bytes_b64",
-        Func::from(crypto_random_bytes_b64),
+        "__crypto_hmac_sha512_bytes",
+        Func::from(crypto_hmac_sha512_bytes),
+    )?;
+    globals.set("__crypto_random_bytes", Func::from(crypto_random_bytes))?;
+    globals.set(
+        "__crypto_aes_cbc_pkcs7_encrypt_bytes",
+        Func::from(crypto_aes_cbc_pkcs7_encrypt_bytes),
+    )?;
+    globals.set(
+        "__crypto_aes_cbc_pkcs7_decrypt_bytes",
+        Func::from(crypto_aes_cbc_pkcs7_decrypt_bytes),
+    )?;
+    globals.set(
+        "__crypto_aes_gcm_encrypt_bytes",
+        Func::from(crypto_aes_gcm_encrypt_bytes),
+    )?;
+    globals.set(
+        "__crypto_aes_gcm_decrypt_bytes",
+        Func::from(crypto_aes_gcm_decrypt_bytes),
     )?;
     globals.set(
         "__crypto_aes_cbc_pkcs7_encrypt_b64",
@@ -298,12 +321,12 @@ pub fn install_host_bindings(
         Func::from(crypto_aes_gcm_decrypt_b64),
     )?;
     globals.set(
-        "__crypto_pbkdf2_sha256_b64",
-        Func::from(crypto_pbkdf2_sha256_b64),
+        "__crypto_pbkdf2_sha256_bytes",
+        Func::from(crypto_pbkdf2_sha256_bytes),
     )?;
     globals.set(
-        "__crypto_timing_safe_equal_b64",
-        Func::from(crypto_timing_safe_equal_b64),
+        "__crypto_timing_safe_equal_bytes",
+        Func::from(crypto_timing_safe_equal_bytes),
     )?;
     globals.set("__crypto_random_uuid_v4", Func::from(crypto_random_uuid_v4))?;
     #[cfg(feature = "host-fs")]
@@ -540,9 +563,8 @@ fn bytes_to_hex(bytes: &[u8]) -> String {
         .collect::<String>()
 }
 
-fn crypto_digest_b64<D: Digest + Default>(input_b64: String) -> String {
+fn crypto_digest_bytes<D: Digest + Default>(input: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let input = decode_host_base64(&input_b64).context("解析输入失败")?;
         let mut hasher = D::default();
         hasher.update(&input);
         let out = hasher.finalize();
@@ -560,7 +582,7 @@ fn crypto_digest_b64<D: Digest + Default>(input_b64: String) -> String {
     }
 }
 
-fn aes_ecb_decrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
+fn aes_ecb_decrypt_pkcs7(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
     if payload.len() % 16 != 0 {
         return Err(anyhow!("AES ECB 密文长度必须是 16 的倍数"));
     }
@@ -615,7 +637,7 @@ fn aes_ecb_decrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
     Ok(out)
 }
 
-fn aes_ecb_encrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
+fn aes_ecb_encrypt_pkcs7(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
     let pad_len = 16 - (payload.len() % 16);
     let mut out = vec![0u8; payload.len() + pad_len];
     out[..payload.len()].copy_from_slice(payload);
@@ -662,9 +684,8 @@ fn aes_ecb_encrypt_pkcs7_b64(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
     Ok(out)
 }
 
-fn crypto_sha256_b64(input_b64: String) -> String {
+fn crypto_sha256_bytes(input: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let input = decode_host_base64(&input_b64).context("解析 sha256 输入失败")?;
         let mut hasher = Sha256::new();
         hasher.update(&input);
         let out = hasher.finalize();
@@ -682,18 +703,16 @@ fn crypto_sha256_b64(input_b64: String) -> String {
     }
 }
 
-fn crypto_sha1_b64(input_b64: String) -> String {
-    crypto_digest_b64::<Sha1>(input_b64)
+fn crypto_sha1_bytes(input: Vec<u8>) -> String {
+    crypto_digest_bytes::<Sha1>(input)
 }
 
-fn crypto_sha512_b64(input_b64: String) -> String {
-    crypto_digest_b64::<Sha512>(input_b64)
+fn crypto_sha512_bytes(input: Vec<u8>) -> String {
+    crypto_digest_bytes::<Sha512>(input)
 }
 
-fn crypto_hmac_sha256_b64(key_b64: String, input_b64: String) -> String {
+fn crypto_hmac_sha256_bytes(key: Vec<u8>, input: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let key = decode_host_base64(&key_b64).context("解析 hmac key 失败")?;
-        let input = decode_host_base64(&input_b64).context("解析 hmac 输入失败")?;
         let mut mac = <HmacSha256 as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
         mac.update(&input);
         let out = mac.finalize().into_bytes();
@@ -711,33 +730,20 @@ fn crypto_hmac_sha256_b64(key_b64: String, input_b64: String) -> String {
     }
 }
 
-fn crypto_random_bytes_b64(size: i32) -> String {
-    let result: AnyResult<String> = (|| {
-        if size < 0 {
-            return Err(anyhow!("size 必须是非负整数"));
-        }
-        let n = usize::try_from(size).context("size 超出范围")?;
-        let mut bytes = vec![0u8; n];
-        if n > 0 {
-            random_fill(&mut bytes).map_err(|e| anyhow!("生成随机字节失败: {e}"))?;
-        }
-        Ok(json!({
-            "ok": true,
-            "base64": BASE64_STANDARD.encode(bytes)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+fn crypto_random_bytes(size: i32) -> Vec<u8> {
+    if size < 0 {
+        return Vec::new();
     }
+    let n = usize::try_from(size).unwrap_or(0);
+    let mut bytes = vec![0u8; n];
+    if n > 0 {
+        let _ = random_fill(&mut bytes);
+    }
+    bytes
 }
 
-fn crypto_hmac_sha1_b64(key_b64: String, input_b64: String) -> String {
+fn crypto_hmac_sha1_bytes(key: Vec<u8>, input: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let key = decode_host_base64(&key_b64).context("解析 hmac key 失败")?;
-        let input = decode_host_base64(&input_b64).context("解析 hmac 输入失败")?;
         let mut mac = <HmacSha1 as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
         mac.update(&input);
         let out = mac.finalize().into_bytes();
@@ -755,10 +761,8 @@ fn crypto_hmac_sha1_b64(key_b64: String, input_b64: String) -> String {
     }
 }
 
-fn crypto_hmac_sha512_b64(key_b64: String, input_b64: String) -> String {
+fn crypto_hmac_sha512_bytes(key: Vec<u8>, input: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let key = decode_host_base64(&key_b64).context("解析 hmac key 失败")?;
-        let input = decode_host_base64(&input_b64).context("解析 hmac 输入失败")?;
         let mut mac = <HmacSha512 as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
         mac.update(&input);
         let out = mac.finalize().into_bytes();
@@ -776,11 +780,8 @@ fn crypto_hmac_sha512_b64(key_b64: String, input_b64: String) -> String {
     }
 }
 
-fn crypto_aes_cbc_pkcs7_encrypt_b64(plain_b64: String, key_raw: String, iv_raw: String) -> String {
+fn crypto_aes_cbc_pkcs7_encrypt_bytes(plain: Vec<u8>, key: Vec<u8>, iv: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let plain = decode_host_base64(&plain_b64).context("解析明文失败")?;
-        let key = key_raw.into_bytes();
-        let iv = iv_raw.into_bytes();
         let out = match key.len() {
             16 => {
                 let cipher = CbcEncryptor::<Aes128>::new_from_slices(&key, &iv)
@@ -831,15 +832,8 @@ fn crypto_aes_cbc_pkcs7_encrypt_b64(plain_b64: String, key_raw: String, iv_raw: 
     }
 }
 
-fn crypto_aes_cbc_pkcs7_decrypt_b64(
-    payload_b64: String,
-    key_raw: String,
-    iv_raw: String,
-) -> String {
+fn crypto_aes_cbc_pkcs7_decrypt_bytes(mut payload: Vec<u8>, key: Vec<u8>, iv: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let mut payload = decode_host_base64(&payload_b64).context("解析密文失败")?;
-        let key = key_raw.into_bytes();
-        let iv = iv_raw.into_bytes();
         let plain = match key.len() {
             16 => CbcDecryptor::<Aes128>::new_from_slices(&key, &iv)
                 .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?
@@ -872,26 +866,18 @@ fn crypto_aes_cbc_pkcs7_decrypt_b64(
     }
 }
 
-fn crypto_aes_gcm_encrypt_b64(
-    plain_b64: String,
-    key_raw: String,
-    nonce_raw: String,
-    aad_b64: Option<String>,
+fn crypto_aes_gcm_encrypt_bytes(
+    plain: Vec<u8>,
+    key: Vec<u8>,
+    nonce: Vec<u8>,
+    aad: Option<Vec<u8>>,
 ) -> String {
     let result: AnyResult<String> = (|| {
-        let plain = decode_host_base64(&plain_b64).context("解析明文失败")?;
-        let key = key_raw.into_bytes();
-        let nonce = nonce_raw.into_bytes();
+        let aad = aad.unwrap_or_default();
         let cipher_text = match key.len() {
             16 => {
                 let cipher = Aes128Gcm::new_from_slice(&key).context("AES-128 GCM 参数无效")?;
                 let nonce = Nonce::from_slice(&nonce);
-                let aad = aad_b64
-                    .as_ref()
-                    .map(|raw| decode_host_base64(raw))
-                    .transpose()
-                    .context("解析 aad 失败")?
-                    .unwrap_or_default();
                 cipher
                     .encrypt(
                         nonce,
@@ -905,12 +891,6 @@ fn crypto_aes_gcm_encrypt_b64(
             32 => {
                 let cipher = Aes256Gcm::new_from_slice(&key).context("AES-256 GCM 参数无效")?;
                 let nonce = Nonce::from_slice(&nonce);
-                let aad = aad_b64
-                    .as_ref()
-                    .map(|raw| decode_host_base64(raw))
-                    .transpose()
-                    .context("解析 aad 失败")?
-                    .unwrap_or_default();
                 cipher
                     .encrypt(
                         nonce,
@@ -937,26 +917,18 @@ fn crypto_aes_gcm_encrypt_b64(
     }
 }
 
-fn crypto_aes_gcm_decrypt_b64(
-    payload_b64: String,
-    key_raw: String,
-    nonce_raw: String,
-    aad_b64: Option<String>,
+fn crypto_aes_gcm_decrypt_bytes(
+    payload: Vec<u8>,
+    key: Vec<u8>,
+    nonce: Vec<u8>,
+    aad: Option<Vec<u8>>,
 ) -> String {
     let result: AnyResult<String> = (|| {
-        let payload = decode_host_base64(&payload_b64).context("解析密文失败")?;
-        let key = key_raw.into_bytes();
-        let nonce = nonce_raw.into_bytes();
+        let aad = aad.unwrap_or_default();
         let plain = match key.len() {
             16 => {
                 let cipher = Aes128Gcm::new_from_slice(&key).context("AES-128 GCM 参数无效")?;
                 let nonce = Nonce::from_slice(&nonce);
-                let aad = aad_b64
-                    .as_ref()
-                    .map(|raw| decode_host_base64(raw))
-                    .transpose()
-                    .context("解析 aad 失败")?
-                    .unwrap_or_default();
                 cipher
                     .decrypt(
                         nonce,
@@ -970,12 +942,6 @@ fn crypto_aes_gcm_decrypt_b64(
             32 => {
                 let cipher = Aes256Gcm::new_from_slice(&key).context("AES-256 GCM 参数无效")?;
                 let nonce = Nonce::from_slice(&nonce);
-                let aad = aad_b64
-                    .as_ref()
-                    .map(|raw| decode_host_base64(raw))
-                    .transpose()
-                    .context("解析 aad 失败")?
-                    .unwrap_or_default();
                 cipher
                     .decrypt(
                         nonce,
@@ -1002,9 +968,103 @@ fn crypto_aes_gcm_decrypt_b64(
     }
 }
 
-fn crypto_pbkdf2_sha256_b64(
-    password_b64: String,
-    salt_b64: String,
+// 以下 _b64 包装已废弃，仅保留兼容；内部会解码 base64 后调用 _bytes 实现。
+
+fn crypto_aes_cbc_pkcs7_encrypt_b64(plain_b64: String, key_raw: String, iv_raw: String) -> String {
+    let result: AnyResult<String> = (|| {
+        let plain = BASE64_STANDARD
+            .decode(plain_b64.as_bytes())
+            .context("base64 解码失败")?;
+        let key = key_raw.into_bytes();
+        let iv = iv_raw.into_bytes();
+        Ok(crypto_aes_cbc_pkcs7_encrypt_bytes(plain, key, iv))
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_aes_cbc_pkcs7_decrypt_b64(
+    payload_b64: String,
+    key_raw: String,
+    iv_raw: String,
+) -> String {
+    let result: AnyResult<String> = (|| {
+        let payload = BASE64_STANDARD
+            .decode(payload_b64.as_bytes())
+            .context("base64 解码失败")?;
+        let key = key_raw.into_bytes();
+        let iv = iv_raw.into_bytes();
+        Ok(crypto_aes_cbc_pkcs7_decrypt_bytes(payload, key, iv))
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_aes_gcm_encrypt_b64(
+    plain_b64: String,
+    key_raw: String,
+    nonce_raw: String,
+    aad_b64: Option<String>,
+) -> String {
+    let result: AnyResult<String> = (|| {
+        let plain = BASE64_STANDARD
+            .decode(plain_b64.as_bytes())
+            .context("base64 解码失败")?;
+        let key = key_raw.into_bytes();
+        let nonce = nonce_raw.into_bytes();
+        let aad = aad_b64
+            .map(|raw| {
+                BASE64_STANDARD
+                    .decode(raw.as_bytes())
+                    .context("base64 解码失败")
+            })
+            .transpose()?;
+        Ok(crypto_aes_gcm_encrypt_bytes(plain, key, nonce, aad))
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_aes_gcm_decrypt_b64(
+    payload_b64: String,
+    key_raw: String,
+    nonce_raw: String,
+    aad_b64: Option<String>,
+) -> String {
+    let result: AnyResult<String> = (|| {
+        let payload = BASE64_STANDARD
+            .decode(payload_b64.as_bytes())
+            .context("base64 解码失败")?;
+        let key = key_raw.into_bytes();
+        let nonce = nonce_raw.into_bytes();
+        let aad = aad_b64
+            .map(|raw| {
+                BASE64_STANDARD
+                    .decode(raw.as_bytes())
+                    .context("base64 解码失败")
+            })
+            .transpose()?;
+        Ok(crypto_aes_gcm_decrypt_bytes(payload, key, nonce, aad))
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_pbkdf2_sha256_bytes(
+    password: Vec<u8>,
+    salt: Vec<u8>,
     iterations: i32,
     key_len: i32,
 ) -> String {
@@ -1015,9 +1075,6 @@ fn crypto_pbkdf2_sha256_b64(
         if key_len < 0 {
             return Err(anyhow!("keyLen 必须是非负整数"));
         }
-
-        let password = decode_host_base64(&password_b64).context("解析 pbkdf2 password 失败")?;
-        let salt = decode_host_base64(&salt_b64).context("解析 pbkdf2 salt 失败")?;
         let rounds = u32::try_from(iterations).context("iterations 超出范围")?;
         let out_len = usize::try_from(key_len).context("keyLen 超出范围")?;
         let mut out = vec![0u8; out_len];
@@ -1037,10 +1094,8 @@ fn crypto_pbkdf2_sha256_b64(
     }
 }
 
-fn crypto_timing_safe_equal_b64(left_b64: String, right_b64: String) -> String {
+fn crypto_timing_safe_equal_bytes(left: Vec<u8>, right: Vec<u8>) -> String {
     let result: AnyResult<String> = (|| {
-        let left = decode_host_base64(&left_b64).context("解析 timingSafeEqual left 失败")?;
-        let right = decode_host_base64(&right_b64).context("解析 timingSafeEqual right 失败")?;
         let max_len = left.len().max(right.len());
         let mut diff = left.len() ^ right.len();
         for i in 0..max_len {

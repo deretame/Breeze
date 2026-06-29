@@ -686,32 +686,38 @@ fn runtime_uuidv4_basic() {
 fn runtime_crypto_hash_and_hmac_basic() {
     let script = r#"
       (async () => {
-        const crypto = require("crypto");
-        const text = "The quick brown fox jumps over the lazy dog";
+        try {
+          const crypto = require("crypto");
+          const encoder = new TextEncoder();
+          const text = encoder.encode("The quick brown fox jumps over the lazy dog");
+          const key = encoder.encode("key");
 
-        const shaHex = crypto.createHash("sha256").update(text).digest("hex");
-        const hmacHex = crypto.createHmac("sha256", "key").update(text).digest("hex");
-        const hmacBase64 = crypto.createHmac("sha256", "key").update(text).digest("base64");
-        const random = crypto.randomBytes(16);
+          const shaHex = crypto.createHash("sha256").update(text).digest("hex");
+          const hmacHex = crypto.createHmac("sha256", key).update(text).digest("hex");
+          const hmacBase64 = crypto.createHmac("sha256", key).update(text).digest("base64");
+          const random = crypto.randomBytes(16);
 
-        const sha256Hex = await crypto.sha256(text);
-        const hmacSha256Hex = await crypto.hmacSha256("key", text);
+          const sha256Hex = await crypto.sha256(text);
+          const hmacSha256Hex = await crypto.hmacSha256(key, text);
 
-        return JSON.stringify({
-          hasGlobal: typeof globalThis.crypto === "object",
-          hasCreateHash: typeof crypto.createHash === "function",
-          hasCreateHmac: typeof crypto.createHmac === "function",
-          hasRandomBytes: typeof crypto.randomBytes === "function",
-          hasSha256: typeof crypto.sha256 === "function",
-          hasHmacSha256: typeof crypto.hmacSha256 === "function",
-          shaHex,
-          hmacHex,
-          hmacBase64,
-          sha256Hex,
-          hmacSha256Hex,
-          randomLen: random.length,
-          randomIsBuffer: Buffer.isBuffer(random)
-        });
+          return JSON.stringify({
+            hasGlobal: typeof globalThis.crypto === "object",
+            hasCreateHash: typeof crypto.createHash === "function",
+            hasCreateHmac: typeof crypto.createHmac === "function",
+            hasRandomBytes: typeof crypto.randomBytes === "function",
+            hasSha256: typeof crypto.sha256 === "function",
+            hasHmacSha256: typeof crypto.hmacSha256 === "function",
+            shaHex,
+            hmacHex,
+            hmacBase64,
+            sha256Hex,
+            hmacSha256Hex,
+            randomLen: random.length,
+            randomIsBuffer: Buffer.isBuffer(random)
+          });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
       })()
     "#;
 
@@ -753,14 +759,18 @@ fn runtime_crypto_chain_call_smoke() {
     let script = r#"
       (async () => {
         const crypto = require("crypto");
-        const text = "The quick brown fox jumps over the lazy dog";
+        const encoder = new TextEncoder();
+        const text = encoder.encode("The quick brown fox jumps over the lazy dog");
+        const part1 = encoder.encode("The quick brown ");
+        const part2 = encoder.encode("fox jumps over the lazy dog");
+        const key = encoder.encode("key");
 
         const hash = crypto.createHash("sha256");
-        const sameHash = hash.update("The quick brown ").update("fox jumps over the lazy dog") === hash;
+        const sameHash = hash.update(part1).update(part2) === hash;
         const shaHex = hash.digest("hex");
 
-        const hmac = crypto.createHmac("sha256", "key");
-        const sameHmac = hmac.update("The quick brown ").update("fox jumps over the lazy dog") === hmac;
+        const hmac = crypto.createHmac("sha256", key);
+        const sameHmac = hmac.update(part1).update(part2) === hmac;
         const hmacHex = hmac.digest("hex");
 
         return JSON.stringify({
@@ -813,12 +823,13 @@ fn runtime_crypto_common_extra_apis() {
             .map((x) => x.toString(16).padStart(2, "0"))
             .join("");
 
-        const dk = crypto.pbkdf2Sync("password", "salt", 1000, 32, "sha256");
+        const encoder = new TextEncoder();
+        const dk = crypto.pbkdf2Sync(encoder.encode("password"), encoder.encode("salt"), 1000, 32, "sha256");
         const uuid = crypto.randomUUID();
         const re = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
         const asyncHex = await new Promise((resolve, reject) => {
-          crypto.pbkdf2("password", "salt", 1000, 32, "sha256", (err, key) => {
+          crypto.pbkdf2(encoder.encode("password"), encoder.encode("salt"), 1000, 32, "sha256", (err, key) => {
             if (err) return reject(err);
             resolve(toHex(key));
           });
@@ -862,45 +873,49 @@ fn runtime_crypto_common_extra_apis() {
 fn runtime_crypto_bridge_aes_roundtrip_smoke() {
     let script = r#"
       (async () => {
-        const plain = "bridge crypto roundtrip";
-        const payloadB64 = Buffer.from(plain, "utf8").toString("base64");
-        const keyRaw = "0123456789abcdef";
-        const ivRaw = "abcdef9876543210";
-        const nonceRaw = "123456789012";
+        try {
+          const encoder = new TextEncoder();
+          const plain = encoder.encode("bridge crypto roundtrip");
+          const keyRaw = encoder.encode("0123456789abcdef");
+          const ivRaw = encoder.encode("abcdef9876543210");
+          const nonceRaw = encoder.encode("123456789012");
 
-        const cbcEncrypted = await bridge.call(
-          "crypto.aes_cbc_pkcs7_encrypt_b64",
-          payloadB64,
-          keyRaw,
-          ivRaw,
-        );
-        const cbcDecrypted = await bridge.call(
-          "crypto.aes_cbc_pkcs7_decrypt_b64",
-          cbcEncrypted,
-          keyRaw,
-          ivRaw,
-        );
+          const cbcEncrypted = await bridge.call(
+            "crypto.aes_cbc_pkcs7_encrypt",
+            plain,
+            keyRaw,
+            ivRaw,
+          );
+          const cbcDecrypted = await bridge.call(
+            "crypto.aes_cbc_pkcs7_decrypt",
+            cbcEncrypted,
+            keyRaw,
+            ivRaw,
+          );
 
-        const gcmEncrypted = await bridge.call(
-          "crypto.aes_gcm_encrypt_b64",
-          payloadB64,
-          keyRaw,
-          nonceRaw,
-        );
-        const gcmDecrypted = await bridge.call(
-          "crypto.aes_gcm_decrypt_b64",
-          gcmEncrypted,
-          keyRaw,
-          nonceRaw,
-        );
+          const gcmEncrypted = await bridge.call(
+            "crypto.aes_gcm_encrypt",
+            plain,
+            keyRaw,
+            nonceRaw,
+          );
+          const gcmDecrypted = await bridge.call(
+            "crypto.aes_gcm_decrypt",
+            gcmEncrypted,
+            keyRaw,
+            nonceRaw,
+          );
 
-        return JSON.stringify({
-          hasBridge: typeof bridge === "object",
-          cbcRoundtrip: Buffer.from(cbcDecrypted, "base64").toString("utf8"),
-          gcmRoundtrip: Buffer.from(gcmDecrypted, "base64").toString("utf8"),
-          cbcChanged: cbcEncrypted !== payloadB64,
-          gcmChanged: gcmEncrypted !== payloadB64,
-        });
+          return JSON.stringify({
+            hasBridge: typeof bridge === "object",
+            cbcRoundtrip: new TextDecoder().decode(cbcDecrypted),
+            gcmRoundtrip: new TextDecoder().decode(gcmDecrypted),
+            cbcChanged: cbcEncrypted.length !== plain.length,
+            gcmChanged: gcmEncrypted.length !== plain.length,
+          });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
       })()
     "#;
 
@@ -918,11 +933,12 @@ fn runtime_crypto_bridge_aes_roundtrip_smoke() {
 fn runtime_crypto_bridge_bytes_roundtrip_smoke() {
     let script = r#"
       (async () => {
-        const encoder = new TextEncoder();
-        const plain = encoder.encode("bridge crypto bytes roundtrip");
-        const keyRaw = "0123456789abcdef";
-        const ivRaw = "abcdef9876543210";
-        const nonceRaw = "123456789012";
+        try {
+          const encoder = new TextEncoder();
+          const plain = encoder.encode("bridge crypto bytes roundtrip");
+          const keyRaw = encoder.encode("0123456789abcdef");
+          const ivRaw = encoder.encode("abcdef9876543210");
+          const nonceRaw = encoder.encode("123456789012");
 
         const ecbEncrypted = await bridge.call(
           "crypto.aes_ecb_pkcs7_encrypt",
@@ -961,7 +977,7 @@ fn runtime_crypto_bridge_bytes_roundtrip_smoke() {
           nonceRaw,
         );
 
-        const hmacKey = "hmac-key";
+        const hmacKey = encoder.encode("hmac-key");
         const hmacInput = encoder.encode("binary hmac input");
         const hmacOut = await bridge.call("crypto.hmac_sha512", hmacKey, hmacInput);
 
@@ -977,6 +993,9 @@ fn runtime_crypto_bridge_bytes_roundtrip_smoke() {
           hmacLength: hmacOut.length,
           shaLength: shaOut.length,
         });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
       })()
     "#;
 
@@ -991,6 +1010,123 @@ fn runtime_crypto_bridge_bytes_roundtrip_smoke() {
     assert_eq!(parsed["gcmIsBytes"], true);
     assert_eq!(parsed["hmacLength"], 128);
     assert_eq!(parsed["shaLength"], 40);
+}
+
+#[test]
+fn runtime_crypto_bridge_deprecated_b64_hex_smoke() {
+    let script = r#"
+      (async () => {
+        try {
+          const plainB64 = "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=";
+          const keyRaw = "0123456789abcdef";
+          const ivRaw = "abcdef9876543210";
+          const nonceRaw = "123456789012";
+
+          const md5Hex = await bridge.call("crypto.md5_hex", "hello");
+          const sha1Hex = await bridge.call("crypto.sha1_hex", "hello");
+          const sha256Hex = await bridge.call("crypto.sha256_hex", "hello");
+          const hmacSha256Hex = await bridge.call("crypto.hmac_sha256_hex", "key", "hello");
+
+          const cbcEncrypted = await bridge.call(
+            "crypto.aes_cbc_pkcs7_encrypt_b64",
+            plainB64,
+            keyRaw,
+            ivRaw,
+          );
+          const cbcDecrypted = await bridge.call(
+            "crypto.aes_cbc_pkcs7_decrypt_b64",
+            cbcEncrypted,
+            keyRaw,
+            ivRaw,
+          );
+
+          const gcmEncrypted = await bridge.call(
+            "crypto.aes_gcm_encrypt_b64",
+            plainB64,
+            keyRaw,
+            nonceRaw,
+          );
+          const gcmDecrypted = await bridge.call(
+            "crypto.aes_gcm_decrypt_b64",
+            gcmEncrypted,
+            keyRaw,
+            nonceRaw,
+          );
+
+          return JSON.stringify({
+            md5Hex,
+            sha1Hex,
+            sha256Hex,
+            hmacSha256Hex,
+            cbcRoundtrip: cbcDecrypted,
+            gcmRoundtrip: gcmDecrypted,
+          });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["md5Hex"], "5d41402abc4b2a76b9719d911017c592");
+    assert_eq!(
+        parsed["sha1Hex"],
+        "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    );
+    assert_eq!(
+        parsed["sha256Hex"],
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    );
+    assert_eq!(
+        parsed["hmacSha256Hex"],
+        "9307b3b915efb5171ff14d8cb55fbcc798c6c0ef1456d66ded1a6aa723a58b7b"
+    );
+    assert_eq!(parsed["cbcRoundtrip"], "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=");
+    assert_eq!(parsed["gcmRoundtrip"], "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=");
+}
+
+#[test]
+fn runtime_crypto_deprecated_js_b64_wrappers() {
+    let script = r#"
+      (async () => {
+        try {
+          const crypto = require("crypto");
+          const plainB64 = "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=";
+          const keyRaw = "0123456789abcdef";
+          const ivRaw = "abcdef9876543210";
+          const nonceRaw = "123456789012";
+
+          const cbcEncrypted = crypto.aesCbcPkcs7EncryptB64(plainB64, keyRaw, ivRaw);
+          const cbcDecrypted = crypto.aesCbcPkcs7DecryptB64(cbcEncrypted, keyRaw, ivRaw);
+
+          const gcmEncrypted = crypto.aesGcmEncryptB64(plainB64, keyRaw, nonceRaw);
+          const gcmDecrypted = crypto.aesGcmDecryptB64(gcmEncrypted, keyRaw, nonceRaw);
+
+          return JSON.stringify({
+            hasAesCbcEncryptB64: typeof crypto.aesCbcPkcs7EncryptB64 === "function",
+            hasAesCbcDecryptB64: typeof crypto.aesCbcPkcs7DecryptB64 === "function",
+            hasAesGcmEncryptB64: typeof crypto.aesGcmEncryptB64 === "function",
+            hasAesGcmDecryptB64: typeof crypto.aesGcmDecryptB64 === "function",
+            cbcRoundtrip: cbcDecrypted,
+            gcmRoundtrip: gcmDecrypted,
+          });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["hasAesCbcEncryptB64"], true);
+    assert_eq!(parsed["hasAesCbcDecryptB64"], true);
+    assert_eq!(parsed["hasAesGcmEncryptB64"], true);
+    assert_eq!(parsed["hasAesGcmDecryptB64"], true);
+    assert_eq!(parsed["cbcRoundtrip"], "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=");
+    assert_eq!(parsed["gcmRoundtrip"], "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=");
 }
 
 #[test]

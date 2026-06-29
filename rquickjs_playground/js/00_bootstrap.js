@@ -1,3 +1,12 @@
+/**
+ * Breeze QuickJS 运行时引导脚本。
+ *
+ * 注意：本文件组装的 hash / 加密 / HMAC / AES / PBKDF2 等 API 只接受原始二进制数据。
+ * 如果需要传入 base64 或字符串，请先在 JS 层转换为 Uint8Array：
+ *   - base64: 使用全局的 bytesFromBase64(base64String)
+ *   - 字符串: 使用 new TextEncoder().encode(string) 或 encodeUtf8(string)
+ */
+
 (() => {
   if (!globalThis.globalThis) globalThis.globalThis = globalThis;
   if (!globalThis.window) globalThis.window = globalThis;
@@ -518,6 +527,26 @@
     throw new TypeError("不支持的数据类型");
   }
 
+  function toBinary(input) {
+    if (input instanceof ArrayBuffer) {
+      return new Uint8Array(input.slice(0));
+    }
+    if (ArrayBuffer.isView(input)) {
+      const view = new Uint8Array(
+        input.buffer,
+        input.byteOffset,
+        input.byteLength,
+      );
+      return cloneBytes(view);
+    }
+    if (Array.isArray(input)) {
+      return Uint8Array.from(input);
+    }
+    throw new TypeError(
+      "crypto API 只接受原始二进制数据。如果是 base64 请先使用 bytesFromBase64 转换为 Uint8Array，如果是字符串请先使用 new TextEncoder().encode(string) 或 encodeUtf8(string) 转换",
+    );
+  }
+
   function bytesToHex(bytes) {
     let out = "";
     for (let i = 0; i < bytes.length; i += 1) {
@@ -577,11 +606,11 @@
       this._digested = false;
     }
 
-    update(data, inputEncoding) {
+    update(data) {
       if (this._digested) {
         throw new TypeError("digest 后不能再 update");
       }
-      this._chunks.push(toBytes(data, inputEncoding));
+      this._chunks.push(toBinary(data));
       return this;
     }
 
@@ -591,15 +620,14 @@
       }
       this._digested = true;
       const input = concatChunks(this._chunks);
-      const inputB64 = bytesToBase64(input);
       const route =
         this.algorithm === "sha1"
-          ? "__crypto_sha1_b64"
+          ? "__crypto_sha1_bytes"
           : this.algorithm === "sha512"
-            ? "__crypto_sha512_b64"
-            : "__crypto_sha256_b64";
+            ? "__crypto_sha512_bytes"
+            : "__crypto_sha256_bytes";
       const out = parseHostCryptoResult(
-        globalThis[route](inputB64),
+        globalThis[route](Array.from(input)),
         this.algorithm,
       );
       if (
@@ -624,14 +652,14 @@
       this.algorithm = normalizeHashAlgorithm(algorithm);
       this._chunks = [];
       this._digested = false;
-      this._key = toBytes(key, "utf8");
+      this._key = toBinary(key);
     }
 
-    update(data, inputEncoding) {
+    update(data) {
       if (this._digested) {
         throw new TypeError("digest 后不能再 update");
       }
-      this._chunks.push(toBytes(data, inputEncoding));
+      this._chunks.push(toBinary(data));
       return this;
     }
 
@@ -641,16 +669,14 @@
       }
       this._digested = true;
       const message = concatChunks(this._chunks);
-      const keyB64 = bytesToBase64(this._key);
-      const msgB64 = bytesToBase64(message);
       const route =
         this.algorithm === "sha1"
-          ? "__crypto_hmac_sha1_b64"
+          ? "__crypto_hmac_sha1_bytes"
           : this.algorithm === "sha512"
-            ? "__crypto_hmac_sha512_b64"
-            : "__crypto_hmac_sha256_b64";
+            ? "__crypto_hmac_sha512_bytes"
+            : "__crypto_hmac_sha256_bytes";
       const out = parseHostCryptoResult(
-        globalThis[route](keyB64, msgB64),
+        globalThis[route](Array.from(this._key), Array.from(message)),
         `hmac-${this.algorithm}`,
       );
       if (
@@ -678,6 +704,97 @@
     return new Hmac(algorithm, key);
   }
 
+  function bridgeCall(name, ...args) {
+    const bridge = globalThis.__web && globalThis.__web.bridge;
+    if (!bridge || typeof bridge.call !== "function") {
+      throw new TypeError("bridge 不可用");
+    }
+    return bridge.call(name, ...args);
+  }
+
+  function md5(data) {
+    return bridgeCall("crypto.md5", toBinary(data));
+  }
+
+  function sha1(data) {
+    return bridgeCall("crypto.sha1", toBinary(data));
+  }
+
+  function sha256(data) {
+    return bridgeCall("crypto.sha256", toBinary(data));
+  }
+
+  function sha512(data) {
+    return bridgeCall("crypto.sha512", toBinary(data));
+  }
+
+  function hmacSha1(key, data) {
+    return bridgeCall("crypto.hmac_sha1", toBinary(key), toBinary(data));
+  }
+
+  function hmacSha256(key, data) {
+    return bridgeCall("crypto.hmac_sha256", toBinary(key), toBinary(data));
+  }
+
+  function hmacSha512(key, data) {
+    return bridgeCall("crypto.hmac_sha512", toBinary(key), toBinary(data));
+  }
+
+  function aesEcbPkcs7Decrypt(data, keyRaw) {
+    return bridgeCall(
+      "crypto.aes_ecb_pkcs7_decrypt",
+      toBinary(data),
+      toBinary(keyRaw),
+    );
+  }
+
+  function aesEcbPkcs7Encrypt(data, keyRaw) {
+    return bridgeCall(
+      "crypto.aes_ecb_pkcs7_encrypt",
+      toBinary(data),
+      toBinary(keyRaw),
+    );
+  }
+
+  function aesCbcPkcs7Decrypt(data, keyRaw, ivRaw) {
+    return bridgeCall(
+      "crypto.aes_cbc_pkcs7_decrypt",
+      toBinary(data),
+      toBinary(keyRaw),
+      toBinary(ivRaw),
+    );
+  }
+
+  function aesCbcPkcs7Encrypt(data, keyRaw, ivRaw) {
+    return bridgeCall(
+      "crypto.aes_cbc_pkcs7_encrypt",
+      toBinary(data),
+      toBinary(keyRaw),
+      toBinary(ivRaw),
+    );
+  }
+
+  function aesGcmDecrypt(data, keyRaw, nonceRaw, aad) {
+    return bridgeCall(
+      "crypto.aes_gcm_decrypt",
+      toBinary(data),
+      toBinary(keyRaw),
+      toBinary(nonceRaw),
+      aad == null ? null : toBinary(aad),
+    );
+  }
+
+  function aesGcmEncrypt(data, keyRaw, nonceRaw, aad) {
+    return bridgeCall(
+      "crypto.aes_gcm_encrypt",
+      toBinary(data),
+      toBinary(keyRaw),
+      toBinary(nonceRaw),
+      aad == null ? null : toBinary(aad),
+    );
+  }
+
+  // 以下 B64 包装已废弃，仅保留兼容。
   function aesCbcPkcs7EncryptB64(payloadB64, keyRaw, ivRaw) {
     const out = parseHostCryptoResult(
       globalThis.__crypto_aes_cbc_pkcs7_encrypt_b64(payloadB64, keyRaw, ivRaw),
@@ -710,88 +827,6 @@
     return String(out.base64 || out);
   }
 
-  function bridgeCall(name, ...args) {
-    const bridge = globalThis.__web && globalThis.__web.bridge;
-    if (!bridge || typeof bridge.call !== "function") {
-      throw new TypeError("bridge 不可用");
-    }
-    return bridge.call(name, ...args);
-  }
-
-  function md5(data) {
-    return bridgeCall("crypto.md5", toBytes(data));
-  }
-
-  function sha1(data) {
-    return bridgeCall("crypto.sha1", toBytes(data));
-  }
-
-  function sha256(data) {
-    return bridgeCall("crypto.sha256", toBytes(data));
-  }
-
-  function sha512(data) {
-    return bridgeCall("crypto.sha512", toBytes(data));
-  }
-
-  function hmacSha1(key, data) {
-    return bridgeCall("crypto.hmac_sha1", key, toBytes(data));
-  }
-
-  function hmacSha256(key, data) {
-    return bridgeCall("crypto.hmac_sha256", key, toBytes(data));
-  }
-
-  function hmacSha512(key, data) {
-    return bridgeCall("crypto.hmac_sha512", key, toBytes(data));
-  }
-
-  function aesEcbPkcs7Decrypt(data, keyRaw) {
-    return bridgeCall("crypto.aes_ecb_pkcs7_decrypt", toBytes(data), keyRaw);
-  }
-
-  function aesEcbPkcs7Encrypt(data, keyRaw) {
-    return bridgeCall("crypto.aes_ecb_pkcs7_encrypt", toBytes(data), keyRaw);
-  }
-
-  function aesCbcPkcs7Decrypt(data, keyRaw, ivRaw) {
-    return bridgeCall(
-      "crypto.aes_cbc_pkcs7_decrypt",
-      toBytes(data),
-      keyRaw,
-      ivRaw,
-    );
-  }
-
-  function aesCbcPkcs7Encrypt(data, keyRaw, ivRaw) {
-    return bridgeCall(
-      "crypto.aes_cbc_pkcs7_encrypt",
-      toBytes(data),
-      keyRaw,
-      ivRaw,
-    );
-  }
-
-  function aesGcmDecrypt(data, keyRaw, nonceRaw, aad) {
-    return bridgeCall(
-      "crypto.aes_gcm_decrypt",
-      toBytes(data),
-      keyRaw,
-      nonceRaw,
-      aad == null ? null : toBytes(aad),
-    );
-  }
-
-  function aesGcmEncrypt(data, keyRaw, nonceRaw, aad) {
-    return bridgeCall(
-      "crypto.aes_gcm_encrypt",
-      toBytes(data),
-      keyRaw,
-      nonceRaw,
-      aad == null ? null : toBytes(aad),
-    );
-  }
-
   function normalizeDigestAlgorithm(digest) {
     const alg = String(digest || "").toLowerCase();
     if (alg === "sha1" || alg === "sha-1") return "sha1";
@@ -808,20 +843,12 @@
     return n;
   }
 
-  function normalizeToBuffer(value, inputEncoding = "utf8") {
-    return Buffer.from(toBytes(value, inputEncoding));
-  }
-
   function randomBytes(size) {
     const n = Number(size);
     if (!Number.isInteger(n) || n < 0) {
       throw new TypeError("size 必须是非负整数");
     }
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_random_bytes_b64(n),
-      "randomBytes",
-    );
-    return Buffer.from(bytesFromBase64(out.base64));
+    return Buffer.from(globalThis.__crypto_random_bytes(n));
   }
 
   function randomUUID() {
@@ -833,12 +860,12 @@
   }
 
   function timingSafeEqual(a, b) {
-    const left = normalizeToBuffer(a);
-    const right = normalizeToBuffer(b);
+    const left = toBinary(a);
+    const right = toBinary(b);
     const out = parseHostCryptoResult(
-      globalThis.__crypto_timing_safe_equal_b64(
-        bytesToBase64(left),
-        bytesToBase64(right),
+      globalThis.__crypto_timing_safe_equal_bytes(
+        Array.from(left),
+        Array.from(right),
       ),
       "timingSafeEqual",
     );
@@ -849,12 +876,12 @@
     normalizeDigestAlgorithm(digest);
     const rounds = normalizePositiveInt(iterations, "iterations");
     const outLen = normalizePositiveInt(keyLen, "keyLen");
-    const passwordBytes = normalizeToBuffer(password);
-    const saltBytes = normalizeToBuffer(salt);
+    const passwordBytes = toBinary(password);
+    const saltBytes = toBinary(salt);
     const out = parseHostCryptoResult(
-      globalThis.__crypto_pbkdf2_sha256_b64(
-        bytesToBase64(passwordBytes),
-        bytesToBase64(saltBytes),
+      globalThis.__crypto_pbkdf2_sha256_bytes(
+        Array.from(passwordBytes),
+        Array.from(saltBytes),
         rounds,
         outLen,
       ),
@@ -897,10 +924,10 @@
     aesEcbPkcs7Encrypt,
     aesCbcPkcs7Encrypt,
     aesCbcPkcs7Decrypt,
-    aesCbcPkcs7EncryptB64,
-    aesCbcPkcs7DecryptB64,
     aesGcmEncrypt,
     aesGcmDecrypt,
+    aesCbcPkcs7EncryptB64,
+    aesCbcPkcs7DecryptB64,
     aesGcmEncryptB64,
     aesGcmDecryptB64,
     randomBytes,

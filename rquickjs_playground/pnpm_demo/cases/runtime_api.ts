@@ -6,13 +6,14 @@ export default async function main(config: unknown = {}) {
   const baseUrl = String(cfg.baseUrl || "");
 
   const crypto = requireCryptoLike();
+  const encoder = new TextEncoder();
   const shaHex = crypto
     .createHash("sha256")
-    .update("The quick brown fox jumps over the lazy dog")
+    .update(encoder.encode("The quick brown fox jumps over the lazy dog"))
     .digest("hex");
   const hmacHex = crypto
-    .createHmac("sha256", "key")
-    .update("The quick brown fox jumps over the lazy dog")
+    .createHmac("sha256", encoder.encode("key"))
+    .update(encoder.encode("The quick brown fox jumps over the lazy dog"))
     .digest("hex");
 
   const id = globalThis.uuidv4();

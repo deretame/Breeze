@@ -5,17 +5,9 @@
 //!   - base64: 使用全局的 bytesFromBase64(base64String)
 //!   - 字符串: 使用 new TextEncoder().encode(string) 或 encodeUtf8(string)
 
-use aes::cipher::{BlockDecrypt, BlockEncrypt};
-use aes::{Aes128, Aes192, Aes256};
-use aes_gcm::{
-    Aes128Gcm, Aes256Gcm, Nonce,
-    aead::{Aead, KeyInit as AeadKeyInit, Payload as AeadPayload},
-};
 use anyhow::{Context as AnyhowContext, Result as AnyResult, anyhow};
 use base64::Engine as Base64Engine;
 use base64::engine::general_purpose::{STANDARD as BASE64_STANDARD, URL_SAFE as BASE64_URL_SAFE};
-use cbc::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, block_padding::Pkcs7};
-use cbc::{Decryptor as CbcDecryptor, Encryptor as CbcEncryptor};
 use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
@@ -38,14 +30,9 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use filetime::{FileTime, set_file_times};
-use getrandom::fill as random_fill;
-use hmac::{Hmac, Mac};
-use pbkdf2::pbkdf2_hmac;
 use reqwest::multipart::{Form as MultipartForm, Part as MultipartPart};
 use reqwest::{Client, Method, Proxy};
-use rquickjs::{Ctx, Function, function::Func};
-use sha1::Sha1;
-use sha2::{Digest, Sha256, Sha512};
+use rquickjs::{Ctx, Function, IntoJs, function::Func};
 use tokio::net::lookup_host;
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
@@ -55,6 +42,7 @@ use uuid::Uuid;
 
 mod bridge;
 mod bridge_crypto;
+mod crypto_ops;
 mod fs_ops;
 mod http;
 mod native_buffer;
@@ -305,22 +293,6 @@ pub fn install_host_bindings(
         Func::from(crypto_aes_gcm_decrypt_bytes),
     )?;
     globals.set(
-        "__crypto_aes_cbc_pkcs7_encrypt_b64",
-        Func::from(crypto_aes_cbc_pkcs7_encrypt_b64),
-    )?;
-    globals.set(
-        "__crypto_aes_cbc_pkcs7_decrypt_b64",
-        Func::from(crypto_aes_cbc_pkcs7_decrypt_b64),
-    )?;
-    globals.set(
-        "__crypto_aes_gcm_encrypt_b64",
-        Func::from(crypto_aes_gcm_encrypt_b64),
-    )?;
-    globals.set(
-        "__crypto_aes_gcm_decrypt_b64",
-        Func::from(crypto_aes_gcm_decrypt_b64),
-    )?;
-    globals.set(
         "__crypto_pbkdf2_sha256_bytes",
         Func::from(crypto_pbkdf2_sha256_bytes),
     )?;
@@ -552,586 +524,201 @@ fn fs_io_sem() -> &'static Arc<Semaphore> {
     FS_IO_SEM.get_or_init(|| Arc::new(Semaphore::new(FS_MAX_IN_FLIGHT)))
 }
 
-type HmacSha1 = Hmac<Sha1>;
-type HmacSha256 = Hmac<Sha256>;
-type HmacSha512 = Hmac<Sha512>;
-
-fn bytes_to_hex(bytes: &[u8]) -> String {
-    bytes
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect::<String>()
+// crypto JS 输出对象定义。
+#[derive(IntoJs)]
+struct HexBase64Output {
+    hex: String,
+    base64: String,
 }
 
-fn crypto_digest_bytes<D: Digest + Default>(input: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let mut hasher = D::default();
-        hasher.update(&input);
-        let out = hasher.finalize();
-        Ok(json!({
-            "ok": true,
-            "hex": bytes_to_hex(&out),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+#[derive(IntoJs)]
+struct Base64Output {
+    base64: String,
 }
 
-fn aes_ecb_decrypt_pkcs7(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
-    if payload.len() % 16 != 0 {
-        return Err(anyhow!("AES ECB 密文长度必须是 16 的倍数"));
-    }
-    let mut out = vec![0u8; payload.len()];
-    match key.len() {
-        16 => {
-            let cipher =
-                Aes128::new_from_slice(key).map_err(|_| anyhow!("AES-128 密钥长度无效"))?;
-            for (src, dst) in payload.chunks_exact(16).zip(out.chunks_exact_mut(16)) {
-                let mut block = aes::cipher::Block::<Aes128>::clone_from_slice(src);
-                cipher.decrypt_block(&mut block);
-                dst.copy_from_slice(&block);
-            }
-        }
-        24 => {
-            let cipher =
-                Aes192::new_from_slice(key).map_err(|_| anyhow!("AES-192 密钥长度无效"))?;
-            for (src, dst) in payload.chunks_exact(16).zip(out.chunks_exact_mut(16)) {
-                let mut block = aes::cipher::Block::<Aes192>::clone_from_slice(src);
-                cipher.decrypt_block(&mut block);
-                dst.copy_from_slice(&block);
-            }
-        }
-        32 => {
-            let cipher =
-                Aes256::new_from_slice(key).map_err(|_| anyhow!("AES-256 密钥长度无效"))?;
-            for (src, dst) in payload.chunks_exact(16).zip(out.chunks_exact_mut(16)) {
-                let mut block = aes::cipher::Block::<Aes256>::clone_from_slice(src);
-                cipher.decrypt_block(&mut block);
-                dst.copy_from_slice(&block);
-            }
-        }
-        _ => {
-            return Err(anyhow!(
-                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {}",
-                key.len()
-            ));
-        }
-    }
-
-    let pad_len = *out.last().ok_or_else(|| anyhow!("AES ECB 解密结果为空"))? as usize;
-    if pad_len == 0 || pad_len > 16 || pad_len > out.len() {
-        return Err(anyhow!("AES ECB PKCS7 填充无效"));
-    }
-    if !out[out.len() - pad_len..]
-        .iter()
-        .all(|b| *b as usize == pad_len)
-    {
-        return Err(anyhow!("AES ECB PKCS7 填充无效"));
-    }
-    out.truncate(out.len() - pad_len);
-    Ok(out)
+#[derive(IntoJs)]
+struct UuidOutput {
+    uuid: String,
 }
 
-fn aes_ecb_encrypt_pkcs7(payload: &[u8], key: &[u8]) -> AnyResult<Vec<u8>> {
-    let pad_len = 16 - (payload.len() % 16);
-    let mut out = vec![0u8; payload.len() + pad_len];
-    out[..payload.len()].copy_from_slice(payload);
-    for b in out[payload.len()..].iter_mut() {
-        *b = pad_len as u8;
-    }
-
-    match key.len() {
-        16 => {
-            let cipher =
-                Aes128::new_from_slice(key).map_err(|_| anyhow!("AES-128 密钥长度无效"))?;
-            for chunk in out.chunks_exact_mut(16) {
-                let mut block = aes::cipher::Block::<Aes128>::clone_from_slice(chunk);
-                cipher.encrypt_block(&mut block);
-                chunk.copy_from_slice(&block);
-            }
-        }
-        24 => {
-            let cipher =
-                Aes192::new_from_slice(key).map_err(|_| anyhow!("AES-192 密钥长度无效"))?;
-            for chunk in out.chunks_exact_mut(16) {
-                let mut block = aes::cipher::Block::<Aes192>::clone_from_slice(chunk);
-                cipher.encrypt_block(&mut block);
-                chunk.copy_from_slice(&block);
-            }
-        }
-        32 => {
-            let cipher =
-                Aes256::new_from_slice(key).map_err(|_| anyhow!("AES-256 密钥长度无效"))?;
-            for chunk in out.chunks_exact_mut(16) {
-                let mut block = aes::cipher::Block::<Aes256>::clone_from_slice(chunk);
-                cipher.encrypt_block(&mut block);
-                chunk.copy_from_slice(&block);
-            }
-        }
-        _ => {
-            return Err(anyhow!(
-                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {}",
-                key.len()
-            ));
-        }
-    }
-
-    Ok(out)
+#[derive(IntoJs)]
+struct EqualOutput {
+    equal: bool,
 }
 
-fn crypto_sha256_bytes(input: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let mut hasher = Sha256::new();
-        hasher.update(&input);
-        let out = hasher.finalize();
-        Ok(json!({
-            "ok": true,
-            "hex": format!("{:x}", out),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+fn map_crypto_err(ctx: &Ctx, err: anyhow::Error) -> rquickjs::Error {
+    rquickjs::Exception::throw_message(ctx, &format!("{err:#}"))
 }
 
-fn crypto_sha1_bytes(input: Vec<u8>) -> String {
-    crypto_digest_bytes::<Sha1>(input)
+fn crypto_sha1_bytes(input: Vec<u8>) -> rquickjs::Result<HexBase64Output> {
+    let out = crypto_ops::sha1(&input);
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
-fn crypto_sha512_bytes(input: Vec<u8>) -> String {
-    crypto_digest_bytes::<Sha512>(input)
+fn crypto_sha256_bytes(input: Vec<u8>) -> rquickjs::Result<HexBase64Output> {
+    let out = crypto_ops::sha256(&input);
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
-fn crypto_hmac_sha256_bytes(key: Vec<u8>, input: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let mut mac = <HmacSha256 as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
-        mac.update(&input);
-        let out = mac.finalize().into_bytes();
-        Ok(json!({
-            "ok": true,
-            "hex": format!("{:x}", out),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+fn crypto_sha512_bytes(input: Vec<u8>) -> rquickjs::Result<HexBase64Output> {
+    let out = crypto_ops::sha512(&input);
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
-fn crypto_random_bytes(size: i32) -> Vec<u8> {
+fn crypto_hmac_sha1_bytes(
+    ctx: Ctx,
+    key: Vec<u8>,
+    input: Vec<u8>,
+) -> rquickjs::Result<HexBase64Output> {
+    let out = crypto_ops::hmac_sha1(&key, &input).map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
+}
+
+fn crypto_hmac_sha256_bytes(
+    ctx: Ctx,
+    key: Vec<u8>,
+    input: Vec<u8>,
+) -> rquickjs::Result<HexBase64Output> {
+    let out = crypto_ops::hmac_sha256(&key, &input).map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
+}
+
+fn crypto_hmac_sha512_bytes(
+    ctx: Ctx,
+    key: Vec<u8>,
+    input: Vec<u8>,
+) -> rquickjs::Result<HexBase64Output> {
+    let out = crypto_ops::hmac_sha512(&key, &input).map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
+}
+
+fn crypto_random_bytes(ctx: Ctx, size: i32) -> rquickjs::Result<Vec<u8>> {
     if size < 0 {
-        return Vec::new();
+        return Err(rquickjs::Exception::throw_message(
+            &ctx,
+            "size 必须是非负整数",
+        ));
     }
     let n = usize::try_from(size).unwrap_or(0);
-    let mut bytes = vec![0u8; n];
-    if n > 0 {
-        let _ = random_fill(&mut bytes);
-    }
-    bytes
+    crypto_ops::random_bytes(n).map_err(|e| map_crypto_err(&ctx, e))
 }
 
-fn crypto_hmac_sha1_bytes(key: Vec<u8>, input: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let mut mac = <HmacSha1 as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
-        mac.update(&input);
-        let out = mac.finalize().into_bytes();
-        Ok(json!({
-            "ok": true,
-            "hex": format!("{:x}", out),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+fn crypto_aes_cbc_pkcs7_encrypt_bytes(
+    ctx: Ctx,
+    plain: Vec<u8>,
+    key: Vec<u8>,
+    iv: Vec<u8>,
+) -> rquickjs::Result<Base64Output> {
+    let out = crypto_ops::aes_cbc_pkcs7_encrypt(&plain, &key, &iv)
+        .map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(Base64Output {
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
-fn crypto_hmac_sha512_bytes(key: Vec<u8>, input: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let mut mac = <HmacSha512 as Mac>::new_from_slice(&key).context("初始化 hmac 失败")?;
-        mac.update(&input);
-        let out = mac.finalize().into_bytes();
-        Ok(json!({
-            "ok": true,
-            "hex": format!("{:x}", out),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-fn crypto_aes_cbc_pkcs7_encrypt_bytes(plain: Vec<u8>, key: Vec<u8>, iv: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let out = match key.len() {
-            16 => {
-                let cipher = CbcEncryptor::<Aes128>::new_from_slices(&key, &iv)
-                    .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?;
-                let mut buf = plain.clone();
-                let msg_len = buf.len();
-                buf.resize(msg_len + 16, 0);
-                cipher
-                    .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
-                    .map_err(|_| anyhow!("AES-128 CBC 加密失败"))?
-                    .to_vec()
-            }
-            24 => {
-                let cipher = CbcEncryptor::<Aes192>::new_from_slices(&key, &iv)
-                    .map_err(|_| anyhow!("AES-192 CBC 参数无效"))?;
-                let mut buf = plain.clone();
-                let msg_len = buf.len();
-                buf.resize(msg_len + 16, 0);
-                cipher
-                    .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
-                    .map_err(|_| anyhow!("AES-192 CBC 加密失败"))?
-                    .to_vec()
-            }
-            32 => {
-                let cipher = CbcEncryptor::<Aes256>::new_from_slices(&key, &iv)
-                    .map_err(|_| anyhow!("AES-256 CBC 参数无效"))?;
-                let mut buf = plain.clone();
-                let msg_len = buf.len();
-                buf.resize(msg_len + 16, 0);
-                cipher
-                    .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
-                    .map_err(|_| anyhow!("AES-256 CBC 加密失败"))?
-                    .to_vec()
-            }
-            _ => {
-                return Err(anyhow!(
-                    "AES CBC 密钥长度必须是 16/24/32 字节，当前: {}",
-                    key.len()
-                ));
-            }
-        };
-        Ok(json!({ "ok": true, "base64": BASE64_STANDARD.encode(out) }).to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-fn crypto_aes_cbc_pkcs7_decrypt_bytes(mut payload: Vec<u8>, key: Vec<u8>, iv: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let plain = match key.len() {
-            16 => CbcDecryptor::<Aes128>::new_from_slices(&key, &iv)
-                .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?
-                .decrypt_padded_mut::<Pkcs7>(&mut payload)
-                .map_err(|_| anyhow!("AES-128 CBC 解密失败"))?
-                .to_vec(),
-            24 => CbcDecryptor::<Aes192>::new_from_slices(&key, &iv)
-                .map_err(|_| anyhow!("AES-192 CBC 参数无效"))?
-                .decrypt_padded_mut::<Pkcs7>(&mut payload)
-                .map_err(|_| anyhow!("AES-192 CBC 解密失败"))?
-                .to_vec(),
-            32 => CbcDecryptor::<Aes256>::new_from_slices(&key, &iv)
-                .map_err(|_| anyhow!("AES-256 CBC 参数无效"))?
-                .decrypt_padded_mut::<Pkcs7>(&mut payload)
-                .map_err(|_| anyhow!("AES-256 CBC 解密失败"))?
-                .to_vec(),
-            _ => {
-                return Err(anyhow!(
-                    "AES CBC 密钥长度必须是 16/24/32 字节，当前: {}",
-                    key.len()
-                ));
-            }
-        };
-        Ok(json!({ "ok": true, "base64": BASE64_STANDARD.encode(plain) }).to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+fn crypto_aes_cbc_pkcs7_decrypt_bytes(
+    ctx: Ctx,
+    payload: Vec<u8>,
+    key: Vec<u8>,
+    iv: Vec<u8>,
+) -> rquickjs::Result<Base64Output> {
+    let out = crypto_ops::aes_cbc_pkcs7_decrypt(&payload, &key, &iv)
+        .map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(Base64Output {
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
 fn crypto_aes_gcm_encrypt_bytes(
+    ctx: Ctx,
     plain: Vec<u8>,
     key: Vec<u8>,
     nonce: Vec<u8>,
     aad: Option<Vec<u8>>,
-) -> String {
-    let result: AnyResult<String> = (|| {
-        let aad = aad.unwrap_or_default();
-        let cipher_text = match key.len() {
-            16 => {
-                let cipher = Aes128Gcm::new_from_slice(&key).context("AES-128 GCM 参数无效")?;
-                let nonce = Nonce::from_slice(&nonce);
-                cipher
-                    .encrypt(
-                        nonce,
-                        AeadPayload {
-                            msg: &plain,
-                            aad: &aad,
-                        },
-                    )
-                    .map_err(|_| anyhow!("AES-128 GCM 加密失败"))?
-            }
-            32 => {
-                let cipher = Aes256Gcm::new_from_slice(&key).context("AES-256 GCM 参数无效")?;
-                let nonce = Nonce::from_slice(&nonce);
-                cipher
-                    .encrypt(
-                        nonce,
-                        AeadPayload {
-                            msg: &plain,
-                            aad: &aad,
-                        },
-                    )
-                    .map_err(|_| anyhow!("AES-256 GCM 加密失败"))?
-            }
-            _ => {
-                return Err(anyhow!(
-                    "AES GCM 密钥长度必须是 16/32 字节，当前: {}",
-                    key.len()
-                ));
-            }
-        };
-        Ok(json!({ "ok": true, "base64": BASE64_STANDARD.encode(cipher_text) }).to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+) -> rquickjs::Result<Base64Output> {
+    let out = crypto_ops::aes_gcm_encrypt(&plain, &key, &nonce, aad.as_deref())
+        .map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(Base64Output {
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
 fn crypto_aes_gcm_decrypt_bytes(
+    ctx: Ctx,
     payload: Vec<u8>,
     key: Vec<u8>,
     nonce: Vec<u8>,
     aad: Option<Vec<u8>>,
-) -> String {
-    let result: AnyResult<String> = (|| {
-        let aad = aad.unwrap_or_default();
-        let plain = match key.len() {
-            16 => {
-                let cipher = Aes128Gcm::new_from_slice(&key).context("AES-128 GCM 参数无效")?;
-                let nonce = Nonce::from_slice(&nonce);
-                cipher
-                    .decrypt(
-                        nonce,
-                        AeadPayload {
-                            msg: &payload,
-                            aad: &aad,
-                        },
-                    )
-                    .map_err(|_| anyhow!("AES-128 GCM 解密失败"))?
-            }
-            32 => {
-                let cipher = Aes256Gcm::new_from_slice(&key).context("AES-256 GCM 参数无效")?;
-                let nonce = Nonce::from_slice(&nonce);
-                cipher
-                    .decrypt(
-                        nonce,
-                        AeadPayload {
-                            msg: &payload,
-                            aad: &aad,
-                        },
-                    )
-                    .map_err(|_| anyhow!("AES-256 GCM 解密失败"))?
-            }
-            _ => {
-                return Err(anyhow!(
-                    "AES GCM 密钥长度必须是 16/32 字节，当前: {}",
-                    key.len()
-                ));
-            }
-        };
-        Ok(json!({ "ok": true, "base64": BASE64_STANDARD.encode(plain) }).to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-// 以下 _b64 包装已废弃，仅保留兼容；内部会解码 base64 后调用 _bytes 实现。
-
-fn crypto_aes_cbc_pkcs7_encrypt_b64(plain_b64: String, key_raw: String, iv_raw: String) -> String {
-    let result: AnyResult<String> = (|| {
-        let plain = BASE64_STANDARD
-            .decode(plain_b64.as_bytes())
-            .context("base64 解码失败")?;
-        let key = key_raw.into_bytes();
-        let iv = iv_raw.into_bytes();
-        Ok(crypto_aes_cbc_pkcs7_encrypt_bytes(plain, key, iv))
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-fn crypto_aes_cbc_pkcs7_decrypt_b64(
-    payload_b64: String,
-    key_raw: String,
-    iv_raw: String,
-) -> String {
-    let result: AnyResult<String> = (|| {
-        let payload = BASE64_STANDARD
-            .decode(payload_b64.as_bytes())
-            .context("base64 解码失败")?;
-        let key = key_raw.into_bytes();
-        let iv = iv_raw.into_bytes();
-        Ok(crypto_aes_cbc_pkcs7_decrypt_bytes(payload, key, iv))
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-fn crypto_aes_gcm_encrypt_b64(
-    plain_b64: String,
-    key_raw: String,
-    nonce_raw: String,
-    aad_b64: Option<String>,
-) -> String {
-    let result: AnyResult<String> = (|| {
-        let plain = BASE64_STANDARD
-            .decode(plain_b64.as_bytes())
-            .context("base64 解码失败")?;
-        let key = key_raw.into_bytes();
-        let nonce = nonce_raw.into_bytes();
-        let aad = aad_b64
-            .map(|raw| {
-                BASE64_STANDARD
-                    .decode(raw.as_bytes())
-                    .context("base64 解码失败")
-            })
-            .transpose()?;
-        Ok(crypto_aes_gcm_encrypt_bytes(plain, key, nonce, aad))
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
-}
-
-fn crypto_aes_gcm_decrypt_b64(
-    payload_b64: String,
-    key_raw: String,
-    nonce_raw: String,
-    aad_b64: Option<String>,
-) -> String {
-    let result: AnyResult<String> = (|| {
-        let payload = BASE64_STANDARD
-            .decode(payload_b64.as_bytes())
-            .context("base64 解码失败")?;
-        let key = key_raw.into_bytes();
-        let nonce = nonce_raw.into_bytes();
-        let aad = aad_b64
-            .map(|raw| {
-                BASE64_STANDARD
-                    .decode(raw.as_bytes())
-                    .context("base64 解码失败")
-            })
-            .transpose()?;
-        Ok(crypto_aes_gcm_decrypt_bytes(payload, key, nonce, aad))
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+) -> rquickjs::Result<Base64Output> {
+    let out = crypto_ops::aes_gcm_decrypt(&payload, &key, &nonce, aad.as_deref())
+        .map_err(|e| map_crypto_err(&ctx, e))?;
+    Ok(Base64Output {
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
 fn crypto_pbkdf2_sha256_bytes(
+    ctx: Ctx,
     password: Vec<u8>,
     salt: Vec<u8>,
     iterations: i32,
     key_len: i32,
-) -> String {
-    let result: AnyResult<String> = (|| {
-        if iterations <= 0 {
-            return Err(anyhow!("iterations 必须大于 0"));
-        }
-        if key_len < 0 {
-            return Err(anyhow!("keyLen 必须是非负整数"));
-        }
-        let rounds = u32::try_from(iterations).context("iterations 超出范围")?;
-        let out_len = usize::try_from(key_len).context("keyLen 超出范围")?;
-        let mut out = vec![0u8; out_len];
-        pbkdf2_hmac::<Sha256>(&password, &salt, rounds, &mut out);
-
-        Ok(json!({
-            "ok": true,
-            "hex": out.iter().map(|b| format!("{:02x}", b)).collect::<String>(),
-            "base64": BASE64_STANDARD.encode(out)
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+) -> rquickjs::Result<HexBase64Output> {
+    if iterations <= 0 {
+        return Err(rquickjs::Exception::throw_message(
+            &ctx,
+            "iterations 必须大于 0",
+        ));
     }
+    if key_len < 0 {
+        return Err(rquickjs::Exception::throw_message(
+            &ctx,
+            "keyLen 必须是非负整数",
+        ));
+    }
+    let rounds = u32::try_from(iterations).map_err(|e| map_crypto_err(&ctx, e.into()))?;
+    let out_len = usize::try_from(key_len).map_err(|e| map_crypto_err(&ctx, e.into()))?;
+    let out = crypto_ops::pbkdf2_sha256(&password, &salt, rounds, out_len);
+    Ok(HexBase64Output {
+        hex: crypto_ops::bytes_to_hex(&out),
+        base64: BASE64_STANDARD.encode(&out),
+    })
 }
 
-fn crypto_timing_safe_equal_bytes(left: Vec<u8>, right: Vec<u8>) -> String {
-    let result: AnyResult<String> = (|| {
-        let max_len = left.len().max(right.len());
-        let mut diff = left.len() ^ right.len();
-        for i in 0..max_len {
-            let l = left.get(i).copied().unwrap_or(0);
-            let r = right.get(i).copied().unwrap_or(0);
-            diff |= usize::from(l ^ r);
-        }
-        Ok(json!({
-            "ok": true,
-            "equal": diff == 0
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+fn crypto_timing_safe_equal_bytes(left: Vec<u8>, right: Vec<u8>) -> rquickjs::Result<EqualOutput> {
+    let max_len = left.len().max(right.len());
+    let mut diff = left.len() ^ right.len();
+    for i in 0..max_len {
+        let l = left.get(i).copied().unwrap_or(0);
+        let r = right.get(i).copied().unwrap_or(0);
+        diff |= usize::from(l ^ r);
     }
+    Ok(EqualOutput { equal: diff == 0 })
 }
 
-fn crypto_random_uuid_v4() -> String {
-    let result: AnyResult<String> = (|| {
-        let uuid = Uuid::new_v4().to_string();
-        Ok(json!({
-            "ok": true,
-            "uuid": uuid
-        })
-        .to_string())
-    })();
-
-    match result {
-        Ok(v) => v,
-        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
-    }
+fn crypto_random_uuid_v4() -> rquickjs::Result<UuidOutput> {
+    Ok(UuidOutput {
+        uuid: Uuid::new_v4().to_string(),
+    })
 }
-
 const LOG_MAX_PENDING: u64 = 16_384;
 
 fn log_http_endpoint_cell() -> &'static Mutex<Option<String>> {

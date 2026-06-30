@@ -50,10 +50,11 @@
 
 # 🚀 如何安装
 
-### 📱 Android
+### 📱 Android/鸿蒙
 
 - 前往 [Releases 页面](https://github.com/deretame/Breeze/releases) 下载 `app-arm64-v8a-release.apk`。
-- **提示**：安装时若提示“风险来源”，请在设置中允许“安装未知应用”。
+
+  > **注意**：中国大陆内因未经审核应用可能无法安装，可以使用[GBox](https://gboxlab.com/i18n/zh-Hant/)、[出境易](https://www.chujingapp.com/)或[GSpace](https://gspaceteam.com/)（鸿蒙系统可通过应用商店下载）的方式绕过系统安装器，以安装应用。
 
 ### 🪟 Windows
 

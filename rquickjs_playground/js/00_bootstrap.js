@@ -569,23 +569,6 @@
     throw new TypeError(`不支持的编码: ${outputEncoding}`);
   }
 
-  function parseHostCryptoResult(raw, actionName) {
-    let parsed;
-    try {
-      parsed = JSON.parse(String(raw || ""));
-    } catch (_err) {
-      throw new TypeError(`crypto host ${actionName} 返回格式无效`);
-    }
-    if (!parsed || parsed.ok !== true) {
-      throw new TypeError(
-        parsed && parsed.error
-          ? parsed.error
-          : `crypto host ${actionName} 执行失败`,
-      );
-    }
-    return parsed;
-  }
-
   function concatChunks(chunks) {
     const total = chunks.reduce((n, c) => n + c.length, 0);
     return concatBytes(chunks, total);
@@ -626,10 +609,7 @@
           : this.algorithm === "sha512"
             ? "__crypto_sha512_bytes"
             : "__crypto_sha256_bytes";
-      const out = parseHostCryptoResult(
-        globalThis[route](Array.from(input)),
-        this.algorithm,
-      );
+      const out = globalThis[route](Array.from(input));
       if (
         outputEncoding === undefined ||
         outputEncoding === null ||
@@ -675,10 +655,7 @@
           : this.algorithm === "sha512"
             ? "__crypto_hmac_sha512_bytes"
             : "__crypto_hmac_sha256_bytes";
-      const out = parseHostCryptoResult(
-        globalThis[route](Array.from(this._key), Array.from(message)),
-        `hmac-${this.algorithm}`,
-      );
+      const out = globalThis[route](Array.from(this._key), Array.from(message));
       if (
         outputEncoding === undefined ||
         outputEncoding === null ||
@@ -794,37 +771,43 @@
     );
   }
 
-  // 以下 B64 包装已废弃，仅保留兼容。
+  // 以下 B64 包装已废弃，仅保留兼容；内部直接调用同步的 __crypto_*_bytes。
   function aesCbcPkcs7EncryptB64(payloadB64, keyRaw, ivRaw) {
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_aes_cbc_pkcs7_encrypt_b64(payloadB64, keyRaw, ivRaw),
-      "aes-cbc-encrypt",
+    const out = globalThis.__crypto_aes_cbc_pkcs7_encrypt_bytes(
+      Array.from(bytesFromBase64(payloadB64)),
+      Array.from(encodeUtf8(keyRaw)),
+      Array.from(encodeUtf8(ivRaw)),
     );
-    return String(out.base64 || out);
+    return out.base64;
   }
 
   function aesCbcPkcs7DecryptB64(payloadB64, keyRaw, ivRaw) {
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_aes_cbc_pkcs7_decrypt_b64(payloadB64, keyRaw, ivRaw),
-      "aes-cbc-decrypt",
+    const out = globalThis.__crypto_aes_cbc_pkcs7_decrypt_bytes(
+      Array.from(bytesFromBase64(payloadB64)),
+      Array.from(encodeUtf8(keyRaw)),
+      Array.from(encodeUtf8(ivRaw)),
     );
-    return String(out.base64 || out);
+    return out.base64;
   }
 
   function aesGcmEncryptB64(payloadB64, keyRaw, nonceRaw, aadB64) {
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_aes_gcm_encrypt_b64(payloadB64, keyRaw, nonceRaw, aadB64 ?? null),
-      "aes-gcm-encrypt",
+    const out = globalThis.__crypto_aes_gcm_encrypt_bytes(
+      Array.from(bytesFromBase64(payloadB64)),
+      Array.from(encodeUtf8(keyRaw)),
+      Array.from(encodeUtf8(nonceRaw)),
+      aadB64 == null ? null : Array.from(bytesFromBase64(aadB64)),
     );
-    return String(out.base64 || out);
+    return out.base64;
   }
 
   function aesGcmDecryptB64(payloadB64, keyRaw, nonceRaw, aadB64) {
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_aes_gcm_decrypt_b64(payloadB64, keyRaw, nonceRaw, aadB64 ?? null),
-      "aes-gcm-decrypt",
+    const out = globalThis.__crypto_aes_gcm_decrypt_bytes(
+      Array.from(bytesFromBase64(payloadB64)),
+      Array.from(encodeUtf8(keyRaw)),
+      Array.from(encodeUtf8(nonceRaw)),
+      aadB64 == null ? null : Array.from(bytesFromBase64(aadB64)),
     );
-    return String(out.base64 || out);
+    return out.base64;
   }
 
   function normalizeDigestAlgorithm(digest) {
@@ -852,22 +835,16 @@
   }
 
   function randomUUID() {
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_random_uuid_v4(),
-      "randomUUID",
-    );
+    const out = globalThis.__crypto_random_uuid_v4();
     return String(out.uuid || "");
   }
 
   function timingSafeEqual(a, b) {
     const left = toBinary(a);
     const right = toBinary(b);
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_timing_safe_equal_bytes(
-        Array.from(left),
-        Array.from(right),
-      ),
-      "timingSafeEqual",
+    const out = globalThis.__crypto_timing_safe_equal_bytes(
+      Array.from(left),
+      Array.from(right),
     );
     return out.equal === true;
   }
@@ -878,14 +855,11 @@
     const outLen = normalizePositiveInt(keyLen, "keyLen");
     const passwordBytes = toBinary(password);
     const saltBytes = toBinary(salt);
-    const out = parseHostCryptoResult(
-      globalThis.__crypto_pbkdf2_sha256_bytes(
-        Array.from(passwordBytes),
-        Array.from(saltBytes),
-        rounds,
-        outLen,
-      ),
-      "pbkdf2",
+    const out = globalThis.__crypto_pbkdf2_sha256_bytes(
+      Array.from(passwordBytes),
+      Array.from(saltBytes),
+      rounds,
+      outLen,
     );
     return Buffer.from(bytesFromBase64(out.base64));
   }
@@ -988,17 +962,8 @@
   }
 
   function uuidv4() {
-    const raw = globalThis.__crypto_random_uuid_v4();
-    let payload = null;
-    try {
-      payload = JSON.parse(String(raw || ""));
-    } catch (_error) {
-      throw new TypeError("uuidv4 返回结果无效");
-    }
-    if (!payload || payload.ok !== true) {
-      throw new TypeError("uuidv4 失败");
-    }
-    if (typeof payload.uuid !== "string" || !payload.uuid) {
+    const payload = globalThis.__crypto_random_uuid_v4();
+    if (!payload || typeof payload.uuid !== "string" || !payload.uuid) {
       throw new TypeError("uuidv4 返回结果无效");
     }
     return payload.uuid;

@@ -253,20 +253,6 @@ pub fn is_host_cache_gc_enabled() -> Result<bool> {
     Ok(crate::qjs::is_host_cache_gc_enabled())
 }
 
-#[frb]
-pub fn register_load_plugin_config(
-    dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
-) -> Result<()> {
-    crate::qjs::register_load_plugin_config(dart_callback)
-}
-
-#[frb]
-pub fn register_save_plugin_config(
-    dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
-) -> Result<()> {
-    crate::qjs::register_save_plugin_config(dart_callback)
-}
-
 #[frb(sync)]
 pub fn set_log_http_forward(url: String) -> Result<()> {
     crate::qjs::set_log_http_forward(url)

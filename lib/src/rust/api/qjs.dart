@@ -249,18 +249,6 @@ void setHostCacheGcEnabled({required bool enabled}) =>
 bool isHostCacheGcEnabled() =>
     RustLib.instance.api.crateApiQjsIsHostCacheGcEnabled();
 
-Future<void> registerLoadPluginConfig({
-  required FutureOr<String> Function(String, String, String) dartCallback,
-}) => RustLib.instance.api.crateApiQjsRegisterLoadPluginConfig(
-  dartCallback: dartCallback,
-);
-
-Future<void> registerSavePluginConfig({
-  required FutureOr<String> Function(String, String, String) dartCallback,
-}) => RustLib.instance.api.crateApiQjsRegisterSavePluginConfig(
-  dartCallback: dartCallback,
-);
-
 void setLogHttpForward({required String url}) =>
     RustLib.instance.api.crateApiQjsSetLogHttpForward(url: url);
 

@@ -1,4 +1,5 @@
 // 一些工具函数
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:zephyr/config/global/global_setting.dart';
@@ -103,16 +104,29 @@ dynamic _decodeMaybeJson(String value) {
   }
 }
 
-Future<void> registerPersistentCallbacks() async {
-  await registerSavePluginConfig(
-    dartCallback: (name, key, value) =>
-        Future.sync(() => onSavePluginConfig(name, key, value)),
-  );
+void _register(
+  String functionName,
+  FutureOr<String> Function(String) dartCallback,
+) {
+  registerFunction(functionName: functionName, dartCallback: dartCallback);
+}
 
-  await registerLoadPluginConfig(
-    dartCallback: (name, key, value) =>
-        Future.sync(() => onLoadPluginConfig(name, key, value)),
-  );
+Future<void> registerPersistentCallbacks() async {
+  _register('save_plugin_config', (String data) async {
+    final args = jsonDecode(data) as List<dynamic>;
+    final runtime = args[0] as String;
+    final pluginName = args[1] as String;
+    final value = args[2] as String;
+    return onSavePluginConfig(runtime, pluginName, value);
+  });
+
+  _register('load_plugin_config', (String data) async {
+    final args = jsonDecode(data) as List<dynamic>;
+    final runtime = args[0] as String;
+    final pluginName = args[1] as String;
+    final fallback = args[2] as String;
+    return onLoadPluginConfig(runtime, pluginName, fallback);
+  });
 }
 
 Future<void> savePluginConfigValue(

@@ -11,7 +11,7 @@ use rquickjs_playground::{
 };
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex, OnceLock, RwLock as StdRwLock};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 use tokio::sync::{Mutex as AsyncMutex, Notify, RwLock};
 use tokio::time;
@@ -19,8 +19,6 @@ use tokio::time;
 type QjsRuntimeMap = HashMap<String, Arc<AsyncHostRuntime>>;
 type QjsInFlightTaskMap = HashMap<String, HashSet<u64>>;
 type QjsTrackedTaskMap = HashMap<String, HashMap<u64, Arc<TrackedQjsTask>>>;
-type PersistentCallback =
-    Arc<dyn Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static>;
 
 static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
 static QJS_IN_FLIGHT_TASKS: OnceLock<RwLock<QjsInFlightTaskMap>> = OnceLock::new();
@@ -33,8 +31,6 @@ const BIKA_PLUGIN_UUID: &str = "0a0e5858-a467-4702-994a-79e608a4589d";
 const JM_PLUGIN_UUID: &str = "bf99008d-010b-4f17-ac7c-61a9b57dc3d9";
 const QJS_RUNTIME_CANCELLED_ERROR_CODE: &str = "__QJS_RUNTIME_CANCELLED__";
 const BRIDGE_ROUTE_OPENCC_CONVERT: &str = "opencc.convert";
-const BRIDGE_ROUTE_SAVE_PLUGIN_CONFIG: &str = "save_plugin_config";
-const BRIDGE_ROUTE_LOAD_PLUGIN_CONFIG: &str = "load_plugin_config";
 const BRIDGE_ROUTE_CACHE_GET: &str = "cache.get";
 const BRIDGE_ROUTE_CACHE_SET: &str = "cache.set";
 const BRIDGE_ROUTE_CACHE_GET_SYNC: &str = "cache.get.sync";
@@ -46,12 +42,8 @@ const BRIDGE_ROUTE_RUNTIME_GC: &str = "runtime.gc";
 const BRIDGE_ROUTE_RUNTIME_IS_TASK_GROUP_CANCELLED: &str = "runtime.is_task_group_cancelled";
 const HOST_CACHE_VALUE_MAX_BYTES: usize = 500 * 1024;
 const CANCELLED_GROUP_TTL: Duration = Duration::from_secs(120);
-const PLUGIN_CONFIG_CALLBACK_TIMEOUT: Duration = Duration::from_secs(15);
+const REGISTERED_DART_CALLBACK_TIMEOUT: Duration = Duration::from_secs(15);
 
-static SAVE_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback>>> =
-    OnceLock::new();
-static LOAD_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback>>> =
-    OnceLock::new();
 static HOST_CACHE_STORE: OnceLock<DashMap<String, HostCacheEntry>> = OnceLock::new();
 static HOST_CACHE_GC_STARTED: OnceLock<()> = OnceLock::new();
 static HOST_CACHE_GC_ENABLED: std::sync::atomic::AtomicBool =
@@ -273,14 +265,6 @@ fn qjs_tracked_task_map() -> &'static RwLock<QjsTrackedTaskMap> {
 
 fn qjs_runtime_init_lock() -> &'static AsyncMutex<()> {
     QJS_RUNTIME_INIT_LOCK.get_or_init(|| AsyncMutex::new(()))
-}
-
-fn save_plugin_config_callback_cell() -> &'static StdRwLock<Option<PersistentCallback>> {
-    SAVE_PLUGIN_CONFIG_CALLBACK.get_or_init(|| StdRwLock::new(None))
-}
-
-fn load_plugin_config_callback_cell() -> &'static StdRwLock<Option<PersistentCallback>> {
-    LOAD_PLUGIN_CONFIG_CALLBACK.get_or_init(|| StdRwLock::new(None))
 }
 
 fn host_cache_store_cell() -> &'static DashMap<String, HostCacheEntry> {
@@ -1501,7 +1485,7 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
     serde_json::to_string_pretty(&json!({
         "runtimeName": runtime_name,
         "capturedAtEpochMs": chrono::Utc::now().timestamp_millis(),
-        "pluginConfigCallbackTimeoutMs": PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis() as u64,
+        "registeredDartCallbackTimeoutMs": REGISTERED_DART_CALLBACK_TIMEOUT.as_millis() as u64,
         "runtime": runtime_json,
         "qjs": {
             "inFlightTaskCount": in_flight_task_ids.len(),
@@ -1796,102 +1780,6 @@ pub fn configure_bridge_runtime(
     .map_err(|err| anyhow!("配置 bridge runtime 失败: {err}"))
 }
 
-pub fn register_load_plugin_config(
-    dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
-) -> Result<()> {
-    let callback: PersistentCallback = Arc::new(dart_callback);
-    {
-        let mut guard = load_plugin_config_callback_cell()
-            .write()
-            .map_err(|_| anyhow!("load_plugin_config 回调锁已损坏"))?;
-        *guard = Some(callback);
-    }
-
-    register_bridge_route_async_handler(
-        BRIDGE_ROUTE_LOAD_PLUGIN_CONFIG,
-        |runtime, args| async move {
-            let key = args
-                .first()
-                .and_then(Value::as_str)
-                .ok_or_else(|| anyhow!("load_plugin_config 参数无效: 缺少 key"))?
-                .to_string();
-            let value = args
-                .get(1)
-                .and_then(Value::as_str)
-                .ok_or_else(|| anyhow!("load_plugin_config 参数无效: 缺少 value"))?
-                .to_string();
-            let callback = load_plugin_config_callback_cell()
-                .read()
-                .map_err(|_| anyhow!("load_plugin_config 回调锁已损坏"))?
-                .clone()
-                .ok_or_else(|| anyhow!("load_plugin_config 回调未注册"))?;
-            let out = time::timeout(
-                PLUGIN_CONFIG_CALLBACK_TIMEOUT,
-                callback(runtime.clone(), key.clone(), value.clone()),
-            )
-            .await
-            .map_err(|_| {
-                anyhow!(
-                    "load_plugin_config 回调超时: runtime={}, key={}, timeout_ms={}",
-                    runtime,
-                    key,
-                    PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
-                )
-            })?;
-            Ok(json!(out))
-        },
-    )?;
-    Ok(())
-}
-
-pub fn register_save_plugin_config(
-    dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
-) -> Result<()> {
-    let callback: PersistentCallback = Arc::new(dart_callback);
-    {
-        let mut guard = save_plugin_config_callback_cell()
-            .write()
-            .map_err(|_| anyhow!("save_plugin_config 回调锁已损坏"))?;
-        *guard = Some(callback);
-    }
-
-    register_bridge_route_async_handler(
-        BRIDGE_ROUTE_SAVE_PLUGIN_CONFIG,
-        |runtime, args| async move {
-            let key = args
-                .first()
-                .and_then(Value::as_str)
-                .ok_or_else(|| anyhow!("save_plugin_config 参数无效: 缺少 key"))?
-                .to_string();
-            let value = args
-                .get(1)
-                .and_then(Value::as_str)
-                .ok_or_else(|| anyhow!("save_plugin_config 参数无效: 缺少 value"))?
-                .to_string();
-            let callback = save_plugin_config_callback_cell()
-                .read()
-                .map_err(|_| anyhow!("save_plugin_config 回调锁已损坏"))?
-                .clone()
-                .ok_or_else(|| anyhow!("save_plugin_config 回调未注册"))?;
-            let out = time::timeout(
-                PLUGIN_CONFIG_CALLBACK_TIMEOUT,
-                callback(runtime.clone(), key.clone(), value.clone()),
-            )
-            .await
-            .map_err(|_| {
-                anyhow!(
-                    "save_plugin_config 回调超时: runtime={}, key={}, timeout_ms={}",
-                    runtime,
-                    key,
-                    PLUGIN_CONFIG_CALLBACK_TIMEOUT.as_millis()
-                )
-            })?;
-            Ok(json!(out))
-        },
-    )?;
-    Ok(())
-}
-
 pub fn set_log_http_forward(url: String) -> Result<()> {
     configure_log_http_endpoint(Some(url));
     Ok(())
@@ -1926,24 +1814,34 @@ pub fn register_function(
     dart_callback: impl Fn(String) -> DartFnFuture<String> + Send + Sync + 'static,
 ) -> Result<()> {
     let dart_callback = Arc::new(dart_callback);
+    let function_name_for_timeout = function_name.clone();
 
     register_bridge_route_async_handler(function_name, move |runtime, args| {
-        let runtime_name = runtime.to_string();
         let dart_callback = Arc::clone(&dart_callback);
+        let function_name_for_timeout = function_name_for_timeout.clone();
 
         async move {
-            let input = args
-                .get(0)
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
+            let mut full_args = vec![json!(runtime)];
+            full_args.extend(args);
+            let input = serde_json::to_string(&full_args).context("序列化 bridge 参数失败")?;
 
-            let out = dart_callback(input).await;
+            let out = time::timeout(REGISTERED_DART_CALLBACK_TIMEOUT, dart_callback(input))
+                .await
+                .with_context(|| {
+                    format!(
+                        "{function_name_for_timeout} Dart 回调超时 (timeout_ms={})",
+                        REGISTERED_DART_CALLBACK_TIMEOUT.as_millis()
+                    )
+                })?;
 
-            Ok(json!({
-                "runtime": runtime_name,
-                "data": out
-            }))
+            let value = if out.is_empty() {
+                Value::Null
+            } else {
+                serde_json::from_str(&out)
+                    .with_context(|| format!("解析 Dart 回调返回值失败: {out}"))?
+            };
+
+            Ok(value)
         }
     })?;
 

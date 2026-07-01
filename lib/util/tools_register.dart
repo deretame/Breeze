@@ -14,11 +14,15 @@ void _register(
 
 Future<void> registerDartTools() async {
   _register("dart.getAppVersion", (_) async {
-    return await getAppVersion();
+    return jsonEncode(await getAppVersion());
   });
 
   _register('flutter.showToast', (String data) async {
-    final json = jsonDecode(data) as Map<String, dynamic>;
+    final args = jsonDecode(data) as List<dynamic>;
+    final payload = args[1];
+    final json = payload is String
+        ? jsonDecode(payload) as Map<String, dynamic>
+        : payload as Map<String, dynamic>;
     final message = json['message'] as String? ?? '';
     final title = json['title'] as String?;
     final level = json['level'] as String? ?? 'info';

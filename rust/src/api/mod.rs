@@ -1,3 +1,4 @@
+pub mod data_backup;
 pub mod image;
 pub mod logger;
 pub mod memory;

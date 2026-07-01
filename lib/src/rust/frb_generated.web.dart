@@ -6,6 +6,7 @@
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
+import 'api/data_backup.dart';
 import 'api/image.dart';
 import 'api/memory.dart';
 import 'api/qjs.dart';
@@ -93,6 +94,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
 
   @protected
   QjsRuntimeBundleBuild? dco_decode_opt_box_autoadd_qjs_runtime_bundle_build(
@@ -194,6 +198,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<TaggedAllocation> sse_decode_list_tagged_allocation(
     SseDeserializer deserializer,
   );
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
   QjsRuntimeBundleBuild? sse_decode_opt_box_autoadd_qjs_runtime_bundle_build(
@@ -331,6 +338,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<TaggedAllocation> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_qjs_runtime_bundle_build(

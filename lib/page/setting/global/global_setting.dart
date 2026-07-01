@@ -221,6 +221,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '存储', Icons.storage_outlined),
               _cacheSettings(context),
+              _dataBackupSettings(context),
 
               FutureBuilder<bool>(
                 future: _realSrAvailable,
@@ -898,6 +899,16 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       subtitle: Text(sizeText.isEmpty ? '查看缓存大小，设置缓存上限与自动清理' : sizeText),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => AutoRouter.of(context).push(const CacheSettingRoute()),
+    );
+  }
+
+  Widget _dataBackupSettings(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.import_export_outlined),
+      title: const Text('数据导入/导出'),
+      subtitle: const Text('备份或恢复应用数据与下载的漫画'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => AutoRouter.of(context).push(const DataBackupRoute()),
     );
   }
 

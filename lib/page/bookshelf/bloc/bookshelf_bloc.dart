@@ -161,7 +161,6 @@ class BookshelfSectionBloc
           'search': {
             'keyword': event.searchEnterConst.keyword,
             'sort': event.searchEnterConst.sort,
-            'categories': event.searchEnterConst.categories,
             'sources': event.searchEnterConst.sources,
           },
           'items': raw.items,
@@ -545,30 +544,8 @@ List<Map<String, dynamic>> _filterAndSort({
   required Map<String, dynamic> search,
 }) {
   final keyword = _normalizeSearchText(search['keyword']?.toString() ?? '');
-  final categories = ((search['categories'] as List?) ?? const <dynamic>[])
-      .map((item) => _normalizeSearchText(item.toString()))
-      .where((item) => item.isNotEmpty)
-      .toList();
 
   var data = items;
-
-  if (categories.isNotEmpty) {
-    for (final category in categories) {
-      data = data.where((item) {
-        final metadata = _decodeMetadata(item['metadata']?.toString() ?? '[]');
-        final values = metadata
-            .where((entry) => entry['type']?.toString() == 'categories')
-            .expand((entry) => entry['value'] as List<dynamic>? ?? const [])
-            .map(
-              (entry) => _normalizeSearchText(
-                (entry as Map?)?['name']?.toString() ?? '',
-              ),
-            )
-            .toList();
-        return values.contains(category);
-      }).toList();
-    }
-  }
 
   if (keyword.isNotEmpty) {
     data = data.where((item) {
@@ -589,7 +566,7 @@ List<Map<String, dynamic>> _filterAndSort({
 }
 
 bool _needsWorkerFilter(SearchEnter search) {
-  return search.keyword.trim().isNotEmpty || search.categories.isNotEmpty;
+  return search.keyword.trim().isNotEmpty;
 }
 
 List<T> _sliceItems<T>(List<T> items, int offset, int limit) {
@@ -605,19 +582,6 @@ String _normalizeSearchText(String text) {
     return t2s(lower);
   } catch (_) {
     return lower;
-  }
-}
-
-List<Map<String, dynamic>> _decodeMetadata(String raw) {
-  try {
-    final decoded = raw.trim().isEmpty ? const <dynamic>[] : jsonDecode(raw);
-    if (decoded is! List) return const <Map<String, dynamic>>[];
-    return decoded
-        .whereType<Map>()
-        .map((entry) => Map<String, dynamic>.from(entry))
-        .toList();
-  } catch (_) {
-    return const <Map<String, dynamic>>[];
   }
 }
 

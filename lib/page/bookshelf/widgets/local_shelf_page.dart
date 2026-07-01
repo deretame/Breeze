@@ -114,7 +114,6 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     return SearchEnter(
       keyword: state.keyword,
       sort: state.sort,
-      categories: state.categories,
       sources: state.sources,
       refresh: const Uuid().v4(),
     );

@@ -7,7 +7,6 @@ abstract class SearchStatusState with _$SearchStatusState {
   const factory SearchStatusState({
     @Default("") String keyword,
     @Default("dd") String sort,
-    @Default(<String>[]) List<String> categories,
     @Default(<String>[]) List<String> sources,
   }) = _SearchStatusState;
 }

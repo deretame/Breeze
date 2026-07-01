@@ -30,10 +30,10 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use filetime::{FileTime, set_file_times};
-use subtle::ConstantTimeEq;
 use reqwest::multipart::{Form as MultipartForm, Part as MultipartPart};
 use reqwest::{Client, Method, Proxy};
 use rquickjs::{Ctx, Function, IntoJs, function::Func};
+use subtle::ConstantTimeEq;
 use tokio::net::lookup_host;
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;

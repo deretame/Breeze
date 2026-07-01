@@ -9,6 +9,7 @@ import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/widgets/folder_shelf_item.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -255,25 +256,20 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       builder: (context, searchState) {
         return BlocBuilder<FolderShelfBloc, FolderShelfState>(
           builder: (context, state) {
-            final keyword = searchState
-                .stateOf(state.mode)
-                .keyword
-                .trim()
-                .toLowerCase();
+            final keyword = _normalizeSearchText(
+              searchState.stateOf(state.mode).keyword,
+            );
             // 搜索时只展示漫画，不展示文件夹。
             final filteredFolders = keyword.isEmpty
                 ? state.folders
                 : <ComicFolder>[];
             final filteredComics = keyword.isEmpty
                 ? state.comics
-                : state.comics
-                      .where(
-                        (c) =>
-                            c.title.toLowerCase().contains(keyword) ||
-                            c.source.toLowerCase().contains(keyword) ||
-                            c.from.toLowerCase().contains(keyword),
-                      )
-                      .toList();
+                : state.comics.where((c) {
+                    final key = '${c.from.trim()}:${c.id}';
+                    final searchText = state.comicSearchTexts[key] ?? '';
+                    return searchText.contains(keyword);
+                  }).toList();
 
             if (state.isLoading &&
                 filteredFolders.isEmpty &&
@@ -572,6 +568,16 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       ShelfPageMode.history => ComicEntryType.history,
       ShelfPageMode.download => ComicEntryType.download,
     };
+  }
+
+  static String _normalizeSearchText(String text) {
+    final lower = text.trim().toLowerCase();
+    if (lower.isEmpty) return '';
+    try {
+      return t2s(lower);
+    } catch (_) {
+      return lower;
+    }
   }
 
   void _showComicActions(BuildContext context, ComicSimplifyEntryInfo info) {

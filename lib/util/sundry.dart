@@ -7,9 +7,17 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 
-// 用来简化调用，将繁体中文转换为简体中文
+// 用来简化调用，将繁体中文转换为简体中文/包括日本汉字
 String t2s(String text) {
-  return openccConvert(text: text, config: 'tw2sp.json');
+  try {
+    // 第一步：日文汉字 → 繁体中文
+    final step1 = openccConvert(text: text, config: 'jp2t.json');
+    // 第二步：繁体中文 → 简体中文
+    return openccConvert(text: step1, config: 'tw2sp.json');
+  } catch (e) {
+    logger.e(e);
+    return text;
+  }
 }
 
 // 按全局设置转换漫画文本用于显示;关闭时原样返回。

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
@@ -7,6 +9,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 const String kFolderShelfRootPath = '';
@@ -17,6 +20,7 @@ class FolderShelfState extends Equatable {
     this.currentPath = kFolderShelfRootPath,
     this.folders = const <ComicFolder>[],
     this.comics = const <ComicSimplifyEntryInfo>[],
+    this.comicSearchTexts = const <String, String>{},
     this.isLoading = false,
     this.error,
     this.sortAscending = false,
@@ -29,6 +33,7 @@ class FolderShelfState extends Equatable {
   final String currentPath;
   final List<ComicFolder> folders;
   final List<ComicSimplifyEntryInfo> comics;
+  final Map<String, String> comicSearchTexts;
   final bool isLoading;
   final String? error;
   final bool sortAscending;
@@ -57,6 +62,7 @@ class FolderShelfState extends Equatable {
     String? currentPath,
     List<ComicFolder>? folders,
     List<ComicSimplifyEntryInfo>? comics,
+    Map<String, String>? comicSearchTexts,
     bool? isLoading,
     String? error,
     bool? sortAscending,
@@ -69,6 +75,7 @@ class FolderShelfState extends Equatable {
       currentPath: currentPath ?? this.currentPath,
       folders: folders ?? this.folders,
       comics: comics ?? this.comics,
+      comicSearchTexts: comicSearchTexts ?? this.comicSearchTexts,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       sortAscending: sortAscending ?? this.sortAscending,
@@ -84,6 +91,7 @@ class FolderShelfState extends Equatable {
     currentPath,
     folders,
     comics,
+    comicSearchTexts,
     isLoading,
     error,
     sortAscending,
@@ -261,16 +269,20 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
         sortAscending: state.sortAscending,
       );
       final comics = <ComicSimplifyEntryInfo>[];
+      final comicSearchTexts = <String, String>{};
       for (final link in links) {
-        final info = _resolveComic(link.comicUniqueKey);
-        if (info != null) {
-          comics.add(info);
+        final resolved = _resolveComic(link.comicUniqueKey);
+        if (resolved != null) {
+          comics.add(resolved.info);
+          comicSearchTexts['${resolved.info.from.trim()}:${resolved.info.id}'] =
+              resolved.searchText;
         }
       }
       emit(
         state.copyWith(
           folders: folders,
           comics: comics,
+          comicSearchTexts: comicSearchTexts,
           isLoading: false,
           error: null,
         ),
@@ -511,7 +523,9 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
     add(const FolderShelfLoadRequested());
   }
 
-  ComicSimplifyEntryInfo? _resolveComic(String uniqueKey) {
+  ({ComicSimplifyEntryInfo info, String searchText})? _resolveComic(
+    String uniqueKey,
+  ) {
     switch (_folderType) {
       case ComicFolderType.favorite:
         final comic = objectbox.unifiedFavoriteBox
@@ -523,7 +537,10 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
             .build()
             .findFirst();
         if (comic == null) return null;
-        return unifiedComicFromUnifiedFavorite(comic).toSimplifyEntryInfo();
+        return (
+          info: unifiedComicFromUnifiedFavorite(comic).toSimplifyEntryInfo(),
+          searchText: _buildComicSearchText(comic),
+        );
       case ComicFolderType.download:
         final comic = objectbox.unifiedDownloadBox
             .query(
@@ -534,7 +551,10 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
             .build()
             .findFirst();
         if (comic == null) return null;
-        return unifiedComicFromUnifiedDownload(comic).toSimplifyEntryInfo();
+        return (
+          info: unifiedComicFromUnifiedDownload(comic).toSimplifyEntryInfo(),
+          searchText: _buildComicSearchText(comic),
+        );
       case ComicFolderType.history:
         final comic = objectbox.unifiedHistoryBox
             .query(
@@ -545,7 +565,42 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
             .build()
             .findFirst();
         if (comic == null) return null;
-        return unifiedComicFromUnifiedHistory(comic).toSimplifyEntryInfo();
+        return (
+          info: unifiedComicFromUnifiedHistory(comic).toSimplifyEntryInfo(),
+          searchText: _buildComicSearchText(comic),
+        );
     }
+  }
+
+  String _buildComicSearchText(dynamic comic) {
+    final text = [
+      comic.comicId?.toString() ?? '',
+      comic.title?.toString() ?? '',
+      comic.description?.toString() ?? '',
+      _creatorName(comic.creator?.toString() ?? ''),
+      comic.titleMeta?.toString() ?? '',
+      comic.metadata?.toString() ?? '',
+      comic.source?.toString() ?? '',
+    ].join();
+    return _normalizeSearchText(text);
+  }
+
+  static String _creatorName(String raw) {
+    if (raw.trim().isEmpty) return '';
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) return decoded['name']?.toString() ?? '';
+    } catch (_) {}
+    return '';
+  }
+}
+
+String _normalizeSearchText(String text) {
+  final lower = text.trim().toLowerCase();
+  if (lower.isEmpty) return '';
+  try {
+    return t2s(lower);
+  } catch (_) {
+    return lower;
   }
 }

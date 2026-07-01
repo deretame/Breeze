@@ -577,6 +577,7 @@ List<Map<String, dynamic>> _filterAndSort({
         item['title']?.toString() ?? '',
         item['description']?.toString() ?? '',
         _creatorName(item['creator']?.toString() ?? ''),
+        item['titleMeta']?.toString() ?? '',
         item['metadata']?.toString() ?? '',
       ].join();
       final normalizedText = _normalizeSearchText(text);

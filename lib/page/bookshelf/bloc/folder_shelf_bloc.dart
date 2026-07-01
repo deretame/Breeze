@@ -6,9 +6,12 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
@@ -21,6 +24,7 @@ class FolderShelfState extends Equatable {
     this.folders = const <ComicFolder>[],
     this.comics = const <ComicSimplifyEntryInfo>[],
     this.comicSearchTexts = const <String, String>{},
+    this.search,
     this.isLoading = false,
     this.error,
     this.sortAscending = false,
@@ -34,6 +38,7 @@ class FolderShelfState extends Equatable {
   final List<ComicFolder> folders;
   final List<ComicSimplifyEntryInfo> comics;
   final Map<String, String> comicSearchTexts;
+  final SearchStatusState? search;
   final bool isLoading;
   final String? error;
   final bool sortAscending;
@@ -63,6 +68,7 @@ class FolderShelfState extends Equatable {
     List<ComicFolder>? folders,
     List<ComicSimplifyEntryInfo>? comics,
     Map<String, String>? comicSearchTexts,
+    SearchStatusState? search,
     bool? isLoading,
     String? error,
     bool? sortAscending,
@@ -76,6 +82,7 @@ class FolderShelfState extends Equatable {
       folders: folders ?? this.folders,
       comics: comics ?? this.comics,
       comicSearchTexts: comicSearchTexts ?? this.comicSearchTexts,
+      search: search ?? this.search,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       sortAscending: sortAscending ?? this.sortAscending,
@@ -92,6 +99,7 @@ class FolderShelfState extends Equatable {
     folders,
     comics,
     comicSearchTexts,
+    search,
     isLoading,
     error,
     sortAscending,
@@ -117,7 +125,12 @@ sealed class FolderShelfEvent extends Equatable {
 }
 
 class FolderShelfLoadRequested extends FolderShelfEvent {
-  const FolderShelfLoadRequested();
+  const FolderShelfLoadRequested({this.search});
+
+  final SearchStatusState? search;
+
+  @override
+  List<Object?> get props => [search];
 }
 
 class FolderShelfEnterFolder extends FolderShelfEvent {
@@ -258,31 +271,40 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
   ) async {
     emit(state.copyWith(isLoading: true, error: null));
     try {
+      final search = event.search ?? state.search;
+      final sortAscending = search?.sort == 'da';
+      final sourceFilter = _sourceFilterFromSearch(search);
+
       final folders = ComicFolderService.listChildFolders(
         state.currentPath,
         _folderType,
-        sortAscending: state.sortAscending,
+        sortAscending: sortAscending,
       );
       final links = ComicLinkService.listLinks(
         state.currentPath.isEmpty ? null : state.currentPath,
         _folderType,
-        sortAscending: state.sortAscending,
+        sortAscending: sortAscending,
       );
       final comics = <ComicSimplifyEntryInfo>[];
       final comicSearchTexts = <String, String>{};
       for (final link in links) {
         final resolved = _resolveComic(link.comicUniqueKey);
-        if (resolved != null) {
-          comics.add(resolved.info);
-          comicSearchTexts['${resolved.info.from.trim()}:${resolved.info.id}'] =
-              resolved.searchText;
+        if (resolved == null) continue;
+        if (sourceFilter != null &&
+            !sourceFilter.contains(resolved.info.source)) {
+          continue;
         }
+        comics.add(resolved.info);
+        comicSearchTexts['${resolved.info.from.trim()}:${resolved.info.id}'] =
+            resolved.searchText;
       }
       emit(
         state.copyWith(
           folders: folders,
           comics: comics,
           comicSearchTexts: comicSearchTexts,
+          search: search,
+          sortAscending: sortAscending,
           isLoading: false,
           error: null,
         ),
@@ -521,6 +543,25 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
   void _exitSelectionAndRefresh() {
     add(const FolderShelfExitSelectionMode());
     add(const FolderShelfLoadRequested());
+  }
+
+  Set<String>? _sourceFilterFromSearch(SearchStatusState? search) {
+    if (search == null) return null;
+    final sources = switch (_folderType) {
+      ComicFolderType.favorite => FavoriteFolderService.stripFolderSourceTokens(
+        search.sources,
+      ),
+      ComicFolderType.download => DownloadFolderService.stripFolderSourceTokens(
+        search.sources,
+      ),
+      ComicFolderType.history => search.sources,
+    };
+    final cleaned = sources
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toSet();
+    if (cleaned.isEmpty) return null;
+    return cleaned;
   }
 
   ({ComicSimplifyEntryInfo info, String searchText})? _resolveComic(

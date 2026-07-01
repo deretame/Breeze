@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
+import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
@@ -26,18 +27,27 @@ class FolderShelfPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final search = context.read<BookshelfSearchCubit>().state.stateOf(mode);
     return BlocProvider(
       create: (_) =>
-          FolderShelfBloc(mode: mode)..add(const FolderShelfLoadRequested()),
-      child: _FolderShelfPageContent(refreshSignal: refreshSignal),
+          FolderShelfBloc(mode: mode)
+            ..add(FolderShelfLoadRequested(search: search)),
+      child: _FolderShelfPageContent(
+        refreshSignal: refreshSignal,
+        search: search,
+      ),
     );
   }
 }
 
 class _FolderShelfPageContent extends StatefulWidget {
-  const _FolderShelfPageContent({required this.refreshSignal});
+  const _FolderShelfPageContent({
+    required this.refreshSignal,
+    required this.search,
+  });
 
   final int refreshSignal;
+  final SearchStatusState search;
 
   @override
   State<_FolderShelfPageContent> createState() =>
@@ -53,7 +63,9 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   void didUpdateWidget(covariant _FolderShelfPageContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.refreshSignal != widget.refreshSignal) {
-      context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
+      context.read<FolderShelfBloc>().add(
+        FolderShelfLoadRequested(search: widget.search),
+      );
     }
   }
 

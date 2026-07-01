@@ -374,13 +374,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     if (result == null) return;
 
     searchCubit.setSort(currentMode, result.sort);
-    final nextSources = result.sources.toList();
-    if (currentMode == ShelfPageMode.favorite) {
-      nextSources.add(FavoriteFolderService.sourceToken(result.folderKey));
-    } else if (currentMode == ShelfPageMode.download) {
-      nextSources.add(DownloadFolderService.sourceToken(result.folderKey));
-    }
-    searchCubit.setSources(currentMode, nextSources);
+    searchCubit.setSources(currentMode, result.sources.toList());
     _triggerRefresh(goTop: true);
   }
 
@@ -653,8 +647,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
   late Set<String> _selectedSources;
 
   bool get _isFavoriteMode => widget.mode == ShelfPageMode.favorite;
-  bool get _isDownloadMode => widget.mode == ShelfPageMode.download;
-  bool get _showFolderSection => _isFavoriteMode || _isDownloadMode;
+  bool get _showFolderSection => false;
 
   @override
   void initState() {

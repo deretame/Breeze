@@ -374,7 +374,16 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     if (result == null) return;
 
     searchCubit.setSort(currentMode, result.sort);
-    searchCubit.setSources(currentMode, result.sources.toList());
+
+    var nextSources = result.sources.toList();
+    if (currentMode == ShelfPageMode.favorite &&
+        result.folderKey != kFavoriteFolderAllKey) {
+      nextSources.add(FavoriteFolderService.sourceToken(result.folderKey));
+    } else if (currentMode == ShelfPageMode.download &&
+        result.folderKey != kDownloadFolderAllKey) {
+      nextSources.add(DownloadFolderService.sourceToken(result.folderKey));
+    }
+    searchCubit.setSources(currentMode, nextSources);
     _triggerRefresh(goTop: true);
   }
 
@@ -647,7 +656,8 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
   late Set<String> _selectedSources;
 
   bool get _isFavoriteMode => widget.mode == ShelfPageMode.favorite;
-  bool get _showFolderSection => false;
+  bool get _isDownloadMode => widget.mode == ShelfPageMode.download;
+  bool get _showFolderSection => _isFavoriteMode || _isDownloadMode;
 
   @override
   void initState() {
@@ -737,7 +747,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
       children: [
         Row(
           children: [
-            Text('文件夹', style: Theme.of(context).textTheme.titleSmall),
+            Text('文件夹（已废弃）', style: Theme.of(context).textTheme.titleSmall),
             const Spacer(),
             TextButton(onPressed: _createFolder, child: const Text('新建')),
           ],

@@ -274,6 +274,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       final search = event.search ?? state.search;
       final sortAscending = search?.sort == 'da';
       final sourceFilter = _sourceFilterFromSearch(search);
+      final folderMembers = _folderMembersFromSearch(search);
 
       final folders = ComicFolderService.listChildFolders(
         state.currentPath,
@@ -288,6 +289,10 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       final comics = <ComicSimplifyEntryInfo>[];
       final comicSearchTexts = <String, String>{};
       for (final link in links) {
+        if (folderMembers != null &&
+            !folderMembers.contains(link.comicUniqueKey)) {
+          continue;
+        }
         final resolved = _resolveComic(link.comicUniqueKey);
         if (resolved == null) continue;
         if (sourceFilter != null &&
@@ -562,6 +567,31 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
         .toSet();
     if (cleaned.isEmpty) return null;
     return cleaned;
+  }
+
+  Set<String>? _folderMembersFromSearch(SearchStatusState? search) {
+    if (search == null) return null;
+    final folderKey = switch (_folderType) {
+      ComicFolderType.favorite =>
+        FavoriteFolderService.parseFolderKeyFromSources(search.sources),
+      ComicFolderType.download =>
+        DownloadFolderService.parseFolderKeyFromSources(search.sources),
+      ComicFolderType.history => null,
+    };
+    if (folderKey == null) return null;
+    final isAllFolder = switch (_folderType) {
+      ComicFolderType.favorite => folderKey == kFavoriteFolderAllKey,
+      ComicFolderType.download => folderKey == kDownloadFolderAllKey,
+      ComicFolderType.history => true,
+    };
+    if (isAllFolder) return null;
+    final members = switch (_folderType) {
+      ComicFolderType.favorite => FavoriteFolderService.membersOf(folderKey),
+      ComicFolderType.download => DownloadFolderService.membersOf(folderKey),
+      ComicFolderType.history => const <String>{},
+    };
+    if (members.isEmpty) return const <String>{};
+    return members;
   }
 
   ({ComicSimplifyEntryInfo info, String searchText})? _resolveComic(

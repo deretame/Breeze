@@ -1899,6 +1899,7 @@ dependencies = [
  "sha1",
  "sha2",
  "srcmap-sourcemap",
+ "subtle",
  "tiny_http",
  "tokio",
  "tracing",

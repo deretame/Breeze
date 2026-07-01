@@ -30,6 +30,7 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use filetime::{FileTime, set_file_times};
+use subtle::ConstantTimeEq;
 use reqwest::multipart::{Form as MultipartForm, Part as MultipartPart};
 use reqwest::{Client, Method, Proxy};
 use rquickjs::{Ctx, Function, IntoJs, function::Func};
@@ -301,6 +302,14 @@ pub fn install_host_bindings(
         Func::from(crypto_timing_safe_equal_bytes),
     )?;
     globals.set("__crypto_random_uuid_v4", Func::from(crypto_random_uuid_v4))?;
+    globals.set(
+        "__base64_encode_native_buffer",
+        Func::from(base64_encode_native_buffer),
+    )?;
+    globals.set(
+        "__base64_decode_to_native_buffer",
+        Func::from(base64_decode_to_native_buffer),
+    )?;
     #[cfg(feature = "host-fs")]
     if options.fs {
         globals.set("__fs_read_file", Func::from(fs_read_file))?;
@@ -704,20 +713,30 @@ fn crypto_pbkdf2_sha256_bytes(
 }
 
 fn crypto_timing_safe_equal_bytes(left: Vec<u8>, right: Vec<u8>) -> rquickjs::Result<EqualOutput> {
-    let max_len = left.len().max(right.len());
-    let mut diff = left.len() ^ right.len();
-    for i in 0..max_len {
-        let l = left.get(i).copied().unwrap_or(0);
-        let r = right.get(i).copied().unwrap_or(0);
-        diff |= usize::from(l ^ r);
-    }
-    Ok(EqualOutput { equal: diff == 0 })
+    Ok(EqualOutput {
+        equal: bool::from(left.ct_eq(&right)),
+    })
 }
 
 fn crypto_random_uuid_v4() -> rquickjs::Result<UuidOutput> {
     Ok(UuidOutput {
         uuid: Uuid::new_v4().to_string(),
     })
+}
+
+/// 把 native buffer 里的字节编码成标准 base64 字符串。
+fn base64_encode_native_buffer(ctx: Ctx, buffer_id: u64) -> rquickjs::Result<String> {
+    let bytes = native_buffer_take_raw(buffer_id)
+        .ok_or_else(|| rquickjs::Exception::throw_message(&ctx, "native buffer id 不存在"))?;
+    Ok(BASE64_STANDARD.encode(&bytes))
+}
+
+/// 把 base64 字符串解码成字节，并存入 native buffer，返回 buffer id。
+fn base64_decode_to_native_buffer(ctx: Ctx, text: String) -> rquickjs::Result<u64> {
+    let bytes = BASE64_STANDARD
+        .decode(text.as_bytes())
+        .map_err(|e| map_crypto_err(&ctx, anyhow!("base64 解码失败: {e}")))?;
+    Ok(native_buffer_put_raw(bytes))
 }
 const LOG_MAX_PENDING: u64 = 16_384;
 

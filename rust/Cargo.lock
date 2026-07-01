@@ -2866,6 +2866,7 @@ dependencies = [
  "sha1",
  "sha2",
  "srcmap-sourcemap",
+ "subtle",
  "tokio",
  "tracing",
  "url",

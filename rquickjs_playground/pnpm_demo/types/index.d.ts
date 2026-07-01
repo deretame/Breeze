@@ -2,6 +2,7 @@
  * Breeze 运行时类型声明统一入口。
  */
 
+export * from "./base64";
 export * from "./bridge";
 export * from "./crypto";
 export * from "./fs";

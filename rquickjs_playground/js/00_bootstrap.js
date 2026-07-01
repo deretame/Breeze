@@ -1,10 +1,9 @@
 /**
  * Breeze QuickJS 运行时引导脚本。
  *
- * 注意：本文件组装的 hash / 加密 / HMAC / AES / PBKDF2 等 API 只接受原始二进制数据。
- * 如果需要传入 base64 或字符串，请先在 JS 层转换为 Uint8Array：
- *   - base64: 使用全局的 bytesFromBase64(base64String)
- *   - 字符串: 使用 new TextEncoder().encode(string) 或 encodeUtf8(string)
+ * 本文件组装的 hash / 加密 / HMAC / AES / PBKDF2 等 API 接受字符串或原始二进制数据。
+ * 传入字符串时会自动按 UTF-8 编码为 Uint8Array；传入二进制时保持原样。
+ * 如果需要使用 hex / base64 / latin1 等编码的字符串，请先用 toBytes(string, encoding) 转换。
  */
 
 (() => {
@@ -275,11 +274,27 @@
     return text;
   }
 
-  function bytesToBase64(bytes) {
+  function jsBytesToBase64(bytes) {
     if (typeof globalThis.btoa !== "function") {
       throw new TypeError("btoa 不可用");
     }
     return globalThis.btoa(byteViewToBinaryText(bytes));
+  }
+
+  const BASE64_RUST_THRESHOLD = 512;
+
+  function bytesToBase64(bytes) {
+    if (bytes.length < BASE64_RUST_THRESHOLD) {
+      return jsBytesToBase64(bytes);
+    }
+    if (
+      typeof globalThis.__native_buffer_put_raw === "function" &&
+      typeof globalThis.__base64_encode_native_buffer === "function"
+    ) {
+      const id = globalThis.__native_buffer_put_raw(Array.from(bytes));
+      return globalThis.__base64_encode_native_buffer(Number(id));
+    }
+    return jsBytesToBase64(bytes);
   }
 
   function cloneBytes(view) {
@@ -479,7 +494,7 @@
     return out;
   }
 
-  function bytesFromBase64(text) {
+  function jsBytesFromBase64(text) {
     if (typeof globalThis.atob !== "function") {
       throw new TypeError("atob 不可用");
     }
@@ -489,6 +504,27 @@
       out[i] = raw.charCodeAt(i) & 0xff;
     }
     return out;
+  }
+
+  function bytesFromBase64(text) {
+    const textLen = String(text).length;
+    const approxBytes = (textLen * 3) / 4;
+    if (approxBytes < BASE64_RUST_THRESHOLD) {
+      return jsBytesFromBase64(text);
+    }
+    if (
+      typeof globalThis.__base64_decode_to_native_buffer === "function" &&
+      typeof globalThis.__native_buffer_take === "function"
+    ) {
+      const id = globalThis.__base64_decode_to_native_buffer(String(text));
+      const raw = globalThis.__native_buffer_take(Number(id));
+      const payload = JSON.parse(raw);
+      if (!payload || payload.ok !== true || !Array.isArray(payload.data)) {
+        throw new TypeError("base64 decode 返回结果无效");
+      }
+      return Uint8Array.from(payload.data);
+    }
+    return jsBytesFromBase64(text);
   }
 
   function bytesFromLatin1(text) {
@@ -528,6 +564,9 @@
   }
 
   function toBinary(input) {
+    if (typeof input === "string") {
+      return encodeUtf8(input);
+    }
     if (input instanceof ArrayBuffer) {
       return new Uint8Array(input.slice(0));
     }
@@ -543,7 +582,7 @@
       return Uint8Array.from(input);
     }
     throw new TypeError(
-      "crypto API 只接受原始二进制数据。如果是 base64 请先使用 bytesFromBase64 转换为 Uint8Array，如果是字符串请先使用 new TextEncoder().encode(string) 或 encodeUtf8(string) 转换",
+      "crypto API 输入必须是字符串或原始二进制数据（Uint8Array / ArrayBuffer / ArrayBufferView / number[]）",
     );
   }
 
@@ -589,11 +628,11 @@
       this._digested = false;
     }
 
-    update(data) {
+    update(data, inputEncoding) {
       if (this._digested) {
         throw new TypeError("digest 后不能再 update");
       }
-      this._chunks.push(toBinary(data));
+      this._chunks.push(toBytes(data, inputEncoding));
       return this;
     }
 
@@ -632,14 +671,14 @@
       this.algorithm = normalizeHashAlgorithm(algorithm);
       this._chunks = [];
       this._digested = false;
-      this._key = toBinary(key);
+      this._key = toBytes(key);
     }
 
-    update(data) {
+    update(data, inputEncoding) {
       if (this._digested) {
         throw new TypeError("digest 后不能再 update");
       }
-      this._chunks.push(toBinary(data));
+      this._chunks.push(toBytes(data, inputEncoding));
       return this;
     }
 
@@ -757,7 +796,7 @@
       toBinary(data),
       toBinary(keyRaw),
       toBinary(nonceRaw),
-      aad == null ? null : toBinary(aad),
+      ...(aad == null ? [] : [toBinary(aad)]),
     );
   }
 
@@ -767,7 +806,7 @@
       toBinary(data),
       toBinary(keyRaw),
       toBinary(nonceRaw),
-      aad == null ? null : toBinary(aad),
+      ...(aad == null ? [] : [toBinary(aad)]),
     );
   }
 
@@ -1066,6 +1105,12 @@
   __web.uuidv4 = uuidv4;
   __web.uuidv4Module = { uuidv4 };
 
+  const base64Module = {
+    encode: bytesToBase64,
+    decode: bytesFromBase64,
+  };
+  __web.base64 = base64Module;
+
   if (!globalThis.Blob) throw new TypeError("Blob 不可用");
   if (!globalThis.File) throw new TypeError("File 不可用");
   if (!globalThis.FormData) throw new TypeError("FormData 不可用");
@@ -1075,5 +1120,8 @@
   if (!globalThis.uuidv4) globalThis.uuidv4 = uuidv4;
   if (!globalThis.btoa) globalThis.btoa = btoaImpl;
   if (!globalThis.atob) globalThis.atob = atobImpl;
+  if (!globalThis.bytesToBase64) globalThis.bytesToBase64 = bytesToBase64;
+  if (!globalThis.bytesFromBase64) globalThis.bytesFromBase64 = bytesFromBase64;
+  if (!globalThis.base64) globalThis.base64 = base64Module;
   globalThis.__web = __web;
 })();

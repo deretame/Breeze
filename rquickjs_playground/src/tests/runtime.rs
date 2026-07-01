@@ -1088,6 +1088,79 @@ fn runtime_crypto_bridge_deprecated_b64_hex_smoke() {
 }
 
 #[test]
+fn runtime_crypto_accepts_string_inputs() {
+    let script = r#"
+      (async () => {
+        try {
+          const crypto = require("crypto");
+          const plain = "The quick brown fox jumps over the lazy dog";
+          const keyRaw = "0123456789abcdef";
+          const ivRaw = "abcdef9876543210";
+          const nonceRaw = "123456789012";
+
+          const shaHex = crypto.createHash("sha256").update(plain).digest("hex");
+          const hmacHex = crypto.createHmac("sha256", "key").update(plain).digest("hex");
+
+          const sha256Hex = await crypto.sha256(plain);
+          const hmacSha256Hex = await crypto.hmacSha256("key", plain);
+
+          const cbcEncrypted = await crypto.aesCbcPkcs7Encrypt(plain, keyRaw, ivRaw);
+          const cbcDecrypted = await crypto.aesCbcPkcs7Decrypt(cbcEncrypted, keyRaw, ivRaw);
+
+          const gcmEncrypted = await crypto.aesGcmEncrypt(plain, keyRaw, nonceRaw);
+          const gcmDecrypted = await crypto.aesGcmDecrypt(gcmEncrypted, keyRaw, nonceRaw);
+
+          const hashWithHex = crypto.createHash("sha256").update("deadbeef", "hex").digest("hex");
+
+          return JSON.stringify({
+            shaHex,
+            hmacHex,
+            sha256Hex,
+            hmacSha256Hex,
+            cbcRoundtrip: new TextDecoder().decode(cbcDecrypted),
+            gcmRoundtrip: new TextDecoder().decode(gcmDecrypted),
+            hashWithHex,
+          });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(
+        parsed["shaHex"],
+        "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+    );
+    assert_eq!(
+        parsed["hmacHex"],
+        "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8"
+    );
+    assert_eq!(
+        parsed["sha256Hex"],
+        "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+    );
+    assert_eq!(
+        parsed["hmacSha256Hex"],
+        "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8"
+    );
+    assert_eq!(
+        parsed["cbcRoundtrip"],
+        "The quick brown fox jumps over the lazy dog"
+    );
+    assert_eq!(
+        parsed["gcmRoundtrip"],
+        "The quick brown fox jumps over the lazy dog"
+    );
+    assert_eq!(
+        parsed["hashWithHex"],
+        "5f78c33274e43fa9de5659265c1d917e25c03722dcb0b8d27db8d5feaa813953"
+    );
+}
+
+#[test]
 fn runtime_crypto_deprecated_js_b64_wrappers() {
     let script = r#"
       (async () => {
@@ -1127,6 +1200,54 @@ fn runtime_crypto_deprecated_js_b64_wrappers() {
     assert_eq!(parsed["hasAesGcmDecryptB64"], true);
     assert_eq!(parsed["cbcRoundtrip"], "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=");
     assert_eq!(parsed["gcmRoundtrip"], "ZGVwcmVjYXRlZCBjcnlwdG8gc21va2U=");
+}
+
+#[test]
+fn runtime_base64_roundtrip() {
+    let script = r#"
+      (async () => {
+        try {
+          const small = new TextEncoder().encode("hello");
+          const large = new Uint8Array(800);
+          for (let i = 0; i < large.length; i += 1) {
+            large[i] = i & 0xff;
+          }
+
+          const smallB64 = bytesToBase64(small);
+          const smallDecoded = bytesFromBase64(smallB64);
+
+          const largeB64 = bytesToBase64(large);
+          const largeDecoded = bytesFromBase64(largeB64);
+
+          const moduleB64 = __web.base64.encode(small);
+          const moduleDecoded = __web.base64.decode(moduleB64);
+
+          const toHex = (buf) =>
+            Array.from(buf)
+              .map((x) => x.toString(16).padStart(2, "0"))
+              .join("");
+
+          return JSON.stringify({
+            smallOk: toHex(small) === toHex(smallDecoded),
+            largeOk: toHex(large) === toHex(largeDecoded),
+            moduleOk: toHex(small) === toHex(moduleDecoded),
+            smallB64,
+            largeLen: largeDecoded.length,
+          });
+        } catch (err) {
+          return JSON.stringify({ error: String(err && err.message || err), stack: err && err.stack });
+        }
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["smallOk"], true);
+    assert_eq!(parsed["largeOk"], true);
+    assert_eq!(parsed["moduleOk"], true);
+    assert_eq!(parsed["smallB64"], "aGVsbG8=");
+    assert_eq!(parsed["largeLen"], 800);
 }
 
 #[test]

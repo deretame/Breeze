@@ -7,6 +7,7 @@
 
 /// <reference path="./breeze-html.d.ts" />
 
+import type { Base64Api } from "./base64";
 import type { BridgeApi } from "./bridge";
 import type { CryptoApi } from "./crypto";
 import type { FsApi, PathApi } from "./fs";
@@ -27,6 +28,7 @@ export interface RuntimeApiSet {
   native: NativeApi;
   bridge: BridgeApi;
   path: PathApi;
+  base64: Base64Api;
   crypto: CryptoApi;
   /** @deprecated use {@link crypto} */
   nodeCryptoCompat?: CryptoApi;

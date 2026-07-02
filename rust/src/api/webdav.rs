@@ -3,6 +3,7 @@ use flutter_rust_bridge::frb;
 use reqwest_dav::re_exports::reqwest as dav_reqwest;
 use reqwest_dav::types::list_cmd::ListResponse;
 use reqwest_dav::{Auth, Client, ClientBuilder, DecodeError, Depth, Error as DavError};
+use rquickjs_playground::current_http_client_config;
 use std::collections::{HashSet, VecDeque};
 use std::time::Duration;
 
@@ -267,6 +268,7 @@ fn build_client(host: &str, username: &str, password: &str) -> Result<Client> {
         .set_agent(
             dav_reqwest::ClientBuilder::new()
                 .timeout(Duration::from_secs(10))
+                .danger_accept_invalid_certs(current_http_client_config().disable_tls_verify)
                 .build()
                 .map_err(|e| anyhow!("构建 HTTP 客户端失败: {e}"))?,
         )

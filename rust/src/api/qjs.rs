@@ -279,6 +279,7 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
 }
 
 #[frb(sync)]
+// 使用这个办法注册的都应该返回string，而不是一个类型
 pub fn register_function(
     function_name: String,
     dart_callback: impl Fn(String) -> DartFnFuture<String> + Send + Sync + 'static,

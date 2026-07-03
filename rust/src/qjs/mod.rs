@@ -1837,8 +1837,7 @@ pub fn register_function(
             let value = if out.is_empty() {
                 Value::Null
             } else {
-                serde_json::from_str(&out)
-                    .with_context(|| format!("解析 Dart 回调返回值失败: {out}"))?
+                Value::String(out)
             };
 
             Ok(value)

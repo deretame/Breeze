@@ -177,6 +177,31 @@ cd rust_builder
 flutter pub get
 ```
 
+### 4.4 Windows 下调试终端调用 Flutter / Dart（建议优先尝试）
+
+项目使用 **Puro** 管理 Flutter SDK（`.puro.json` 锁定环境）。在 MSYS2 / Git Bash 等类 Unix Shell 中直接执行 `flutter` 或 `dart` 时，这两个脚本会调用 Windows 原生可执行文件 `puro.exe`，有时会因为路径/兼容层问题失败。
+
+> 因此，**建议优先尝试**通过 `puro` 命令间接调用：
+
+```bash
+# 优先尝试
+puro flutter --version
+puro dart --version
+
+# 示例
+puro flutter pub get
+puro dart ./script/code_generate.dart
+```
+
+如果当前 Shell 的 `PATH` 中没有 `puro`，可使用其绝对路径（以本机默认安装位置为例）：
+
+```bash
+/c/Users/windy/.puro/bin/puro flutter pub get
+/c/Users/windy/.puro/bin/puro dart ./script/code_generate.dart
+```
+
+> 这并非强制要求。若你的终端/IDE 已能直接调用 `flutter`/`dart`，或 `cmd.exe` / PowerShell 下工作正常，继续使用原有方式即可。只有在直接调用失败时，再切换到 `puro flutter` / `puro dart`。
+
 ---
 
 ## 5. 构建与运行

@@ -97,7 +97,9 @@ class FolderShelfItem extends StatelessWidget {
                           ),
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(kComicCardBorderRadius),
-                            bottomRight: Radius.circular(kComicCardBorderRadius),
+                            bottomRight: Radius.circular(
+                              kComicCardBorderRadius,
+                            ),
                           ),
                         ),
                         padding: const EdgeInsets.fromLTRB(8, 24, 8, 8),

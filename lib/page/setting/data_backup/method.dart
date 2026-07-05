@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
@@ -9,17 +10,28 @@ import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/src/rust/api/data_backup.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 /// 备份包配置信息。
 class BackupConfig {
   final String version;
   final bool includeDownloads;
+
+  /// 本次导入使用的临时根目录，包含 zip 缓存副本与解压目录。
+  final String cacheDir;
+
+  /// 解压目录路径。
   final String extractDir;
+
+  /// 缓存目录中的 zip 副本路径。
+  final String zipPath;
 
   BackupConfig({
     required this.version,
     required this.includeDownloads,
+    required this.cacheDir,
     required this.extractDir,
+    required this.zipPath,
   });
 }
 
@@ -72,60 +84,120 @@ Future<String> exportBreezeBackup({
   }
 }
 
-/// 读取备份包配置，解压到临时目录并返回配置信息。
+/// 读取备份包中的 config.json，并把 zip 复制到应用缓存目录后返回配置信息。
 ///
+/// 先把源 zip 复制到私有缓存，再读取 config.json，避免在确认导入前因权限
+/// 回收或源文件变动导致第二次读取失败。本函数不会解压整个 zip。
 /// 调用方在确认导入后应使用 [applyBreezeBackupImport]；若取消导入，
-/// 请自行删除 [BackupConfig.extractDir]。
-Future<BackupConfig> readBackupConfig(String zipPath) async {
+/// 请自行删除 [BackupConfig.cacheDir]。
+///
+/// 当 [skipCopy] 为 true 时，[sourceZipPath] 应已是私有缓存中的路径，
+/// 不再重复复制（用于 Android 原生选择器直接拷贝到目标位置的场景）。
+Future<BackupConfig> readBackupConfig(
+  String sourceZipPath, {
+  bool skipCopy = false,
+}) async {
   final cachePath = await getCachePath();
-  final extractDir = await Directory(
-    p.join(
-      cachePath,
-      'breeze_backup_extract',
-      DateTime.now().millisecondsSinceEpoch.toString(),
-    ),
-  ).create(recursive: true);
+  // Android 原生选择器已经直接拷贝到私有缓存，复用该目录避免重复拷贝和路径不一致
+  final cacheDir = skipCopy
+      ? Directory(p.dirname(p.dirname(sourceZipPath)))
+      : Directory(
+          p.join(
+            cachePath,
+            'breeze_backup_import',
+            DateTime.now().millisecondsSinceEpoch.toString(),
+          ),
+        );
+  final extractDir = Directory(p.join(cacheDir.path, 'extract'));
+  final cacheZipFile = File(p.join(cacheDir.path, 'zip', 'backup.zip'));
 
   try {
-    await extractDataBackupZip(zipPath: zipPath, extractDir: extractDir.path);
-
-    final configFile = File(p.join(extractDir.path, 'config.json'));
-    if (!await configFile.exists()) {
-      throw StateError('备份包中缺少 config.json');
+    await extractDir.create(recursive: true);
+    await cacheZipFile.parent.create(recursive: true);
+    if (!skipCopy) {
+      await File(sourceZipPath).copy(cacheZipFile.path);
     }
 
-    final config =
-        jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
+    final configJson = await readDataBackupConfig(zipPath: cacheZipFile.path);
+    final config = jsonDecode(configJson) as Map<String, dynamic>;
     return BackupConfig(
       version: config['version'] as String? ?? 'Unknown',
       includeDownloads: config['includeDownloads'] as bool? ?? false,
+      cacheDir: cacheDir.path,
       extractDir: extractDir.path,
+      zipPath: cacheZipFile.path,
     );
-  } catch (_) {
-    // 失败时清理临时目录，避免残留
+  } catch (e) {
+    showErrorToast('导入失败：$e');
+    // 失败时清理全部临时目录，避免残留
     try {
-      await extractDir.delete(recursive: true);
+      await cacheDir.delete(recursive: true);
     } catch (_) {}
     rethrow;
   }
 }
 
-/// 将已解压的备份数据应用到当前应用。
-///
-/// [extractDir] 应来自 [readBackupConfig] 的返回值。执行完成后会删除该目录。
-Future<void> applyBreezeBackupImport(String extractDir) async {
-  final extractDirectory = Directory(extractDir);
-  try {
-    final configFile = File(p.join(extractDir, 'config.json'));
-    final config =
-        jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
-    final includeDownloads = config['includeDownloads'] as bool? ?? false;
+const _filePickerChannel = MethodChannel('com.zephyr.breeze/file_picker');
 
-    // 1. 清空现有 ObjectBox 数据
+/// Android 原生选择 zip 文件并直接拷贝到应用缓存目录。
+///
+/// 返回缓存中的 zip 路径；用户取消时返回 null。该路径可直接交给
+/// [readBackupConfig] 且应设置 [skipCopy] 为 true，避免重复拷贝。
+Future<String?> pickBackupZipAndroid() async {
+  final cachePath = await getCachePath();
+  final cacheDir = Directory(
+    p.join(
+      cachePath,
+      'breeze_backup_import',
+      DateTime.now().millisecondsSinceEpoch.toString(),
+    ),
+  );
+  final cacheZipFile = File(p.join(cacheDir.path, 'zip', 'backup.zip'));
+  await cacheZipFile.parent.create(recursive: true);
+
+  logger.i('调用 Android 原生选择器，目标路径：${cacheZipFile.path}');
+  final result = await _filePickerChannel.invokeMethod<String>(
+    'pickBackupZip',
+    {'destPath': cacheZipFile.path},
+  );
+  logger.i('Android 原生选择器返回：$result');
+  if (result == null) {
+    // 用户取消选择，清理已创建的临时目录
+    try {
+      await cacheDir.delete(recursive: true);
+    } catch (_) {}
+  }
+  return result;
+}
+
+/// 将备份数据解压并应用到当前应用。
+///
+/// [config] 应来自 [readBackupConfig] 的返回值。执行完成后会删除
+/// [BackupConfig.cacheDir] 下的缓存副本与解压目录。
+Future<void> applyBreezeBackupImport(BackupConfig config) async {
+  final cacheDirectory = Directory(config.cacheDir);
+  try {
+    // 1. 解压完整备份包
+    await extractDataBackupZip(
+      zipPath: config.zipPath,
+      extractDir: config.extractDir,
+    );
+
+    // 解压完成后即可删除缓存的 zip 副本，减少磁盘占用
+    try {
+      await File(config.zipPath).delete();
+    } catch (_) {}
+
+    final configFile = File(p.join(config.extractDir, 'config.json'));
+    final backupConfig =
+        jsonDecode(await configFile.readAsString()) as Map<String, dynamic>;
+    final includeDownloads = backupConfig['includeDownloads'] as bool? ?? false;
+
+    // 2. 清空现有 ObjectBox 数据
     await _clearObjectBoxData();
 
-    // 2. 恢复 ObjectBox 数据
-    final objectBoxFile = File(p.join(extractDir, 'objectbox.json'));
+    // 3. 恢复 ObjectBox 数据
+    final objectBoxFile = File(p.join(config.extractDir, 'objectbox.json'));
     if (await objectBoxFile.exists()) {
       final objectBoxJson =
           jsonDecode(await objectBoxFile.readAsString())
@@ -133,9 +205,11 @@ Future<void> applyBreezeBackupImport(String extractDir) async {
       await _restoreObjectBoxData(objectBoxJson);
     }
 
-    // 3. 恢复下载文件
+    // 4. 恢复下载文件
     if (includeDownloads) {
-      final exportedDownloadsDir = Directory(p.join(extractDir, 'downloads'));
+      final exportedDownloadsDir = Directory(
+        p.join(config.extractDir, 'downloads'),
+      );
       if (await exportedDownloadsDir.exists()) {
         final currentDownloadDir = Directory(await getDownloadPath());
         if (await currentDownloadDir.exists()) {
@@ -146,7 +220,7 @@ Future<void> applyBreezeBackupImport(String extractDir) async {
     }
   } finally {
     try {
-      await extractDirectory.delete(recursive: true);
+      await cacheDirectory.delete(recursive: true);
     } catch (_) {}
   }
 }

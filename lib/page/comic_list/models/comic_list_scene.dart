@@ -45,26 +45,17 @@ String _resolveFnPath(
   return '';
 }
 
-enum ComicListBodyType { pluginPagedComicList, pluginPagedCreatorList }
-
 class ComicListBodyConfig {
   const ComicListBodyConfig({
-    required this.type,
-    this.request,
+    required this.request,
     this.params = const <String, dynamic>{},
   });
 
-  final ComicListBodyType type;
   final ComicListRequestConfig? request;
   final Map<String, dynamic> params;
 
   factory ComicListBodyConfig.fromMap(Map<String, dynamic> map) {
-    final type = switch (map['type']?.toString()) {
-      'pluginPagedCreatorList' => ComicListBodyType.pluginPagedCreatorList,
-      _ => ComicListBodyType.pluginPagedComicList,
-    };
     return ComicListBodyConfig(
-      type: type,
       request: map['request'] == null
           ? null
           : ComicListRequestConfig.fromMap(asJsonMap(map['request'])),
@@ -97,7 +88,6 @@ class ComicListScene {
       body: bodyMap.isNotEmpty
           ? ComicListBodyConfig.fromMap(bodyMap)
           : ComicListBodyConfig(
-              type: ComicListBodyType.pluginPagedComicList,
               request: ComicListRequestConfig.fromMap(listMap),
             ),
       filter: map['filter'] == null

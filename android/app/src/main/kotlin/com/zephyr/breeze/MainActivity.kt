@@ -1,7 +1,10 @@
 package com.zephyr.breeze
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Debug
 import android.os.Bundle
@@ -38,9 +41,13 @@ class MainActivity: FlutterFragmentActivity() {
     private val VOLUME_EVENT_CHANNEL = "volume_key_events"
     private val SYSTEM_UI_CHANNEL = "system_ui_control"
     private val REALSR_CHANNEL = "realsr_super_resolution"
-    
+    private val FILE_PICKER_CHANNEL = "com.zephyr.breeze/file_picker"
+    private val REQUEST_CODE_PICK_BACKUP_ZIP = 1001
+
     private var volumeKeyInterceptionEnabled = false
     private var volumeEventSink: EventChannel.EventSink? = null
+    private var pendingFilePickerResult: MethodChannel.Result? = null
+    private var pendingFilePickerDestPath: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         initRustlsPlatformVerifier(applicationContext)
@@ -173,6 +180,84 @@ class MainActivity: FlutterFragmentActivity() {
                     }.start()
                 }
                 else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, FILE_PICKER_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "pickBackupZip" -> {
+                    val destPath = call.argument<String>("destPath")
+                    if (destPath == null) {
+                        result.error("INVALID_ARGS", "destPath is required", null)
+                    } else {
+                        pendingFilePickerResult = result
+                        pendingFilePickerDestPath = destPath
+                        openBackupZipPicker()
+                    }
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun openBackupZipPicker() {
+        Log.i("FilePicker", "打开系统文件选择器")
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/zip"
+        }
+        try {
+            startActivityForResult(intent, REQUEST_CODE_PICK_BACKUP_ZIP)
+        } catch (e: Exception) {
+            Log.e("FilePicker", "打开选择器失败", e)
+            pendingFilePickerResult?.error("PICKER_ERROR", e.message, e.stackTraceToString())
+            pendingFilePickerResult = null
+            pendingFilePickerDestPath = null
+        }
+    }
+
+    private fun copyUriToFile(uri: Uri, destFile: File) {
+        destFile.parentFile?.mkdirs()
+        contentResolver.openInputStream(uri)?.use { input ->
+            destFile.outputStream().use { output ->
+                val buffer = ByteArray(1024 * 1024)
+                var bytesRead: Int
+                var totalCopied = 0L
+                while (input.read(buffer).also { bytesRead = it } > 0) {
+                    output.write(buffer, 0, bytesRead)
+                    totalCopied += bytesRead
+                    if (totalCopied % (50 * 1024 * 1024) == 0L) {
+                        Log.i("FilePicker", "已拷贝 ${totalCopied / 1024 / 1024} MB")
+                    }
+                }
+            }
+        } ?: throw IllegalStateException("Cannot open input stream for $uri")
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_PICK_BACKUP_ZIP) {
+            Log.i("FilePicker", "onActivityResult: resultCode=$resultCode, data=$data")
+            val result = pendingFilePickerResult
+            val destPath = pendingFilePickerDestPath
+            pendingFilePickerResult = null
+            pendingFilePickerDestPath = null
+
+            if (resultCode == Activity.RESULT_OK && data?.data != null && destPath != null) {
+                val uri = data.data!!
+                Thread {
+                    try {
+                        copyUriToFile(uri, File(destPath))
+                        Log.i("FilePicker", "拷贝完成：$destPath")
+                        runOnUiThread { result?.success(destPath) }
+                    } catch (e: Exception) {
+                        Log.e("FilePicker", "拷贝失败", e)
+                        runOnUiThread { result?.error("COPY_ERROR", e.message, e.stackTraceToString()) }
+                    }
+                }.start()
+            } else {
+                Log.i("FilePicker", "用户取消或失败")
+                result?.success(null)
             }
         }
     }

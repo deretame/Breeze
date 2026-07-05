@@ -111,7 +111,7 @@ class DiscoverSchemeRenderer {
       case 'action-grid':
         return _buildActionGrid(
           context,
-          _filterActionItems(from, node, _resolveItems(node, data)),
+          _resolveItems(node, data),
           from,
           onAction,
         );
@@ -322,14 +322,6 @@ class DiscoverSchemeRenderer {
       return const <Map<String, dynamic>>[];
     }
     return asJsonList(data[key]).map((item) => asJsonMap(item)).toList();
-  }
-
-  List<Map<String, dynamic>> _filterActionItems(
-    String from,
-    Map<String, dynamic> node,
-    List<Map<String, dynamic>> items,
-  ) {
-    return items;
   }
 
   bool _isActionable(dynamic value) {

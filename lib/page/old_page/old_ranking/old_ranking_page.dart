@@ -91,13 +91,13 @@ class _OldRankingPageState extends State<OldRankingPage> {
 
     final panels = <Widget>[
       if (hasJm)
-        ComicListScaffold(
+        ComicListPage(
           key: const PageStorageKey('old_ranking_jm'),
           scene: _jmRankingScene,
           title: _jmRankingScene.title,
         ),
       if (hasBika)
-        ComicListScaffold(
+        ComicListPage(
           key: const PageStorageKey('old_ranking_bika'),
           scene: _bikaRankingScene,
           title: _bikaRankingScene.title,

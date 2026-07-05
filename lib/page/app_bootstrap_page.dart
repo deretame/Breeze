@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/plugin/plugin_cloud_update_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/compatible/compatible.dart';
@@ -84,7 +85,7 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
     updateStatus("初始化中....");
     await PluginRegistryService.I.init();
     await PluginRegistryService.I.warmupPluginInfos();
-    PluginRegistryService.I.scheduleSilentCloudUpdate(
+    PluginCloudUpdateService.I.scheduleSilentCloudUpdate(
       delay: const Duration(minutes: 1),
     );
     unawaited(() async {

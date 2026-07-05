@@ -23,7 +23,9 @@ class CloudPluginCard extends StatelessWidget {
     final localState = manifest.uuid.isNotEmpty
         ? PluginRegistryService.I.getByUuid(manifest.uuid)
         : null;
-    final installed = localState != null && !localState.isDeleted;
+    final isInstalled = localState != null && !localState.isDeleted;
+    final isActive =
+        localState != null && localState.isEnabled && !localState.isDeleted;
     final localVersion = localState?.version.trim() ?? '';
     final creatorText = manifest.creatorName.trim();
     final title = manifest.name.trim().isNotEmpty
@@ -52,15 +54,25 @@ class CloudPluginCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ),
+                        if (isInstalled) ...[
+                          const SizedBox(width: 8),
+                          const _InstalledChip(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      localVersion.isNotEmpty
+                      isActive && localVersion.isNotEmpty
                           ? '云端 ${manifest.version}  ·  本地 $localVersion'
                           : '云端 ${manifest.version}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -87,8 +99,6 @@ class CloudPluginCard extends StatelessWidget {
             runSpacing: 6,
             children: [
               _CloudMetaTag(label: '仓库', value: item.repo),
-              // if (manifest.uuid.trim().isNotEmpty)
-              //   _CloudMetaTag(label: 'UUID', value: manifest.uuid.trim()),
               if (creatorText.isNotEmpty)
                 _CloudMetaTag(label: '作者', value: creatorText),
             ],
@@ -96,10 +106,6 @@ class CloudPluginCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              if (installed) ...[
-                _InstalledPill(colorScheme: colorScheme),
-                const SizedBox(width: 8),
-              ],
               if (manifest.home.trim().isNotEmpty) ...[
                 OutlinedButton.icon(
                   onPressed: installing
@@ -113,7 +119,7 @@ class CloudPluginCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: installing ? null : onInstall,
                 icon: const Icon(Icons.download_outlined, size: 16),
-                label: Text(installed ? '下载更新' : '下载'),
+                label: Text(isInstalled ? '下载更新' : '下载'),
               ),
             ],
           ),
@@ -123,24 +129,36 @@ class CloudPluginCard extends StatelessWidget {
   }
 }
 
-class _InstalledPill extends StatelessWidget {
-  const _InstalledPill({required this.colorScheme});
-
-  final ColorScheme colorScheme;
+class _InstalledChip extends StatelessWidget {
+  const _InstalledChip();
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(999),
-        color: colorScheme.primaryContainer,
       ),
-      child: Text(
-        '已安装',
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: colorScheme.onPrimaryContainer),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: 12,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '已安装',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

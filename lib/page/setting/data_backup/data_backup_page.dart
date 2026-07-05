@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
-
 import 'package:zephyr/util/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -115,28 +114,34 @@ class _DataBackupPageState extends State<DataBackupPage> {
   }
 
   Future<void> _importData() async {
-    final XFile? file;
+    if (!mounted) return;
+    _setBusy(true);
+    _showLoadingDialog('正在处理备份文件…');
+
+    final String? filePath;
     try {
-      file = await openFile(
-        acceptedTypeGroups: [
-          const XTypeGroup(label: 'zip', extensions: ['zip']),
-        ],
-      );
+      filePath = await _pickImportZipPath();
     } catch (e, s) {
+      if (mounted) Navigator.of(context).pop();
       logger.e('选择备份文件失败', error: e, stackTrace: s);
       showErrorToast('选择备份文件失败：$e');
+      _setBusy(false);
       return;
     }
 
-    if (file == null) return;
+    if (filePath == null) {
+      if (mounted) Navigator.of(context).pop();
+      _setBusy(false);
+      return;
+    }
 
     if (!mounted) return;
-    _setBusy(true);
+    Navigator.of(context).pop();
     _showLoadingDialog('正在读取备份信息…');
 
     late final BackupConfig config;
     try {
-      config = await readBackupConfig(file.path);
+      config = await readBackupConfig(filePath, skipCopy: Platform.isAndroid);
     } catch (e, s) {
       if (mounted) Navigator.of(context).pop();
       logger.e('读取备份失败', error: e, stackTrace: s);
@@ -146,7 +151,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
     }
 
     if (!mounted) {
-      _cleanupExtractDir(config.extractDir);
+      _cleanupImportCache(config);
       _setBusy(false);
       return;
     }
@@ -160,20 +165,20 @@ class _DataBackupPageState extends State<DataBackupPage> {
     );
 
     if (!confirmed) {
-      _cleanupExtractDir(config.extractDir);
+      _cleanupImportCache(config);
       _setBusy(false);
       return;
     }
 
     if (!mounted) {
-      _cleanupExtractDir(config.extractDir);
+      _cleanupImportCache(config);
       _setBusy(false);
       return;
     }
     _showLoadingDialog('正在导入，请稍后…');
 
     try {
-      await applyBreezeBackupImport(config.extractDir);
+      await applyBreezeBackupImport(config);
       if (!mounted) return;
       Navigator.of(context).pop();
       await _showRestartDialog();
@@ -211,9 +216,29 @@ class _DataBackupPageState extends State<DataBackupPage> {
     );
   }
 
-  void _cleanupExtractDir(String extractDir) {
+  /// 选择要导入的 zip 备份文件。
+  ///
+  /// Android 上使用原生 MethodChannel 选择器，把文件直接拷贝到应用缓存，
+  /// 绕过 [file_selector] 选择大文件时把整个文件读入内存导致的 OOM；
+  /// 其他平台继续使用 [file_selector]。
+  Future<String?> _pickImportZipPath() async {
+    if (Platform.isAndroid) {
+      logger.i('Android 平台，使用原生选择器');
+      return pickBackupZipAndroid();
+    }
+
+    logger.i('非 Android 平台，使用 file_selector');
+    final file = await openFile(
+      acceptedTypeGroups: [
+        const XTypeGroup(label: 'zip', extensions: ['zip']),
+      ],
+    );
+    return file?.path;
+  }
+
+  void _cleanupImportCache(BackupConfig config) {
     try {
-      Directory(extractDir).deleteSync(recursive: true);
+      Directory(config.cacheDir).deleteSync(recursive: true);
     } catch (_) {}
   }
 

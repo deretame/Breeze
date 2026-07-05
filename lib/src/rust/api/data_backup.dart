@@ -24,6 +24,12 @@ Future<void> createDataBackupZip({
   downloadDir: downloadDir,
 );
 
+/// 从数据备份 zip 中直接读取 config.json 内容。
+Future<String> readDataBackupConfig({required String zipPath}) => RustLib
+    .instance
+    .api
+    .crateApiDataBackupReadDataBackupConfig(zipPath: zipPath);
+
 /// 将数据备份 zip 解压到目标目录。
 Future<void> extractDataBackupZip({
   required String zipPath,

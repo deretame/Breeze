@@ -47,6 +47,30 @@ pub async fn create_data_backup_zip(
     .context("zip 备份任务执行失败")?
 }
 
+/// 从数据备份 zip 中直接读取 config.json 内容。
+#[frb]
+pub async fn read_data_backup_config(zip_path: String) -> Result<String> {
+    tokio::task::spawn_blocking(move || {
+        let file =
+            File::open(&zip_path).with_context(|| format!("打开备份 zip 失败: {}", zip_path))?;
+        let mut archive =
+            zip::ZipArchive::new(file).with_context(|| format!("读取 zip 失败: {}", zip_path))?;
+
+        let mut entry = archive
+            .by_name("config.json")
+            .with_context(|| "备份包中缺少 config.json")?;
+
+        let mut content = String::new();
+        entry
+            .read_to_string(&mut content)
+            .with_context(|| "读取 config.json 失败")?;
+
+        Ok::<String, anyhow::Error>(content)
+    })
+    .await
+    .context("读取备份配置任务执行失败")?
+}
+
 /// 将数据备份 zip 解压到目标目录。
 #[frb]
 pub async fn extract_data_backup_zip(zip_path: String, extract_dir: String) -> Result<()> {

@@ -83,3 +83,9 @@ opt-level = 1
 
 # 减少增量编译生成的碎片文件
 incremental = true
+
+# 临时 patch：rquickjs-sys 0.12.0 在 Windows 交叉编译 Android 时，
+# host 构建会错误使用 Android NDK 的 libclang 生成绑定，导致 JSValue 类型不匹配。
+# 详见：https://github.com/DelSkayn/rquickjs/issues/709
+[patch.crates-io]
+rquickjs-sys = { git = "https://github.com/deretame/rquickjs.git", branch = "fix/android-windows-bindgen" }

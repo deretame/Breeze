@@ -1,18 +1,23 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
+import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/worker_isolate.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 const String kFolderShelfRootPath = '';
@@ -272,44 +277,34 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
     emit(state.copyWith(isLoading: true, error: null));
     try {
       final search = event.search ?? state.search;
-      final sortAscending = search?.sort == 'da';
-      final sourceFilter = _sourceFilterFromSearch(search);
-      final folderMembers = _folderMembersFromSearch(search);
+      final currentMode = state.mode;
+      final currentPath = state.currentPath;
+      final token = captureWorkerIsolateToken();
+      final payload = {
+        'mode': currentMode.name,
+        'currentPath': currentPath,
+        'keyword': search?.keyword ?? '',
+        'sort': search?.sort ?? 'dd',
+        'sources': search?.sources ?? const <String>[],
+      };
+      final result = await workerManager.execute<Map<String, dynamic>>(
+        () => _runFolderShelfLoadTask(payload, token),
+      );
 
-      final folders = ComicFolderService.listChildFolders(
-        state.currentPath,
-        _folderType,
-        sortAscending: sortAscending,
-      );
-      final links = ComicLinkService.listLinks(
-        state.currentPath.isEmpty ? null : state.currentPath,
-        _folderType,
-        sortAscending: sortAscending,
-      );
-      final comics = <ComicSimplifyEntryInfo>[];
-      final comicSearchTexts = <String, String>{};
-      for (final link in links) {
-        if (folderMembers != null &&
-            !folderMembers.contains(link.comicUniqueKey)) {
-          continue;
-        }
-        final resolved = _resolveComic(link.comicUniqueKey);
-        if (resolved == null) continue;
-        if (sourceFilter != null &&
-            !sourceFilter.contains(resolved.info.source)) {
-          continue;
-        }
-        comics.add(resolved.info);
-        comicSearchTexts['${resolved.info.from.trim()}:${resolved.info.id}'] =
-            resolved.searchText;
+      final error = result['error']?.toString() ?? '';
+      if (error.isNotEmpty) {
+        throw Exception(error);
       }
+
       emit(
         state.copyWith(
-          folders: folders,
-          comics: comics,
-          comicSearchTexts: comicSearchTexts,
+          folders: result['folders'] as List<ComicFolder>,
+          comics: result['comics'] as List<ComicSimplifyEntryInfo>,
+          comicSearchTexts:
+              (result['comicSearchTexts'] as Map?)?.cast<String, String>() ??
+              const <String, String>{},
           search: search,
-          sortAscending: sortAscending,
+          sortAscending: search?.sort == 'da',
           isLoading: false,
           error: null,
         ),
@@ -549,121 +544,215 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
     add(const FolderShelfExitSelectionMode());
     add(const FolderShelfLoadRequested());
   }
+}
 
-  Set<String>? _sourceFilterFromSearch(SearchStatusState? search) {
-    if (search == null) return null;
-    final sources = switch (_folderType) {
-      ComicFolderType.favorite => FavoriteFolderService.stripFolderSourceTokens(
-        search.sources,
-      ),
-      ComicFolderType.download => DownloadFolderService.stripFolderSourceTokens(
-        search.sources,
-      ),
-      ComicFolderType.history => search.sources,
-    };
-    final cleaned = sources
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toSet();
-    if (cleaned.isEmpty) return null;
-    return cleaned;
-  }
+Future<Map<String, dynamic>> _runFolderShelfLoadTask(
+  Map<String, dynamic> payload,
+  RootIsolateToken? token,
+) async {
+  try {
+    ensureWorkerIsolateInitialized(token);
+    await initRustLib(silent: true);
+    objectbox = await ObjectBox.create();
 
-  Set<String>? _folderMembersFromSearch(SearchStatusState? search) {
-    if (search == null) return null;
-    final folderKey = switch (_folderType) {
-      ComicFolderType.favorite =>
-        FavoriteFolderService.parseFolderKeyFromSources(search.sources),
-      ComicFolderType.download =>
-        DownloadFolderService.parseFolderKeyFromSources(search.sources),
-      ComicFolderType.history => null,
-    };
-    if (folderKey == null) return null;
-    final isAllFolder = switch (_folderType) {
-      ComicFolderType.favorite => folderKey == kFavoriteFolderAllKey,
-      ComicFolderType.download => folderKey == kDownloadFolderAllKey,
-      ComicFolderType.history => true,
-    };
-    if (isAllFolder) return null;
-    final members = switch (_folderType) {
-      ComicFolderType.favorite => FavoriteFolderService.membersOf(folderKey),
-      ComicFolderType.download => DownloadFolderService.membersOf(folderKey),
-      ComicFolderType.history => const <String>{},
-    };
-    if (members.isEmpty) return const <String>{};
-    return members;
-  }
+    final mode = ShelfPageMode.values.byName(payload['mode'] as String);
+    final folderType = FolderShelfBloc._toFolderType(mode);
+    final currentPath = payload['currentPath'] as String;
+    final keyword = payload['keyword']?.toString() ?? '';
+    final sort = payload['sort']?.toString() ?? 'dd';
+    final sources =
+        (payload['sources'] as List?)?.cast<String>() ?? const <String>[];
+    final search = SearchStatusState(
+      keyword: keyword,
+      sort: sort,
+      sources: sources,
+    );
 
-  ({ComicSimplifyEntryInfo info, String searchText})? _resolveComic(
-    String uniqueKey,
-  ) {
-    switch (_folderType) {
-      case ComicFolderType.favorite:
-        final comic = objectbox.unifiedFavoriteBox
-            .query(
-              UnifiedComicFavorite_.uniqueKey
-                  .equals(uniqueKey)
-                  .and(UnifiedComicFavorite_.deleted.equals(false)),
-            )
-            .build()
-            .findFirst();
-        if (comic == null) return null;
-        return (
-          info: unifiedComicFromUnifiedFavorite(comic).toSimplifyEntryInfo(),
-          searchText: _buildComicSearchText(comic),
-        );
-      case ComicFolderType.download:
-        final comic = objectbox.unifiedDownloadBox
-            .query(
-              UnifiedComicDownload_.uniqueKey
-                  .equals(uniqueKey)
-                  .and(UnifiedComicDownload_.deleted.equals(false)),
-            )
-            .build()
-            .findFirst();
-        if (comic == null) return null;
-        return (
-          info: unifiedComicFromUnifiedDownload(comic).toSimplifyEntryInfo(),
-          searchText: _buildComicSearchText(comic),
-        );
-      case ComicFolderType.history:
-        final comic = objectbox.unifiedHistoryBox
-            .query(
-              UnifiedComicHistory_.uniqueKey
-                  .equals(uniqueKey)
-                  .and(UnifiedComicHistory_.deleted.equals(false)),
-            )
-            .build()
-            .findFirst();
-        if (comic == null) return null;
-        return (
-          info: unifiedComicFromUnifiedHistory(comic).toSimplifyEntryInfo(),
-          searchText: _buildComicSearchText(comic),
-        );
+    final sortAscending = sort == 'da';
+    final sourceFilter = _sourceFilterFromSearch(search, folderType);
+    final folderMembers = _folderMembersFromSearch(search, folderType);
+
+    // 搜索时不应被“当前所在文件夹”限制，而是全局搜索该类型下的全部漫画。
+    final isSearching = keyword.trim().isNotEmpty;
+    final normalizedKeyword = isSearching ? _normalizeSearchText(keyword) : '';
+    final folders = isSearching
+        ? <ComicFolder>[]
+        : ComicFolderService.listChildFolders(
+            currentPath,
+            folderType,
+            sortAscending: sortAscending,
+          );
+    final links = isSearching
+        ? ComicLinkService.listAllLinks(
+            folderType,
+            sortAscending: sortAscending,
+          )
+        : ComicLinkService.listLinks(
+            currentPath.isEmpty ? null : currentPath,
+            folderType,
+            sortAscending: sortAscending,
+          );
+
+    final comics = <ComicSimplifyEntryInfo>[];
+    final comicSearchTexts = <String, String>{};
+    final seenKeys = <String>{};
+    for (final link in links) {
+      if (folderMembers != null &&
+          !folderMembers.contains(link.comicUniqueKey)) {
+        continue;
+      }
+      final resolved = _resolveComic(link.comicUniqueKey, folderType);
+      if (resolved == null) continue;
+      if (sourceFilter != null &&
+          !sourceFilter.contains(resolved.info.source)) {
+        continue;
+      }
+      final key = '${resolved.info.from.trim()}:${resolved.info.id}';
+      if (!seenKeys.add(key)) continue;
+      if (isSearching && !resolved.searchText.contains(normalizedKeyword)) {
+        continue;
+      }
+      comics.add(resolved.info);
+      comicSearchTexts[key] = resolved.searchText;
     }
-  }
 
-  String _buildComicSearchText(dynamic comic) {
-    final text = [
-      comic.comicId?.toString() ?? '',
-      comic.title?.toString() ?? '',
-      comic.description?.toString() ?? '',
-      _creatorName(comic.creator?.toString() ?? ''),
-      comic.titleMeta?.toString() ?? '',
-      comic.metadata?.toString() ?? '',
-      comic.source?.toString() ?? '',
-    ].join();
-    return _normalizeSearchText(text);
+    return {
+      'folders': folders,
+      'comics': comics,
+      'comicSearchTexts': comicSearchTexts,
+    };
+  } catch (e) {
+    return {
+      'error': e.toString(),
+      'folders': <ComicFolder>[],
+      'comics': <ComicSimplifyEntryInfo>[],
+      'comicSearchTexts': <String, String>{},
+    };
   }
+}
 
-  static String _creatorName(String raw) {
-    if (raw.trim().isEmpty) return '';
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map) return decoded['name']?.toString() ?? '';
-    } catch (_) {}
-    return '';
+Set<String>? _sourceFilterFromSearch(
+  SearchStatusState? search,
+  ComicFolderType folderType,
+) {
+  if (search == null) return null;
+  final sources = switch (folderType) {
+    ComicFolderType.favorite => FavoriteFolderService.stripFolderSourceTokens(
+      search.sources,
+    ),
+    ComicFolderType.download => DownloadFolderService.stripFolderSourceTokens(
+      search.sources,
+    ),
+    ComicFolderType.history => search.sources,
+  };
+  final cleaned = sources
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toSet();
+  if (cleaned.isEmpty) return null;
+  return cleaned;
+}
+
+Set<String>? _folderMembersFromSearch(
+  SearchStatusState? search,
+  ComicFolderType folderType,
+) {
+  if (search == null) return null;
+  final folderKey = switch (folderType) {
+    ComicFolderType.favorite => FavoriteFolderService.parseFolderKeyFromSources(
+      search.sources,
+    ),
+    ComicFolderType.download => DownloadFolderService.parseFolderKeyFromSources(
+      search.sources,
+    ),
+    ComicFolderType.history => null,
+  };
+  if (folderKey == null) return null;
+  final isAllFolder = switch (folderType) {
+    ComicFolderType.favorite => folderKey == kFavoriteFolderAllKey,
+    ComicFolderType.download => folderKey == kDownloadFolderAllKey,
+    ComicFolderType.history => true,
+  };
+  if (isAllFolder) return null;
+  final members = switch (folderType) {
+    ComicFolderType.favorite => FavoriteFolderService.membersOf(folderKey),
+    ComicFolderType.download => DownloadFolderService.membersOf(folderKey),
+    ComicFolderType.history => const <String>{},
+  };
+  if (members.isEmpty) return const <String>{};
+  return members;
+}
+
+({ComicSimplifyEntryInfo info, String searchText})? _resolveComic(
+  String uniqueKey,
+  ComicFolderType folderType,
+) {
+  switch (folderType) {
+    case ComicFolderType.favorite:
+      final comic = objectbox.unifiedFavoriteBox
+          .query(
+            UnifiedComicFavorite_.uniqueKey
+                .equals(uniqueKey)
+                .and(UnifiedComicFavorite_.deleted.equals(false)),
+          )
+          .build()
+          .findFirst();
+      if (comic == null) return null;
+      return (
+        info: unifiedComicFromUnifiedFavorite(comic).toSimplifyEntryInfo(),
+        searchText: _buildComicSearchText(comic),
+      );
+    case ComicFolderType.download:
+      final comic = objectbox.unifiedDownloadBox
+          .query(
+            UnifiedComicDownload_.uniqueKey
+                .equals(uniqueKey)
+                .and(UnifiedComicDownload_.deleted.equals(false)),
+          )
+          .build()
+          .findFirst();
+      if (comic == null) return null;
+      return (
+        info: unifiedComicFromUnifiedDownload(comic).toSimplifyEntryInfo(),
+        searchText: _buildComicSearchText(comic),
+      );
+    case ComicFolderType.history:
+      final comic = objectbox.unifiedHistoryBox
+          .query(
+            UnifiedComicHistory_.uniqueKey
+                .equals(uniqueKey)
+                .and(UnifiedComicHistory_.deleted.equals(false)),
+          )
+          .build()
+          .findFirst();
+      if (comic == null) return null;
+      return (
+        info: unifiedComicFromUnifiedHistory(comic).toSimplifyEntryInfo(),
+        searchText: _buildComicSearchText(comic),
+      );
   }
+}
+
+String _buildComicSearchText(dynamic comic) {
+  final text = [
+    comic.comicId?.toString() ?? '',
+    comic.title?.toString() ?? '',
+    comic.description?.toString() ?? '',
+    _creatorName(comic.creator?.toString() ?? ''),
+    comic.titleMeta?.toString() ?? '',
+    comic.metadata?.toString() ?? '',
+    comic.source?.toString() ?? '',
+  ].join();
+  return _normalizeSearchText(text);
+}
+
+String _creatorName(String raw) {
+  if (raw.trim().isEmpty) return '';
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is Map) return decoded['name']?.toString() ?? '';
+  } catch (_) {}
+  return '';
 }
 
 String _normalizeSearchText(String text) {

@@ -13,6 +13,8 @@ import '../../util/sundry.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
 
+const double kComicCardBorderRadius = 5.0;
+
 class ComicFixedSizeHorizontalList extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final double spacing; // 卡片之间的横向间距
@@ -83,7 +85,7 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
     double height,
     Key coverKey,
   ) {
-    double circular = roundedCorner ? 5.0 : 0.0;
+    final circular = roundedCorner ? kComicCardBorderRadius : 0.0;
     return Stack(
       children: [
         // 1. 底层封面图
@@ -233,7 +235,7 @@ class ComicSimplifyEntry extends StatelessWidget {
     double width,
     double height,
   ) {
-    double circular = roundedCorner ? 5.0 : 0.0;
+    final circular = roundedCorner ? kComicCardBorderRadius : 0.0;
     final primary = Theme.of(context).colorScheme.primary;
     return ClipRRect(
       borderRadius: BorderRadius.circular(circular),

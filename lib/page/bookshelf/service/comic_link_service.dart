@@ -49,6 +49,29 @@ class ComicLinkService {
     return ComicFolderService.folderSyncIdByPath(folderPath, type);
   }
 
+  /// 列出该类型下全部未删除的漫画链接，按 createdAt 排序（新的在前）
+  static List<ComicLink> listAllLinks(
+    ComicFolderType type, {
+    bool sortAscending = false,
+  }) {
+    final query = objectbox.comicLinkBox
+        .query(
+          ComicLink_.typeData
+              .equals(type.name)
+              .and(ComicLink_.deletedAt.isNull()),
+        )
+        .order(
+          ComicLink_.createdAt,
+          flags: sortAscending ? 0 : Order.descending,
+        )
+        .build();
+    try {
+      return query.find();
+    } finally {
+      query.close();
+    }
+  }
+
   /// 列出某路径下未删除的漫画链接，按 createdAt 排序（新的在前）
   static List<ComicLink> listLinks(
     String? folderPath,

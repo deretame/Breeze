@@ -8,6 +8,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'comic_simplify_entry.dart';
 
 class CoverWidget extends StatelessWidget {
   final String fileServer;
@@ -62,7 +63,7 @@ class CoverWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(
-                      roundedCorner ? 5.0 : 0.0,
+                      roundedCorner ? kComicCardBorderRadius : 0.0,
                     ),
                   ),
                   child: Center(
@@ -100,7 +101,7 @@ class CoverWidget extends StatelessWidget {
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
                   return ClipRRect(
-                    borderRadius: BorderRadius.circular(5.0),
+                    borderRadius: BorderRadius.circular(kComicCardBorderRadius),
                     child: Image.asset(
                       'asset/image/error_image/404.png',
                       fit: BoxFit.cover,

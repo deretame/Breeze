@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -8,6 +9,7 @@ import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
@@ -15,6 +17,7 @@ import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/worker_isolate.dart';
 
 const _kPageSize = 200;
 
@@ -150,25 +153,20 @@ class BookshelfSectionBloc
 
     try {
       final offset = event.append ? current.comics.length : 0;
-      final raw = _fetchRawItems(
-        search: event.searchEnterConst,
-        offset: offset,
-        limit: _kPageSize,
-      );
-
+      final modeName = mode.name;
+      final token = captureWorkerIsolateToken();
+      final payload = {
+        'mode': modeName,
+        'search': {
+          'keyword': event.searchEnterConst.keyword,
+          'sort': event.searchEnterConst.sort,
+          'sources': event.searchEnterConst.sources,
+        },
+        'offset': offset,
+        'limit': _kPageSize,
+      };
       final response = await workerManager.execute<Map<String, dynamic>>(
-        () => _runBookshelfFilterTask({
-          'search': {
-            'keyword': event.searchEnterConst.keyword,
-            'sort': event.searchEnterConst.sort,
-            'sources': event.searchEnterConst.sources,
-          },
-          'items': raw.items,
-          'total': raw.total,
-          'offset': offset,
-          'limit': _kPageSize,
-          'preFiltered': raw.preFiltered,
-        }),
+        () => _runBookshelfLoadTask(payload, token),
       );
 
       final error = response['error']?.toString() ?? '';
@@ -177,7 +175,7 @@ class BookshelfSectionBloc
       }
 
       final pageItems = _decodeItems(response['items']);
-      final total = (response['total'] as int?) ?? raw.total;
+      final total = (response['total'] as int?) ?? 0;
       final hasReachedMax = (offset + pageItems.length) >= total;
 
       emit(
@@ -241,233 +239,6 @@ class BookshelfSectionBloc
     );
   }
 
-  _RawQueryResult _fetchRawItems({
-    required SearchEnter search,
-    required int offset,
-    required int limit,
-  }) {
-    return switch (mode) {
-      ShelfPageMode.favorite => _queryFavoriteRaw(search, offset, limit),
-      ShelfPageMode.history => _queryHistoryRaw(search, offset, limit),
-      ShelfPageMode.download => _queryDownloadRaw(search, offset, limit),
-    };
-  }
-
-  _RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
-    final folderKey = FavoriteFolderService.parseFolderKeyFromSources(
-      search.sources,
-    );
-    final sourcesWithoutFolder = FavoriteFolderService.stripFolderSourceTokens(
-      search.sources,
-    );
-    final folderFiltering =
-        folderKey != null && folderKey != kFavoriteFolderAllKey;
-    final preFilter = !_needsWorkerFilter(search);
-    final query = objectbox.unifiedFavoriteBox
-        .query(
-          _favoriteBaseCondition(
-            search.copyWith(sources: sourcesWithoutFolder),
-          ),
-        )
-        .order(
-          UnifiedComicFavorite_.createdAt,
-          flags: search.sort == 'da' ? 0 : Order.descending,
-        )
-        .build();
-    try {
-      final total = query.count();
-      if (folderFiltering) {
-        final all = query.find();
-        final members = FavoriteFolderService.membersOf(folderKey);
-        final filtered = all
-            .where((item) => members.contains(item.uniqueKey))
-            .toList();
-        final items = preFilter
-            ? _sliceItems(filtered, offset, limit)
-            : filtered;
-        return _RawQueryResult(
-          items.map((item) => item.toJson()).toList(),
-          filtered.length,
-          preFilter,
-        );
-      }
-      if (!preFilter) {
-        final items = query.find();
-        return _RawQueryResult(
-          items.map((item) => item.toJson()).toList(),
-          total,
-          preFilter,
-        );
-      }
-      query.offset = offset;
-      query.limit = limit;
-      final items = query.find();
-      return _RawQueryResult(
-        items.map((item) => item.toJson()).toList(),
-        total,
-        preFilter,
-      );
-    } finally {
-      query.close();
-    }
-  }
-
-  _RawQueryResult _queryHistoryRaw(SearchEnter search, int offset, int limit) {
-    final preFilter = !_needsWorkerFilter(search);
-    final query = objectbox.unifiedHistoryBox
-        .query(_historyBaseCondition(search))
-        .order(
-          UnifiedComicHistory_.updatedAt,
-          flags: search.sort == 'da' ? 0 : Order.descending,
-        )
-        .build();
-    try {
-      final total = query.count();
-      if (!preFilter) {
-        final items = query.find();
-        return _RawQueryResult(
-          items.map((item) => item.toJson()).toList(),
-          total,
-          preFilter,
-        );
-      }
-      query.offset = offset;
-      query.limit = limit;
-      final items = query.find();
-      return _RawQueryResult(
-        items.map((item) => item.toJson()).toList(),
-        total,
-        preFilter,
-      );
-    } finally {
-      query.close();
-    }
-  }
-
-  _RawQueryResult _queryDownloadRaw(SearchEnter search, int offset, int limit) {
-    final folderKey = DownloadFolderService.parseFolderKeyFromSources(
-      search.sources,
-    );
-    final sourcesWithoutFolder = DownloadFolderService.stripFolderSourceTokens(
-      search.sources,
-    );
-    final folderFiltering =
-        folderKey != null && folderKey != kDownloadFolderAllKey;
-    final preFilter = !_needsWorkerFilter(search);
-    final query = objectbox.unifiedDownloadBox
-        .query(
-          _downloadBaseCondition(
-            search.copyWith(sources: sourcesWithoutFolder),
-          ),
-        )
-        .order(
-          UnifiedComicDownload_.downloadedAt,
-          flags: search.sort == 'da' ? 0 : Order.descending,
-        )
-        .build();
-    try {
-      final total = query.count();
-      if (folderFiltering) {
-        final all = query.find();
-        final members = DownloadFolderService.membersOf(folderKey);
-        final filtered = all
-            .where((item) => members.contains(item.uniqueKey))
-            .toList();
-        final items = preFilter
-            ? _sliceItems(filtered, offset, limit)
-            : filtered;
-        return _RawQueryResult(
-          items.map((item) => item.toJson()).toList(),
-          filtered.length,
-          preFilter,
-        );
-      }
-      if (!preFilter) {
-        final items = query.find();
-        return _RawQueryResult(
-          items.map((item) => item.toJson()).toList(),
-          total,
-          preFilter,
-        );
-      }
-      query.offset = offset;
-      query.limit = limit;
-      final items = query.find();
-      return _RawQueryResult(
-        items.map((item) => item.toJson()).toList(),
-        total,
-        preFilter,
-      );
-    } finally {
-      query.close();
-    }
-  }
-
-  Condition<UnifiedComicFavorite> _favoriteBaseCondition(SearchEnter search) {
-    return _favoriteSourceCondition(
-      search.sources,
-    ).and(UnifiedComicFavorite_.deleted.equals(false));
-  }
-
-  Condition<UnifiedComicHistory> _historyBaseCondition(SearchEnter search) {
-    return _historySourceCondition(
-      search.sources,
-    ).and(UnifiedComicHistory_.deleted.equals(false));
-  }
-
-  Condition<UnifiedComicDownload> _downloadBaseCondition(SearchEnter search) {
-    return _downloadSourceCondition(search.sources);
-  }
-
-  Condition<UnifiedComicFavorite> _favoriteSourceCondition(
-    List<String> sources,
-  ) {
-    final cleaned = sources
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (cleaned.isEmpty) {
-      return UnifiedComicFavorite_.id.lessThan(0);
-    }
-    var condition = UnifiedComicFavorite_.source.equals(cleaned.first);
-    for (final source in cleaned.skip(1)) {
-      condition = condition.or(UnifiedComicFavorite_.source.equals(source));
-    }
-    return condition;
-  }
-
-  Condition<UnifiedComicHistory> _historySourceCondition(List<String> sources) {
-    final cleaned = sources
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (cleaned.isEmpty) {
-      return UnifiedComicHistory_.id.lessThan(0);
-    }
-    var condition = UnifiedComicHistory_.source.equals(cleaned.first);
-    for (final source in cleaned.skip(1)) {
-      condition = condition.or(UnifiedComicHistory_.source.equals(source));
-    }
-    return condition;
-  }
-
-  Condition<UnifiedComicDownload> _downloadSourceCondition(
-    List<String> sources,
-  ) {
-    final cleaned = sources
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (cleaned.isEmpty) {
-      return UnifiedComicDownload_.id.lessThan(0);
-    }
-    var condition = UnifiedComicDownload_.source.equals(cleaned.first);
-    for (final source in cleaned.skip(1)) {
-      condition = condition.or(UnifiedComicDownload_.source.equals(source));
-    }
-    return condition;
-  }
-
   List<dynamic> _decodeItems(dynamic payload) {
     final list = (payload as List?) ?? const <dynamic>[];
     return switch (mode) {
@@ -511,24 +282,38 @@ class BookshelfSectionBloc
   }
 }
 
-Future<Map<String, dynamic>> _runBookshelfFilterTask(
+Future<Map<String, dynamic>> _runBookshelfLoadTask(
   Map<String, dynamic> payload,
+  RootIsolateToken? token,
 ) async {
   try {
+    ensureWorkerIsolateInitialized(token);
     await initRustLib(silent: true);
-    final search = Map<String, dynamic>.from(
+    objectbox = await ObjectBox.create();
+
+    final mode = ShelfPageMode.values.byName(payload['mode'] as String);
+    final searchMap = Map<String, dynamic>.from(
       (payload['search'] as Map?) ?? const <String, dynamic>{},
     );
-    final items = ((payload['items'] as List?) ?? const <dynamic>[])
-        .whereType<Map>()
-        .map((entry) => Map<String, dynamic>.from(entry))
-        .toList();
-    final filtered = _filterAndSort(items: items, search: search);
-    final preFiltered = payload['preFiltered'] == true;
-    final rawTotal = (payload['total'] as int?) ?? items.length;
-    final total = preFiltered ? rawTotal : filtered.length;
+    final search = SearchEnter(
+      keyword: searchMap['keyword']?.toString() ?? '',
+      sort: searchMap['sort']?.toString() ?? 'dd',
+      sources:
+          (searchMap['sources'] as List?)?.cast<String>() ?? const <String>[],
+    );
     final offset = (payload['offset'] as int?) ?? 0;
-    final limit = (payload['limit'] as int?) ?? filtered.length;
+    final limit = (payload['limit'] as int?) ?? _kPageSize;
+
+    final raw = _fetchRawItems(
+      mode: mode,
+      search: search,
+      offset: offset,
+      limit: limit,
+    );
+
+    final preFiltered = raw.preFiltered;
+    final filtered = _filterAndSort(items: raw.items, search: searchMap);
+    final total = preFiltered ? raw.total : filtered.length;
     final pageItems = preFiltered
         ? filtered
         : _sliceItems(filtered, offset, limit);
@@ -537,6 +322,222 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
   } catch (e) {
     return {'error': normalizeSearchErrorMessage(e), 'items': [], 'total': 0};
   }
+}
+
+_RawQueryResult _fetchRawItems({
+  required ShelfPageMode mode,
+  required SearchEnter search,
+  required int offset,
+  required int limit,
+}) {
+  return switch (mode) {
+    ShelfPageMode.favorite => _queryFavoriteRaw(search, offset, limit),
+    ShelfPageMode.history => _queryHistoryRaw(search, offset, limit),
+    ShelfPageMode.download => _queryDownloadRaw(search, offset, limit),
+  };
+}
+
+_RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
+  final folderKey = FavoriteFolderService.parseFolderKeyFromSources(
+    search.sources,
+  );
+  final sourcesWithoutFolder = FavoriteFolderService.stripFolderSourceTokens(
+    search.sources,
+  );
+  final folderFiltering =
+      folderKey != null && folderKey != kFavoriteFolderAllKey;
+  final preFilter = !_needsWorkerFilter(search);
+  final query = objectbox.unifiedFavoriteBox
+      .query(
+        _favoriteBaseCondition(search.copyWith(sources: sourcesWithoutFolder)),
+      )
+      .order(
+        UnifiedComicFavorite_.createdAt,
+        flags: search.sort == 'da' ? 0 : Order.descending,
+      )
+      .build();
+  try {
+    final total = query.count();
+    if (folderFiltering) {
+      final all = query.find();
+      final members = FavoriteFolderService.membersOf(folderKey);
+      final filtered = all
+          .where((item) => members.contains(item.uniqueKey))
+          .toList();
+      final items = preFilter ? _sliceItems(filtered, offset, limit) : filtered;
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        filtered.length,
+        preFilter,
+      );
+    }
+    if (!preFilter) {
+      final items = query.find();
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        total,
+        preFilter,
+      );
+    }
+    query.offset = offset;
+    query.limit = limit;
+    final items = query.find();
+    return _RawQueryResult(
+      items.map((item) => item.toJson()).toList(),
+      total,
+      preFilter,
+    );
+  } finally {
+    query.close();
+  }
+}
+
+_RawQueryResult _queryHistoryRaw(SearchEnter search, int offset, int limit) {
+  final preFilter = !_needsWorkerFilter(search);
+  final query = objectbox.unifiedHistoryBox
+      .query(_historyBaseCondition(search))
+      .order(
+        UnifiedComicHistory_.updatedAt,
+        flags: search.sort == 'da' ? 0 : Order.descending,
+      )
+      .build();
+  try {
+    final total = query.count();
+    if (!preFilter) {
+      final items = query.find();
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        total,
+        preFilter,
+      );
+    }
+    query.offset = offset;
+    query.limit = limit;
+    final items = query.find();
+    return _RawQueryResult(
+      items.map((item) => item.toJson()).toList(),
+      total,
+      preFilter,
+    );
+  } finally {
+    query.close();
+  }
+}
+
+_RawQueryResult _queryDownloadRaw(SearchEnter search, int offset, int limit) {
+  final folderKey = DownloadFolderService.parseFolderKeyFromSources(
+    search.sources,
+  );
+  final sourcesWithoutFolder = DownloadFolderService.stripFolderSourceTokens(
+    search.sources,
+  );
+  final folderFiltering =
+      folderKey != null && folderKey != kDownloadFolderAllKey;
+  final preFilter = !_needsWorkerFilter(search);
+  final query = objectbox.unifiedDownloadBox
+      .query(
+        _downloadBaseCondition(search.copyWith(sources: sourcesWithoutFolder)),
+      )
+      .order(
+        UnifiedComicDownload_.downloadedAt,
+        flags: search.sort == 'da' ? 0 : Order.descending,
+      )
+      .build();
+  try {
+    final total = query.count();
+    if (folderFiltering) {
+      final all = query.find();
+      final members = DownloadFolderService.membersOf(folderKey);
+      final filtered = all
+          .where((item) => members.contains(item.uniqueKey))
+          .toList();
+      final items = preFilter ? _sliceItems(filtered, offset, limit) : filtered;
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        filtered.length,
+        preFilter,
+      );
+    }
+    if (!preFilter) {
+      final items = query.find();
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        total,
+        preFilter,
+      );
+    }
+    query.offset = offset;
+    query.limit = limit;
+    final items = query.find();
+    return _RawQueryResult(
+      items.map((item) => item.toJson()).toList(),
+      total,
+      preFilter,
+    );
+  } finally {
+    query.close();
+  }
+}
+
+Condition<UnifiedComicFavorite> _favoriteBaseCondition(SearchEnter search) {
+  return _favoriteSourceCondition(
+    search.sources,
+  ).and(UnifiedComicFavorite_.deleted.equals(false));
+}
+
+Condition<UnifiedComicHistory> _historyBaseCondition(SearchEnter search) {
+  return _historySourceCondition(
+    search.sources,
+  ).and(UnifiedComicHistory_.deleted.equals(false));
+}
+
+Condition<UnifiedComicDownload> _downloadBaseCondition(SearchEnter search) {
+  return _downloadSourceCondition(search.sources);
+}
+
+Condition<UnifiedComicFavorite> _favoriteSourceCondition(List<String> sources) {
+  final cleaned = sources
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  if (cleaned.isEmpty) {
+    return UnifiedComicFavorite_.id.lessThan(0);
+  }
+  var condition = UnifiedComicFavorite_.source.equals(cleaned.first);
+  for (final source in cleaned.skip(1)) {
+    condition = condition.or(UnifiedComicFavorite_.source.equals(source));
+  }
+  return condition;
+}
+
+Condition<UnifiedComicHistory> _historySourceCondition(List<String> sources) {
+  final cleaned = sources
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  if (cleaned.isEmpty) {
+    return UnifiedComicHistory_.id.lessThan(0);
+  }
+  var condition = UnifiedComicHistory_.source.equals(cleaned.first);
+  for (final source in cleaned.skip(1)) {
+    condition = condition.or(UnifiedComicHistory_.source.equals(source));
+  }
+  return condition;
+}
+
+Condition<UnifiedComicDownload> _downloadSourceCondition(List<String> sources) {
+  final cleaned = sources
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  if (cleaned.isEmpty) {
+    return UnifiedComicDownload_.id.lessThan(0);
+  }
+  var condition = UnifiedComicDownload_.source.equals(cleaned.first);
+  for (final source in cleaned.skip(1)) {
+    condition = condition.or(UnifiedComicDownload_.source.equals(source));
+  }
+  return condition;
 }
 
 List<Map<String, dynamic>> _filterAndSort({

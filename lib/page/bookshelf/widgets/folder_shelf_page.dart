@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
@@ -8,6 +11,9 @@ import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/page/bookshelf/widgets/bookshelf_empty_view.dart';
+import 'package:zephyr/page/bookshelf/widgets/bookshelf_grid_shimmer.dart';
+import 'package:zephyr/page/bookshelf/widgets/bookshelf_loading_view.dart';
 import 'package:zephyr/page/bookshelf/widgets/folder_shelf_item.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -20,10 +26,12 @@ class FolderShelfPage extends StatelessWidget {
     super.key,
     required this.mode,
     this.refreshSignal = 0,
+    this.isActive = true,
   });
 
   final ShelfPageMode mode;
   final int refreshSignal;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +43,7 @@ class FolderShelfPage extends StatelessWidget {
       child: _FolderShelfPageContent(
         refreshSignal: refreshSignal,
         search: search,
+        isActive: isActive,
       ),
     );
   }
@@ -44,10 +53,12 @@ class _FolderShelfPageContent extends StatefulWidget {
   const _FolderShelfPageContent({
     required this.refreshSignal,
     required this.search,
+    required this.isActive,
   });
 
   final int refreshSignal;
   final SearchStatusState search;
+  final bool isActive;
 
   @override
   State<_FolderShelfPageContent> createState() =>
@@ -58,6 +69,39 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isDesktop) {
+      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_isDesktop) {
+      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    }
+    super.dispose();
+  }
+
+  static bool get _isDesktop =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (event.logicalKey != LogicalKeyboardKey.escape) return false;
+    if (!mounted || !widget.isActive) return false;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent) return false;
+
+    final bloc = context.read<FolderShelfBloc>();
+    if (bloc.state.isRoot) return false;
+
+    bloc.add(const FolderShelfGoBack());
+    return true;
+  }
 
   @override
   void didUpdateWidget(covariant _FolderShelfPageContent oldWidget) {
@@ -72,7 +116,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocListener<FolderShelfBloc, FolderShelfState>(
+    return BlocConsumer<FolderShelfBloc, FolderShelfState>(
       listenWhen: (previous, current) =>
           current.error != null && current.error != previous.error,
       listener: (context, state) {
@@ -83,13 +127,23 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           ).showSnackBar(SnackBar(content: Text(error)));
         }
       },
-      child: Column(
-        children: [
-          _buildHeader(context),
-          const Divider(height: 1),
-          Expanded(child: _buildBody(context)),
-        ],
-      ),
+      builder: (context, state) {
+        return PopScope(
+          canPop: state.isRoot,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop && !state.isRoot) {
+              context.read<FolderShelfBloc>().add(const FolderShelfGoBack());
+            }
+          },
+          child: Column(
+            children: [
+              _buildHeader(context),
+              const Divider(height: 1),
+              Expanded(child: _buildBody(context)),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -283,15 +337,24 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                     return searchText.contains(keyword);
                   }).toList();
 
-            if (state.isLoading &&
-                filteredFolders.isEmpty &&
-                filteredComics.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+            final totalCount = filteredFolders.length + filteredComics.length;
+            final isInitialLoading = state.isLoading && totalCount == 0;
+
+            if (isInitialLoading) {
+              return const Stack(
+                children: [
+                  BookshelfGridShimmer(),
+                  Center(child: BookshelfLoadingView()),
+                ],
+              );
             }
 
-            final totalCount = filteredFolders.length + filteredComics.length;
             if (totalCount == 0) {
-              return _buildEmptyBody(context);
+              return BookshelfEmptyView(
+                onRefresh: () => context.read<FolderShelfBloc>().add(
+                  const FolderShelfLoadRequested(),
+                ),
+              );
             }
 
             final comicType = _comicEntryTypeOf(state.mode);
@@ -305,121 +368,87 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                   const FolderShelfLoadRequested(),
                 );
               },
-              child: GridView.builder(
-                padding: const EdgeInsets.all(10),
-                gridDelegate: buildComicSimplifyEntryGridDelegate(),
-                itemCount: totalCount,
-                itemBuilder: (context, index) {
-                  if (index < filteredFolders.length) {
-                    final folder = filteredFolders[index];
-                    final folderPath = folderPathOf(folder);
-                    final isSelected = state.selectedFolderPaths.contains(
-                      folderPath,
-                    );
-                    return FolderShelfItem(
-                      key: ValueKey('folder-${folder.uniqueKey}'),
-                      folder: folder,
-                      selectionMode: state.selectionMode,
-                      isSelected: isSelected,
-                      onTap: state.selectionMode
-                          ? () => context.read<FolderShelfBloc>().add(
-                              FolderShelfToggleFolderSelection(folderPath),
-                            )
-                          : () => context.read<FolderShelfBloc>().add(
-                              FolderShelfEnterFolder(folderPath),
-                            ),
-                      onLongPress: state.selectionMode
-                          ? () => context.read<FolderShelfBloc>().add(
-                              FolderShelfToggleFolderSelection(folderPath),
-                            )
-                          : () =>
-                                _showFolderActions(context, folder, folderPath),
-                    );
-                  }
-                  final comicIndex = index - filteredFolders.length;
-                  final comic = filteredComics[comicIndex];
-                  final comicUniqueKey = '${comic.from.trim()}:${comic.id}';
-                  final isComicSelected = state.selectedComicKeys.contains(
-                    comicUniqueKey,
-                  );
-                  return ComicSimplifyEntry(
-                    key: ValueKey('comic-${comic.from}:${comic.id}'),
-                    info: comic,
-                    type: comicType,
-                    selectionMode: state.selectionMode,
-                    isSelected: isComicSelected,
-                    refresh: () => context.read<FolderShelfBloc>().add(
-                      const FolderShelfLoadRequested(),
+              child: Stack(
+                children: [
+                  GridView.builder(
+                    padding: const EdgeInsets.all(10),
+                    gridDelegate: buildComicSimplifyEntryGridDelegate(),
+                    itemCount: totalCount,
+                    itemBuilder: (context, index) {
+                      if (index < filteredFolders.length) {
+                        final folder = filteredFolders[index];
+                        final folderPath = folderPathOf(folder);
+                        final isSelected = state.selectedFolderPaths.contains(
+                          folderPath,
+                        );
+                        return FolderShelfItem(
+                          key: ValueKey('folder-${folder.uniqueKey}'),
+                          folder: folder,
+                          selectionMode: state.selectionMode,
+                          isSelected: isSelected,
+                          onTap: state.selectionMode
+                              ? () => context.read<FolderShelfBloc>().add(
+                                  FolderShelfToggleFolderSelection(folderPath),
+                                )
+                              : () => context.read<FolderShelfBloc>().add(
+                                  FolderShelfEnterFolder(folderPath),
+                                ),
+                          onLongPress: state.selectionMode
+                              ? () => context.read<FolderShelfBloc>().add(
+                                  FolderShelfToggleFolderSelection(folderPath),
+                                )
+                              : () => _showFolderActions(
+                                  context,
+                                  folder,
+                                  folderPath,
+                                ),
+                        );
+                      }
+                      final comicIndex = index - filteredFolders.length;
+                      final comic = filteredComics[comicIndex];
+                      final comicUniqueKey = '${comic.from.trim()}:${comic.id}';
+                      final isComicSelected = state.selectedComicKeys.contains(
+                        comicUniqueKey,
+                      );
+                      return ComicSimplifyEntry(
+                        key: ValueKey('comic-${comic.from}:${comic.id}'),
+                        info: comic,
+                        type: comicType,
+                        selectionMode: state.selectionMode,
+                        isSelected: isComicSelected,
+                        refresh: () => context.read<FolderShelfBloc>().add(
+                          const FolderShelfLoadRequested(),
+                        ),
+                        onTapOverride: state.selectionMode
+                            ? (info) => context.read<FolderShelfBloc>().add(
+                                FolderShelfToggleComicSelection(
+                                  '${info.from.trim()}:${info.id}',
+                                ),
+                              )
+                            : null,
+                        onLongPressOverride: state.selectionMode
+                            ? (info) => context.read<FolderShelfBloc>().add(
+                                FolderShelfToggleComicSelection(
+                                  '${info.from.trim()}:${info.id}',
+                                ),
+                              )
+                            : (info) => _showComicActions(context, info),
+                      );
+                    },
+                  ),
+                  if (state.isLoading)
+                    const Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: LinearProgressIndicator(minHeight: 2),
                     ),
-                    onTapOverride: state.selectionMode
-                        ? (info) => context.read<FolderShelfBloc>().add(
-                            FolderShelfToggleComicSelection(
-                              '${info.from.trim()}:${info.id}',
-                            ),
-                          )
-                        : null,
-                    onLongPressOverride: state.selectionMode
-                        ? (info) => context.read<FolderShelfBloc>().add(
-                            FolderShelfToggleComicSelection(
-                              '${info.from.trim()}:${info.id}',
-                            ),
-                          )
-                        : (info) => _showComicActions(context, info),
-                  );
-                },
+                ],
               ),
             );
           },
         );
       },
-    );
-  }
-
-  Widget _buildEmptyBody(BuildContext context) {
-    final theme = Theme.of(context);
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.folder_open_outlined,
-                      size: 72,
-                      color: theme.colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '啥都没有',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.outline,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.icon(
-                      onPressed: () {
-                        context.read<FolderShelfBloc>().add(
-                          const FolderShelfLoadRequested(),
-                        );
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('刷新'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 

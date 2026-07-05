@@ -85,6 +85,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
             FolderShelfPage(
               mode: ShelfPageMode.favorite,
               refreshSignal: _refreshSignals[0],
+              isActive: _currentIndex == 0,
             ),
             LocalShelfPage(
               mode: ShelfPageMode.history,
@@ -93,6 +94,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
             FolderShelfPage(
               mode: ShelfPageMode.download,
               refreshSignal: _refreshSignals[2],
+              isActive: _currentIndex == 2,
             ),
           ],
         ),
@@ -749,7 +751,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
           children: [
             Text('文件夹（已废弃）', style: Theme.of(context).textTheme.titleSmall),
             const Spacer(),
-            TextButton(onPressed: _createFolder, child: const Text('新建')),
+            // TextButton(onPressed: _createFolder, child: const Text('新建')),
           ],
         ),
         const SizedBox(height: 8),
@@ -774,29 +776,6 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
         ),
       ],
     );
-  }
-
-  Future<void> _createFolder() async {
-    final created = await widget.onCreateFolder();
-    if (created == null || created.trim().isEmpty) {
-      return;
-    }
-    try {
-      if (_isFavoriteMode) {
-        final folder = FavoriteFolderService.createFolder(created.trim());
-        if (!mounted) return;
-        setState(() => _selectedFolderKey = folder.key);
-      } else {
-        final folder = DownloadFolderService.createFolder(created.trim());
-        if (!mounted) return;
-        setState(() => _selectedFolderKey = folder.key);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
-    }
   }
 
   Future<void> _handleFolderLongPress(dynamic folder) async {

@@ -328,10 +328,19 @@ class _LocalShelfPageState extends State<LocalShelfPage>
       child: BlocBuilder<BookshelfSectionBloc, BookshelfSectionState>(
         builder: (context, state) {
           if (state.status == BookshelfLoadStatus.initial) {
-            return const Center(child: CircularProgressIndicator());
+            return const Stack(
+              children: [
+                BookshelfGridShimmer(),
+                Center(child: BookshelfLoadingView()),
+              ],
+            );
           }
           if (state.status == BookshelfLoadStatus.failure) {
-            return _buildError(state.result);
+            return BookshelfEmptyView(
+              title: state.result.isEmpty ? '加载失败' : state.result,
+              icon: Icons.error_outline,
+              onRefresh: _dispatch,
+            );
           }
 
           return switch (widget.mode) {
@@ -373,19 +382,6 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     );
   }
 
-  Widget _buildError(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 10),
-          ElevatedButton(onPressed: _dispatch, child: const Text('点击重试')),
-        ],
-      ),
-    );
-  }
-
   Widget _buildList(
     List<UnifiedComicListItem> comics, {
     required ComicEntryType type,
@@ -395,17 +391,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     required bool loadMoreFailed,
   }) {
     if (comics.isEmpty) {
-      return Center(
-        child: Column(
-          children: [
-            const Spacer(),
-            const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
-            const SizedBox(height: 10),
-            IconButton(onPressed: _dispatch, icon: const Icon(Icons.refresh)),
-            const Spacer(),
-          ],
-        ),
-      );
+      return BookshelfEmptyView(onRefresh: _dispatch);
     }
 
     final entries = mapToUnifiedComicSimplifyEntryInfoList(comics);

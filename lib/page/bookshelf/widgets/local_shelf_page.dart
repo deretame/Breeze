@@ -7,8 +7,8 @@ import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/model/unified_comic_list_item.dart';
-import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
+import 'package:zephyr/widgets/comic_entry/models/models.dart';
+
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';

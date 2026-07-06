@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';

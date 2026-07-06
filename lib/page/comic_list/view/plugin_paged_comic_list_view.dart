@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/model/unified_comic_list_item.dart';
-import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
+import 'package:zephyr/widgets/comic_entry/models/models.dart';
+
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';

@@ -1,4 +1,4 @@
-import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
+import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';

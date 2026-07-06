@@ -1,4 +1,4 @@
-import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
 class ComicNumber {
   final int buildNumber;

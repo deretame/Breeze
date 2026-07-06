@@ -7,6 +7,8 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
+import 'package:zephyr/util/json/json_sanitize.dart';
+import 'package:zephyr/util/path_util.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -85,7 +87,7 @@ Future<bool> toggleLocalComicFavorite({
 }
 
 Map<String, dynamic> _comicImageToMap(ComicImage image) {
-  return _sanitizeMap({
+  return sanitizeDynamic({
     'id': image.id,
     'url': image.url,
     'name': image.name,
@@ -130,7 +132,7 @@ void _repairFavoriteCoverPathIfNeeded(UnifiedComicFavorite favorite) {
   }
 
   coverMap['path'] = repairedPath;
-  favorite.cover = jsonEncode(_sanitizeMap(coverMap));
+  favorite.cover = jsonEncode(sanitizeDynamic(coverMap));
   favorite.updatedAt = DateTime.now().toUtc();
   objectbox.unifiedFavoriteBox.put(favorite);
 }
@@ -145,35 +147,13 @@ String _resolveImagePath({
     return path;
   }
 
-  final safeId = _sanitizePathSegment(id.trim().isEmpty ? 'cover' : id);
-  final extension = _extractImageExtension(url);
+  final safeId = sanitizePathSegment(id.trim().isEmpty ? 'cover' : id);
+  final extension = extractImageExtension(url);
   return '$safeId.$extension';
 }
 
-String _sanitizePathSegment(String input) {
-  final sanitized = input
-      .replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_')
-      .replaceAll(RegExp(r'_+'), '_')
-      .replaceAll(RegExp(r'^_+|_+$'), '');
-  return sanitized.isEmpty ? 'cover' : sanitized;
-}
-
-String _extractImageExtension(String url) {
-  try {
-    final uri = Uri.parse(url);
-    final lastDot = uri.path.lastIndexOf('.');
-    if (lastDot >= 0 && lastDot < uri.path.length - 1) {
-      final ext = uri.path.substring(lastDot + 1).toLowerCase();
-      if (RegExp(r'^[a-z0-9]{1,8}$').hasMatch(ext)) {
-        return ext;
-      }
-    }
-  } catch (_) {}
-  return 'jpg';
-}
-
 Map<String, dynamic> _creatorToMap(Creator creator) {
-  return _sanitizeMap({
+  return sanitizeDynamic({
     'id': creator.id,
     'name': creator.name,
     'avatar': _comicImageToMap(creator.avatar),
@@ -183,7 +163,7 @@ Map<String, dynamic> _creatorToMap(Creator creator) {
 }
 
 Map<String, dynamic> _titleMetaToMap(ComicInfoActionItem item) {
-  return _sanitizeMap({
+  return sanitizeDynamic({
     'name': item.name,
     'onTap': item.onTap,
     'extern': item.extern,
@@ -191,12 +171,12 @@ Map<String, dynamic> _titleMetaToMap(ComicInfoActionItem item) {
 }
 
 Map<String, dynamic> _metadataToMap(ComicInfoMetadata item) {
-  return _sanitizeMap({
+  return sanitizeDynamic({
     'name': item.name,
     'type': item.type,
     'value': item.value
         .map(
-          (entry) => _sanitizeMap({
+          (entry) => sanitizeDynamic({
             'name': entry.name,
             'onTap': entry.onTap,
             'extern': entry.extern,
@@ -204,33 +184,6 @@ Map<String, dynamic> _metadataToMap(ComicInfoMetadata item) {
         )
         .toList(),
   });
-}
-
-Map<String, dynamic> _sanitizeMap(Map<String, dynamic> input) {
-  return input.map((key, value) => MapEntry(key, _sanitizeValue(value)));
-}
-
-dynamic _sanitizeValue(dynamic value) {
-  if (value == null || value is String || value is num || value is bool) {
-    return value;
-  }
-  if (value is DateTime) {
-    return value.toIso8601String();
-  }
-  if (value is Map) {
-    return Map<String, dynamic>.from(
-      value,
-    ).map((key, item) => MapEntry(key, _sanitizeValue(item)));
-  }
-  if (value is List) {
-    return value.map(_sanitizeValue).toList();
-  }
-  try {
-    final json = (value as dynamic).toJson();
-    return _sanitizeValue(json);
-  } catch (_) {
-    return value.toString();
-  }
 }
 
 Future<bool> toggleCloudComicFavorite({

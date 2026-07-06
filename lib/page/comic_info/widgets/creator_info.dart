@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 import '../../../widgets/creator_link_card.dart';
 
 // 显示上传者信息

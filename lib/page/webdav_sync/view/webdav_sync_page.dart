@@ -6,7 +6,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
 
 import '../../../main.dart';
-import '../../../util/dialog.dart';
+import '../../../../widgets/dialog.dart';
 import '../../../util/event/event.dart';
 
 @RoutePage()

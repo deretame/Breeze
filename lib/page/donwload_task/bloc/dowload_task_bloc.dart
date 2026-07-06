@@ -6,7 +6,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/util/download/download_queue_manager.dart';
+import 'package:zephyr/service/download/download_queue_manager.dart';
 
 part 'dowload_task_bloc.freezed.dart';
 part 'dowload_task_event.dart';

@@ -5,7 +5,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 

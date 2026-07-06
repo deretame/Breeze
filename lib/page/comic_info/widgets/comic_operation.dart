@@ -5,9 +5,9 @@ import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/error_filter.dart';
-import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 
-import '../../../util/dialog.dart';
+import '../../../../widgets/dialog.dart';
 import '../../../widgets/toast.dart';
 
 class ComicOperationWidget extends StatefulWidget {

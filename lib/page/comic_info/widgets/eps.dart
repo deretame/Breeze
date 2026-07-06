@@ -7,9 +7,9 @@ import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 
-import '../../../util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 
 class EpButtonWidget extends StatelessWidget {
   static const double fixedHeight = 56;

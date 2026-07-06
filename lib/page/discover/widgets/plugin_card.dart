@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 
 import '../cubit/discover_cubit.dart';
 

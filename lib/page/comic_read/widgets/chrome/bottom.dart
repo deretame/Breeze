@@ -12,8 +12,8 @@ import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/router/router.dart';
-import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;

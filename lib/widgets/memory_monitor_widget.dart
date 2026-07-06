@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 
-import '../util/memory/memory_monitor.dart';
+import 'package:zephyr/debug/memory/memory_monitor.dart';
 
 class MemoryMonitorWidget extends StatefulWidget {
   final Widget child;

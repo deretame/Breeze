@@ -14,8 +14,8 @@ import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/event/webview_observe_bus.dart';
 import 'package:zephyr/util/json/json_value.dart';
-import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()

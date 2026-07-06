@@ -7,7 +7,7 @@ import 'package:zephyr/widgets/toast.dart';
 import '../../main.dart';
 import '../../network/http/picture/picture.dart';
 import '../../object_box/objectbox.g.dart';
-import '../../util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/type/enum.dart';
 
 class ComicEntryWidget extends StatelessWidget {

@@ -10,8 +10,8 @@ import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/download/download_cancel_signal.dart';
-import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/service/download/download_cancel_signal.dart';
+import 'package:zephyr/network/utils/direct_dio.dart';
 
 class _TrackedQjsTaskRef extends Equatable {
   const _TrackedQjsTaskRef({required this.runtimeName, required this.taskId});

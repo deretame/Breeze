@@ -7,7 +7,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
-import '../../../util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 
 class Cover extends StatelessWidget {

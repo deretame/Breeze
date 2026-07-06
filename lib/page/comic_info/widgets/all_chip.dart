@@ -5,8 +5,8 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/desktop/window_logic.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/platform/desktop/window_logic.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class AllChipWidget extends StatefulWidget {

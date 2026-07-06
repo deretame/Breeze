@@ -16,7 +16,7 @@ import 'package:zephyr/page/bookshelf/widgets/bookshelf_grid_shimmer.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_loading_view.dart';
 import 'package:zephyr/page/bookshelf/widgets/folder_shelf_item.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';

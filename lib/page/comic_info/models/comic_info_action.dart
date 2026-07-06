@@ -5,7 +5,7 @@ import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
-import '../../../util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 
 Future<void> handleComicInfoAction(
   BuildContext context,

@@ -14,7 +14,7 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';

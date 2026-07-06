@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart'
     show kComicCardBorderRadius;
 

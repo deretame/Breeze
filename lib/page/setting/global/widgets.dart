@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 
 Widget changeThemeColor(BuildContext context) {
   return ListTile(

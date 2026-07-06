@@ -10,7 +10,7 @@ import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/router/router.gr.dart' show ComicReadRoute;
+import 'package:zephyr/config/router/router.gr.dart' show ComicReadRoute;
 
 import 'read_launch_adapter.dart';
 

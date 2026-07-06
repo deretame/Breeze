@@ -7,7 +7,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
-import 'package:zephyr/util/github_proxy.dart';
+import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 const _cloudPluginListDirectUrl =

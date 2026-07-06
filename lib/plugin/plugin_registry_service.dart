@@ -11,7 +11,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
-import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/network/utils/direct_dio.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 

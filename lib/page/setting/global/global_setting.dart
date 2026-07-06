@@ -10,15 +10,15 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/desktop/window_logic.dart';
+import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/impeller_config.dart';
-import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
+import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
-import '../../../util/router/router.gr.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import '../common/setting_ui.dart';
 import 'widgets.dart';
 

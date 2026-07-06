@@ -9,8 +9,8 @@ import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/util/error_filter.dart';
-import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
-import 'package:zephyr/util/foreground_task/init.dart';
+import 'package:zephyr/service/download/models/download_task_json.dart';
+import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../comments/widgets/title.dart';

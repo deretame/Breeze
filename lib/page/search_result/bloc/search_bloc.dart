@@ -10,7 +10,7 @@ import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/rust_loader.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 
 import '../models/models.dart';
 

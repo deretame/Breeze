@@ -5,9 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:zephyr/util/real_sr/android_ncnn_model_config.dart';
-import 'package:zephyr/util/real_sr/real_sr_settings.dart';
-import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
+import 'package:zephyr/page/setting/real_sr/service/android_ncnn_model_config.dart';
+import 'package:zephyr/page/setting/real_sr/service/real_sr_settings.dart';
+import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 import 'package:zephyr/util/rust_loader.dart';
 
 void main() {

@@ -9,8 +9,8 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/download/download_cancel_signal.dart';
-import 'package:zephyr/util/real_sr/real_sr_super_resolution.dart';
+import 'package:zephyr/service/download/download_cancel_signal.dart';
+import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';

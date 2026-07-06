@@ -2,7 +2,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
+import 'package:zephyr/service/download/models/download_task_json.dart';
 
 /// 把各种 legacy 章节数据格式转换为干净的 [DownloadChapter]。
 ///

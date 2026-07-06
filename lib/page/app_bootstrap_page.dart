@@ -9,10 +9,12 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_cloud_update_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/util/compatible/compatible.dart';
-import 'package:zephyr/util/router/router.gr.dart' as app_router;
-import 'package:zephyr/util/sundry.dart';
-import 'package:zephyr/util/tools_register.dart';
+import 'package:zephyr/object_box/migration/compatible.dart';
+import 'package:zephyr/config/router/router.gr.dart' as app_router;
+import 'package:zephyr/plugin/bridge/dart_tools_bridge.dart';
+import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
+import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_service.dart';
+
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -79,6 +81,8 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
     await registerDartTools();
 
     initRustFunctions();
+
+    ForegroundTaskService.instance.listenEvents();
 
     if (mounted) await ensureCompatibleMigration(context);
 

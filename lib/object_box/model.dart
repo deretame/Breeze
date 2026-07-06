@@ -5,7 +5,7 @@ import 'package:objectbox/objectbox.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
+import 'package:zephyr/service/download/models/download_task_json.dart';
 
 part 'model.g.dart';
 

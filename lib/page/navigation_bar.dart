@@ -9,19 +9,19 @@ import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/download/download_queue_manager.dart';
-import 'package:zephyr/util/foreground_task/init.dart';
+import 'package:zephyr/service/download/download_queue_manager.dart';
+import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_service.dart';
 import 'package:zephyr/util/manage_cache.dart';
-import 'package:zephyr/util/memory/memory_overlay_widget.dart';
-import 'package:zephyr/util/notice.dart';
-import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/util/update/check_update.dart';
+import 'package:zephyr/widgets/memory/memory_overlay_widget.dart';
+import 'package:zephyr/service/lifecycle/notification_service.dart';
+import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/service/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
 import '../network/sync/sync_service.dart';
 import '../util/debouncer.dart';
-import '../util/dialog.dart';
+import '../widgets/dialog.dart';
 import '../util/event/event.dart';
 import 'bookshelf/bookshelf.dart';
 import 'discover/view/discover_page.dart';
@@ -59,13 +59,10 @@ class _NavigationBarState extends State<NavigationBar> {
       checkUpdate(context);
       _autoSync();
       manageCacheSize(context);
-      resetDownloadTasks();
-      if (Platform.isAndroid) {
-        if (DownloadQueueManager.instance.queueLength > 0) {
-          initDownloadTask();
-        }
-      } else {
-        DownloadQueueManager.instance.watchTasks();
+      DownloadQueueManager.instance.resetStuckTasks();
+      DownloadQueueManager.instance.watchTasks();
+      if (Platform.isAndroid && DownloadQueueManager.instance.queueLength > 0) {
+        ForegroundTaskService.instance.start();
       }
     });
     final globalSetting = objectbox.userSettingBox.get(1)!.globalSetting;
@@ -76,7 +73,7 @@ class _NavigationBarState extends State<NavigationBar> {
     );
     _controller = PersistentTabController(initialIndex: initialIndex);
     _selectedIndex = initialIndex;
-    initForegroundTask();
+    ForegroundTaskService.instance.init();
 
     initializeNotificationsOnce();
 

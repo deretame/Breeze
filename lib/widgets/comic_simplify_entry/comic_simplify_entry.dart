@@ -8,8 +8,8 @@ import 'package:zephyr/widgets/toast.dart';
 import '../../main.dart';
 import '../../network/http/picture/picture.dart';
 import '../../object_box/objectbox.g.dart';
-import '../../util/router/router.gr.dart';
-import '../../util/sundry.dart';
+import 'package:zephyr/config/router/router.gr.dart';
+import '../../util/text/chinese_convert.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
 

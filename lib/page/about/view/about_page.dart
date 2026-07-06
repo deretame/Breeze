@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
 
-import '../../../util/update/check_update.dart';
+import 'package:zephyr/service/update/check_update.dart';
 
 // --- 风格常量 ---
 const Color kBgColor = Color(0xFF12121C); // --bg-color

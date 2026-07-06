@@ -1,0 +1,54 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:zephyr/config/router/router.gr.dart';
+
+@AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
+class AppRouter extends RootStackRouter {
+  @override
+  RouteType get defaultRouteType =>
+      RouteType.material(enablePredictiveBackGesture: false);
+
+  @override
+  List<AutoRoute> get routes => [
+    AutoRoute(page: AppBootstrapRoute.page, initial: true),
+    AutoRoute(page: CoreMLUpscaleDebugRoute.page),
+    AutoRoute(page: NavigationBar.page),
+    AutoRoute(page: LoginRoute.page),
+    AutoRoute(page: ComicListRoute.page),
+    AutoRoute(page: DiscoverRoute.page),
+    AutoRoute(page: SearchResultRoute.page),
+    AutoRoute(page: SearchAggregateResultRoute.page),
+    AutoRoute(page: ComicInfoRoute.page),
+    AutoRoute(page: DownloadRoute.page),
+    AutoRoute(page: CommentsRoute.page),
+    AutoRoute(page: PluginCommentsScaffoldRoute.page),
+    AutoRoute(page: ComicReadRoute.page),
+    AutoRoute(page: WebViewRoute.page),
+    AutoRoute(page: GlobalSettingRoute.page),
+    AutoRoute(page: ThemeColorRoute.page),
+    AutoRoute(page: WebDavSyncRoute.page),
+    AutoRoute(page: ShowColorRoute.page),
+    AutoRoute(page: AboutRoute.page),
+    AutoRoute(page: FullRouteImageRoute.page),
+    AutoRoute(page: ImageCropRoute.page),
+    AutoRoute(page: ChangelogRoute.page),
+    AutoRoute(page: SearchRoute.page),
+    AutoRoute(page: DownloadTaskRoute.page),
+    AutoRoute(page: PluginStoreRoute.page),
+    AutoRoute(page: PluginSettingsRoute.page),
+    AutoRoute(page: PluginFunctionRoute.page),
+    AutoRoute(page: OldHomeRoute.page),
+    AutoRoute(page: OldRankingRoute.page),
+    AutoRoute(page: QjsRuntimeDebugRoute.page),
+    AutoRoute(page: CacheSettingRoute.page),
+    AutoRoute(page: RealSrSettingRoute.page),
+    AutoRoute(page: DataBackupRoute.page),
+  ];
+
+  @override
+  List<AutoRouteGuard> get guards => [];
+}
+
+void popToRoot(BuildContext context) {
+  context.router.popUntil((route) => route.settings.name == 'NavigationBar');
+}

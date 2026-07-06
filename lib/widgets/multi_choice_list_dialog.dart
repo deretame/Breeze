@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 
 class MultiChoiceDialogOption {
   const MultiChoiceDialogOption({required this.label, required this.value});

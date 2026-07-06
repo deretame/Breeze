@@ -5,7 +5,7 @@ import 'package:zephyr/page/comments/cubit/cubit.dart';
 import 'package:zephyr/page/comments/model/model.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 
 @RoutePage(name: 'PluginCommentsScaffoldRoute')

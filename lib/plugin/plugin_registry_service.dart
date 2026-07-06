@@ -134,19 +134,26 @@ class PluginRegistryService {
   }
 
   Future<void> initializeActivePluginRuntimes() async {
-    final plugins = updateCheckTargets();
-    await Future.wait(
-      plugins.map((plugin) async {
-        final runtimeName = resolveRuntimeName(plugin.uuid);
-        await ensurePluginRuntimeReady(plugin, runtimeName: runtimeName);
-      }),
-      eagerError: false,
-    );
+    final plugins = updateCheckTargets()
+        .where((plugin) => !_pluginInitDone.contains(plugin.uuid))
+        .toList();
+    if (plugins.isEmpty) {
+      return;
+    }
 
     await Future.wait(
       plugins.map((plugin) async {
         final runtimeName = resolveRuntimeName(plugin.uuid);
-        await runPluginInitIfNeeded(plugin, runtimeName: runtimeName);
+        try {
+          await ensurePluginRuntimeReady(plugin, runtimeName: runtimeName);
+          await runPluginInitIfNeeded(plugin, runtimeName: runtimeName);
+        } catch (e, st) {
+          logger.w(
+            '插件 runtime 初始化失败: ${plugin.uuid}',
+            error: e,
+            stackTrace: st,
+          );
+        }
       }),
       eagerError: false,
     );

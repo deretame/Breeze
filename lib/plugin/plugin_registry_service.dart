@@ -8,6 +8,9 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
@@ -161,7 +164,7 @@ class PluginRegistryService {
 
   Future<void> warmupPluginInfos() async {
     await initializeGlobalRuntime();
-    final plugins = updateCheckTargets();
+    final plugins = _states.values.where((item) => !item.isDeleted).toList();
     await Future.wait(
       plugins.map((plugin) async {
         final runtimeName = resolveRuntimeName(plugin.uuid);
@@ -364,6 +367,7 @@ class PluginRegistryService {
     await _deletePluginDownloadFolders(uuid);
     _deletePluginConfigs(objectbox, uuid);
     _deletePluginRelatedData(objectbox, uuid);
+    _deletePluginDownloadTasks(objectbox, uuid);
 
     final now = DateTime.now().toUtc();
     found
@@ -397,18 +401,63 @@ class PluginRegistryService {
   }
 
   void _deletePluginRelatedData(ObjectBox objectbox, String uuid) {
-    objectbox.unifiedFavoriteBox
+    final favorites = objectbox.unifiedFavoriteBox
         .query(UnifiedComicFavorite_.source.equals(uuid))
         .build()
-        .remove();
-    objectbox.unifiedHistoryBox
+        .find();
+    final histories = objectbox.unifiedHistoryBox
         .query(UnifiedComicHistory_.source.equals(uuid))
         .build()
-        .remove();
-    objectbox.unifiedDownloadBox
+        .find();
+    final downloads = objectbox.unifiedDownloadBox
         .query(UnifiedComicDownload_.source.equals(uuid))
         .build()
-        .remove();
+        .find();
+
+    final now = DateTime.now().toUtc();
+
+    // 收藏/历史属于同步数据，应当软删除（标记 deleted），让同步能把删除传播出去。
+    for (final comic in favorites) {
+      FavoriteFolderService.removeMemberFromAllFolders(comic.uniqueKey);
+      ComicLinkService.removeComicFromAll(
+        comic.uniqueKey,
+        ComicFolderType.favorite,
+      );
+    }
+
+    for (final comic in histories) {
+      if (!comic.deleted) {
+        comic
+          ..deleted = true
+          ..updatedAt = now;
+        objectbox.unifiedHistoryBox.put(comic);
+      }
+      // 历史记录目前没有 ComicLink，只需要软删除本体即可。
+    }
+
+    // 下载记录不参与同步，直接物理删除。
+    for (final comic in downloads) {
+      DownloadFolderService.removeMemberFromAllFolders(comic.uniqueKey);
+      ComicLinkService.removeComicFromAll(
+        comic.uniqueKey,
+        ComicFolderType.download,
+      );
+    }
+  }
+
+  void _deletePluginDownloadTasks(ObjectBox objectbox, String uuid) {
+    final idsToDelete = objectbox.downloadTaskBox
+        .getAll()
+        .where((task) {
+          final info = task.taskInfo;
+          if (info == null) return false;
+          return info.from == uuid;
+        })
+        .map((task) => task.id)
+        .toList();
+    if (idsToDelete.isNotEmpty) {
+      objectbox.downloadTaskBox.removeMany(idsToDelete);
+    }
   }
 
   void _deletePluginConfigs(ObjectBox objectbox, String uuid) {

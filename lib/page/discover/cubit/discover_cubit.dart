@@ -25,20 +25,27 @@ class DiscoverPluginInfoState {
   }
 }
 
-/// Discover 页状态：插件列表 + 每个插件的 info 加载状态。
+/// Discover 页状态：插件列表 + 每个插件的 info 加载状态 + 开关状态。
 class DiscoverState {
-  const DiscoverState({this.plugins = const {}, this.infoStates = const {}});
+  const DiscoverState({
+    this.plugins = const {},
+    this.infoStates = const {},
+    this.togglingUuids = const {},
+  });
 
   final Map<String, PluginRuntimeState> plugins;
   final Map<String, DiscoverPluginInfoState> infoStates;
+  final Set<String> togglingUuids;
 
   DiscoverState copyWith({
     Map<String, PluginRuntimeState>? plugins,
     Map<String, DiscoverPluginInfoState>? infoStates,
+    Set<String>? togglingUuids,
   }) {
     return DiscoverState(
       plugins: plugins ?? this.plugins,
       infoStates: infoStates ?? this.infoStates,
+      togglingUuids: togglingUuids ?? this.togglingUuids,
     );
   }
 }
@@ -55,6 +62,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
   late final StreamSubscription<Map<String, PluginRuntimeState>> _subscription;
 
   final Set<String> _loadingUuids = <String>{};
+  final Set<String> _togglingUuids = <String>{};
   final Map<String, String> _cacheKeys = <String, String>{};
 
   /// 当前默认插件源：优先已启用，否则取首个可见插件。
@@ -68,8 +76,31 @@ class DiscoverCubit extends Cubit<DiscoverState> {
   }
 
   /// 切换插件启用状态。
+  ///
+  /// 开启时会初始化插件运行时并执行 [init]；关闭时会立即销毁当前运行时。
   Future<void> toggleEnabled(String uuid, bool enabled) async {
-    await _service.setEnabled(uuid, enabled);
+    if (_togglingUuids.contains(uuid)) {
+      return;
+    }
+
+    _togglingUuids.add(uuid);
+    _emitToggling();
+
+    try {
+      await _service.setEnabled(uuid, enabled);
+    } catch (e) {
+      showErrorToast('插件${enabled ? '启用' : '关闭'}失败: $e');
+    } finally {
+      _togglingUuids.remove(uuid);
+      _emitToggling();
+    }
+  }
+
+  void _emitToggling() {
+    if (isClosed) {
+      return;
+    }
+    emit(state.copyWith(togglingUuids: Set<String>.from(_togglingUuids)));
   }
 
   /// 初始加载，与 [reload] 区别是不清空缓存，仅补齐缺失的 info。

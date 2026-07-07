@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
-import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../cubit/discover_cubit.dart';
@@ -153,6 +153,7 @@ class _DiscoverView extends StatelessWidget {
       pluginUuid: plugin.uuid,
       pluginState: plugin,
       infoState: infoState,
+      isToggling: state.togglingUuids.contains(plugin.uuid),
       onSearch: () => _openPluginSearch(context, plugin.uuid),
       onSettings: (title) => _openPluginSettings(context, plugin.uuid, title),
       onToggleEnabled: (enabled) => cubit.toggleEnabled(plugin.uuid, enabled),

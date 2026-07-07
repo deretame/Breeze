@@ -12,6 +12,7 @@ class PluginCard extends StatelessWidget {
     required this.pluginUuid,
     required this.pluginState,
     required this.infoState,
+    required this.isToggling,
     required this.onSearch,
     required this.onSettings,
     required this.onToggleEnabled,
@@ -22,6 +23,7 @@ class PluginCard extends StatelessWidget {
   final String pluginUuid;
   final PluginRuntimeState pluginState;
   final DiscoverPluginInfoState infoState;
+  final bool isToggling;
   final VoidCallback onSearch;
   final void Function(String title) onSettings;
   final ValueChanged<bool> onToggleEnabled;
@@ -177,7 +179,22 @@ class PluginCard extends StatelessWidget {
                   icon: const Icon(Icons.settings_outlined, size: 20),
                   onPressed: () => onSettings(title),
                 ),
-                Switch(value: isEnabled, onChanged: onToggleEnabled),
+                isToggling
+                    ? const SizedBox(
+                        width: 48,
+                        height: 24,
+                        child: Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      )
+                    : Switch(
+                        value: isEnabled,
+                        onChanged: onToggleEnabled,
+                      ),
               ],
             ),
           ),

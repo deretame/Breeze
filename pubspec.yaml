@@ -148,7 +148,6 @@ flutter:
     - path: asset/image/app_icon.ico
       platforms: [windows, linux, macos]
     - path: asset/image/app-icon.png
-      platforms: [windows, linux, macos]
     - asset/image/error_image/404.png
     - asset/image/bika_image/cat_forum.jpg
     - asset/image/bika_image/cat_latest.jpg

@@ -33,8 +33,19 @@ class GlobalSettingPage extends StatefulWidget {
 class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final List<String> systemThemeList = ["跟随系统", "浅色模式", "深色模式"];
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
-  final List<String> splashPageList = ["书架", "发现"];
-  final Map<String, int> splashPage = {"书架": 0, "发现": 1};
+  List<String> _splashPageList(bool oldPageRollbackEnabled) {
+    if (oldPageRollbackEnabled) {
+      return ["首页", "排行", "书架", "发现", "更多"];
+    }
+    return ["书架", "发现", "更多"];
+  }
+
+  Map<String, int> _splashPageMap(bool oldPageRollbackEnabled) {
+    if (oldPageRollbackEnabled) {
+      return {"首页": 0, "排行": 1, "书架": 2, "发现": 3, "更多": 4};
+    }
+    return {"书架": 0, "发现": 1, "更多": 2};
+  }
 
   int? _cacheSizeBytes;
   bool _cacheCalculating = false;
@@ -563,6 +574,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _splashPage(GlobalSettingState state, GlobalSettingCubit cubit) {
+    final splashPageList = _splashPageList(state.oldPageRollbackEnabled);
+    final splashPage = _splashPageMap(state.oldPageRollbackEnabled);
     final selectedIndex = splashPageList.isEmpty
         ? 0
         : state.welcomePageNum.clamp(0, splashPageList.length - 1);

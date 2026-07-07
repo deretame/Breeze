@@ -222,19 +222,19 @@ pub fn aes_cbc_pkcs7_decrypt(payload: &[u8], key: &[u8], iv: &[u8]) -> Result<Ve
     let mut buf = payload.to_vec();
     let plain = match key.len() {
         16 => CbcDecryptor::<Aes128>::new_from_slices(key, iv)
-            .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?
+            .map_err(|e| anyhow!("AES-128 CBC 参数无效: {}", e))?
             .decrypt_padded_mut::<Pkcs7>(&mut buf)
-            .map_err(|_| anyhow!("AES-128 CBC 解密失败"))?
+            .map_err(|e| anyhow!("AES-128 CBC 解密失败: {}", e))?
             .to_vec(),
         24 => CbcDecryptor::<Aes192>::new_from_slices(key, iv)
-            .map_err(|_| anyhow!("AES-192 CBC 参数无效"))?
+            .map_err(|e| anyhow!("AES-192 CBC 参数无效: {}", e))?
             .decrypt_padded_mut::<Pkcs7>(&mut buf)
-            .map_err(|_| anyhow!("AES-192 CBC 解密失败"))?
+            .map_err(|e| anyhow!("AES-192 CBC 解密失败: {}", e))?
             .to_vec(),
         32 => CbcDecryptor::<Aes256>::new_from_slices(key, iv)
-            .map_err(|_| anyhow!("AES-256 CBC 参数无效"))?
+            .map_err(|e| anyhow!("AES-256 CBC 参数无效: {}", e))?
             .decrypt_padded_mut::<Pkcs7>(&mut buf)
-            .map_err(|_| anyhow!("AES-256 CBC 解密失败"))?
+            .map_err(|e| anyhow!("AES-256 CBC 解密失败: {}", e))?
             .to_vec(),
         _ => {
             return Err(anyhow!(

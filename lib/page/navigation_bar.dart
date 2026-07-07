@@ -25,6 +25,7 @@ import '../widgets/dialog.dart';
 import '../util/event/event.dart';
 import 'bookshelf/bookshelf.dart';
 import 'discover/view/discover_page.dart';
+import 'more/view/more.dart';
 import 'old_page/old_home/old_home_page.dart';
 import 'old_page/old_ranking/old_ranking_page.dart';
 import 'package:zephyr/util/error_filter.dart';
@@ -211,16 +212,6 @@ class _NavigationBarState extends State<NavigationBar> {
                   },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: IconButton(
-                  icon: Icon(Icons.settings_outlined),
-                  tooltip: '设置',
-                  onPressed: () {
-                    context.pushRoute(GlobalSettingRoute());
-                  },
-                ),
-              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -247,6 +238,12 @@ class _NavigationBarState extends State<NavigationBar> {
       PersistentBottomNavBarItem(
         icon: Icon(Icons.explore_outlined),
         title: "发现",
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.apps_outlined),
+        title: "更多",
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
@@ -294,6 +291,11 @@ class _NavigationBarState extends State<NavigationBar> {
         selectedIcon: Icon(Icons.explore),
         label: Text("发现"),
       ),
+      NavigationRailDestination(
+        icon: Icon(Icons.apps_outlined),
+        selectedIcon: Icon(Icons.apps),
+        label: Text("更多"),
+      ),
     ];
     if (!oldPageRollbackEnabled) {
       return destinations;
@@ -314,7 +316,11 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   List<Widget> _buildPageList(bool oldPageRollbackEnabled) {
-    final pages = <Widget>[const BookshelfPage(), const DiscoverPage()];
+    final pages = <Widget>[
+      const BookshelfPage(),
+      const DiscoverPage(),
+      const MorePage(),
+    ];
     if (!oldPageRollbackEnabled) {
       return pages;
     }

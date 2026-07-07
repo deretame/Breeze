@@ -28,8 +28,6 @@ class _DiscoverView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("发现"),
@@ -39,55 +37,7 @@ class _DiscoverView extends StatelessWidget {
             icon: const Icon(Icons.search),
             onPressed: () => _search(context),
           ),
-          if (isDesktop) ...[
-            IconButton(
-              tooltip: '下载任务',
-              icon: const Icon(Icons.download_outlined),
-              onPressed: () => context.pushRoute(DownloadTaskRoute()),
-            ),
-            IconButton(
-              tooltip: '全局设置',
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: () => context.pushRoute(GlobalSettingRoute()),
-            ),
-            const SizedBox(width: 8),
-          ] else
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              onSelected: (value) {
-                if (value == 'downloads') {
-                  context.pushRoute(DownloadTaskRoute());
-                }
-                if (value == 'settings') {
-                  context.pushRoute(GlobalSettingRoute());
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem<String>(
-                  value: 'downloads',
-                  child: Row(
-                    children: [
-                      Icon(Icons.download_outlined, size: 20),
-                      SizedBox(width: 12),
-                      Text("下载任务"),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'settings',
-                  child: Row(
-                    children: [
-                      Icon(Icons.settings_outlined, size: 20),
-                      SizedBox(width: 12),
-                      Text("全局设置"),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(width: 8),
         ],
       ),
       resizeToAvoidBottomInset: false,

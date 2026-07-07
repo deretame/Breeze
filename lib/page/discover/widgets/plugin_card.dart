@@ -191,10 +191,7 @@ class PluginCard extends StatelessWidget {
                           ),
                         ),
                       )
-                    : Switch(
-                        value: isEnabled,
-                        onChanged: onToggleEnabled,
-                      ),
+                    : Switch(value: isEnabled, onChanged: onToggleEnabled),
               ],
             ),
           ),

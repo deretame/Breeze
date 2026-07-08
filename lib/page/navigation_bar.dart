@@ -7,28 +7,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_service.dart';
+import 'package:zephyr/service/lifecycle/notification_service.dart';
+import 'package:zephyr/service/update/check_update.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/widgets/memory/memory_overlay_widget.dart';
-import 'package:zephyr/service/lifecycle/notification_service.dart';
-import 'package:zephyr/config/router/router.gr.dart';
-import 'package:zephyr/service/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
 import '../network/sync/sync_service.dart';
 import '../util/debouncer.dart';
-import '../widgets/dialog.dart';
 import '../util/event/event.dart';
+import '../widgets/dialog.dart';
 import 'bookshelf/bookshelf.dart';
 import 'discover/view/discover_page.dart';
 import 'more/view/more.dart';
 import 'old_page/old_home/old_home_page.dart';
 import 'old_page/old_ranking/old_ranking_page.dart';
-import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {

@@ -4,10 +4,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
-import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 const _cloudPluginListDirectUrl =
@@ -325,6 +325,7 @@ bool isNetworkRetryableError(Object error) {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.connectionError:
+      case DioExceptionType.transformTimeout:
         return true;
       case DioExceptionType.badResponse:
         final status = error.response?.statusCode ?? 0;

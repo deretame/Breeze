@@ -300,10 +300,10 @@ packages:
     dependency: transitive
     description:
       name: cross_file
-      sha256: "28bb3ae56f117b5aec029d702a90f57d285cd975c3c5c281eaca38dbc47c5937"
+      sha256: "92c9c43c383bfa1c32079d3bc492d55d6d4318044b7b47edaff8971cbb555c51"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.5+2"
+    version: "0.3.5+4"
   crypto:
     dependency: "direct main"
     description:
@@ -379,10 +379,10 @@ packages:
     dependency: "direct main"
     description:
       name: dio
-      sha256: aff32c08f92787a557dd5c0145ac91536481831a01b4648136373cddb0e64f8c
+      sha256: ea2bad3c89a27635ce2d85cce4d6b199da49a5a48ec77b03e45b65a3b90922b0
       url: "https://pub.dev"
     source: hosted
-    version: "5.9.2"
+    version: "5.10.0"
   dio_cookie_manager:
     dependency: "direct main"
     description:
@@ -403,10 +403,10 @@ packages:
     dependency: transitive
     description:
       name: dio_web_adapter
-      sha256: "2f9e64323a7c3c7ef69567d5c800424a11f8337b8b228bad02524c9fb3c1f340"
+      sha256: dd58dc3861eb36edb13b217efc006a1c21e5bbc341de8c229b85634fa5e362e4
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.2.0"
   dropdown_button2:
     dependency: "direct main"
     description:
@@ -451,10 +451,10 @@ packages:
     dependency: "direct main"
     description:
       name: equatable
-      sha256: "3e0141505477fd8ad55d6eb4e7776d3fe8430be8e497ccb1521370c3f21a3e2b"
+      sha256: "3bce007a596ff8b3119c45d68aaef631272537c03d30e5d4534dd24bf4c5eaa2"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.8"
+    version: "2.1.0"
   event_bus:
     dependency: "direct main"
     description:
@@ -977,10 +977,10 @@ packages:
     dependency: "direct main"
     description:
       name: image_picker
-      sha256: "91c025426c2881c551100bce834e201c835a170151545f58d17da5180ca7d9ac"
+      sha256: d8402284df184bc05f4a2210c6c23983b0720f4cd87cbd05c5390a78af602667
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.2"
+    version: "1.2.3"
   image_picker_android:
     dependency: transitive
     description:
@@ -1630,42 +1630,42 @@ packages:
     dependency: transitive
     description:
       name: screen_retriever
-      sha256: "42cc3b402a0f67d2455a0d067553d0f13453f6a008d98eababf8b63958d506bd"
+      sha256: ace919117a7520c13a50a6259e60c4a0d4cbe98809468792a91b5c5adada2aa6
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1"
+    version: "0.2.2"
   screen_retriever_linux:
     dependency: transitive
     description:
       name: screen_retriever_linux
-      sha256: "2a476f1a5538065bc5badf376cfdc83d6ecf07d77eb2391b9c2bff5a76970048"
+      sha256: "7b52006a5ceae1f3d5af7f77188c3290d6e7d8ded16d99809bea84967c65c257"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1"
+    version: "0.2.2"
   screen_retriever_macos:
     dependency: transitive
     description:
       name: screen_retriever_macos
-      sha256: b5abb900fcb86614ff10b738b34e37b9e1d03b0447280668e2bc8a98bdc7bd59
+      sha256: a1489b99cce597c45a54b9aae1cd94c8d4705353b7e0bb2457a6e4de44e0ad8a
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1"
+    version: "0.2.2"
   screen_retriever_platform_interface:
     dependency: transitive
     description:
       name: screen_retriever_platform_interface
-      sha256: "3af22d926bedf20c2caa308eea376776451a3af125919ce072e56525fded8901"
+      sha256: "94a5535277510a63184ca178ce12a1449bc0b38618879aa1c18bf57369c5064a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1"
+    version: "0.2.2"
   screen_retriever_windows:
     dependency: transitive
     description:
       name: screen_retriever_windows
-      sha256: c44b38a4c4bab34af259180a70a4eee1e29384e7b82e627c9faa68afcdab2e73
+      sha256: dafc6922b0bfbf1d48cf3ccbf519b4fff47bdcb820da1728ea6db675fecc9324
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1"
+    version: "0.2.2"
   scroll_to_index:
     dependency: transitive
     description:
@@ -1686,10 +1686,10 @@ packages:
     dependency: transitive
     description:
       name: sentry
-      sha256: "3311f89e0c964c4df5f65670348c8a11744c94ae2b57032c947cfb26bfd03ef0"
+      sha256: "09c573f98ff6c5e98d527f351f037eb8ea9ff684a6e9e84b2e91357144016254"
       url: "https://pub.dev"
     source: hosted
-    version: "9.22.0"
+    version: "9.24.0"
   sentry_dart_plugin:
     dependency: "direct dev"
     description:
@@ -1702,10 +1702,10 @@ packages:
     dependency: "direct main"
     description:
       name: sentry_flutter
-      sha256: efd3bebd7962438d0ecbe5c7b530de012e2e8efe14ef838b89195d7c2bb3f66c
+      sha256: "4a04b7e1901b8128df783b6d36d48706b07b0cd055e621517c998de87f5dafb9"
       url: "https://pub.dev"
     source: hosted
-    version: "9.22.0"
+    version: "9.24.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -1883,10 +1883,10 @@ packages:
     dependency: transitive
     description:
       name: timezone
-      sha256: "784a5e34d2eb62e1326f24d6f600aaaee452eb8ca8ef2f384a59244e292d158b"
+      sha256: "981d1020d6ef8fe1e7b3de5054e5b25579ae7c403d7734adc508ffc47668e9cb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.11.0"
+    version: "0.11.1"
   toastification:
     dependency: "direct main"
     description:
@@ -2099,10 +2099,10 @@ packages:
     dependency: "direct main"
     description:
       name: window_manager
-      sha256: "7eb6d6c4164ec08e1bf978d6e733f3cebe792e2a23fb07cbca25c2872bfdbdcd"
+      sha256: "05c231fd7b23d2380f14c5cc10b7b93d60d4fa4a2fb4e0f032de27e44b5560e9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1"
+    version: "0.5.2"
   worker_manager:
     dependency: "direct main"
     description:

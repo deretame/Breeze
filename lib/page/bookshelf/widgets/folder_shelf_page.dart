@@ -14,12 +14,14 @@ import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_empty_view.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_grid_shimmer.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_loading_view.dart';
+import 'package:zephyr/page/bookshelf/method/method.dart';
 import 'package:zephyr/page/bookshelf/widgets/folder_shelf_item.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 class FolderShelfPage extends StatelessWidget {
   const FolderShelfPage({
@@ -270,48 +272,70 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           child: Text(
             '已选择 ${state.selectedCount} 项',
             style: Theme.of(context).textTheme.titleMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.select_all),
-          tooltip: '全选',
-          onPressed: () =>
-              context.read<FolderShelfBloc>().add(const FolderShelfSelectAll()),
-        ),
-        IconButton(
-          icon: const Icon(Icons.drive_file_move_outline),
-          tooltip: '移动到',
-          onPressed: state.hasSelection
-              ? () => _showTargetFolderDialog(
-                  context,
-                  onConfirmed: (targets) {
-                    context.read<FolderShelfBloc>().add(
-                      FolderShelfMoveSelected(targets),
-                    );
-                  },
-                )
-              : null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.folder_copy_outlined),
-          tooltip: '复制到',
-          onPressed: state.hasSelection
-              ? () => _showTargetFolderDialog(
-                  context,
-                  onConfirmed: (targets) {
-                    context.read<FolderShelfBloc>().add(
-                      FolderShelfCopySelected(targets),
-                    );
-                  },
-                )
-              : null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete_outline),
-          tooltip: '删除',
-          onPressed: state.hasSelection
-              ? () => _confirmDeleteSelected(context)
-              : null,
+        Flexible(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            reverse: true,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  tooltip: '全选',
+                  onPressed: () => context.read<FolderShelfBloc>().add(
+                    const FolderShelfSelectAll(),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.drive_file_move_outline),
+                  tooltip: '移动到',
+                  onPressed: state.hasSelection
+                      ? () => _showTargetFolderDialog(
+                          context,
+                          onConfirmed: (targets) {
+                            context.read<FolderShelfBloc>().add(
+                              FolderShelfMoveSelected(targets),
+                            );
+                          },
+                        )
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.folder_copy_outlined),
+                  tooltip: '复制到',
+                  onPressed: state.hasSelection
+                      ? () => _showTargetFolderDialog(
+                          context,
+                          onConfirmed: (targets) {
+                            context.read<FolderShelfBloc>().add(
+                              FolderShelfCopySelected(targets),
+                            );
+                          },
+                        )
+                      : null,
+                ),
+                if (state.mode == ShelfPageMode.download)
+                  IconButton(
+                    icon: const Icon(Icons.file_upload_outlined),
+                    tooltip: '批量导出',
+                    onPressed: state.hasSelection
+                        ? () => _batchExportSelected(context, state)
+                        : null,
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: '删除',
+                  onPressed: state.hasSelection
+                      ? () => _confirmDeleteSelected(context)
+                      : null,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -941,6 +965,37 @@ ComicFolderType _folderTypeOf(ShelfPageMode mode) {
     ShelfPageMode.download => ComicFolderType.download,
     ShelfPageMode.history => ComicFolderType.history,
   };
+}
+
+Future<void> _batchExportSelected(
+  BuildContext context,
+  FolderShelfState state,
+) async {
+  final selectedComics = state.comics
+      .where(
+        (c) => state.selectedComicKeys.contains('${c.from.trim()}:${c.id}'),
+      )
+      .toList();
+
+  if (selectedComics.isEmpty) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('选中的项目中没有可导出的漫画')));
+    return;
+  }
+
+  try {
+    final success = await batchExportComics(
+      context: context,
+      comics: selectedComics,
+    );
+    if (!context.mounted) return;
+    showSuccessToast('批量导出完成：$success/${selectedComics.length}');
+    context.read<FolderShelfBloc>().add(const FolderShelfExitSelectionMode());
+  } catch (e) {
+    if (!context.mounted) return;
+    showErrorToast('批量导出失败: $e');
+  }
 }
 
 Future<void> _confirmDeleteSelected(BuildContext context) async {

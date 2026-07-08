@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/network/utils/direct_dio.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -14,7 +15,6 @@ import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
-import 'package:zephyr/network/utils/direct_dio.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
@@ -540,28 +540,33 @@ class PluginRegistryService {
       return;
     }
 
-    try {
-      await callUnifiedComicPlugin(
-        pluginId: runtimeName,
-        fnPath: 'init',
-        core: {},
-      );
-      _pluginInitDone.add(plugin.uuid);
-      await updateLoadResult(plugin.uuid, success: true, error: null);
-    } catch (e) {
-      final err = e.toString();
-      if (err.contains('target is not function: init')) {
+    // init 不需要等待结果，触发后即返回，避免阻塞安装/启用流程。
+    Future(() async {
+      try {
+        await callUnifiedComicPlugin(
+          pluginId: runtimeName,
+          fnPath: 'init',
+          core: {},
+        );
         _pluginInitDone.add(plugin.uuid);
-        logger.w('插件未实现 init，已跳过: ${plugin.uuid}');
-        return;
+        await updateLoadResult(plugin.uuid, success: true, error: null);
+      } catch (e) {
+        final err = e.toString();
+        if (err.contains('target is not function: init')) {
+          _pluginInitDone.add(plugin.uuid);
+          logger.w('插件未实现 init，已跳过: ${plugin.uuid}');
+          return;
+        }
+        await updateLoadResult(
+          plugin.uuid,
+          success: false,
+          error: 'init 执行失败: $e',
+        );
+        logger.w('插件 init 执行失败: ${plugin.uuid}', error: e);
       }
-      await updateLoadResult(
-        plugin.uuid,
-        success: false,
-        error: 'init 执行失败: $e',
-      );
-      logger.w('插件 init 执行失败: ${plugin.uuid}', error: e);
-    }
+    }).catchError((e) {
+      logger.w('插件 init 异步执行失败: ${plugin.uuid}', error: e);
+    });
   }
 
   Future<String> _resolveBundleJs(PluginRuntimeState plugin) async {

@@ -1,11 +1,6 @@
-import 'dart:io';
-
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
@@ -16,11 +11,8 @@ import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -454,7 +446,9 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                         ),
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
+                          reverse: true,
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
                                 visualDensity: VisualDensity.compact,
@@ -527,30 +521,10 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     if (selected.isEmpty) return;
 
     try {
-      final exportType = await _pickBatchExportType();
-      if (exportType == null) return;
-      final exportRoot = await _resolveBatchExportDirectory();
-      if (exportRoot == null || exportRoot.trim().isEmpty) return;
-
-      var success = 0;
-      for (final entry in selected) {
-        final from = entry.from.trim();
-        if (from.isEmpty) {
-          continue;
-        }
-        String? exportPath;
-        if (exportType == ExportType.folder) {
-          exportPath = exportRoot;
-        } else {
-          final safeTitle = _sanitizeFileName(
-            entry.title.trim().isEmpty ? entry.id : entry.title,
-          );
-          exportPath = p.join(exportRoot, '$safeTitle.zip');
-        }
-        await exportComic(entry.id, exportType, from, path: exportPath);
-        success++;
-      }
-
+      final success = await batchExportComics(
+        context: context,
+        comics: selected,
+      );
       if (!mounted) return;
       showSuccessToast('批量导出完成：$success/${selected.length}');
       _cancelSelectionMode();
@@ -558,58 +532,6 @@ class _LocalShelfPageState extends State<LocalShelfPage>
       if (!mounted) return;
       showErrorToast('批量导出失败: $e');
     }
-  }
-
-  Future<ExportType?> _pickBatchExportType() async {
-    if (Platform.isIOS) return ExportType.zip;
-    return showDialog<ExportType>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('选择导出方式'),
-        content: const Text('请选择批量导出为压缩包或文件夹'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(ExportType.folder),
-            child: const Text('文件夹'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(ExportType.zip),
-            child: const Text('压缩包'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<String?> _resolveBatchExportDirectory() async {
-    if (Platform.isIOS) {
-      return getDirectoryPath();
-    }
-    final customPath = globalSetting.customExportPath.trim();
-    if (customPath.isNotEmpty) {
-      return customPath;
-    }
-    if (Platform.isAndroid) {
-      final granted = await requestExportPermission();
-      if (!granted) {
-        throw StateError('未授予所有文件访问权限，导出已取消');
-      }
-      return createDownloadDir();
-    }
-    return getDirectoryPath();
-  }
-
-  String _sanitizeFileName(String input) {
-    final safe = input
-        .replaceAll(RegExp(r'[<>:"/\\|?*]'), '_')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .replaceAll(RegExp(r'_+'), '_')
-        .replaceAll(RegExp(r'^_+|_+$'), '');
-    return safe.isEmpty ? 'comic' : safe;
   }
 
   Future<void> _addSelectedToFolder(

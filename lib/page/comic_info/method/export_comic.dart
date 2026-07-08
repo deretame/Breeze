@@ -158,6 +158,7 @@ Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
     detail['extern'] as Map? ?? const {},
   );
   extern['version'] = mainVersion;
+  extern['source'] = download.source;
   detail['extern'] = extern;
   return detail;
 }

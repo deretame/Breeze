@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:objectbox/objectbox.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -443,6 +444,10 @@ Future<void> _restoreObjectBoxData(Map<String, dynamic> json) async {
 ///
 /// 应用大量代码假设 UserSetting 的 ObjectBox id 为 1，因此这里不先清空再插入，
 /// 而是直接替换现有 id=1 记录的内容；没有记录时再插入新记录。
+///
+/// 导入时会保留当前设备上的平台相关/本地-only 设置，避免被备份覆盖：
+/// 自定义导出目录、代理、应用锁（手势密码/PIN）、语言、窗口几何、日志地址、
+/// Impeller 强制启用标志等。
 Future<void> _restoreUserSetting(List<dynamic>? list) async {
   if (list == null || list.isEmpty) return;
 
@@ -455,7 +460,10 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
     // 复用现有 id=1 的 slot，直接覆盖设置数据
     if (backup.globalSettingData != null &&
         backup.globalSettingData!.isNotEmpty) {
-      current.globalSettingData = backup.globalSettingData;
+      current.globalSetting = _mergeGlobalSettingForImport(
+        backup.globalSetting,
+        current.globalSetting,
+      );
     }
     if (backup.bikaSettingData != null && backup.bikaSettingData!.isNotEmpty) {
       current.bikaSettingData = backup.bikaSettingData;
@@ -468,8 +476,44 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
   } else {
     // 没有现有记录时直接插入备份数据，让 ObjectBox 自动分配 id（空盒时通常为 1）
     backup.id = 0;
+    if (backup.globalSettingData != null &&
+        backup.globalSettingData!.isNotEmpty) {
+      backup.globalSetting = _mergeGlobalSettingForImport(
+        backup.globalSetting,
+        const GlobalSettingState(),
+      );
+    }
     objectbox.userSettingBox.put(backup);
   }
+}
+
+/// 合并备份的 [GlobalSettingState] 与当前设备的本地设置。
+///
+/// 备份中的通用偏好设置会被采用，但跟平台强相关或不应跨设备同步的字段
+/// 会被 [current] 的值覆盖：
+/// - 自定义导出目录（[customExportPath]）
+/// - SOCKS5 代理（[socks5Proxy]）
+/// - 应用锁（[appLockSetting]，含手势密码哈希与 PIN 重置哈希）
+/// - 语言（[locale]）
+/// - 桌面端窗口位置与大小（[windowWidth]/[windowHeight]/[windowX]/[windowY]）
+/// - 日志保存地址（[logAddress]）
+/// - iOS Impeller 强制启用标志（[forceEnableImpeller]）
+GlobalSettingState _mergeGlobalSettingForImport(
+  GlobalSettingState backup,
+  GlobalSettingState current,
+) {
+  return backup.copyWith(
+    customExportPath: current.customExportPath,
+    socks5Proxy: current.socks5Proxy,
+    appLockSetting: current.appLockSetting,
+    locale: current.locale,
+    windowWidth: current.windowWidth,
+    windowHeight: current.windowHeight,
+    windowX: current.windowX,
+    windowY: current.windowY,
+    logAddress: current.logAddress,
+    forceEnableImpeller: current.forceEnableImpeller,
+  );
 }
 
 /// 尽可能使用重命名移动目录；失败时回退到递归复制。

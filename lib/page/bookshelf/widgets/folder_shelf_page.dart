@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
@@ -208,10 +210,12 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 context.read<FolderShelfBloc>().add(
                   const FolderShelfEnterSelectionMode(),
                 );
+              case 'import':
+                _importComic(context);
             }
           },
-          itemBuilder: (context) => const [
-            PopupMenuItem(
+          itemBuilder: (context) => [
+            const PopupMenuItem(
               value: 'new_folder',
               child: Row(
                 children: [
@@ -221,7 +225,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 ],
               ),
             ),
-            PopupMenuItem(
+            const PopupMenuItem(
               value: 'manage',
               child: Row(
                 children: [
@@ -231,6 +235,17 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 ],
               ),
             ),
+            if (state.mode == ShelfPageMode.download)
+              const PopupMenuItem(
+                value: 'import',
+                child: Row(
+                  children: [
+                    Icon(Icons.file_download_outlined),
+                    SizedBox(width: 12),
+                    Text('导入漫画'),
+                  ],
+                ),
+              ),
           ],
         ),
       ],
@@ -965,6 +980,71 @@ ComicFolderType _folderTypeOf(ShelfPageMode mode) {
     ShelfPageMode.download => ComicFolderType.download,
     ShelfPageMode.history => ComicFolderType.history,
   };
+}
+
+Future<void> _importComic(BuildContext context) async {
+  String? importRoot;
+  String? cleanupDir;
+  try {
+    if (Platform.isAndroid) {
+      importRoot = await pickComicZipAndroid();
+      if (importRoot != null) {
+        cleanupDir = p.dirname(p.dirname(importRoot));
+      }
+    } else {
+      final file = await openFile(
+        acceptedTypeGroups: [
+          const XTypeGroup(label: 'zip', extensions: ['zip']),
+        ],
+      );
+      importRoot = file?.path;
+    }
+    if (importRoot == null || importRoot.trim().isEmpty) return;
+
+    if (!context.mounted) return;
+    showSuccessToast('开始导入漫画（仅支持 zip）');
+
+    final result = await importComicFromZip(
+      importRoot,
+      cleanupDir: cleanupDir,
+      onConfirmOverwrite: (title) =>
+          _confirmComicImportOverwrite(context, title),
+    );
+
+    if (!context.mounted) return;
+    showSuccessToast('导入完成：${result.title}');
+    context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
+  } on ComicImportCancelledException catch (_) {
+    if (!context.mounted) return;
+    showErrorToast('导入取消');
+  } catch (e) {
+    if (!context.mounted) return;
+    showErrorToast('导入失败: $e');
+  }
+}
+
+Future<bool> _confirmComicImportOverwrite(
+  BuildContext context,
+  String title,
+) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('漫画已存在'),
+      content: Text('《$title》已经存在于下载列表中，是否覆盖导入？'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('取消'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('覆盖'),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
 }
 
 Future<void> _batchExportSelected(

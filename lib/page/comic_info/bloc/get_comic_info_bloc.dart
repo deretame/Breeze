@@ -73,6 +73,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
             comicInfo as UnifiedComicDownload,
           );
         }
+        logger.d(comicInfo);
       } else {
         final pluginResult = await getComicDetailByPlugin(
           event.comicId,

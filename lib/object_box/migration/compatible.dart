@@ -9,9 +9,10 @@ import 'migration_v2_to_v3.dart';
 import 'migration_v3_to_v4.dart';
 import 'migration_v4_to_v5.dart';
 import 'migration_v5_to_v6.dart';
+import 'migration_v6_to_v7.dart';
 
 const _defaultCompatibleVersion = 'v1';
-const _latestCompatibleVersion = 'v6';
+const _latestCompatibleVersion = 'v7';
 
 Future<void> ensureCompatibleMigration(BuildContext context) async {
   try {
@@ -63,6 +64,13 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
     // 当前正在开发 folder/link 同步重构，旧脏数据不保留，
     // v6 直接标记为最新即可。
     if (version == 'v6') {
+      await migrateV6ToV7();
+      await setCompatibleVersion('v7');
+      migrated = true;
+      version = 'v7';
+    }
+
+    if (version == 'v7') {
       await setCompatibleVersion(_latestCompatibleVersion);
       migrated = true;
     }

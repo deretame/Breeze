@@ -129,6 +129,9 @@ class ComicSyncCore {
     final histories = objectbox.unifiedHistoryBox.getAll();
     histories.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
+    final follows = objectbox.comicFollowBox.getAll();
+    follows.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
     final folders = objectbox.comicFolderBox
         .getAll()
         .where(
@@ -150,6 +153,7 @@ class ComicSyncCore {
       'version': syncDataVersion,
       'favorites': favorites.map((e) => _stripLocalId(e.toJson())).toList(),
       'histories': histories.map((e) => _stripLocalId(e.toJson())).toList(),
+      'follows': follows.map((e) => _stripLocalId(e.toJson())).toList(),
       'folders': folders.map((e) => _stripLocalId(e.toJson())).toList(),
       'links': links.map((e) => _stripLocalId(e.toJson())).toList(),
     };
@@ -188,11 +192,13 @@ class ComicSyncCore {
   static int mergeUnifiedData(Store store, Map<String, dynamic> data) {
     final favoriteBox = store.box<UnifiedComicFavorite>();
     final historyBox = store.box<UnifiedComicHistory>();
+    final followBox = store.box<ComicFollow>();
     final folderBox = store.box<ComicFolder>();
     final linkBox = store.box<ComicLink>();
 
     final localFavorites = favoriteBox.getAll();
     final localHistories = historyBox.getAll();
+    final localFollows = followBox.getAll();
     var localFolders = folderBox.getAll();
     var localLinks = linkBox.getAll();
 
@@ -202,6 +208,9 @@ class ComicSyncCore {
     final cloudHistories = _parseJsonList(
       data['histories'],
     ).map(UnifiedComicHistory.fromJson).toList();
+    final cloudFollows = _parseJsonList(
+      data['follows'],
+    ).map(ComicFollow.fromJson).toList();
     var cloudFolders = _parseJsonList(
       data['folders'],
     ).map(ComicFolder.fromJson).toList();
@@ -225,6 +234,12 @@ class ComicSyncCore {
     final mergedHistories = _mergeByUniqueKey(
       localHistories,
       cloudHistories,
+      keyOf: (item) => item.uniqueKey,
+      updatedAtOf: (item) => item.updatedAt,
+    );
+    final mergedFollows = _mergeByUniqueKey(
+      localFollows,
+      cloudFollows,
       keyOf: (item) => item.uniqueKey,
       updatedAtOf: (item) => item.updatedAt,
     );
@@ -303,6 +318,9 @@ class ComicSyncCore {
     for (final item in mergedHistories) {
       item.id = 0;
     }
+    for (final item in mergedFollows) {
+      item.id = 0;
+    }
     for (final item in mergedFolders) {
       item.id = 0;
     }
@@ -312,6 +330,7 @@ class ComicSyncCore {
 
     favoriteBox.removeAll();
     historyBox.removeAll();
+    followBox.removeAll();
     folderBox.removeAll();
     linkBox.removeAll();
 
@@ -320,6 +339,9 @@ class ComicSyncCore {
     }
     if (mergedHistories.isNotEmpty) {
       historyBox.putMany(mergedHistories);
+    }
+    if (mergedFollows.isNotEmpty) {
+      followBox.putMany(mergedFollows);
     }
     if (mergedFolders.isNotEmpty) {
       folderBox.putMany(mergedFolders);
@@ -330,6 +352,7 @@ class ComicSyncCore {
 
     return mergedFavorites.length +
         mergedHistories.length +
+        mergedFollows.length +
         mergedFolders.length +
         mergedLinks.length;
   }

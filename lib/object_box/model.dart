@@ -1018,6 +1018,128 @@ class PluginInfo {
   }
 }
 
+@Entity()
+@JsonSerializable()
+class ComicFollow {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  String source;
+  String comicId;
+  String title;
+  String description;
+  String cover;
+  String creator;
+  String titleMeta;
+  String metadata;
+
+  /// 上次进入漫画 / 加入追更时的章节数
+  int lastChapterCount;
+
+  /// 检测到的最新章节数
+  int detectedChapterCount;
+
+  /// 是否有更新
+  bool hasUpdate;
+
+  /// 最近一次检测是否失败（仅内存，不持久化）
+  @Transient()
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool lastCheckFailed;
+
+  @Property(type: PropertyType.date)
+  DateTime updateTime;
+
+  bool deleted;
+
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+
+  int schemaVersion;
+
+  ComicFollow({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.source,
+    required this.comicId,
+    required this.title,
+    required this.description,
+    required this.cover,
+    required this.creator,
+    required this.titleMeta,
+    required this.metadata,
+    required this.lastChapterCount,
+    required this.detectedChapterCount,
+    required this.hasUpdate,
+    this.lastCheckFailed = false,
+    required this.updateTime,
+    required this.deleted,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.schemaVersion,
+  });
+
+  ComicFollow copyWith({
+    int? id,
+    String? uniqueKey,
+    String? source,
+    String? comicId,
+    String? title,
+    String? description,
+    String? cover,
+    String? creator,
+    String? titleMeta,
+    String? metadata,
+    int? lastChapterCount,
+    int? detectedChapterCount,
+    bool? hasUpdate,
+    bool? lastCheckFailed,
+    DateTime? updateTime,
+    bool? deleted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? schemaVersion,
+  }) {
+    return ComicFollow(
+      id: id ?? this.id,
+      uniqueKey: uniqueKey ?? this.uniqueKey,
+      source: source ?? this.source,
+      comicId: comicId ?? this.comicId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      cover: cover ?? this.cover,
+      creator: creator ?? this.creator,
+      titleMeta: titleMeta ?? this.titleMeta,
+      metadata: metadata ?? this.metadata,
+      lastChapterCount: lastChapterCount ?? this.lastChapterCount,
+      detectedChapterCount: detectedChapterCount ?? this.detectedChapterCount,
+      hasUpdate: hasUpdate ?? this.hasUpdate,
+      lastCheckFailed: lastCheckFailed ?? this.lastCheckFailed,
+      updateTime: updateTime ?? this.updateTime,
+      deleted: deleted ?? this.deleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      schemaVersion: schemaVersion ?? this.schemaVersion,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _$ComicFollowToJson(this);
+
+  factory ComicFollow.fromJson(Map<String, dynamic> json) =>
+      _$ComicFollowFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
 /// 漫画文件夹/链接类型：收藏、历史、下载
 enum ComicFolderType { favorite, history, download }
 

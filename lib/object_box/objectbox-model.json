@@ -1645,10 +1645,111 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "22:1286366745902983298",
+      "lastPropertyId": "18:2143015246988481925",
+      "name": "ComicFollow",
+      "properties": [
+        {
+          "id": "1:4266025426709620936",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5349902039822487043",
+          "name": "uniqueKey",
+          "indexId": "20:5514676853041497745",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:1726645033274619253",
+          "name": "source",
+          "type": 9
+        },
+        {
+          "id": "4:1602024723948729599",
+          "name": "comicId",
+          "type": 9
+        },
+        {
+          "id": "5:4635636866915246992",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "6:3564719611685025773",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "7:2017683998854645384",
+          "name": "cover",
+          "type": 9
+        },
+        {
+          "id": "8:2300987526067476760",
+          "name": "creator",
+          "type": 9
+        },
+        {
+          "id": "9:1554289431886493220",
+          "name": "titleMeta",
+          "type": 9
+        },
+        {
+          "id": "10:8257543811341038710",
+          "name": "metadata",
+          "type": 9
+        },
+        {
+          "id": "11:1552643045682772286",
+          "name": "lastChapterCount",
+          "type": 6
+        },
+        {
+          "id": "12:7213859603774128955",
+          "name": "detectedChapterCount",
+          "type": 6
+        },
+        {
+          "id": "13:7182805840268503727",
+          "name": "hasUpdate",
+          "type": 1
+        },
+        {
+          "id": "14:8397553508587266195",
+          "name": "updateTime",
+          "type": 10
+        },
+        {
+          "id": "15:4292755519934394947",
+          "name": "deleted",
+          "type": 1
+        },
+        {
+          "id": "16:2379644932334710670",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "17:5897320399556564682",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "18:2143015246988481925",
+          "name": "schemaVersion",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "21:2846814895392849236",
-  "lastIndexId": "19:7281532206111805739",
+  "lastEntityId": "22:1286366745902983298",
+  "lastIndexId": "20:5514676853041497745",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

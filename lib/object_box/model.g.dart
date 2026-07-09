@@ -703,6 +703,49 @@ Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
       'debugUrl': instance.debugUrl,
     };
 
+ComicFollow _$ComicFollowFromJson(Map<String, dynamic> json) => ComicFollow(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  uniqueKey: json['uniqueKey'] as String,
+  source: json['source'] as String,
+  comicId: json['comicId'] as String,
+  title: json['title'] as String,
+  description: json['description'] as String,
+  cover: json['cover'] as String,
+  creator: json['creator'] as String,
+  titleMeta: json['titleMeta'] as String,
+  metadata: json['metadata'] as String,
+  lastChapterCount: (json['lastChapterCount'] as num).toInt(),
+  detectedChapterCount: (json['detectedChapterCount'] as num).toInt(),
+  hasUpdate: json['hasUpdate'] as bool,
+  updateTime: DateTime.parse(json['updateTime'] as String),
+  deleted: json['deleted'] as bool,
+  createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  schemaVersion: (json['schemaVersion'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ComicFollowToJson(ComicFollow instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'uniqueKey': instance.uniqueKey,
+      'source': instance.source,
+      'comicId': instance.comicId,
+      'title': instance.title,
+      'description': instance.description,
+      'cover': instance.cover,
+      'creator': instance.creator,
+      'titleMeta': instance.titleMeta,
+      'metadata': instance.metadata,
+      'lastChapterCount': instance.lastChapterCount,
+      'detectedChapterCount': instance.detectedChapterCount,
+      'hasUpdate': instance.hasUpdate,
+      'updateTime': instance.updateTime.toIso8601String(),
+      'deleted': instance.deleted,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'schemaVersion': instance.schemaVersion,
+    };
+
 ComicFolder _$ComicFolderFromJson(Map<String, dynamic> json) => ComicFolder(
   id: (json['id'] as num?)?.toInt() ?? 0,
   syncId: json['syncId'] as String? ?? '',

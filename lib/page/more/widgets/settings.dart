@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 
 class SettingsWidget extends StatelessWidget {
   const SettingsWidget({super.key});
@@ -17,6 +19,23 @@ class SettingsWidget extends StatelessWidget {
           title: const Text('下载任务'),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushRoute(DownloadTaskRoute()),
+        ),
+        BlocSelector<ComicFollowCubit, ComicFollowState, int>(
+          selector: (state) => state.updateCount,
+          builder: (context, updateCount) {
+            return ListTile(
+              leading: const Icon(Icons.notifications_active_outlined),
+              title: const Text('追更'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (updateCount > 0) _UpdateBadge(count: updateCount),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+              onTap: () => context.pushRoute(ComicFollowRoute()),
+            );
+          },
         ),
         ListTile(
           leading: const Icon(Icons.settings_outlined),
@@ -60,6 +79,32 @@ class SettingsWidget extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _UpdateBadge extends StatelessWidget {
+  const _UpdateBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.error,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        count >= 99 ? '99+' : 'NEW',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onError,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

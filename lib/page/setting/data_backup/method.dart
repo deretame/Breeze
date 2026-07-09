@@ -259,6 +259,9 @@ Future<Map<String, dynamic>> _collectObjectBoxData() async {
     'unifiedComicHistory': withoutIds(
       objectbox.unifiedHistoryBox.getAll().map((e) => e.toJson()).toList(),
     ),
+    'comicFollow': withoutIds(
+      objectbox.comicFollowBox.getAll().map((e) => e.toJson()).toList(),
+    ),
     'unifiedComicDownload': withoutIds(
       objectbox.unifiedDownloadBox.getAll().map((e) => e.toJson()).toList(),
     ),
@@ -309,6 +312,7 @@ Future<void> _clearObjectBoxData({bool preserveDownloads = false}) async {
   if (!preserveDownloads) objectbox.jmDownloadBox.removeAll();
   objectbox.unifiedFavoriteBox.removeAll();
   objectbox.unifiedHistoryBox.removeAll();
+  objectbox.comicFollowBox.removeAll();
   if (!preserveDownloads) objectbox.unifiedDownloadBox.removeAll();
   objectbox.favoriteFolderBox.removeAll();
   objectbox.favoriteFolderItemBox.removeAll();
@@ -396,6 +400,11 @@ Future<void> _restoreObjectBoxData(Map<String, dynamic> json) async {
     objectbox.unifiedHistoryBox,
     json['unifiedComicHistory'] as List?,
     (j) => UnifiedComicHistory.fromJson(j),
+  );
+  putAll(
+    objectbox.comicFollowBox,
+    json['comicFollow'] as List?,
+    (j) => ComicFollow.fromJson(j),
   );
   putAll(
     objectbox.unifiedDownloadBox,

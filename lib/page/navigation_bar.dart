@@ -10,6 +10,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_service.dart';
 import 'package:zephyr/service/lifecycle/notification_service.dart';
 import 'package:zephyr/service/update/check_update.dart';
@@ -52,6 +53,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
   static bool _notificationsInitialized = false; // ← 使用静态变量，跨实例共享
   bool _isInitializingNotifications = false;
+  static bool _followUpdateChecked = false;
 
   @override
   void initState() {
@@ -77,6 +79,7 @@ class _NavigationBarState extends State<NavigationBar> {
     ForegroundTaskService.instance.init();
 
     initializeNotificationsOnce();
+    _scheduleFollowUpdateCheck(context);
 
     // 每隔 5 分钟执行一次
     const duration = Duration(minutes: 5);
@@ -340,7 +343,11 @@ class _NavigationBarState extends State<NavigationBar> {
     }
 
     try {
-      await autoSync(globalState, globalSettingCubit: globalSettingCubit);
+      await autoSync(
+        globalState,
+        globalSettingCubit: globalSettingCubit,
+        comicFollowCubit: context.read<ComicFollowCubit>(),
+      );
       if (globalState.syncSetting.syncNotify) {
         showSuccessToast(force ? "同步成功！" : "自动同步成功！");
       }
@@ -467,6 +474,24 @@ class _NavigationBarState extends State<NavigationBar> {
       }
       commonDialog(context, title, event.message);
     }
+  }
+
+  void _scheduleFollowUpdateCheck(BuildContext context) {
+    if (_followUpdateChecked) {
+      return;
+    }
+    _followUpdateChecked = true;
+
+    Future.delayed(const Duration(minutes: 1), () async {
+      try {
+        if (!context.mounted) {
+          return;
+        }
+        await context.read<ComicFollowCubit>().checkUpdates();
+      } catch (e, stackTrace) {
+        logger.e('启动后追更检测失败', error: e, stackTrace: stackTrace);
+      }
+    });
   }
 
   Future<void> initializeNotificationsOnce() async {

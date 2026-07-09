@@ -12,6 +12,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -25,7 +26,7 @@ import 'package:zephyr/config/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
 
-enum MenuOption { export, cloudCollect, reverseOrder }
+enum MenuOption { export, cloudCollect, follow }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
@@ -98,11 +99,10 @@ class _ComicInfoState extends State<_ComicInfo>
   dynamic comicInfoDyn;
   late ComicEntryType _type;
   bool _loadingComplete = false;
-  // 添加一个状态变量记录是否倒序，用于更新菜单文字
-  bool _isReversed = false;
   String _title = "";
   NormalComicAllInfo? _currentInfo;
   bool _isCloudCollected = false;
+  bool _followSyncedForCurrentInfo = false;
 
   @override
   void initState() {
@@ -132,6 +132,21 @@ class _ComicInfoState extends State<_ComicInfo>
             onPressed: () => popToRoot(context),
           ),
           Expanded(child: Container()),
+          BlocSelector<ComicFollowCubit, ComicFollowState, bool>(
+            selector: (state) =>
+                state.isFollowing(widget.pluginId, widget.comicId),
+            builder: (context, isFollowing) {
+              return IconButton(
+                icon: Icon(
+                  isFollowing
+                      ? Icons.notifications_active
+                      : Icons.notifications_none,
+                ),
+                tooltip: isFollowing ? '不再追更' : '加入追更',
+                onPressed: () => _toggleFollow(isFollowing),
+              );
+            },
+          ),
           PopupMenuButton<MenuOption>(
             onSelected: (MenuOption item) {
               switch (item) {
@@ -141,22 +156,31 @@ class _ComicInfoState extends State<_ComicInfo>
                 case MenuOption.cloudCollect:
                   _toggleCloudCollectFromMenu();
                   break;
-                case MenuOption.reverseOrder:
-                  _toggleOrder();
+                case MenuOption.follow:
+                  _toggleFollowFromMenu();
                   break;
               }
             },
             itemBuilder: (BuildContext context) {
+              final isFollowing = context.read<ComicFollowCubit>().isFollowing(
+                widget.pluginId,
+                widget.comicId,
+              );
               List<PopupMenuEntry<MenuOption>> menuItems = [];
 
               menuItems.add(
                 PopupMenuItem<MenuOption>(
-                  value: MenuOption.reverseOrder,
+                  value: MenuOption.follow,
                   child: Row(
                     children: [
-                      Icon(Icons.sort, color: Colors.black54),
-                      SizedBox(width: 10),
-                      Text(_isReversed ? '章节正序' : '章节倒序'),
+                      Icon(
+                        isFollowing
+                            ? Icons.notifications_off
+                            : Icons.notifications_active,
+                        color: Colors.black54,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(isFollowing ? '不再追更' : '加入追更'),
                     ],
                   ),
                 ),
@@ -186,7 +210,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         _isCloudCollected ? Icons.star : Icons.star_border,
                         color: Colors.black54,
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
                         (_currentInfo?.allowCollected ?? false)
                             ? (_isCloudCollected ? '取消云端收藏' : '收藏到云端')
@@ -274,10 +298,7 @@ class _ComicInfoState extends State<_ComicInfo>
       );
     }
 
-    var displayEps = List.from(normalComicAllInfo.eps);
-    if (_isReversed) {
-      displayEps = displayEps.reversed.toList();
-    }
+    _syncFollowIfNeeded(normalComicAllInfo);
 
     return BlocSelector<StringSelectCubit, String, bool>(
       selector: (state) => state.isNotEmpty,
@@ -285,7 +306,7 @@ class _ComicInfoState extends State<_ComicInfo>
         return RefreshIndicator(
           onRefresh: () async {
             _type = ComicEntryType.normal;
-            _isReversed = false;
+            _followSyncedForCurrentInfo = false;
 
             context.read<GetComicInfoBloc>().add(
               GetComicInfoEvent(
@@ -382,11 +403,10 @@ class _ComicInfoState extends State<_ComicInfo>
                       title: '章节目录',
                       trailing: _EpisodeHeaderBadge(
                         label: '${normalComicAllInfo.eps.length} 话',
-                        icon: _isReversed ? Icons.south : Icons.north,
-                        onTap: _toggleOrder,
+                        icon: Icons.north,
                       ),
                       child: _EpisodeListSection(
-                        episodes: displayEps,
+                        episodes: normalComicAllInfo.eps,
                         allInfo: comicInfoDyn,
                         epsLength: normalComicAllInfo.eps.length,
                         type: _type,
@@ -592,8 +612,93 @@ class _ComicInfoState extends State<_ComicInfo>
     }
   }
 
-  // 实现章节倒序逻辑
-  void _toggleOrder() => setState(() => _isReversed = !_isReversed);
+  void _syncFollowIfNeeded(NormalComicAllInfo info) {
+    if (_type == ComicEntryType.download) {
+      return;
+    }
+    final cubit = context.read<ComicFollowCubit>();
+    if (!cubit.isFollowing(widget.pluginId, widget.comicId)) {
+      return;
+    }
+    if (_followSyncedForCurrentInfo) {
+      return;
+    }
+    _followSyncedForCurrentInfo = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      cubit.markAsRead(widget.pluginId, widget.comicId, info.eps.length);
+    });
+  }
+
+  Future<void> _toggleFollow(bool isFollowing) async {
+    final info = _currentInfo;
+    if (info == null) {
+      showErrorToast('当前详情尚未加载完成');
+      return;
+    }
+
+    if (isFollowing) {
+      await _confirmAndRemoveFollow(info.comicInfo.title);
+      return;
+    }
+
+    await context.read<ComicFollowCubit>().addOrUpdateFollow(
+      source: widget.pluginId,
+      comicId: widget.comicId,
+      info: info,
+      lastChapterCount: info.eps.length,
+    );
+    _followSyncedForCurrentInfo = true;
+    if (mounted) {
+      showSuccessToast('已加入追更');
+    }
+  }
+
+  Future<void> _toggleFollowFromMenu() async {
+    final info = _currentInfo;
+    if (info == null) {
+      showErrorToast('当前详情尚未加载完成');
+      return;
+    }
+    final isFollowing = context.read<ComicFollowCubit>().isFollowing(
+      widget.pluginId,
+      widget.comicId,
+    );
+    await _toggleFollow(isFollowing);
+  }
+
+  Future<void> _confirmAndRemoveFollow(String title) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('取消追更'),
+        content: Text('确定不再追更《$title》吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => dialogContext.pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => dialogContext.pop(true),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    await context.read<ComicFollowCubit>().removeFollow(
+      widget.pluginId,
+      widget.comicId,
+    );
+    _followSyncedForCurrentInfo = false;
+    if (mounted) {
+      showSuccessToast('已取消追更');
+    }
+  }
 
   List<UnifiedComicListItem> _resolveRecommendItems(List<Recommend> recommend) {
     return recommend
@@ -681,22 +786,16 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _EpisodeHeaderBadge extends StatelessWidget {
-  const _EpisodeHeaderBadge({
-    required this.label,
-    required this.icon,
-    this.onTap,
-  });
+  const _EpisodeHeaderBadge({required this.label, required this.icon});
 
   final String label;
   final IconData icon;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

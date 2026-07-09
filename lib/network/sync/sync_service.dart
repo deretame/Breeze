@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 
 import 'comic_sync_core.dart';
@@ -53,6 +54,7 @@ ComicSyncRemoteAdapter? createSyncAdapter(GlobalSettingState state) {
 Future<void> autoSync(
   GlobalSettingState state, {
   GlobalSettingCubit? globalSettingCubit,
+  ComicFollowCubit? comicFollowCubit,
 }) async {
   final adapter = createSyncAdapter(state);
   if (adapter == null) {
@@ -60,6 +62,9 @@ Future<void> autoSync(
   }
 
   await runComicSync(adapter);
+
+  // 同步后重新加载追更列表，确保内存状态与数据库一致。
+  await comicFollowCubit?.loadFromDatabase();
 
   if (!state.syncSetting.syncSettings && !state.syncSetting.syncPlugins) {
     logger.d('设置同步和插件同步均未启用，跳过配置同步');

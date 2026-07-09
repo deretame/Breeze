@@ -1958,6 +1958,125 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(22, 1286366745902983298),
+    name: 'ComicFollow',
+    lastPropertyId: const obx_int.IdUid(18, 2143015246988481925),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 4266025426709620936),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5349902039822487043),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(20, 5514676853041497745),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 1726645033274619253),
+        name: 'source',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1602024723948729599),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4635636866915246992),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 3564719611685025773),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 2017683998854645384),
+        name: 'cover',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 2300987526067476760),
+        name: 'creator',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 1554289431886493220),
+        name: 'titleMeta',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 8257543811341038710),
+        name: 'metadata',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 1552643045682772286),
+        name: 'lastChapterCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 7213859603774128955),
+        name: 'detectedChapterCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 7182805840268503727),
+        name: 'hasUpdate',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 8397553508587266195),
+        name: 'updateTime',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 4292755519934394947),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 2379644932334710670),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 5897320399556564682),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 2143015246988481925),
+        name: 'schemaVersion',
+        type: 6,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -2003,8 +2122,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(21, 2846814895392849236),
-    lastIndexId: const obx_int.IdUid(19, 7281532206111805739),
+    lastEntityId: const obx_int.IdUid(22, 1286366745902983298),
+    lastIndexId: const obx_int.IdUid(20, 5514676853041497745),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -4514,6 +4633,145 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    ComicFollow: obx_int.EntityDefinition<ComicFollow>(
+      model: _entities[18],
+      toOneRelations: (ComicFollow object) => [],
+      toManyRelations: (ComicFollow object) => {},
+      getId: (ComicFollow object) => object.id,
+      setId: (ComicFollow object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ComicFollow object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final sourceOffset = fbb.writeString(object.source);
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final titleOffset = fbb.writeString(object.title);
+        final descriptionOffset = fbb.writeString(object.description);
+        final coverOffset = fbb.writeString(object.cover);
+        final creatorOffset = fbb.writeString(object.creator);
+        final titleMetaOffset = fbb.writeString(object.titleMeta);
+        final metadataOffset = fbb.writeString(object.metadata);
+        fbb.startTable(19);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, sourceOffset);
+        fbb.addOffset(3, comicIdOffset);
+        fbb.addOffset(4, titleOffset);
+        fbb.addOffset(5, descriptionOffset);
+        fbb.addOffset(6, coverOffset);
+        fbb.addOffset(7, creatorOffset);
+        fbb.addOffset(8, titleMetaOffset);
+        fbb.addOffset(9, metadataOffset);
+        fbb.addInt64(10, object.lastChapterCount);
+        fbb.addInt64(11, object.detectedChapterCount);
+        fbb.addBool(12, object.hasUpdate);
+        fbb.addInt64(13, object.updateTime.millisecondsSinceEpoch);
+        fbb.addBool(14, object.deleted);
+        fbb.addInt64(15, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(16, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addInt64(17, object.schemaVersion);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final coverParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final creatorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final titleMetaParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 20, '');
+        final metadataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 22, '');
+        final lastChapterCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          24,
+          0,
+        );
+        final detectedChapterCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          26,
+          0,
+        );
+        final hasUpdateParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          28,
+          false,
+        );
+        final updateTimeParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 30, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 34, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 36, 0),
+        );
+        final schemaVersionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          38,
+          0,
+        );
+        final object = ComicFollow(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          source: sourceParam,
+          comicId: comicIdParam,
+          title: titleParam,
+          description: descriptionParam,
+          cover: coverParam,
+          creator: creatorParam,
+          titleMeta: titleMetaParam,
+          metadata: metadataParam,
+          lastChapterCount: lastChapterCountParam,
+          detectedChapterCount: detectedChapterCountParam,
+          hasUpdate: hasUpdateParam,
+          updateTime: updateTimeParam,
+          deleted: deletedParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          schemaVersion: schemaVersionParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -6021,5 +6279,98 @@ class ComicLink_ {
   /// See [ComicLink.folderSyncId].
   static final folderSyncId = obx.QueryStringProperty<ComicLink>(
     _entities[17].properties[8],
+  );
+}
+
+/// [ComicFollow] entity fields to define ObjectBox queries.
+class ComicFollow_ {
+  /// See [ComicFollow.id].
+  static final id = obx.QueryIntegerProperty<ComicFollow>(
+    _entities[18].properties[0],
+  );
+
+  /// See [ComicFollow.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[1],
+  );
+
+  /// See [ComicFollow.source].
+  static final source = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[2],
+  );
+
+  /// See [ComicFollow.comicId].
+  static final comicId = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[3],
+  );
+
+  /// See [ComicFollow.title].
+  static final title = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[4],
+  );
+
+  /// See [ComicFollow.description].
+  static final description = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[5],
+  );
+
+  /// See [ComicFollow.cover].
+  static final cover = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[6],
+  );
+
+  /// See [ComicFollow.creator].
+  static final creator = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[7],
+  );
+
+  /// See [ComicFollow.titleMeta].
+  static final titleMeta = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[8],
+  );
+
+  /// See [ComicFollow.metadata].
+  static final metadata = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[9],
+  );
+
+  /// See [ComicFollow.lastChapterCount].
+  static final lastChapterCount = obx.QueryIntegerProperty<ComicFollow>(
+    _entities[18].properties[10],
+  );
+
+  /// See [ComicFollow.detectedChapterCount].
+  static final detectedChapterCount = obx.QueryIntegerProperty<ComicFollow>(
+    _entities[18].properties[11],
+  );
+
+  /// See [ComicFollow.hasUpdate].
+  static final hasUpdate = obx.QueryBooleanProperty<ComicFollow>(
+    _entities[18].properties[12],
+  );
+
+  /// See [ComicFollow.updateTime].
+  static final updateTime = obx.QueryDateProperty<ComicFollow>(
+    _entities[18].properties[13],
+  );
+
+  /// See [ComicFollow.deleted].
+  static final deleted = obx.QueryBooleanProperty<ComicFollow>(
+    _entities[18].properties[14],
+  );
+
+  /// See [ComicFollow.createdAt].
+  static final createdAt = obx.QueryDateProperty<ComicFollow>(
+    _entities[18].properties[15],
+  );
+
+  /// See [ComicFollow.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<ComicFollow>(
+    _entities[18].properties[16],
+  );
+
+  /// See [ComicFollow.schemaVersion].
+  static final schemaVersion = obx.QueryIntegerProperty<ComicFollow>(
+    _entities[18].properties[17],
   );
 }

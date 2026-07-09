@@ -44,6 +44,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: CacheSettingRoute.page),
     AutoRoute(page: RealSrSettingRoute.page),
     AutoRoute(page: DataBackupRoute.page),
+    AutoRoute(page: ComicFollowRoute.page),
   ];
 
   @override

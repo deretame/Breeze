@@ -11,6 +11,7 @@ import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/service/download/models/download_task_json.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../comments/widgets/title.dart';
@@ -130,7 +131,7 @@ class _DownloadPageState extends State<DownloadPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.download),
-        label: const Text("开始下载"),
+        label: Text(t.download.startDownload),
         onPressed: () {
           logger.d("开始下载");
           download();
@@ -144,7 +145,7 @@ class _DownloadPageState extends State<DownloadPage> {
         .where((chapter) => _downloadInfo[chapter.id] == true)
         .toList();
     if (selectedChapters.isEmpty) {
-      showErrorToast("请选择要下载的章节");
+      showErrorToast(t.download.selectChaptersPrompt);
       return;
     }
     final task = DownloadTaskJson(
@@ -168,10 +169,12 @@ class _DownloadPageState extends State<DownloadPage> {
     logger.d('download task payload=${task.toJson()}');
     try {
       await startDownloadTask(task);
-      showInfoToast("下载任务已启动");
+      showInfoToast(t.download.taskStarted);
     } catch (e, s) {
       logger.e(e, stackTrace: s);
-      showErrorToast("下载任务启动失败，${normalizeSearchErrorMessage(e)}");
+      showErrorToast(
+        t.download.taskStartFailed(error: normalizeSearchErrorMessage(e)),
+      );
     }
   }
 }

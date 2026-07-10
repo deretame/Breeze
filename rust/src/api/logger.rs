@@ -1,3 +1,4 @@
+use flutter_rust_bridge::frb;
 use std::fmt::Write as _;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
@@ -177,6 +178,7 @@ where
 /// 为 `tracing_subscriber::fmt` 提供一个 writer：每次事件写入缓冲区，writer 被 drop
 /// 时把整行内容以 fire-and-forget 方式转发到 `set_log_http_forward` 配置的地址。
 /// 未配置地址、client 不可用或发送失败都静默忽略，不打印任何日志。
+#[frb(opaque)]
 #[derive(Debug, Clone, Default)]
 pub struct LogHttpMakeWriter;
 

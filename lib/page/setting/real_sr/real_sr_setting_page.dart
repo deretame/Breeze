@@ -9,17 +9,18 @@ import 'package:zephyr/page/setting/real_sr/service/android_ncnn_model_config.da
 import 'package:zephyr/page/setting/real_sr/service/desktop_ncnn_model_config.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_settings.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../common/setting_ui.dart';
 
-const Map<int, String> _realSrConcurrencyLabels = {
+final Map<int, String> _realSrConcurrencyLabels = {
   1: '1',
   2: '2',
   4: '4',
   6: '6',
   8: '8',
-  0: '不限制',
+  0: t.realSr.unlimited,
 };
 
 const Map<int, String> _realSrTileSizeLabels = {
@@ -159,7 +160,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
       );
     } catch (e, s) {
       logger.e('模型下载失败', error: e, stackTrace: s);
-      showErrorToast('模型下载失败: $e');
+      showErrorToast('${t.realSr.modelDownloadFailed}: $e');
     } finally {
       if (mounted) {
         setState(() => _downloading = false);
@@ -177,9 +178,9 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '图片超分（实验性）',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        title: Text(
+          t.realSr.title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
         scrolledUnderElevation: 0,
@@ -227,11 +228,15 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
   Widget _buildContent(BuildContext context) {
     return ListView(
       children: [
-        _buildSectionTitle(context, '自动超分'),
+        _buildSectionTitle(context, t.realSr.autoUpscaleSection),
         SwitchListTile(
           secondary: const Icon(Icons.auto_fix_high_outlined),
-          title: const Text('自动超分'),
-          subtitle: Text(!_isAvailable ? '模型未下载，开启后无法自动超分' : '下载或加载图片时自动调用超分'),
+          title: Text(t.realSr.autoUpscale),
+          subtitle: Text(
+            !_isAvailable
+                ? t.realSr.autoUpscaleSubtitleUnavailable
+                : t.realSr.autoUpscaleSubtitleAvailable,
+          ),
           thumbIcon: kSettingSwitchThumbIcon,
           value: _autoUpscale,
           onChanged: _setAutoUpscale,
@@ -239,11 +244,11 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
-        _buildSectionTitle(context, '超分条件'),
+        _buildSectionTitle(context, t.realSr.conditionSection),
         ListTile(
           leading: const Icon(Icons.hd_outlined),
-          title: const Text('分辨率阈值'),
-          subtitle: const Text('仅当图片宽度小于该值时才自动超分'),
+          title: Text(t.realSr.resolutionThreshold),
+          subtitle: Text(t.realSr.resolutionThresholdSubtitle),
           trailing: DropdownButtonHideUnderline(
             child: DropdownButton<RealSrResolutionThreshold>(
               value: _effectiveResolutionThreshold,
@@ -269,11 +274,11 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
-        _buildSectionTitle(context, '性能'),
+        _buildSectionTitle(context, t.realSr.performanceSection),
         ListTile(
           leading: const Icon(Icons.speed_outlined),
-          title: const Text('并发数量'),
-          subtitle: const Text('高端显卡可适当提高，移动设备或性能较低时不建议设置高于1的并发量'),
+          title: Text(t.realSr.concurrency),
+          subtitle: Text(t.realSr.concurrencySubtitle),
           trailing: DropdownButtonHideUnderline(
             child: DropdownButton<int>(
               value: _realSrConcurrencyOptions.contains(_concurrency)
@@ -301,8 +306,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
         if (!_usesCoreML)
           ListTile(
             leading: const Icon(Icons.grid_on_outlined),
-            title: const Text('分块大小'),
-            subtitle: const Text('遇到崩溃可设置较小值，0为不分块，桌面端可尝试设置为0'),
+            title: Text(t.realSr.tileSize),
+            subtitle: Text(t.realSr.tileSizeSubtitle),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 value: _realSrTileSizeOptions.contains(_tileSize)
@@ -328,14 +333,14 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
-        _buildSectionTitle(context, '模型'),
+        _buildSectionTitle(context, t.realSr.modelSection),
 
         // iOS / macOS：使用 CoreML，模型族 + 变体 + 分块信息。
         if (_usesCoreML) ...[
           ListTile(
             leading: const Icon(Icons.speed_outlined),
-            title: const Text('模型'),
-            subtitle: const Text('切换模型族会重置对应的变体选项'),
+            title: Text(t.realSr.model),
+            subtitle: Text(t.realSr.modelSubtitle),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton<CoreMLModelFamily>(
                 value: _coreMLFamily,
@@ -347,7 +352,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
                     .map(
                       (value) => DropdownMenuItem<CoreMLModelFamily>(
                         value: value,
-                        child: Text(value.label),
+                        child: Text(value.localizedLabel),
                       ),
                     )
                     .toList(),
@@ -360,8 +365,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
           ),
           ListTile(
             leading: const Icon(Icons.healing_outlined),
-            title: const Text('降噪级别'),
-            subtitle: const Text('该选项随所选模型变化'),
+            title: Text(t.realSr.noiseLevel),
+            subtitle: Text(t.realSr.noiseLevelSubtitle),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton<CoreMLModelVariant>(
                 value: _coreMLVariant,
@@ -373,7 +378,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
                     .map(
                       (value) => DropdownMenuItem<CoreMLModelVariant>(
                         value: value,
-                        child: Text(value.displayName),
+                        child: Text(value.localizedDisplayName),
                       ),
                     )
                     .toList(),
@@ -386,30 +391,28 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
           ),
           ListTile(
             leading: const Icon(Icons.grid_view_outlined),
-            title: const Text('分块信息'),
+            title: Text(t.realSr.blockInfo),
             subtitle: Text(_coreMLBlockInfo),
             trailing: Tooltip(
               triggerMode: TooltipTriggerMode.tap,
               showDuration: const Duration(seconds: 5),
-              message:
-                  'blockSize 是模型输入尺寸，包含反射边距；\n'
-                  '内容块 = blockSize - 2×shrinkSize，才是真正拼接输出的区域。',
+              message: t.realSr.blockInfoTooltip,
               child: const Icon(Icons.help_outline),
             ),
           ),
         ] else if (Platform.isAndroid) ...[
           // Android：固定使用 waifu2x upconv CLI，不暴露策略/降噪选项。
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('Android 超分'),
-            subtitle: Text('当前使用 waifu2x upconv 动漫模型，2 倍放大'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(t.realSr.androidSuperResolution),
+            subtitle: Text(t.realSr.androidSuperResolutionSubtitle),
           ),
         ] else ...[
           // Windows / Linux：与 Android 保持一致的策略 + 降噪档位。
           ListTile(
             leading: const Icon(Icons.speed_outlined),
-            title: const Text('超分策略'),
-            subtitle: const Text('效率优先使用 waifu2x，质量优先使用 Real-CUGAN'),
+            title: Text(t.realSr.desktopStrategy),
+            subtitle: Text(t.realSr.desktopStrategySubtitle),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton<AndroidNcnnMode>(
                 value: _desktopNcnnMode,
@@ -434,8 +437,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
           ),
           ListTile(
             leading: const Icon(Icons.healing_outlined),
-            title: const Text('降噪级别'),
-            subtitle: const Text('保守适合普通漫画，降噪级别越高涂抹感越强'),
+            title: Text(t.realSr.desktopNoiseLevel),
+            subtitle: Text(t.realSr.desktopNoiseLevelSubtitle),
             trailing: DropdownButtonHideUnderline(
               child: DropdownButton<AndroidNcnnNoise>(
                 value: _desktopNcnnNoise,
@@ -462,7 +465,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
-        _buildSectionTitle(context, '模型管理'),
+        _buildSectionTitle(context, t.realSr.modelManagementSection),
         _buildModelManagementTile(context),
 
         const SizedBox(height: 32),
@@ -474,15 +477,18 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     final blockSize = _coreMLVariant.config['blockSize'] as int? ?? 0;
     final shrinkSize = _coreMLVariant.config['shrinkSize'] as int? ?? 0;
     final contentSize = CoreMLModelConfig.contentBlockSize(_coreMLVariant);
-    return '内容块 $contentSize×$contentSize，模型输入 $blockSize×$blockSize'
-        '（含 ${shrinkSize}px 反射边距）';
+    return t.realSr.blockInfoFormat(
+      contentSize: contentSize,
+      blockSize: blockSize,
+      shrinkSize: shrinkSize,
+    );
   }
 
   Widget _buildModelManagementTile(BuildContext context) {
     if (_downloading) {
       return ListTile(
         leading: const Icon(Icons.downloading_outlined),
-        title: const Text('正在下载模型'),
+        title: Text(t.realSr.downloadingModel),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -501,21 +507,21 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
           Icons.check_circle,
           color: Theme.of(context).colorScheme.primary,
         ),
-        title: const Text('模型已就绪'),
+        title: Text(t.realSr.modelReady),
         trailing: TextButton(
           onPressed: _downloadModel,
-          child: const Text('重新下载'),
+          child: Text(t.realSr.redownload),
         ),
       );
     }
 
     return ListTile(
       leading: const Icon(Icons.warning_amber_rounded),
-      title: const Text('模型未下载'),
-      subtitle: const Text('使用超分前需要先下载模型'),
+      title: Text(t.realSr.modelNotDownloaded),
+      subtitle: Text(t.realSr.modelNotDownloadedSubtitle),
       trailing: ElevatedButton(
         onPressed: _downloadModel,
-        child: const Text('下载模型'),
+        child: Text(t.realSr.downloadModel),
       ),
     );
   }

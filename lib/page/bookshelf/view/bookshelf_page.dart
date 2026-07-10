@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
@@ -35,7 +36,11 @@ class _BookshelfPageContent extends StatefulWidget {
 
 class _BookshelfPageContentState extends State<_BookshelfPageContent>
     with SingleTickerProviderStateMixin {
-  static const List<String> _labels = ['收藏', '历史', '下载'];
+  late final List<String> _labels = [
+    t.bookshelf.favorite,
+    t.bookshelf.history,
+    t.bookshelf.download,
+  ];
 
   int _currentIndex = 0;
   late final TabController _tabController;
@@ -119,7 +124,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: '筛选',
+                tooltip: t.bookshelf.filter,
                 icon: const Icon(Icons.tune),
                 onPressed: _openFilter,
               ),
@@ -155,7 +160,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           onPressed: () => setState(() => _isSearchExpanded = true),
         ),
         IconButton(
-          tooltip: '筛选',
+          tooltip: t.bookshelf.filter,
           icon: const Icon(Icons.tune),
           onPressed: _openFilter,
         ),
@@ -229,7 +234,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
         textAlignVertical: TextAlignVertical.center,
         style: const TextStyle(fontSize: 14),
         decoration: InputDecoration(
-          hintText: '搜索列表',
+          hintText: t.bookshelf.searchList,
           hintStyle: TextStyle(color: context.textColor.withValues(alpha: 0.5)),
           isCollapsed: true,
           border: InputBorder.none,
@@ -333,7 +338,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     if (availableSources.isEmpty && currentMode != ShelfPageMode.favorite) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('暂无可筛选的插件来源')));
+      ).showSnackBar(SnackBar(content: Text(t.bookshelf.noFilterSource)));
       return;
     }
 
@@ -489,16 +494,16 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除收藏夹'),
-        content: Text('是否删除当前文件夹「$name」？'),
+        title: Text(t.bookshelf.deleteFolder),
+        content: Text(t.bookshelf.confirmDeleteFolder(name: name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -513,19 +518,19 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       context: context,
       builder: (context) => AlertDialog(
         title: Text(name),
-        content: const Text('请选择操作'),
+        content: Text(t.bookshelf.folderAction),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(_FolderAction.rename),
-            child: const Text('重命名'),
+            child: Text(t.common.rename),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(_FolderAction.delete),
-            child: const Text('删除'),
+            child: Text(t.common.delete),
           ),
         ],
       ),
@@ -540,20 +545,20 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('重命名收藏夹'),
+        title: Text(t.bookshelf.renameFolder),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: '输入新的收藏夹名称'),
+          decoration: InputDecoration(hintText: t.bookshelf.folderNameHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -567,20 +572,20 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('新建收藏夹'),
+        title: Text(t.bookshelf.createFolder),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: '输入收藏夹名称'),
+          decoration: InputDecoration(hintText: t.bookshelf.createFolderHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('创建'),
+            child: Text(t.common.create),
           ),
         ],
       ),
@@ -672,7 +677,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('筛选'),
+      title: Text(t.bookshelf.filter),
       content: SizedBox(
         width: 420,
         child: SingleChildScrollView(
@@ -694,7 +699,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(
@@ -704,7 +709,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
               sources: _selectedSources,
             ),
           ),
-          child: const Text('应用'),
+          child: Text(t.common.apply),
         ),
       ],
     );
@@ -714,20 +719,20 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('排序', style: Theme.of(context).textTheme.titleSmall),
+        Text(t.bookshelf.sort, style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           children: [
             ChoiceChip(
               showCheckmark: false,
-              label: const Text('时间(晚→早)'),
+              label: Text(t.bookshelf.sortDesc),
               selected: _selectedSort == 'dd',
               onSelected: (_) => setState(() => _selectedSort = 'dd'),
             ),
             ChoiceChip(
               showCheckmark: false,
-              label: const Text('时间(早→晚)'),
+              label: Text(t.bookshelf.sortAsc),
               selected: _selectedSort == 'da',
               onSelected: (_) => setState(() => _selectedSort = 'da'),
             ),
@@ -749,7 +754,10 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
       children: [
         Row(
           children: [
-            Text('文件夹（已废弃）', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              t.bookshelf.folderDeprecated,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const Spacer(),
             // TextButton(onPressed: _createFolder, child: const Text('新建')),
           ],
@@ -798,7 +806,10 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
       children: [
         Row(
           children: [
-            Text('漫画源', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              t.bookshelf.source,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(width: 8),
             TextButton(
               onPressed: () => setState(() {
@@ -808,7 +819,9 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
                   _selectedSources = widget.availableSources.toSet();
                 }
               }),
-              child: Text(isAllSelected ? '取消全选' : '全选'),
+              child: Text(
+                isAllSelected ? t.bookshelf.deselectAll : t.common.selectAll,
+              ),
             ),
           ],
         ),

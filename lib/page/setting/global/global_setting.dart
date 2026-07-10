@@ -6,6 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/i18n_helper.dart';
+import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/i18n/system_locale_service.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
@@ -31,20 +34,34 @@ class GlobalSettingPage extends StatefulWidget {
 }
 
 class _GlobalSettingPageState extends State<GlobalSettingPage> {
-  final List<String> systemThemeList = ["跟随系统", "浅色模式", "深色模式"];
-  final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
   List<String> _splashPageList(bool oldPageRollbackEnabled) {
     if (oldPageRollbackEnabled) {
-      return ["首页", "排行", "书架", "发现", "更多"];
+      return [
+        t.navigation.home,
+        t.navigation.rank,
+        t.navigation.bookshelf,
+        t.navigation.discover,
+        t.navigation.more,
+      ];
     }
-    return ["书架", "发现", "更多"];
+    return [t.navigation.bookshelf, t.navigation.discover, t.navigation.more];
   }
 
   Map<String, int> _splashPageMap(bool oldPageRollbackEnabled) {
     if (oldPageRollbackEnabled) {
-      return {"首页": 0, "排行": 1, "书架": 2, "发现": 3, "更多": 4};
+      return {
+        t.navigation.home: 0,
+        t.navigation.rank: 1,
+        t.navigation.bookshelf: 2,
+        t.navigation.discover: 3,
+        t.navigation.more: 4,
+      };
     }
-    return {"书架": 0, "发现": 1, "更多": 2};
+    return {
+      t.navigation.bookshelf: 0,
+      t.navigation.discover: 1,
+      t.navigation.more: 2,
+    };
   }
 
   int? _cacheSizeBytes;
@@ -179,9 +196,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '全局设置',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        title: Text(
+          t.settings.globalTitle,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
         scrolledUnderElevation: 0,
@@ -192,7 +209,12 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           constraints: const BoxConstraints(maxWidth: 768),
           child: ListView(
             children: [
-              _buildSectionTitle(context, '外观与显示', Icons.palette_outlined),
+              _buildSectionTitle(
+                context,
+                t.settings.appearance,
+                Icons.palette_outlined,
+              ),
+              _languageTile(state, globalSettingCubit),
               _systemTheme(state, globalSettingCubit),
               _dynamicColor(state, globalSettingCubit),
               if (!state.dynamicColor) changeThemeColor(context),
@@ -202,7 +224,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
+              _buildSectionTitle(
+                context,
+                t.settings.contentAndNetwork,
+                Icons.tune_outlined,
+              ),
               editMaskedKeywords(context),
               _chineseConvertMode(state, globalSettingCubit),
               socks5ProxyEdit(context, state.socks5Proxy),
@@ -211,7 +237,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '同步', Icons.sync_outlined),
+              _buildSectionTitle(context, t.settings.sync, Icons.sync_outlined),
               _syncServiceType(state, globalSettingCubit),
               webdavSync(context, state.syncSetting.syncServiceType),
               if (configuredSync) _autoSync(state, globalSettingCubit),
@@ -222,7 +248,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '应用行为', Icons.settings_outlined),
+              _buildSectionTitle(
+                context,
+                t.settings.appBehavior,
+                Icons.settings_outlined,
+              ),
               _splashPage(state, globalSettingCubit),
               if (isDesktop) _desktopCloseBehaviorTile(),
               _appLockSetting(state, globalSettingCubit),
@@ -230,7 +260,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '存储', Icons.storage_outlined),
+              _buildSectionTitle(
+                context,
+                t.settings.storage,
+                Icons.storage_outlined,
+              ),
               _cacheSettings(context),
               _dataBackupSettings(context),
 
@@ -247,7 +281,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     children: [
                       const SizedBox(height: 8),
                       const Divider(height: 1, thickness: 0.3),
-                      _buildSectionTitle(context, '图片处理', Icons.image_outlined),
+                      _buildSectionTitle(
+                        context,
+                        t.settings.imageProcessing,
+                        Icons.image_outlined,
+                      ),
                       _realSrSettings(context),
                     ],
                   );
@@ -256,7 +294,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '调试', Icons.bug_report_outlined),
+              _buildSectionTitle(
+                context,
+                t.settings.debug,
+                Icons.bug_report_outlined,
+              ),
               _logAddress(state, globalSettingCubit),
               _enableMemoryDebug(state, globalSettingCubit),
               if (defaultTargetPlatform == TargetPlatform.android)
@@ -264,8 +306,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               if (kDebugMode) ...[
                 ListTile(
                   leading: const Icon(Icons.colorize_outlined),
-                  title: const Text('整点颜色看看'),
-                  subtitle: const Text('打开调色页，快速预览主题色'),
+                  title: Text(t.settings.colorPreview),
+                  subtitle: Text(t.settings.colorPreviewSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     AutoRouter.of(context).push(const ShowColorRoute());
@@ -273,8 +315,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.developer_mode_outlined),
-                  title: const Text('QJS 运行时调试'),
-                  subtitle: const Text('手动输入运行时 ID，抓取调试快照'),
+                  title: Text(t.settings.qjsRuntimeDebug),
+                  subtitle: Text(t.settings.qjsRuntimeDebugSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     context.pushRoute(const QjsRuntimeDebugRoute());
@@ -282,8 +324,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.memory_outlined),
-                  title: const Text('CoreML 超分调试'),
-                  subtitle: const Text('使用绝对路径模型测试 CoreML 超分'),
+                  title: Text(t.settings.coremlDebug),
+                  subtitle: Text(t.settings.coremlDebugSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     context.pushRoute(const CoreMLUpscaleDebugRoute());
@@ -293,18 +335,22 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '关于与更多', Icons.info_outline),
+              _buildSectionTitle(
+                context,
+                t.settings.aboutAndMore,
+                Icons.info_outline,
+              ),
               ListTile(
                 leading: const Icon(Icons.history_outlined),
-                title: const Text('更新日志'),
-                subtitle: const Text('查看各个版本的更新记录'),
+                title: Text(t.settings.changelog),
+                subtitle: Text(t.settings.changelogSubtitle),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => AutoRouter.of(context).push(ChangelogRoute()),
               ),
               ListTile(
                 leading: const Icon(Icons.help_outline),
-                title: const Text('关于应用'),
-                subtitle: const Text('关于 Breeze 的详细信息'),
+                title: Text(t.settings.aboutApp),
+                subtitle: Text(t.settings.aboutAppSubtitle),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => AutoRouter.of(context).push(AboutRoute()),
               ),
@@ -316,51 +362,73 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     );
   }
 
+  Widget _languageTile(GlobalSettingState state, GlobalSettingCubit cubit) {
+    final labels = {
+      null: t.settings.followSystemLanguage,
+      for (final appLocale in AppLocale.values)
+        I18nHelper.toFlutterLocale(appLocale): I18nHelper.displayName(appLocale),
+    };
+
+    final currentValue = state.localeFollowsSystem ? null : state.locale;
+
+    return ListTile(
+      leading: const Icon(Icons.language_outlined),
+      title: Text(t.settings.language),
+      subtitle: Text(t.settings.languageSubtitle),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<Locale?>(
+          value: currentValue,
+          icon: const Icon(Icons.expand_more),
+          onChanged: (Locale? value) async {
+            if (value == null) {
+              final systemInfo = await SystemLocaleService.getInfo();
+              await cubit.setSystemLocale(systemInfo.locale);
+            } else {
+              await cubit.setLocale(value, followsSystem: false);
+            }
+            if (mounted) {
+              showInfoToast(t.settings.languageChangedRestartHint);
+            }
+          },
+          items: labels.entries.map((entry) {
+            return DropdownMenuItem<Locale?>(
+              value: entry.key,
+              child: Text(entry.value),
+            );
+          }).toList(),
+          style: TextStyle(color: context.textColor, fontSize: 15),
+        ),
+      ),
+    );
+  }
+
   Widget _systemTheme(GlobalSettingState state, GlobalSettingCubit cubit) {
-    String currentTheme = "";
-    switch (state.themeMode) {
-      case ThemeMode.system:
-        currentTheme = "跟随系统";
-        break;
-      case ThemeMode.light:
-        currentTheme = "浅色模式";
-        break;
-      case ThemeMode.dark:
-        currentTheme = "深色模式";
-        break;
-    }
+    final themeItems = <ThemeMode, String>{
+      ThemeMode.system: t.common.followSystem,
+      ThemeMode.light: t.common.lightMode,
+      ThemeMode.dark: t.common.darkMode,
+    };
 
     return ListTile(
       leading: const Icon(Icons.dark_mode_outlined),
-      title: const Text('主题模式'),
-      subtitle: const Text('选择策略，切换明暗主题'),
+      title: Text(t.settings.theme),
+      subtitle: Text(t.settings.themeSubtitle),
       trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: currentTheme,
+        child: DropdownButton<ThemeMode>(
+          value: state.themeMode,
           icon: const Icon(Icons.expand_more),
-          onChanged: (String? value) {
+          onChanged: (ThemeMode? value) {
             if (value != null) {
-              switch (value) {
-                case "跟随系统":
-                  cubit.updateState(
-                    (current) => current.copyWith(themeMode: ThemeMode.system),
-                  );
-                  break;
-                case "浅色模式":
-                  cubit.updateState(
-                    (current) => current.copyWith(themeMode: ThemeMode.light),
-                  );
-                  break;
-                case "深色模式":
-                  cubit.updateState(
-                    (current) => current.copyWith(themeMode: ThemeMode.dark),
-                  );
-                  break;
-              }
+              cubit.updateState(
+                (current) => current.copyWith(themeMode: value),
+              );
             }
           },
-          items: systemThemeList.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value));
+          items: themeItems.entries.map((entry) {
+            return DropdownMenuItem<ThemeMode>(
+              value: entry.key,
+              child: Text(entry.value),
+            );
           }).toList(),
           style: TextStyle(color: context.textColor, fontSize: 15),
         ),
@@ -371,8 +439,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _dynamicColor(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.color_lens_outlined),
-      title: const Text('动态取色'),
-      subtitle: const Text('开启后自动提取内容主色'),
+      title: Text(t.settings.dynamicColor),
+      subtitle: Text(t.settings.dynamicColorSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.dynamicColor,
       onChanged: (bool value) {
@@ -384,8 +452,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _fontSettings(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.font_download_outlined),
-      title: const Text('字体设置'),
-      subtitle: const Text('自定义显示字体'),
+      title: Text(t.settings.fontSettings),
+      subtitle: Text(t.settings.fontSettingsSubtitle),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         Navigator.of(
@@ -398,8 +466,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _isAMOLED(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.contrast_outlined),
-      title: const Text('纯黑模式'),
-      subtitle: const Text('开启后使用纯黑背景，适配 AMOLED'),
+      title: Text(t.settings.amoled),
+      subtitle: Text(t.settings.amoledSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.isAMOLED,
       onChanged: (bool value) {
@@ -411,8 +479,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _autoSync(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.cloud_sync_outlined),
-      title: const Text('自动同步'),
-      subtitle: const Text('开启后在后台定期同步配置'),
+      title: Text(t.settings.autoSync),
+      subtitle: Text(t.settings.autoSyncSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.syncSetting.autoSync,
       onChanged: (bool value) {
@@ -427,8 +495,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _updateAccelerate(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.rocket_launch_outlined),
-      title: const Text('更新下载加速'),
-      subtitle: const Text('开启后优先使用代理加速 GitHub 更新链接'),
+      title: Text(t.settings.updateAccelerate),
+      subtitle: Text(t.settings.updateAccelerateSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.updateAccelerate,
       onChanged: (bool value) {
@@ -442,8 +510,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _syncServiceType(GlobalSettingState state, GlobalSettingCubit cubit) {
     return ListTile(
       leading: const Icon(Icons.storage_outlined),
-      title: const Text('同步服务'),
-      subtitle: const Text('选择服务，统一管理同步策略'),
+      title: Text(t.settings.syncService),
+      subtitle: Text(t.settings.syncServiceSubtitle),
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<SyncServiceType>(
           value: state.syncSetting.syncServiceType,
@@ -466,7 +534,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               .map(
                 (value) => DropdownMenuItem<SyncServiceType>(
                   value: value,
-                  child: Text(value.label),
+                  child: Text(switch (value) {
+                    SyncServiceType.none => t.settings.syncServiceNone,
+                    SyncServiceType.webdav => t.settings.syncServiceWebdav,
+                    SyncServiceType.s3 => t.settings.syncServiceS3,
+                  }),
                 ),
               )
               .toList(),
@@ -482,8 +554,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   ) {
     return ListTile(
       leading: const Icon(Icons.translate_outlined),
-      title: const Text('简繁转换'),
-      subtitle: const Text('将漫画标题、简介、章节、评论等转为简体或繁体'),
+      title: Text(t.settings.chineseConvert),
+      subtitle: Text(t.settings.chineseConvertSubtitle),
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<ChineseConvertMode>(
           value: state.chineseConvertMode,
@@ -500,7 +572,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               .map(
                 (value) => DropdownMenuItem<ChineseConvertMode>(
                   value: value,
-                  child: Text(value.label),
+                  child: Text(switch (value) {
+                    ChineseConvertMode.off => t.settings.chineseConvertOff,
+                    ChineseConvertMode.simplified =>
+                      t.settings.chineseConvertSimplified,
+                    ChineseConvertMode.traditional =>
+                      t.settings.chineseConvertTraditional,
+                  }),
                 ),
               )
               .toList(),
@@ -513,8 +591,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _syncNotify(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.notifications_active_outlined),
-      title: const Text('自动同步通知'),
-      subtitle: const Text('开启后在同步开始与完成时提醒'),
+      title: Text(t.settings.syncNotify),
+      subtitle: Text(t.settings.syncNotifySubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.syncSetting.syncNotify,
       onChanged: (bool value) {
@@ -528,8 +606,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _syncSettings(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.tune_outlined),
-      title: const Text('同步设置'),
-      subtitle: const Text('开启后使用云端设置覆盖本地设置'),
+      title: Text(t.settings.syncSettings),
+      subtitle: Text(t.settings.syncSettingsSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.syncSetting.syncSettings,
       onChanged: (bool value) {
@@ -543,8 +621,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _syncPlugins(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.extension_outlined),
-      title: const Text('同步插件'),
-      subtitle: const Text('开启后同步插件配置与安装状态'),
+      title: Text(t.settings.syncPlugins),
+      subtitle: Text(t.settings.syncPluginsSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.syncSetting.syncPlugins,
       onChanged: (bool value) {
@@ -561,8 +639,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   ) {
     return SwitchListTile(
       secondary: const Icon(Icons.smartphone_outlined),
-      title: const Text('异形屏适配'),
-      subtitle: const Text('开启后预留安全区，避免内容遮挡'),
+      title: Text(t.settings.notchAdaptation),
+      subtitle: Text(t.settings.notchAdaptationSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.readSetting.comicReadTopContainer,
       onChanged: (bool value) {
@@ -582,15 +660,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
     return ListTile(
       leading: const Icon(Icons.rocket_launch_outlined),
-      title: const Text('开屏页'),
-      subtitle: const Text('选择启动页，打开应用直达目标'),
+      title: Text(t.settings.splashPage),
+      subtitle: Text(t.settings.splashPageSubtitle),
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: splashPageList[selectedIndex],
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
             if (value != null) {
-              showSuccessToast("设置成功，重启生效");
+              showSuccessToast(t.common.restartToTakeEffect);
               cubit.updateState(
                 (current) =>
                     current.copyWith(welcomePageNum: splashPage[value]!),
@@ -609,15 +687,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _oldPageRollback(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
       secondary: const Icon(Icons.restore_outlined),
-      title: const Text('回退开关'),
-      subtitle: const Text('开启后启用旧版页面入口'),
+      title: Text(t.settings.oldPageRollback),
+      subtitle: Text(t.settings.oldPageRollbackSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.oldPageRollbackEnabled,
       onChanged: (bool value) {
         cubit.updateState(
           (current) => current.copyWith(oldPageRollbackEnabled: value),
         );
-        showSuccessToast("设置成功，重启生效");
+        showSuccessToast(t.common.restartToTakeEffect);
       },
     );
   }
@@ -625,8 +703,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _desktopCloseBehaviorTile() {
     return ListTile(
       leading: const Icon(Icons.close_fullscreen_outlined),
-      title: const Text('关闭按钮行为'),
-      subtitle: const Text('设置点击窗口关闭按钮时的默认动作'),
+      title: Text(t.settings.desktopCloseBehavior),
+      subtitle: Text(t.settings.desktopCloseBehaviorSubtitle),
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<DesktopCloseBehavior>(
           value: _desktopCloseBehavior,
@@ -638,13 +716,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             await WindowLogic.saveCloseBehavior(value);
             if (!mounted) return;
             setState(() => _desktopCloseBehavior = value);
-            showSuccessToast('设置成功');
+            showSuccessToast(t.common.settingSaved);
           },
           items: DesktopCloseBehavior.values
               .map(
                 (value) => DropdownMenuItem<DesktopCloseBehavior>(
                   value: value,
-                  child: Text(value.label),
+                  child: Text(switch (value) {
+                    DesktopCloseBehavior.ask => t.settings.desktopCloseAsk,
+                    DesktopCloseBehavior.hide => t.settings.desktopCloseHide,
+                    DesktopCloseBehavior.close => t.settings.desktopCloseClose,
+                  }),
                 ),
               )
               .toList(),
@@ -660,8 +742,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   ) {
     return SwitchListTile(
       secondary: const Icon(Icons.memory_outlined),
-      title: const Text('启用内存调试'),
-      subtitle: const Text('开启后记录内存信息，用于问题排查'),
+      title: Text(t.settings.memoryDebug),
+      subtitle: Text(t.settings.memoryDebugSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.enableMemoryDebug,
       onChanged: (bool value) {
@@ -676,9 +758,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     final logAddress = state.logAddress.trim();
     return ListTile(
       leading: const Icon(Icons.link_outlined),
-      title: const Text('调试日志地址'),
+      title: Text(t.settings.logAddress),
       subtitle: Text(
-        logAddress.isEmpty ? '点击设置日志上传地址' : logAddress,
+        logAddress.isEmpty ? t.settings.logAddressSubtitle : logAddress,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -688,7 +770,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         final result = await showDialog<String>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('设置日志地址'),
+            title: Text(t.settings.logAddress),
             content: TextFormField(
               initialValue: logAddress,
               autofocus: true,
@@ -700,11 +782,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             ),
             actions: [
               TextButton(
-                child: const Text('取消'),
+                child: Text(t.common.cancel),
                 onPressed: () => Navigator.pop(context),
               ),
               TextButton(
-                child: const Text('确定'),
+                child: Text(t.common.ok),
                 onPressed: () => Navigator.pop(context, inputValue),
               ),
             ],
@@ -713,7 +795,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
         if (result != null && result != logAddress) {
           cubit.updateState((current) => current.copyWith(logAddress: result));
-          showSuccessToast('设置成功');
+          showSuccessToast(t.common.settingSaved);
         }
       },
     );
@@ -725,8 +807,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   ) {
     return SwitchListTile(
       secondary: const Icon(Icons.auto_awesome_outlined),
-      title: const Text('启用 Impeller'),
-      subtitle: const Text('开启=启用，关闭=禁用；重启生效'),
+      title: Text(t.settings.forceEnableImpeller),
+      subtitle: Text(t.settings.forceEnableImpellerSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.forceEnableImpeller,
       onChanged: (bool value) async {
@@ -734,7 +816,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           (current) => current.copyWith(forceEnableImpeller: value),
         );
         await ImpellerConfig.setForceEnableImpeller(value);
-        showSuccessToast('设置成功，重启生效');
+        showSuccessToast(t.common.restartToTakeEffect);
       },
     );
   }
@@ -743,9 +825,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     final exportPath = state.customExportPath.trim();
     return ListTile(
       leading: const Icon(Icons.folder_outlined),
-      title: const Text('自定义导出路径'),
+      title: Text(t.settings.customExportPath),
       subtitle: Text(
-        exportPath.isEmpty ? '未设置，默认导出到下载目录' : exportPath,
+        exportPath.isEmpty ? t.settings.notSet : exportPath,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -755,12 +837,12 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           if (exportPath.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.clear, size: 20),
-              tooltip: '清除',
+              tooltip: t.common.clear,
               onPressed: () {
                 cubit.updateState(
                   (current) => current.copyWith(customExportPath: ''),
                 );
-                showSuccessToast('已清除自定义导出路径');
+                showSuccessToast(t.common.settingSaved);
               },
             ),
           const Icon(Icons.chevron_right),
@@ -772,7 +854,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           cubit.updateState(
             (current) => current.copyWith(customExportPath: selected),
           );
-          showSuccessToast('自定义导出路径已设置');
+          showSuccessToast(t.common.settingSaved);
         }
       },
     );
@@ -786,8 +868,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       children: [
         SwitchListTile(
           secondary: const Icon(Icons.lock_outline),
-          title: const Text('启动手势解锁'),
-          subtitle: Text('进入应用后先验证手势密码'),
+          title: Text(t.settings.appLock),
+          subtitle: Text(t.settings.appLockSubtitle),
           thumbIcon: kSettingSwitchThumbIcon,
           value: lockSetting.enabled,
           onChanged: (bool value) async {
@@ -799,7 +881,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               cubit.updateState(
                 (current) => current.copyWith(appLockSetting: nextSetting),
               );
-              showSuccessToast('手势解锁已开启');
+              showSuccessToast(t.common.settingSaved);
               return;
             }
 
@@ -808,13 +890,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 appLockSetting: current.appLockSetting.copyWith(enabled: value),
               ),
             );
-            showSuccessToast(value ? '手势解锁已开启' : '手势解锁已关闭');
+            showSuccessToast(t.common.settingSaved);
           },
         ),
         ListTile(
           leading: const Icon(Icons.gesture_outlined),
-          title: const Text('设置手势密码与重置 PIN'),
-          subtitle: Text('重新设置手势密码和重置 PIN'),
+          title: Text(t.settings.appLock),
+          subtitle: Text(t.settings.appLockSubtitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: () async {
             final nextSetting = await _configureAppLock();
@@ -824,20 +906,20 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             cubit.updateState(
               (current) => current.copyWith(appLockSetting: nextSetting),
             );
-            showSuccessToast('手势密码与重置 PIN 已更新');
+            showSuccessToast(t.common.settingSaved);
           },
         ),
         if (isReady)
           ListTile(
             leading: const Icon(Icons.pin_outlined),
-            title: const Text('修改重置 PIN'),
-            subtitle: const Text('修改重置 PIN'),
+            title: Text(t.gestureLock.pinTitle),
+            subtitle: Text(t.gestureLock.pinHint),
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
               final pin = await showPinCodeSetupDialog(
                 context,
-                title: '设置重置 PIN',
-                confirmTitle: '确认重置 PIN',
+                title: t.gestureLock.pinTitle,
+                confirmTitle: t.gestureLock.pinHint,
               );
               if (pin == null) {
                 return;
@@ -849,29 +931,29 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   ),
                 ),
               );
-              showSuccessToast('重置 PIN 已更新');
+              showSuccessToast(t.common.settingSaved);
             },
           ),
         if (isReady)
           ListTile(
             leading: const Icon(Icons.delete_outline),
-            title: const Text('清除手势密码与 PIN'),
-            subtitle: const Text('清除手势密码与 PIN'),
+            title: Text(t.common.delete),
+            subtitle: Text(t.settings.appLock),
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
               final shouldDelete = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('清除手势密码与 PIN'),
-                  content: const Text('清除后，进入应用时将不再验证手势密码。'),
+                  title: Text(t.common.delete),
+                  content: Text(t.settings.appLockSubtitle),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('取消'),
+                      child: Text(t.common.cancel),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('清除'),
+                      child: Text(t.common.delete),
                     ),
                   ],
                 ),
@@ -884,7 +966,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   appLockSetting: const AppLockSettingState(),
                 ),
               );
-              showSuccessToast('手势密码与 PIN 已清除');
+              showSuccessToast(t.common.settingSaved);
             },
           ),
       ],
@@ -894,8 +976,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _realSrSettings(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.auto_fix_high_outlined),
-      title: const Text('图片超分（实验性）'),
-      subtitle: const Text('试验性功能,可能不稳定'),
+      title: Text(t.settings.realSr),
+      subtitle: Text(t.settings.realSrSubtitle),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => AutoRouter.of(context).push(const RealSrSettingRoute()),
     );
@@ -903,13 +985,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
   Widget _cacheSettings(BuildContext context) {
     final sizeText = _cacheCalculating
-        ? '计算中…'
+        ? t.settings.calculatingCache
         : _formatCacheSize(_cacheSizeBytes);
 
     return ListTile(
       leading: const Icon(Icons.cleaning_services_outlined),
-      title: const Text('缓存管理'),
-      subtitle: Text(sizeText.isEmpty ? '查看缓存大小，设置缓存上限与自动清理' : sizeText),
+      title: Text(t.settings.cache),
+      subtitle: Text(sizeText.isEmpty ? t.settings.cache : sizeText),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => AutoRouter.of(context).push(const CacheSettingRoute()),
     );
@@ -918,8 +1000,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Widget _dataBackupSettings(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.import_export_outlined),
-      title: const Text('数据导入/导出'),
-      subtitle: const Text('备份或恢复应用数据与下载的漫画'),
+      title: Text(t.settings.dataBackup),
+      subtitle: Text(t.settings.dataBackupSubtitle),
       trailing: const Icon(Icons.chevron_right),
       onTap: () => AutoRouter.of(context).push(const DataBackupRoute()),
     );
@@ -928,8 +1010,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   Future<AppLockSettingState?> _configureAppLock() async {
     final pattern = await showGesturePasswordSetupDialog(
       context,
-      title: '设置手势密码',
-      confirmTitle: '确认手势密码',
+      title: t.gestureLock.gestureTitle,
+      confirmTitle: t.gestureLock.confirmGesture,
     );
     if (pattern == null) {
       return null;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_settings/cubit/plugin_settings_cubit.dart';
 import 'package:zephyr/page/plugin_settings/widgets/plugin_settings_sections.dart';
 import 'package:zephyr/page/setting/common/plugin_user_info_card.dart';
@@ -52,7 +53,7 @@ class PluginSettingsContent extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: PluginSettingsSectionCard(
-        title: '插件管理',
+        title: t.plugin.management,
         colorScheme: colorScheme,
         children: _buildManagementRows(context),
       ),
@@ -70,8 +71,8 @@ class PluginSettingsContent extends StatelessWidget {
 
   Widget _buildDebugModeRow() {
     return PluginSettingsFieldRow(
-      title: '调试模式',
-      subtitle: debugEnabled ? '已开启' : '已关闭',
+      title: t.plugin.debugMode,
+      subtitle: debugEnabled ? t.common.enabled : t.common.disabled,
       trailing: Switch(
         value: debugEnabled,
         thumbIcon: kSettingSwitchThumbIcon,
@@ -87,15 +88,15 @@ class PluginSettingsContent extends StatelessWidget {
 
   Widget _buildDebugUrlRow(BuildContext context) {
     return PluginSettingsFieldRow(
-      title: '调试地址',
-      subtitle: debugUrl.isNotEmpty ? debugUrl : '未设置',
+      title: t.plugin.debugAddress,
+      subtitle: debugUrl.isNotEmpty ? debugUrl : t.settings.notSet,
       trailing: const Icon(Icons.edit_outlined, size: 18),
       onTap: deleted
           ? null
           : () async {
               final next = await _showInputDialog(
                 context,
-                title: '调试地址',
+                title: t.plugin.debugAddress,
                 initialValue: debugUrl,
                 obscure: false,
               );
@@ -110,8 +111,8 @@ class PluginSettingsContent extends StatelessWidget {
 
   Widget _buildDeletePluginRow() {
     return PluginSettingsFieldRow(
-      title: '删除插件',
-      subtitle: '彻底删除插件，并删除相关数据',
+      title: t.plugin.deletePlugin,
+      subtitle: t.plugin.deletePluginSubtitle,
       trailing: Icon(
         Icons.delete_outline,
         size: 18,
@@ -153,7 +154,7 @@ class PluginSettingsContent extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: PluginSettingsSectionCard(
-        title: '插件设置',
+        title: t.plugin.pluginSettings,
         colorScheme: colorScheme,
         children: [
           Padding(
@@ -166,7 +167,7 @@ class PluginSettingsContent extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () =>
                       context.read<PluginSettingsCubit>().load(from),
-                  child: const Text('重试'),
+                  child: Text(t.common.retry),
                 ),
               ],
             ),
@@ -183,7 +184,7 @@ class PluginSettingsContent extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: PluginSettingsSectionCard(
-        title: state.userInfo['title']?.toString() ?? '用户信息',
+        title: state.userInfo['title']?.toString() ?? t.plugin.userInfoTitle,
         colorScheme: colorScheme,
         children: _buildUserInfoChildren(context),
       ),
@@ -209,7 +210,7 @@ class PluginSettingsContent extends StatelessWidget {
               OutlinedButton(
                 onPressed: () =>
                     context.read<PluginSettingsCubit>().loadUserInfo(from),
-                child: const Text('重试'),
+                child: Text(t.common.retry),
               ),
             ],
           ),
@@ -219,7 +220,12 @@ class PluginSettingsContent extends StatelessWidget {
     if (state.userInfo.isNotEmpty) {
       return [_buildUserInfoCard()];
     }
-    return const [Padding(padding: EdgeInsets.all(16), child: Text('暂无用户信息'))];
+    return [
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(t.plugin.noUserInfo),
+      ),
+    ];
   }
 
   Widget _buildUserInfoCard() {
@@ -258,7 +264,7 @@ class PluginSettingsContent extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: PluginSettingsSectionCard(
-        title: '操作',
+        title: t.plugin.operations,
         colorScheme: colorScheme,
         children: state.actions
             .map((action) => _buildAction(context, action))
@@ -293,7 +299,7 @@ class PluginSettingsContent extends StatelessWidget {
     final current = value == true;
     return PluginSettingsFieldRow(
       title: label,
-      subtitle: current ? '已开启' : '已关闭',
+      subtitle: current ? t.common.enabled : t.common.disabled,
       trailing: Switch(
         value: current,
         thumbIcon: kSettingSwitchThumbIcon,
@@ -352,7 +358,9 @@ class PluginSettingsContent extends StatelessWidget {
     final current = _asStringList(value);
     return PluginSettingsFieldRow(
       title: label,
-      subtitle: current.isEmpty ? '未选择' : '已选 ${current.length} 项',
+      subtitle: current.isEmpty
+          ? t.search.notSelected
+          : t.search.selectedCount(count: current.length),
       trailing: const Icon(Icons.tune, size: 18),
       onTap: () async {
         final picked = await showMultiChoiceListDialog(
@@ -367,7 +375,7 @@ class PluginSettingsContent extends StatelessWidget {
               )
               .toList(),
           initialSelected: current,
-          confirmText: '保存',
+          confirmText: t.common.save,
         );
         if (picked == null) return;
         await onCommitField(field, picked.toList());
@@ -408,7 +416,7 @@ class PluginSettingsContent extends StatelessWidget {
   }
 
   Widget _buildAction(BuildContext context, Map<String, dynamic> action) {
-    final title = action['title']?.toString() ?? '未命名操作';
+    final title = action['title']?.toString() ?? t.plugin.unnamedAction;
     final fnPath = action['fnPath']?.toString() ?? '';
     return PluginSettingsFieldRow(
       title: title,
@@ -547,11 +555,11 @@ class PluginSettingsContent extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('保存'),
+            child: Text(t.common.save),
           ),
         ],
       ),

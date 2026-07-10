@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comments/cubit/cubit.dart';
 import 'package:zephyr/page/comments/model/model.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
@@ -92,7 +93,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: cubit.loadInitial,
-                child: const Text('重试'),
+                child: Text(t.comments.retry),
               ),
             ],
           ),
@@ -102,7 +103,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
 
     final merged = <CommentItem>[...state.topItems, ...state.items];
     if (merged.isEmpty) {
-      return _wrapBodyContent(const Center(child: Text('暂无评论')));
+      return _wrapBodyContent(Center(child: Text(t.comments.noComments)));
     }
 
     final count =
@@ -132,7 +133,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                 child: FilledButton.tonalIcon(
                   onPressed: cubit.loadMore,
                   icon: const Icon(Icons.expand_more_rounded),
-                  label: const Text('加载更多'),
+                  label: Text(t.comments.loadMore),
                 ),
               ),
             );
@@ -242,7 +243,11 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                             behavior: HitTestBehavior.opaque,
                             onTap: () => cubit.toggleReplies(item),
                             child: Text(
-                              isExpanded ? '收起回复' : '${item.replyCount} 条回复',
+                              isExpanded
+                                  ? t.comments.collapseReplies
+                                  : t.comments.replyCount(
+                                      count: item.replyCount,
+                                    ),
                               style: textTheme.bodySmall?.copyWith(
                                 color: colorScheme.primary,
                                 fontWeight: FontWeight.w600,
@@ -304,7 +309,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '暂无子评论',
+                    t.comments.noReplies,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
@@ -316,7 +321,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     onPressed: () => cubit.loadMoreReplies(item),
-                    child: const Text('加载更多回复'),
+                    child: Text(t.comments.loadMoreReplies),
                   ),
                 ),
               ),
@@ -355,7 +360,10 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
   }
 
   Future<void> _postComicComment(CommentsCubit cubit) async {
-    final content = await _openInputDialog(title: '发表评论', hint: '输入评论内容');
+    final content = await _openInputDialog(
+      title: t.comments.postComment,
+      hint: t.comments.postCommentHint,
+    );
     if (content.isEmpty) {
       return;
     }
@@ -363,7 +371,10 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
   }
 
   Future<void> _postReply(CommentsCubit cubit, CommentItem item) async {
-    final content = await _openInputDialog(title: '回复评论', hint: '输入回复内容');
+    final content = await _openInputDialog(
+      title: t.comments.postReply,
+      hint: t.comments.postReplyHint,
+    );
     if (content.isEmpty) {
       return;
     }
@@ -388,12 +399,12 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(''),
-              child: const Text('取消'),
+              child: Text(t.comments.cancel),
             ),
             ElevatedButton(
               onPressed: () =>
                   Navigator.of(dialogContext).pop(controller.text.trim()),
-              child: const Text('确认'),
+              child: Text(t.comments.confirm),
             ),
           ],
         );

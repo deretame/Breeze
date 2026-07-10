@@ -1,3 +1,4 @@
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class CommentItem {
@@ -45,7 +46,7 @@ class CommentItem {
     ).map(asJsonMap).map(CommentItem.fromMap).toList();
     return CommentItem(
       id: map['id']?.toString() ?? '',
-      authorName: author['name']?.toString() ?? '匿名用户',
+      authorName: author['name']?.toString() ?? t.comments.anonymous,
       avatarUrl: avatar['url']?.toString() ?? '',
       avatarPath: avatar['path']?.toString() ?? '',
       content: map['content']?.toString() ?? '',

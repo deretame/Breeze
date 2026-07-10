@@ -9,6 +9,7 @@ import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.da
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/section_header.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/type/enum.dart';
 
 class DiscoverSchemeRenderer {
@@ -55,7 +56,7 @@ class DiscoverSchemeRenderer {
           child: Center(
             child: ElevatedButton(
               onPressed: onRetryLoadMore,
-              child: const Text('点击重试'),
+              child: Text(t.searchResult.retry),
             ),
           ),
         ),

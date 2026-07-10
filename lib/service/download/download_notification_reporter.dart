@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/service/download/download_progress_reporter.dart';
 
 /// 三端统一的下载完成/失败通知 reporter。
@@ -32,11 +33,11 @@ class DownloadNotificationReporter extends DownloadProgressReporter {
 
   Future<NotificationDetails> _buildNotificationDetails() async {
     if (Platform.isAndroid) {
-      return const NotificationDetails(
+      return NotificationDetails(
         android: AndroidNotificationDetails(
           'download_complete',
-          '下载完成通知',
-          channelDescription: '下载完成通知',
+          t.download.notificationCompleteTitle,
+          channelDescription: t.download.notificationCompleteTitle,
           importance: Importance.max,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',

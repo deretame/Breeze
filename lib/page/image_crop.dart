@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:auto_route/auto_route.dart';
 import 'package:crop_your_image/crop_your_image.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
@@ -20,13 +21,13 @@ class ImageCropPage extends StatefulWidget {
 class _ImageCropPageState extends State<ImageCropPage> {
   final _cropController = CropController();
   var _isCropping = false;
-  var _statusText = '正在加载图片';
+  var _statusText = t.imageCrop.loadingImage;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('裁剪图片'),
+        title: Text(t.imageCrop.title),
         actions: [
           IconButton(icon: const Icon(Icons.check), onPressed: _cropImage),
         ],
@@ -44,7 +45,9 @@ class _ImageCropPageState extends State<ImageCropPage> {
                       context.maybePop(croppedImage);
                     case CropFailure(:final cause):
                       logger.e(cause);
-                      showErrorToast("裁剪失败 ${cause.toString()}");
+                      showErrorToast(
+                        t.imageCrop.cropFailed(error: cause.toString()),
+                      );
                       context.maybePop(null);
                   }
                 },
@@ -66,10 +69,10 @@ class _ImageCropPageState extends State<ImageCropPage> {
                 onStatusChanged: (status) => setState(() {
                   _statusText =
                       <CropStatus, String>{
-                        CropStatus.nothing: '没有图片数据',
-                        CropStatus.loading: '正在加载图片',
-                        CropStatus.ready: '图片加载成功',
-                        CropStatus.cropping: '正在裁剪',
+                        CropStatus.nothing: t.imageCrop.noImageData,
+                        CropStatus.loading: t.imageCrop.loadingImage,
+                        CropStatus.ready: t.imageCrop.imageReady,
+                        CropStatus.cropping: t.imageCrop.cropping,
                       }[status] ??
                       '';
                 }),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -123,10 +124,10 @@ class _ReaderSettingsHeader extends StatelessWidget {
             labelStyle: context.theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             ),
-            tabs: const [
-              Tab(text: '阅读设置'),
-              Tab(text: '手势'),
-              Tab(text: '信息条'),
+            tabs: [
+              Tab(text: t.reader.settings),
+              Tab(text: t.reader.gesture),
+              Tab(text: t.reader.infoBar),
             ],
           ),
         ],

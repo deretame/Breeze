@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/service/update/check_update.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'method.dart';
@@ -27,9 +28,9 @@ class _DataBackupPageState extends State<DataBackupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '数据导入/导出',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        title: Text(
+          t.dataBackup.title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
         scrolledUnderElevation: 0,
@@ -40,11 +41,15 @@ class _DataBackupPageState extends State<DataBackupPage> {
           constraints: const BoxConstraints(maxWidth: 768),
           child: ListView(
             children: [
-              _buildSectionTitle(context, '导出', Icons.file_upload_outlined),
+              _buildSectionTitle(
+                context,
+                t.dataBackup.exportSection,
+                Icons.file_upload_outlined,
+              ),
               SwitchListTile(
                 secondary: const Icon(Icons.folder_outlined),
-                title: const Text('包含下载的漫画'),
-                subtitle: const Text('导出时一并打包已下载的漫画文件'),
+                title: Text(t.dataBackup.includeDownloads),
+                subtitle: Text(t.dataBackup.includeDownloadsSubtitle),
                 thumbIcon: kSettingSwitchThumbIcon,
                 value: _includeDownloads,
                 onChanged: _busy
@@ -54,18 +59,22 @@ class _DataBackupPageState extends State<DataBackupPage> {
               const Divider(height: 1, thickness: 0.3),
               ListTile(
                 leading: const Icon(Icons.archive_outlined),
-                title: const Text('导出数据'),
-                subtitle: const Text('将设置与数据打包为 zip'),
+                title: Text(t.dataBackup.exportData),
+                subtitle: Text(t.dataBackup.exportDataSubtitle),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _busy ? null : _exportData,
               ),
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '导入', Icons.file_download_outlined),
+              _buildSectionTitle(
+                context,
+                t.dataBackup.importSection,
+                Icons.file_download_outlined,
+              ),
               ListTile(
                 leading: const Icon(Icons.unarchive_outlined),
-                title: const Text('导入数据'),
-                subtitle: const Text('从 zip 文件恢复数据'),
+                title: Text(t.dataBackup.importData),
+                subtitle: Text(t.dataBackup.importDataSubtitle),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _busy ? null : _importData,
               ),
@@ -83,7 +92,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
       selectedDir = await getDirectoryPath();
     } catch (e, s) {
       logger.e('选择导出目录失败', error: e, stackTrace: s);
-      showErrorToast('选择导出目录失败：$e');
+      showErrorToast('${t.dataBackup.selectExportDirFailed}：$e');
       return;
     }
 
@@ -94,7 +103,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
 
     if (!mounted) return;
     _setBusy(true);
-    _showLoadingDialog('正在导出，请耐心等待…');
+    _showLoadingDialog(t.dataBackup.exporting);
 
     try {
       await exportBreezeBackup(
@@ -103,11 +112,14 @@ class _DataBackupPageState extends State<DataBackupPage> {
       );
       if (!mounted) return;
       Navigator.of(context).pop();
-      await _showResultDialog('导出成功', '已保存到：$zipPath');
+      await _showResultDialog(
+        t.dataBackup.exportSuccess,
+        t.dataBackup.savedTo(path: zipPath),
+      );
     } catch (e, s) {
       if (mounted) Navigator.of(context).pop();
       logger.e('导出数据失败', error: e, stackTrace: s);
-      showErrorToast('导出失败：$e');
+      showErrorToast('${t.dataBackup.exportFailed}：$e');
     } finally {
       _setBusy(false);
     }
@@ -116,7 +128,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
   Future<void> _importData() async {
     if (!mounted) return;
     _setBusy(true);
-    _showLoadingDialog('正在处理备份文件…');
+    _showLoadingDialog(t.dataBackup.processingBackup);
 
     final String? filePath;
     try {
@@ -124,7 +136,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
     } catch (e, s) {
       if (mounted) Navigator.of(context).pop();
       logger.e('选择备份文件失败', error: e, stackTrace: s);
-      showErrorToast('选择备份文件失败：$e');
+      showErrorToast('${t.dataBackup.selectBackupFailed}：$e');
       _setBusy(false);
       return;
     }
@@ -137,7 +149,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
 
     if (!mounted) return;
     Navigator.of(context).pop();
-    _showLoadingDialog('正在读取备份信息…');
+    _showLoadingDialog(t.dataBackup.readingBackup);
 
     late final BackupConfig config;
     try {
@@ -145,7 +157,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
     } catch (e, s) {
       if (mounted) Navigator.of(context).pop();
       logger.e('读取备份失败', error: e, stackTrace: s);
-      showErrorToast('读取备份失败：$e');
+      showErrorToast('${t.dataBackup.readBackupFailed}：$e');
       _setBusy(false);
       return;
     }
@@ -175,7 +187,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
       _setBusy(false);
       return;
     }
-    _showLoadingDialog('正在导入，请稍后…');
+    _showLoadingDialog(t.dataBackup.importing);
 
     try {
       await applyBreezeBackupImport(config);
@@ -185,7 +197,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
     } catch (e, s) {
       if (mounted) Navigator.of(context).pop();
       logger.e('导入数据失败', error: e, stackTrace: s);
-      showErrorToast('导入失败：$e');
+      showErrorToast('${t.dataBackup.importFailed}：$e');
     } finally {
       _setBusy(false);
     }
@@ -275,7 +287,7 @@ class _DataBackupPageState extends State<DataBackupPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -293,30 +305,30 @@ class _DataBackupPageState extends State<DataBackupPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('导入数据'),
+        title: Text(t.dataBackup.importTitle),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('导入将覆盖当前应用内的所有数据，是否继续？'),
+              Text(t.dataBackup.importConfirm),
               if (includeDownloads) ...[
                 const SizedBox(height: 12),
-                const Text('该备份包含下载的漫画文件，导入时会先删除本机现有的下载文件。'),
+                Text(t.dataBackup.includesDownloadsWarning),
               ],
               if (versionMismatch) ...[
                 const SizedBox(height: 12),
                 Text(
-                  '版本不一致，数据导入可能会出问题，是否继续？',
+                  t.dataBackup.versionMismatch,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.error,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text('导出数据版本：$exportedVersion'),
-                Text('当前应用版本：$currentVersion'),
+                Text(t.dataBackup.exportedVersion(version: exportedVersion)),
+                Text(t.dataBackup.currentVersion(version: currentVersion)),
               ],
             ],
           ),
@@ -324,11 +336,11 @@ class _DataBackupPageState extends State<DataBackupPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('继续'),
+            child: Text(t.dataBackup.kContinue),
           ),
         ],
       ),
@@ -342,12 +354,12 @@ class _DataBackupPageState extends State<DataBackupPage> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('导入成功'),
-        content: const Text('数据导入成功，请重启应用以生效。'),
+        title: Text(t.dataBackup.importSuccess),
+        content: Text(t.dataBackup.restartPrompt),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),

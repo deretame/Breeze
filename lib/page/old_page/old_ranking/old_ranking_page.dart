@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/view/comic_list_page.dart';
 
 @RoutePage()
@@ -28,7 +29,7 @@ class _OldRankingPageState extends State<OldRankingPage> {
   void initState() {
     super.initState();
     _bikaRankingScene = ComicListScene.fromMap({
-      'title': '哔咔排行榜',
+      'title': t.oldRanking.bikaRanking,
       'source': _bikaPluginId,
       'body': {
         'type': 'pluginPagedComicList',
@@ -45,7 +46,7 @@ class _OldRankingPageState extends State<OldRankingPage> {
     });
 
     _jmRankingScene = ComicListScene.fromMap({
-      'title': '禁漫排行榜',
+      'title': t.oldRanking.jmRanking,
       'source': _jmPluginId,
       'list': {
         'fnPath': 'getRankingData',
@@ -119,7 +120,7 @@ class _OldRankingPageState extends State<OldRankingPage> {
                   _panelIndex = effectiveIndex == 0 ? 1 : 0;
                 });
               },
-              tooltip: '切换',
+              tooltip: t.oldRanking.switchSource,
               child: const Icon(Icons.swap_horiz),
             )
           : null,

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../cubit/discover_cubit.dart';
@@ -30,10 +31,10 @@ class _DiscoverView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("发现"),
+        title: Text(t.discover.title),
         actions: [
           IconButton(
-            tooltip: '搜索',
+            tooltip: t.discover.search,
             icon: const Icon(Icons.search),
             onPressed: () => _search(context),
           ),
@@ -66,14 +67,14 @@ class _DiscoverView extends StatelessWidget {
             const SizedBox(height: 16),
             _buildPluginStoreButton(context),
             const SizedBox(height: 8),
-            _buildSectionHeader(context, '插件管理'),
+            _buildSectionHeader(context, t.discover.pluginManagement),
             if (plugins.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(32),
+              Padding(
+                padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    '暂无可用插件，去插件商店安装一个吧~',
-                    style: TextStyle(color: Colors.grey),
+                    t.discover.noPlugins,
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ),
               )
@@ -130,14 +131,17 @@ class _DiscoverView extends StatelessWidget {
               color: colorScheme.primary,
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
-                '插件商店',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                t.discover.pluginStore,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
               ),
             ),
             Text(
-              '浏览安装',
+              t.discover.browseInstall,
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 13,
@@ -171,7 +175,7 @@ class _DiscoverView extends StatelessWidget {
   void _openPluginSearch(BuildContext context, String from) {
     final source = from.trim();
     if (source.isEmpty) {
-      showErrorToast('缺少插件来源，无法搜索');
+      showErrorToast(t.error.missingPluginSource(action: t.discover.search));
       return;
     }
     context.pushRoute(
@@ -197,7 +201,7 @@ class _DiscoverView extends StatelessWidget {
     final cubit = context.read<DiscoverCubit>();
     final source = cubit.currentFrom;
     if (source.isEmpty) {
-      showErrorToast('暂无可用插件，无法搜索');
+      showErrorToast(t.discover.noPluginForSearch);
       return;
     }
     context.pushRoute(

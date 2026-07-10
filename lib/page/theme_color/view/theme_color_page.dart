@@ -2,6 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/theme_color/theme_color.dart';
@@ -26,7 +27,7 @@ class _ThemeColorPageState extends State<ThemeColorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('主题颜色')),
+      appBar: AppBar(title: Text(t.settings.themeColor)),
       body: SingleChildScrollView(
         child: Column(
           children: [

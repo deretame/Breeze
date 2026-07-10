@@ -7,6 +7,7 @@ import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -59,12 +60,14 @@ class FullScreenImagePage extends StatelessWidget {
                   try {
                     var result = await _saveImageWithSelector(imagePath);
                     if (result.isNotEmpty) {
-                      showSuccessToast("图片已保存至: $result");
+                      showSuccessToast(t.reader.imageSavedTo(path: result));
                     }
                   } catch (e, s) {
                     logger.e("桌面端保存图片失败", error: e, stackTrace: s);
                     showErrorToast(
-                      "图片保存失败！\n${normalizeSearchErrorMessage(e)}",
+                      t.reader.imageSaveFailedWithError(
+                        error: normalizeSearchErrorMessage(e),
+                      ),
                     );
                   }
                 } else if (Platform.isAndroid || Platform.isIOS) {
@@ -131,7 +134,7 @@ class FullScreenImagePage extends StatelessWidget {
           tempFile.path,
           album: Platform.isIOS ? null : appName,
         );
-        showSuccessToast("图片已保存到相册！");
+        showSuccessToast(t.reader.imageSavedToAlbum);
       } finally {
         // 清理临时文件，忽略删除失败
         try {
@@ -142,13 +145,15 @@ class FullScreenImagePage extends StatelessWidget {
       logger.e("Gal 保存异常", error: e);
       // 根据 GalException 的类型给出更精确的提示
       if (e.type == GalExceptionType.accessDenied) {
-        showErrorToast("保存失败: 请在系统设置中授予相册访问权限");
+        showErrorToast(t.reader.saveImagePermissionDenied);
       } else {
-        showErrorToast("保存失败: ${e.type.message}");
+        showErrorToast(
+          t.reader.imageSaveFailedWithError(error: e.type.message),
+        );
       }
     } catch (e, s) {
       logger.e("移动端保存图片发生未知异常", error: e, stackTrace: s);
-      showErrorToast("图片保存失败！");
+      showErrorToast(t.reader.imageSaveFailed);
     }
   }
 }

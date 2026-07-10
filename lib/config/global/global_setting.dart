@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';
+import 'package:zephyr/i18n/i18n_helper.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/json/converter.dart';
 
@@ -24,7 +26,7 @@ extension SyncServiceTypeExtension on SyncServiceType {
   String get label {
     switch (this) {
       case SyncServiceType.none:
-        return '不启用';
+        return t.common.disabled;
       case SyncServiceType.webdav:
         return 'WebDAV';
       case SyncServiceType.s3:
@@ -40,11 +42,11 @@ extension ChineseConvertModeExtension on ChineseConvertMode {
   String get label {
     switch (this) {
       case ChineseConvertMode.off:
-        return '关闭';
+        return t.settings.chineseConvertOff;
       case ChineseConvertMode.simplified:
-        return '简体中文';
+        return t.settings.chineseConvertSimplified;
       case ChineseConvertMode.traditional:
-        return '繁体中文';
+        return t.settings.chineseConvertTraditional;
     }
   }
 
@@ -102,6 +104,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @ColorConverter() @Default(Color(0xFFEF5350)) Color seedColor,
     @Default(0) int themeInitState,
     @LocaleConverter() @Default(Locale('zh', 'CN')) Locale locale,
+    @Default(true) bool localeFollowsSystem,
     @Default(0) int welcomePageNum,
     @Default(SyncSettingState()) SyncSettingState syncSetting,
     @Default([]) List<String> maskedKeywords,
@@ -301,6 +304,31 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
       (current) =>
           current.copyWith(cacheSetting: updates(current.cacheSetting)),
     );
+  }
+
+  /// 设置应用显示语言。
+  ///
+  /// [locale] 为目标 Flutter Locale；[followsSystem] 为 true 时表示跟随系统。
+  /// 该方法会自动持久化、切换 slang 当前 locale，并同步 Rust 侧错误消息语言。
+  /// 如果 [locale] 无法匹配到已支持的语言，则回退到英文。
+  Future<void> setLocale(Locale locale, {bool followsSystem = false}) async {
+    final appLocale = I18nHelper.toAppLocale(locale) ?? AppLocale.enUs;
+
+    await LocaleSettings.setLocale(appLocale);
+    I18nHelper.setRustErrorLanguage(appLocale);
+
+    updateState(
+      (current) => current.copyWith(
+        locale: I18nHelper.toFlutterLocale(appLocale),
+        localeFollowsSystem: followsSystem,
+      ),
+    );
+  }
+
+  /// 根据系统 locale 设置应用语言。
+  /// 无法匹配时由 [setLocale] 自动回退到英文。
+  Future<void> setSystemLocale(Locale systemLocale) async {
+    await setLocale(systemLocale, followsSystem: true);
   }
 
   void updateWebDavSetting(

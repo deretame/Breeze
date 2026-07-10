@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 Future<List<int>?> showGesturePasswordSetupDialog(
   BuildContext context, {
@@ -20,8 +21,8 @@ Future<List<int>?> showGesturePasswordSetupDialog(
 Future<GestureUnlockResult?> showGestureUnlockDialog(
   BuildContext context, {
   required String expectedHash,
-  String title = '手势解锁',
-  String hint = '请绘制手势密码',
+  String title = '',
+  String hint = '',
   bool showForgotPassword = false,
 }) {
   return showDialog<GestureUnlockResult>(
@@ -60,8 +61,8 @@ Future<String?> showPinCodeSetupDialog(
 Future<bool?> showPinVerifyDialog(
   BuildContext context, {
   required String expectedHash,
-  String title = '输入 PIN',
-  String hint = '请输入重置 PIN',
+  String title = '',
+  String hint = '',
 }) {
   return showDialog<bool>(
     context: context,
@@ -179,7 +180,9 @@ class _GesturePasswordSetupDialogState
   @override
   Widget build(BuildContext context) {
     final title = _firstPattern == null ? widget.title : widget.confirmTitle;
-    final hint = _firstPattern == null ? '请连接至少 4 个点' : '请再次绘制相同手势';
+    final hint = _firstPattern == null
+        ? t.gestureLock.setupHintFirst
+        : t.gestureLock.setupHintConfirm;
 
     return AlertDialog(
       title: Text(title),
@@ -208,7 +211,7 @@ class _GesturePasswordSetupDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
       ],
     );
@@ -217,7 +220,7 @@ class _GesturePasswordSetupDialogState
   void _handleCompleted(List<int> pattern) {
     if (pattern.length < 4) {
       setState(() {
-        _errorText = '至少连接 4 个点';
+        _errorText = t.gestureLock.setupErrorMinPoints;
       });
       return;
     }
@@ -237,7 +240,7 @@ class _GesturePasswordSetupDialogState
 
     setState(() {
       _firstPattern = null;
-      _errorText = '两次手势不一致，请重新设置';
+      _errorText = t.gestureLock.setupErrorMismatch;
     });
   }
 }
@@ -294,7 +297,7 @@ class _GestureUnlockDialogState extends State<_GestureUnlockDialog> {
             onPressed: () {
               Navigator.pop(context, GestureUnlockResult.forgotPassword);
             },
-            child: const Text('忘记密码'),
+            child: Text(t.gestureLock.forgotPassword),
           ),
       ],
     );
@@ -306,7 +309,7 @@ class _GestureUnlockDialogState extends State<_GestureUnlockDialog> {
       return;
     }
     setState(() {
-      _errorText = '手势密码不正确，请重试';
+      _errorText = t.gestureLock.incorrectPassword;
     });
   }
 }
@@ -349,8 +352,8 @@ class _PinCodeSetupDialogState extends State<_PinCodeSetupDialog> {
               obscureText: _obscureText,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: '重置 PIN',
-                hintText: '至少 4 位数字',
+                labelText: t.gestureLock.resetPin,
+                hintText: t.gestureLock.pinHintMinDigits,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -376,7 +379,7 @@ class _PinCodeSetupDialogState extends State<_PinCodeSetupDialog> {
             ),
             const SizedBox(height: 12),
             Text(
-              "PIN 可用于重置手势密码，遗忘手势密码与 PIN 后将无法进入软件，请妥善保管 Pin",
+              t.gestureLock.pinDescription,
               softWrap: true,
               style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
@@ -397,9 +400,9 @@ class _PinCodeSetupDialogState extends State<_PinCodeSetupDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
-        TextButton(onPressed: _submit, child: const Text('确定')),
+        TextButton(onPressed: _submit, child: Text(t.common.ok)),
       ],
     );
   }
@@ -409,13 +412,13 @@ class _PinCodeSetupDialogState extends State<_PinCodeSetupDialog> {
     final confirmPin = _confirmController.text.trim();
     if (!RegExp(r'^\d{4,}$').hasMatch(pin)) {
       setState(() {
-        _errorText = 'PIN 需至少 4 位数字';
+        _errorText = t.gestureLock.pinMinLength;
       });
       return;
     }
     if (pin != confirmPin) {
       setState(() {
-        _errorText = '两次输入的 PIN 不一致';
+        _errorText = t.gestureLock.pinNotMatch;
       });
       return;
     }
@@ -467,7 +470,7 @@ class _PinVerifyDialogState extends State<_PinVerifyDialog> {
               keyboardType: TextInputType.number,
               onSubmitted: (_) => _submit(),
               decoration: InputDecoration(
-                labelText: 'PIN',
+                labelText: t.gestureLock.pin,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   onPressed: () {
@@ -498,9 +501,9 @@ class _PinVerifyDialogState extends State<_PinVerifyDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
-        TextButton(onPressed: _submit, child: const Text('确定')),
+        TextButton(onPressed: _submit, child: Text(t.common.ok)),
       ],
     );
   }
@@ -512,7 +515,7 @@ class _PinVerifyDialogState extends State<_PinVerifyDialog> {
       return;
     }
     setState(() {
-      _errorText = 'PIN 不正确，请重试';
+      _errorText = t.gestureLock.pinIncorrect;
     });
   }
 }

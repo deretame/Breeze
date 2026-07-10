@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
 
 class ChapterTransitionCard extends StatelessWidget {
@@ -39,10 +40,10 @@ class ChapterTransitionCard extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.78)
         : Colors.black.withValues(alpha: 0.72);
     final previousTitle = (previousChapterTitle ?? '').trim().isEmpty
-        ? '章节 ${previousChapterOrder ?? '--'}'
+        ? t.reader.chapterOrder(order: previousChapterOrder ?? '--')
         : previousChapterTitle!;
     final currentTitle = nextChapterTitle.trim().isEmpty
-        ? '章节 $nextChapterOrder'
+        ? t.reader.chapterOrder(order: nextChapterOrder)
         : nextChapterTitle;
     final statusMeta = _resolveStatusMeta(
       transitionStatus,
@@ -121,14 +122,14 @@ class ChapterTransitionCard extends StatelessWidget {
   }) {
     switch (status) {
       case SeamlessTransitionStatus.hidden:
-        return const _TransitionStatusMeta(
-          message: '继续翻页加载',
+        return _TransitionStatusMeta(
+          message: t.reader.transitionSwipeToLoad,
           canTap: true,
           leading: Icon(Icons.arrow_forward, size: 16),
         );
       case SeamlessTransitionStatus.loading:
         return _TransitionStatusMeta(
-          message: '正在加载...',
+          message: t.common.loading,
           canTap: false,
           leading: SizedBox(
             width: 18,
@@ -140,14 +141,14 @@ class ChapterTransitionCard extends StatelessWidget {
           ),
         );
       case SeamlessTransitionStatus.ready:
-        return const _TransitionStatusMeta(
-          message: '加载完成',
+        return _TransitionStatusMeta(
+          message: t.reader.transitionLoaded,
           canTap: false,
           leading: Icon(Icons.check_circle_outline, size: 16),
         );
       case SeamlessTransitionStatus.error:
-        return const _TransitionStatusMeta(
-          message: '加载失败，点击重试',
+        return _TransitionStatusMeta(
+          message: t.reader.transitionLoadFailedRetry,
           canTap: true,
           leading: Icon(Icons.refresh, size: 16),
         );

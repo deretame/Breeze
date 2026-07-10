@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
@@ -22,7 +23,7 @@ class PageCountWidget extends StatefulWidget {
     this.getCurrentChapterStartSlot,
     this.getCurrentChapterSlotCount,
     this.isTransitionSlot,
-    this.transitionText = '章节过渡中',
+    this.transitionText = '',
   });
 
   @override
@@ -234,9 +235,12 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     final chapterSlotCount =
         widget.getCurrentChapterSlotCount?.call() ?? totalPageCount;
     final isTransitionSlot = widget.isTransitionSlot?.call(pageIndex) ?? false;
+    final String transitionText = widget.transitionText.isEmpty
+        ? t.reader.chapterTransition
+        : widget.transitionText;
     final String pageText;
     if (isTransitionSlot) {
-      pageText = widget.transitionText;
+      pageText = transitionText;
     } else {
       final localSlotIndex = (pageIndex - chapterStartSlot).clamp(
         0,

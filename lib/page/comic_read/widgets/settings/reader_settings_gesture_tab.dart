@@ -30,11 +30,11 @@ class _DoubleTapSection extends StatelessWidget {
     final readSetting = globalSettingState.readSetting;
 
     return _SettingsSection(
-      title: '双击操作',
+      title: t.reader.doubleTapAction,
       children: [
         _SettingsSwitchTile(
-          title: '双击缩放',
-          subtitle: '双击图片可在缩放和还原之间切换',
+          title: t.reader.doubleTapZoom,
+          subtitle: t.reader.doubleTapZoomSubtitle,
           value: readSetting.doubleTapZoom,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -46,8 +46,8 @@ class _DoubleTapSection extends StatelessWidget {
           },
         ),
         _SettingsSwitchTile(
-          title: '双击打开操作栏',
-          subtitle: '双击页面打开操作栏（与双击缩放互斥）',
+          title: t.reader.doubleTapOpenMenu,
+          subtitle: t.reader.doubleTapOpenMenuSubtitle,
           value: readSetting.doubleTapOpenMenu,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -73,11 +73,11 @@ class _VolumeKeyPageTurnSection extends StatelessWidget {
     final readSetting = globalSettingState.readSetting;
 
     return _SettingsSection(
-      title: '音量键翻页',
+      title: t.reader.volumeKeyPageTurn,
       children: [
         _SettingsSwitchTile(
-          title: '启用音量键翻页',
-          subtitle: '开启后可用音量键上下翻页/滑动',
+          title: t.reader.enableVolumeKeyPageTurn,
+          subtitle: t.reader.volumeKeyPageTurnSubtitle,
           value: readSetting.volumeKeyPageTurn,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -87,12 +87,12 @@ class _VolumeKeyPageTurnSection extends StatelessWidget {
         ),
         if (readSetting.volumeKeyPageTurn)
           _SettingsSliderCard(
-            title: '条漫滑动距离',
+            title: t.reader.webtoonScrollDistance,
             value: readSetting.volumeKeyPageTurnDistancePercent.clamp(10, 100),
             min: 10,
             max: 100,
             divisions: 90,
-            suffix: '% 屏高',
+            suffix: t.reader.screenHeightPercent,
             onChanged: (value) {
               final percent = value.clamp(10, 100);
               globalSettingCubit.updateReadSetting(

@@ -26,8 +26,9 @@
 
 // Section: imports
 
+use crate::api::logger::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
-use flutter_rust_bridge::for_generated::{Lifetimeable, Lockable, transform_result_dco};
+use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
 use flutter_rust_bridge::{Handler, IntoIntoDart};
 
 // Section: boilerplate
@@ -38,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1839548706;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -402247379;
 
 // Section: executor
 
@@ -46,6 +47,39 @@ flutter_rust_bridge::frb_generated_default_handler!();
 
 // Section: wire_funcs
 
+fn wire__crate__api__logger__LogHttpMakeWriter_default_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "LogHttpMakeWriter_default",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::logger::LogHttpMakeWriter::default())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__simple__anti_obfuscation_picture_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -655,6 +689,40 @@ fn wire__crate__api__memory__get_rust_memory_summary_impl(
                         Result::<_, ()>::Ok(crate::api::memory::get_rust_memory_summary())?;
                     Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__simple__get_system_time_zone_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_system_time_zone",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::simple::get_system_time_zone()?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -2918,6 +2986,9 @@ fn decode_DartFn_Inputs_String_Output_String_AnyhowException(
         ))
     }
 }
+flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>
+);
 
 // Section: dart2rust
 
@@ -2929,11 +3000,31 @@ impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
+impl SseDecode for LogHttpMakeWriter {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <RustOpaqueMoi<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>,
+        >>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
+    }
+}
+
 impl SseDecode for flutter_rust_bridge::DartOpaque {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <usize>::sse_decode(deserializer);
         return unsafe { flutter_rust_bridge::for_generated::sse_decode_dart_opaque(inner) };
+    }
+}
+
+impl SseDecode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <usize>::sse_decode(deserializer);
+        return decode_rust_opaque_moi(inner);
     }
 }
 
@@ -3190,175 +3281,184 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        1 => wire__crate__api__simple__anti_obfuscation_picture_impl(
+        1 => wire__crate__api__logger__LogHttpMakeWriter_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        2 => wire__crate__api__qjs__build_qjs_runtime_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__simple__compress_extreme_impl(port, ptr, rust_vec_len, data_len),
-        4 => wire__crate__api__simple__compress_image_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__image__convert_image_to_png_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__image__convert_image_to_webp_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__data_backup__create_data_backup_zip_impl(
+        2 => wire__crate__api__simple__anti_obfuscation_picture_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        9 => wire__crate__api__simple__decompress_7z_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__simple__decompress_extreme_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__data_backup__extract_data_backup_zip_impl(
+        3 => wire__crate__api__qjs__build_qjs_runtime_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__simple__compress_extreme_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__simple__compress_image_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__image__convert_image_to_png_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__image__convert_image_to_webp_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__data_backup__create_data_backup_zip_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => {
+        10 => wire__crate__api__simple__decompress_7z_impl(port, ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__simple__decompress_extreme_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__data_backup__extract_data_backup_zip_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        17 => {
             wire__crate__api__memory__get_rust_memory_info_impl(port, ptr, rust_vec_len, data_len)
         }
-        17 => wire__crate__api__memory__get_rust_memory_summary_impl(
+        18 => wire__crate__api__memory__get_rust_memory_summary_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__simple__greet_impl(port, ptr, rust_vec_len, data_len),
-        19 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__qjs__is_qjs_runtime_initialized_impl(
+        19 => {
+            wire__crate__api__simple__get_system_time_zone_impl(port, ptr, rust_vec_len, data_len)
+        }
+        20 => wire__crate__api__simple__greet_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__qjs__is_qjs_runtime_initialized_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => wire__crate__api__simple__pack_folder_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__simple__pack_folder_zip_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__qjs__qjs_call_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__qjs__qjs_call_once_impl(port, ptr, rust_vec_len, data_len),
-        29 => {
+        27 => wire__crate__api__simple__pack_folder_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__simple__pack_folder_zip_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__qjs__qjs_call_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__qjs__qjs_call_once_impl(port, ptr, rust_vec_len, data_len),
+        31 => {
             wire__crate__api__qjs__qjs_call_once_task_start_impl(port, ptr, rust_vec_len, data_len)
         }
-        30 => {
+        32 => {
             wire__crate__api__qjs__qjs_call_once_task_wait_impl(port, ptr, rust_vec_len, data_len)
         }
-        31 => wire__crate__api__qjs__qjs_call_task_start_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__qjs__qjs_call_task_wait_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__qjs__qjs_cancel_task_impl(port, ptr, rust_vec_len, data_len),
-        34 => {
+        33 => wire__crate__api__qjs__qjs_call_task_start_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__qjs__qjs_call_task_wait_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__qjs__qjs_cancel_task_impl(port, ptr, rust_vec_len, data_len),
+        36 => {
             wire__crate__api__qjs__qjs_cancel_tasks_by_group_impl(port, ptr, rust_vec_len, data_len)
         }
-        35 => wire__crate__api__qjs__qjs_clear_bundle_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__qjs__qjs_current_bundle_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__qjs__qjs_debug_snapshot_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__qjs__qjs_drop_runtime_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__qjs__qjs_fetch_bytes_auto_impl(port, ptr, rust_vec_len, data_len),
-        40 => {
+        37 => wire__crate__api__qjs__qjs_clear_bundle_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__qjs__qjs_current_bundle_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__qjs__qjs_debug_snapshot_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__qjs__qjs_drop_runtime_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__qjs__qjs_fetch_bytes_auto_impl(port, ptr, rust_vec_len, data_len),
+        42 => {
             wire__crate__api__qjs__qjs_fetch_bytes_auto_once_impl(port, ptr, rust_vec_len, data_len)
         }
-        41 => wire__crate__api__qjs__qjs_fetch_bytes_auto_once_by_url_impl(
+        43 => wire__crate__api__qjs__qjs_fetch_bytes_auto_once_by_url_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => wire__crate__api__qjs__qjs_fetch_image_bytes_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_impl(
+        44 => wire__crate__api__qjs__qjs_fetch_image_bytes_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        44 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_task_start_impl(
+        46 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_task_start_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        45 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_task_start_by_url_impl(
+        47 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_task_start_by_url_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_task_wait_impl(
+        48 => wire__crate__api__qjs__qjs_fetch_image_bytes_once_task_wait_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        47 => wire__crate__api__qjs__qjs_fetch_image_bytes_task_start_impl(
+        49 => wire__crate__api__qjs__qjs_fetch_image_bytes_task_start_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => wire__crate__api__qjs__qjs_fetch_image_bytes_task_wait_impl(
+        50 => wire__crate__api__qjs__qjs_fetch_image_bytes_task_wait_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__api__qjs__qjs_replace_bundle_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__data_backup__read_data_backup_config_impl(
+        51 => wire__crate__api__qjs__qjs_replace_bundle_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__data_backup__read_data_backup_config_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__memory__reset_rust_memory_stats_impl(
+        54 => wire__crate__api__memory__reset_rust_memory_stats_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__api__qjs__set_http_proxy_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__qjs__set_socks5_proxy_impl(port, ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__user_utils__setup_default_user_utils_impl(
+        56 => wire__crate__api__qjs__set_http_proxy_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__qjs__set_socks5_proxy_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__user_utils__setup_default_user_utils_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__api__simple__sleep_test_impl(port, ptr, rust_vec_len, data_len),
-        62 => wire__crate__api__system__start_shutdown_listener_impl(
+        63 => wire__crate__api__simple__sleep_test_impl(port, ptr, rust_vec_len, data_len),
+        64 => wire__crate__api__system__start_shutdown_listener_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        63 => wire__crate__api__simple__stream_test_impl(port, ptr, rust_vec_len, data_len),
-        64 => wire__crate__api__webdav__webdav_delete_remote_files_impl(
+        65 => wire__crate__api__simple__stream_test_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__webdav__webdav_delete_remote_files_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => {
+        67 => {
             wire__crate__api__webdav__webdav_download_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        66 => {
+        68 => {
             wire__crate__api__webdav__webdav_download_text_impl(port, ptr, rust_vec_len, data_len)
         }
-        67 => wire__crate__api__webdav__webdav_ensure_remote_ready_impl(
+        69 => wire__crate__api__webdav__webdav_ensure_remote_ready_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        68 => wire__crate__api__webdav__webdav_list_remote_data_files_impl(
+        70 => wire__crate__api__webdav__webdav_list_remote_data_files_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        69 => {
+        71 => {
             wire__crate__api__webdav__webdav_test_connection_impl(port, ptr, rust_vec_len, data_len)
         }
-        70 => wire__crate__api__webdav__webdav_upload_bytes_impl(port, ptr, rust_vec_len, data_len),
-        71 => wire__crate__api__webdav__webdav_upload_text_impl(port, ptr, rust_vec_len, data_len),
-        72 => wire__crate__api__simple__zstd_compress_bytes_impl(port, ptr, rust_vec_len, data_len),
-        73 => {
+        72 => wire__crate__api__webdav__webdav_upload_bytes_impl(port, ptr, rust_vec_len, data_len),
+        73 => wire__crate__api__webdav__webdav_upload_text_impl(port, ptr, rust_vec_len, data_len),
+        74 => wire__crate__api__simple__zstd_compress_bytes_impl(port, ptr, rust_vec_len, data_len),
+        75 => {
             wire__crate__api__simple__zstd_decompress_bytes_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -3373,28 +3473,43 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        5 => wire__crate__api__qjs__configure_bridge_runtime_impl(ptr, rust_vec_len, data_len),
-        11 => wire__crate__api__simple__enable_rust_log_impl(ptr, rust_vec_len, data_len),
-        12 => wire__crate__api__simple__enable_stacktrace_impl(ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__simple__encode_path_impl(ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__qjs__get_js_bundle_impl(ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__qjs__init_rust_functions_impl(ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__qjs__is_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__qjs__is_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__qjs__opencc_convert_impl(ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__qjs__register_function_impl(ptr, rust_vec_len, data_len),
-        53 => wire__crate__api__qjs__set_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__qjs__set_log_http_forward_impl(ptr, rust_vec_len, data_len),
-        56 => {
+        6 => wire__crate__api__qjs__configure_bridge_runtime_impl(ptr, rust_vec_len, data_len),
+        12 => wire__crate__api__simple__enable_rust_log_impl(ptr, rust_vec_len, data_len),
+        13 => wire__crate__api__simple__enable_stacktrace_impl(ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__simple__encode_path_impl(ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__qjs__get_js_bundle_impl(ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__qjs__init_rust_functions_impl(ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__qjs__is_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__qjs__is_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__qjs__opencc_convert_impl(ptr, rust_vec_len, data_len),
+        53 => wire__crate__api__qjs__register_function_impl(ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__qjs__set_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__qjs__set_log_http_forward_impl(ptr, rust_vec_len, data_len),
+        58 => {
             wire__crate__api__qjs__set_qjs_error_message_language_impl(ptr, rust_vec_len, data_len)
         }
-        57 => wire__crate__api__qjs__set_qjs_error_stack_enabled_impl(ptr, rust_vec_len, data_len),
-        59 => wire__crate__api__qjs__set_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
+        59 => wire__crate__api__qjs__set_qjs_error_stack_enabled_impl(ptr, rust_vec_len, data_len),
+        61 => wire__crate__api__qjs__set_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
 
 // Section: rust2dart
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<LogHttpMakeWriter> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
+            .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<LogHttpMakeWriter> {}
+
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<LogHttpMakeWriter>> for LogHttpMakeWriter {
+    fn into_into_dart(self) -> FrbWrapper<LogHttpMakeWriter> {
+        self.into()
+    }
+}
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::decode::decode::ImageInfo {
@@ -3579,10 +3694,28 @@ impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
+impl SseEncode for LogHttpMakeWriter {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
+    }
+}
+
 impl SseEncode for flutter_rust_bridge::DartOpaque {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <usize>::sse_encode(self.encode(), serializer);
+    }
+}
+
+impl SseEncode
+    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        let (ptr, size) = self.sse_encode_raw();
+        <usize>::sse_encode(ptr, serializer);
+        <i32>::sse_encode(size, serializer);
     }
 }
 
@@ -3793,15 +3926,30 @@ mod io {
     // Section: imports
 
     use super::*;
+    use crate::api::logger::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
-    use flutter_rust_bridge::for_generated::{Lifetimeable, Lockable, transform_result_dco};
+    use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
     use flutter_rust_bridge::{Handler, IntoIntoDart};
 
     // Section: boilerplate
 
     flutter_rust_bridge::frb_generated_boilerplate_io!();
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_zephyr_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLogHttpMakeWriter(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>::increment_strong_count(ptr as _);
+    }
+
+    #[unsafe(no_mangle)]
+    pub extern "C" fn frbgen_zephyr_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLogHttpMakeWriter(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>::decrement_strong_count(ptr as _);
+    }
 }
 #[cfg(not(target_family = "wasm"))]
 pub use io::*;
@@ -3815,17 +3963,32 @@ mod web {
     // Section: imports
 
     use super::*;
+    use crate::api::logger::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
     use flutter_rust_bridge::for_generated::wasm_bindgen;
     use flutter_rust_bridge::for_generated::wasm_bindgen::prelude::*;
-    use flutter_rust_bridge::for_generated::{Lifetimeable, Lockable, transform_result_dco};
+    use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
     use flutter_rust_bridge::{Handler, IntoIntoDart};
 
     // Section: boilerplate
 
     flutter_rust_bridge::frb_generated_boilerplate_web!();
+
+    #[wasm_bindgen]
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLogHttpMakeWriter(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>::increment_strong_count(ptr as _);
+    }
+
+    #[wasm_bindgen]
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerLogHttpMakeWriter(
+        ptr: *const std::ffi::c_void,
+    ) {
+        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>::decrement_strong_count(ptr as _);
+    }
 }
 #[cfg(target_family = "wasm")]
 pub use web::*;

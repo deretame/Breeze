@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/bloc/page_bloc.dart';
 
@@ -18,9 +19,12 @@ class ComicErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('章节未下载', style: TextStyle(fontSize: 20)),
+            Text(t.reader.chapterNotDownloaded, style: TextStyle(fontSize: 20)),
             SizedBox(height: 10),
-            ElevatedButton(onPressed: () => context.pop(), child: Text('返回')),
+            ElevatedButton(
+              onPressed: () => context.pop(),
+              child: Text(t.common.back),
+            ),
           ],
         ),
       );
@@ -30,13 +34,13 @@ class ComicErrorWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '${state.result.toString()}\n加载失败',
+              t.reader.loadFailedWithResult(result: state.result.toString()),
               style: TextStyle(fontSize: 20),
             ),
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () => context.read<PageBloc>().add(event),
-              child: Text('点击重试'),
+              child: Text(t.common.retry),
             ),
           ],
         ),

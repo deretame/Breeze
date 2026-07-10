@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/plugin_settings/cubit/plugin_settings_cubit.dart';
 import 'package:zephyr/page/plugin_settings/method/plugin_settings_web_login.dart';
@@ -144,12 +145,12 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     final openTitle =
         (merged['openTitle']?.toString() ??
                 actionPayload['title']?.toString() ??
-                '${widget.pluginDisplayName} 登录')
+                t.plugin.loginTitle(name: widget.pluginDisplayName))
             .trim();
 
     return PluginWebLoginFlowConfig(
       openTitle: openTitle.isEmpty
-          ? '${widget.pluginDisplayName} 登录'
+          ? t.plugin.loginTitle(name: widget.pluginDisplayName)
           : openTitle,
       openUrl: openUrl,
       openUri: openUri,
@@ -180,7 +181,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     unawaited(
       context.pushRoute(WebViewRoute(info: [config.openTitle, config.openUrl])),
     );
-    showSuccessToast('请在网页中完成登录，宿主会自动同步 Cookie');
+    showSuccessToast(t.plugin.loginSuccess);
   }
 
   Future<void> _stopWebLoginFlow() async {
@@ -249,11 +250,11 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       return;
     }
     if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      showErrorToast('当前平台不支持外部 Chromium 自动登录回退');
+      showErrorToast(t.plugin.chromiumFallbackUnsupported);
       return;
     }
 
-    showErrorToast('内置 WebView 登录受限，正在切换外部浏览器...');
+    showErrorToast(t.plugin.switchingToExternalBrowser);
     unawaited(context.router.maybePop());
 
     final session = await ExternalChromiumLoginSession.start(
@@ -263,7 +264,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       debugPrint(
         '[WebLoginFallback] session start failed, open chrome download',
       );
-      showErrorToast('未检测到 Chromium 浏览器，请先安装 Chrome');
+      showErrorToast(t.plugin.chromiumNotFound);
       unawaited(
         launchUrl(
           Uri.parse(ExternalChromiumLoginSession.chromeDownloadUrl),
@@ -277,7 +278,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     debugPrint(
       '[WebLoginFallback] external chromium ready: ${session.browserName} port=${session.debugPort}',
     );
-    showSuccessToast('已切换到 ${session.browserName}，登录完成后会自动同步 Cookie');
+    showSuccessToast(t.plugin.browserSwitched(browser: session.browserName));
     _externalCookiePollTimer = Timer.periodic(
       const Duration(seconds: 2),
       (_) => unawaited(_pollExternalChromiumCookie(config)),
@@ -417,7 +418,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       );
       final message = result['message']?.toString().trim();
       showSuccessToast(
-        message?.isNotEmpty == true ? message! : '登录 Cookie 已同步',
+        message?.isNotEmpty == true ? message! : t.plugin.cookieSynced,
       );
       await _stopWebLoginFlow();
       _stopExternalChromiumLoginFlow();
@@ -444,7 +445,9 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.pluginDisplayName} 设置'),
+        title: Text(
+          t.plugin.pluginSettingsTitle(name: widget.pluginDisplayName),
+        ),
         centerTitle: false,
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -480,23 +483,23 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       debugUrl: url,
     );
     if (!mounted) return;
-    showSuccessToast('插件调试配置已更新');
+    showSuccessToast(t.plugin.debugConfigUpdated);
   }
 
   Future<void> _confirmDeletePlugin() async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除插件'),
-        content: const Text('确认删除该插件？此操作将删除插件及其相关数据。'),
+        title: Text(t.plugin.deletePlugin),
+        content: Text(t.plugin.confirmDeletePlugin),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('确认删除'),
+            child: Text(t.common.confirm),
           ),
         ],
       ),
@@ -510,13 +513,13 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       if (!mounted) {
         return;
       }
-      showErrorToast('删除失败: $e');
+      showErrorToast(t.plugin.deleteFailed(error: e.toString()));
       return;
     }
     if (!mounted) {
       return;
     }
-    showSuccessToast('插件已删除');
+    showSuccessToast(t.plugin.pluginDeleted);
     Navigator.of(context).pop();
   }
 
@@ -537,7 +540,8 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       );
       final startedWebLogin = await _maybeHandleWebLoginResult(result);
       if (!startedWebLogin) {
-        final message = result['message']?.toString() ?? '执行成功';
+        final message =
+            result['message']?.toString() ?? t.plugin.executeSuccess;
         showSuccessToast(message);
       }
       if (!mounted) return;
@@ -545,7 +549,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         this.context.router.push(LoginRoute(from: widget.from));
       }
     } catch (e) {
-      showErrorToast('执行失败: $e');
+      showErrorToast(t.plugin.executeFailed(error: e.toString()));
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class PluginSettingsState {
@@ -141,7 +142,12 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
       if (isClosed) {
         return;
       }
-      emit(state.copyWith(loadingUserInfo: false, userInfoError: '用户信息加载失败'));
+      emit(
+        state.copyWith(
+          loadingUserInfo: false,
+          userInfoError: t.plugin.userInfoLoadFailed,
+        ),
+      );
     }
   }
 

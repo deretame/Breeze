@@ -41,7 +41,7 @@ class ColorThemeItem extends StatelessWidget {
               ),
               SizedBox(height: 8), // 颜色块和文字的间距
               Text(
-                colorInfo.label,
+                colorInfo.localizedLabel,
                 style: TextStyle(fontSize: 14),
                 textAlign: TextAlign.center,
               ),

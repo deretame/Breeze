@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -355,13 +356,16 @@ class ComicSimplifyEntry extends StatelessWidget {
         title: Text(title),
         content: Text(content),
         actions: [
-          TextButton(onPressed: () => context.pop(), child: const Text("取消")),
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text(t.common.cancel),
+          ),
           TextButton(
             onPressed: () {
               context.router.pop();
               _handleDeleteAction(context);
             },
-            child: const Text("确定"),
+            child: Text(t.common.confirm),
           ),
         ],
       ),
@@ -373,18 +377,24 @@ class ComicSimplifyEntry extends StatelessWidget {
     switch (type) {
       case ComicEntryType.favorite:
         return (
-          "删除收藏",
-          "确定要删除（${info.title.let(convertChineseForDisplay)}）的收藏记录吗？",
+          t.comicEntry.deleteFavorite,
+          t.comicEntry.deleteFavoriteConfirm(
+            title: info.title.let(convertChineseForDisplay),
+          ),
         );
       case ComicEntryType.history:
         return (
-          "删除历史记录",
-          "确定要删除（${info.title.let(convertChineseForDisplay)}）的历史记录吗？",
+          t.comicEntry.deleteHistory,
+          t.comicEntry.deleteHistoryConfirm(
+            title: info.title.let(convertChineseForDisplay),
+          ),
         );
       case ComicEntryType.download:
         return (
-          "删除下载记录",
-          "确定要删除（${info.title.let(convertChineseForDisplay)}）的下载记录及文件吗？",
+          t.comicEntry.deleteDownload,
+          t.comicEntry.deleteDownloadConfirm(
+            title: info.title.let(convertChineseForDisplay),
+          ),
         );
       default:
         return ("", "");
@@ -408,7 +418,7 @@ class ComicSimplifyEntry extends StatelessWidget {
       }
     } catch (e, s) {
       logger.e('删除失败', error: e, stackTrace: s);
-      showErrorToast("删除失败");
+      showErrorToast(t.comicEntry.deleteFailed);
     }
   }
 

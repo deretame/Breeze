@@ -15,6 +15,7 @@ import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
@@ -80,10 +81,10 @@ class _OldHomePageState extends State<OldHomePage> {
     return Scaffold(
       appBar: hasAnyPanel
           ? AppBar(
-              title: const Text('首页'),
+              title: Text(t.oldHome.title),
               actions: [
                 IconButton(
-                  tooltip: '搜索',
+                  tooltip: t.oldHome.search,
                   icon: const Icon(Icons.search),
                   onPressed: () => context.pushRoute(
                     SearchRoute(
@@ -122,7 +123,7 @@ class _OldHomePageState extends State<OldHomePage> {
     if (type == 'openSearch') {
       final source = _sourceFromString(payload['source']?.toString());
       if (source.isEmpty) {
-        showErrorToast('缺少插件来源，无法搜索');
+        showErrorToast(t.error.missingPluginSource(action: t.oldHome.search));
         return;
       }
       final keyword = payload['keyword']?.toString() ?? '';
@@ -155,7 +156,7 @@ class _OldHomePageState extends State<OldHomePage> {
     if (type == 'openPluginFunction') {
       final source = _sourceFromString(payload['source']?.toString());
       if (source.isEmpty) {
-        showErrorToast('缺少插件来源，无法打开功能页');
+        showErrorToast(t.error.missingPluginSource(action: t.oldHome.function));
         return;
       }
       await _openPluginFunction(source, payload);
@@ -165,13 +166,15 @@ class _OldHomePageState extends State<OldHomePage> {
     if (type == 'openCloudFavorite') {
       final source = _sourceFromString(payload['source']?.toString());
       if (source.isEmpty) {
-        showErrorToast('缺少插件来源，无法打开云端收藏');
+        showErrorToast(
+          t.error.missingPluginSource(action: t.oldHome.cloudFavorite),
+        );
         return;
       }
       final title = payload['title']?.toString();
       context.pushRoute(
         ComicListRoute(
-          title: title ?? '云端收藏',
+          title: title ?? t.oldHome.cloudFavorite,
           sceneSource: source,
           sceneBundleFnPath: 'getCloudFavoriteSceneBundle',
           sceneBundleFnPathFallback: 'get_cloud_favorite_scene_bundle',
@@ -182,9 +185,9 @@ class _OldHomePageState extends State<OldHomePage> {
 
     if (type == 'openComicList') {
       final scene = asJsonMap(payload['scene']);
-      final title = scene['title']?.toString().trim() ?? '列表';
+      final title = scene['title']?.toString().trim() ?? t.oldHome.list;
       if (scene.isEmpty) {
-        showErrorToast('缺少场景信息，无法打开列表');
+        showErrorToast(t.error.missingPluginSource(action: t.oldHome.list));
         return;
       }
       context.pushRoute(
@@ -206,7 +209,7 @@ class _OldHomePageState extends State<OldHomePage> {
     if (functionId.isEmpty) {
       return;
     }
-    final title = payload['title']?.toString().trim() ?? '功能';
+    final title = payload['title']?.toString().trim() ?? t.oldHome.function;
     final presentation = payload['presentation']?.toString().trim() ?? 'page';
 
     if (presentation != 'dialog') {
@@ -240,7 +243,7 @@ class _OldHomePageState extends State<OldHomePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
+            child: Text(t.oldHome.close),
           ),
         ],
       ),
@@ -274,14 +277,14 @@ class _OldHomePanelAState extends State<_OldHomePanelA>
           _FunctionSection(
             pluginId: _pluginA,
             functionId: 'hotSearch',
-            title: '热搜',
+            title: t.oldHome.hotSearch,
             onAction: widget.onAction,
           ),
           const Divider(height: 1),
           _FunctionSection(
             pluginId: _pluginA,
             functionId: 'navigation',
-            title: '导航',
+            title: t.oldHome.navigation,
             onAction: widget.onAction,
           ),
         ],
@@ -361,13 +364,13 @@ class _OldHomePanelBState extends State<_OldHomePanelB>
             _FunctionSection(
               pluginId: _pluginB,
               functionId: 'recommend',
-              title: '推荐',
+              title: t.oldHome.recommend,
               onAction: widget.onAction,
             ),
             const Divider(height: 1),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: Text('最新'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              child: Text(t.oldHome.latest),
             ),
             _InlineLatestList(key: _latestListKey, pluginId: _pluginB),
           ],
@@ -455,14 +458,14 @@ class _InlineLatestListState extends State<_InlineLatestList>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
-                        '${state.result}\n加载失败，请重试。',
+                        '${state.result}\n${t.oldHome.loadFailedRetry}',
                         textAlign: TextAlign.center,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => _cubit.loadInitial(),
-                      child: const Text('重试'),
+                      child: Text(t.common.retry),
                     ),
                   ],
                 ),
@@ -481,9 +484,9 @@ class _InlineLatestListState extends State<_InlineLatestList>
   Widget _buildContent(PluginPagedComicListState state) {
     if (state.list.isEmpty &&
         state.status == PluginPagedComicListStatus.success) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: Text('暂无内容')),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: Text(t.oldHome.empty)),
       );
     }
 
@@ -507,7 +510,7 @@ class _InlineLatestListState extends State<_InlineLatestList>
             padding: const EdgeInsets.only(bottom: 14, top: 6),
             child: TextButton(
               onPressed: () => _cubit.retryLoadMore(),
-              child: const Text('加载更多失败，点击重试'),
+              child: Text(t.oldHome.loadMoreFailed),
             ),
           ),
         if (!state.hasReachedMax &&
@@ -518,11 +521,14 @@ class _InlineLatestListState extends State<_InlineLatestList>
             child: TextButton.icon(
               onPressed: () => _cubit.loadMore(),
               icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              label: const Text('点击加载更多'),
+              label: Text(t.oldHome.loadMore),
             ),
           ),
         if (state.hasReachedMax)
-          const Padding(padding: EdgeInsets.all(14), child: Text('没有更多了')),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Text(t.oldHome.noMore),
+          ),
       ],
     );
   }
@@ -598,12 +604,15 @@ class _FunctionSectionState extends State<_FunctionSection>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
-                    '加载 ${widget.title} 失败\n${snapshot.error}',
+                    t.oldHome.loadSectionFailed(
+                      title: widget.title,
+                      error: snapshot.error.toString(),
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextButton(onPressed: _retry, child: const Text('重试')),
+                TextButton(onPressed: _retry, child: Text(t.common.retry)),
               ],
             ),
           );
@@ -732,7 +741,7 @@ class _PluginFunctionDialogContentState
             children: [
               Text(_error, textAlign: TextAlign.center),
               const SizedBox(height: 8),
-              TextButton(onPressed: _load, child: const Text('重试')),
+              TextButton(onPressed: _load, child: Text(t.common.retry)),
             ],
           ),
         ),

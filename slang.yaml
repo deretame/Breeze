@@ -1,0 +1,10 @@
+# slang 国际化配置
+# 文档: https://pub.dev/packages/slang
+base_locale: zh_CN
+fallback_strategy: base_locale
+input_directory: lib/i18n
+input_file_pattern: .i18n.json
+output_directory: lib/i18n
+output_file_name: strings.g.dart
+translate_var: t
+enum_name: AppLocale

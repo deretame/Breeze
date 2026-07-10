@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 /// iOS / macOS CoreML 超分模型配置。
 ///
@@ -15,11 +16,20 @@ class CoreMLModelFamily {
   final String label;
   final List<CoreMLModelVariant> variants;
 
-  const CoreMLModelFamily({
+  CoreMLModelFamily({
     required this.id,
     required this.label,
     required this.variants,
   });
+
+  /// 用户界面显示的本地化模型族名称。
+  String get localizedLabel {
+    return switch (id) {
+      'waifu2x' => t.realSr.coremlSpeed,
+      'realcugan' => t.realSr.coremlQuality,
+      _ => label,
+    };
+  }
 }
 
 class CoreMLModelVariant {
@@ -27,11 +37,20 @@ class CoreMLModelVariant {
   final String fileName;
   final Map<String, dynamic> config;
 
-  const CoreMLModelVariant({
+  CoreMLModelVariant({
     required this.displayName,
     required this.fileName,
     required this.config,
   });
+
+  /// 用户界面显示的本地化变体名称。
+  String get localizedDisplayName {
+    return switch (fileName) {
+      'waifu2x_photo_noise0_scale2x.mlmodel' => t.realSr.coremlNoise0,
+      'RealCUGAN_2x_no-denoise_block156.mlpackage' => t.realSr.coremlNoDenoise,
+      _ => displayName,
+    };
+  }
 }
 
 abstract class CoreMLModelConfig {
@@ -42,13 +61,13 @@ abstract class CoreMLModelConfig {
   static const String binaryRepoBaseUrl =
       'https://github.com/deretame/breeze-binary/raw/main';
 
-  static const List<CoreMLModelFamily> families = <CoreMLModelFamily>[
+  static final List<CoreMLModelFamily> families = <CoreMLModelFamily>[
     CoreMLModelFamily(
       id: 'waifu2x',
-      label: '速度优先 (waifu2x)',
+      label: t.realSr.coremlSpeed,
       variants: <CoreMLModelVariant>[
         CoreMLModelVariant(
-          displayName: '降噪 0',
+          displayName: t.realSr.coremlNoise0,
           fileName: 'waifu2x_photo_noise0_scale2x.mlmodel',
           config: <String, dynamic>{
             'inputName': 'input',
@@ -62,10 +81,10 @@ abstract class CoreMLModelConfig {
     ),
     CoreMLModelFamily(
       id: 'realcugan',
-      label: '质量优先 (Real-CUGAN)',
+      label: t.realSr.coremlQuality,
       variants: <CoreMLModelVariant>[
         CoreMLModelVariant(
-          displayName: '无降噪',
+          displayName: t.realSr.coremlNoDenoise,
           fileName: 'RealCUGAN_2x_no-denoise_block156.mlpackage',
           config: <String, dynamic>{
             'inputName': 'input',

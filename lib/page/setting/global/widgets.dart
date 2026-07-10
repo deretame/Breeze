@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'package:zephyr/config/router/router.gr.dart';
@@ -9,8 +10,8 @@ import 'package:zephyr/config/router/router.gr.dart';
 Widget changeThemeColor(BuildContext context) {
   return ListTile(
     leading: const Icon(Icons.palette_outlined),
-    title: const Text('主题颜色'),
-    subtitle: const Text('选择主色，统一应用视觉'),
+    title: Text(t.settings.themeColor),
+    subtitle: Text(t.settings.themeColorSubtitle),
     trailing: const Icon(Icons.chevron_right),
     onTap: () {
       AutoRouter.of(context).push(const ThemeColorRoute());
@@ -21,9 +22,11 @@ Widget changeThemeColor(BuildContext context) {
 Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
   return ListTile(
     leading: const Icon(Icons.router_outlined),
-    title: const Text('SOCKS5 代理'),
+    title: Text(t.settings.proxy),
     subtitle: Text(
-      currentProxy.isEmpty ? '点击设置代理地址（ip:port）' : '当前代理：$currentProxy',
+      currentProxy.isEmpty
+          ? t.settings.proxySubtitle
+          : t.settings.proxyCurrent(currentProxy: currentProxy),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     ),
@@ -35,23 +38,23 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
       final result = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('设置SOCKS5代理'),
+          title: Text(t.settings.proxy),
           content: TextFormField(
             initialValue: currentProxy,
             autofocus: true,
             onChanged: (value) => inputValue = value.trim(),
-            decoration: const InputDecoration(
-              hintText: 'ip:port',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: t.settings.proxyHint,
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
               onPressed: () => Navigator.pop(context),
             ),
             TextButton(
-              child: const Text('确定'),
+              child: Text(t.common.ok),
               onPressed: () => Navigator.pop(context, inputValue),
             ),
           ],
@@ -62,7 +65,7 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
         globalSettingCubit.updateState(
           (current) => current.copyWith(socks5Proxy: result),
         );
-        showSuccessToast('设置成功，重启生效');
+        showSuccessToast(t.common.restartToTakeEffect);
       }
     },
   );
@@ -70,14 +73,20 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
 
 Widget webdavSync(BuildContext context, SyncServiceType syncServiceType) {
   final title = switch (syncServiceType) {
-    SyncServiceType.none => '同步配置',
-    _ => '${syncServiceType.label} 同步配置',
+    SyncServiceType.none => t.settings.syncConfig,
+    _ => t.webdavSync.serviceTitle(
+      service: switch (syncServiceType) {
+        SyncServiceType.webdav => t.settings.syncServiceWebdav,
+        SyncServiceType.s3 => t.settings.syncServiceS3,
+        SyncServiceType.none => '',
+      },
+    ),
   };
 
   return ListTile(
     leading: const Icon(Icons.cloud_outlined),
     title: Text(title),
-    subtitle: const Text('进入页面，配置地址与鉴权信息'),
+    subtitle: Text(t.settings.syncConfigSubtitle),
     trailing: const Icon(Icons.chevron_right),
     onTap: () {
       AutoRouter.of(context).push(const WebDavSyncRoute());
@@ -88,8 +97,8 @@ Widget webdavSync(BuildContext context, SyncServiceType syncServiceType) {
 Widget editMaskedKeywords(BuildContext context) {
   return ListTile(
     leading: const Icon(Icons.shield_outlined),
-    title: const Text('屏蔽关键词管理'),
-    subtitle: const Text('添加关键词，过滤不想看到的内容（仅搜索生效）'),
+    title: Text(t.settings.maskedKeywords),
+    subtitle: Text(t.settings.maskedKeywordsSubtitle),
     trailing: const Icon(Icons.chevron_right),
     onTap: () {
       showDialog(
@@ -136,13 +145,16 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '屏蔽关键词',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                Text(
+                  t.settings.maskedKeywords,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '添加过滤不喜欢的内容标签（仅搜索生效）',
+                  t.settings.maskedKeywordsSubtitle,
                   style: TextStyle(
                     fontSize: 13,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -163,12 +175,12 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                   width: double.infinity,
                   child: SingleChildScrollView(
                     child: state.maskedKeywords.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 36),
+                              padding: const EdgeInsets.symmetric(vertical: 36),
                               child: Text(
-                                "暂无屏蔽词",
-                                style: TextStyle(
+                                t.settings.maskedKeywordsEmpty,
+                                style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 13,
                                 ),
@@ -252,7 +264,7 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                         controller: _controller,
                         style: const TextStyle(fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: '输入新关键词...',
+                          hintText: t.settings.maskedKeywordsInputHint,
                           hintStyle: const TextStyle(fontSize: 14),
                           filled: true,
                           fillColor: Theme.of(context)
@@ -294,7 +306,7 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('完成'),
+                    child: Text(t.common.done),
                   ),
                 ),
               ],

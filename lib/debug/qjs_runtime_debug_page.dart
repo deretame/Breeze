@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 
@@ -31,7 +32,7 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
     final runtimeName = _runtimeController.text.trim();
     if (runtimeName.isEmpty) {
       setState(() {
-        _status = '请先输入运行时 ID';
+        _status = t.settings.qjsRuntimeFillId;
       });
       return;
     }
@@ -49,13 +50,15 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
       if (!mounted) return;
       setState(() {
         _output = pretty;
-        _status = '已抓取 ${DateTime.now()}';
+        _status = t.settings.qjsRuntimeCapturedAt(
+          dateTime: DateTime.now().toString(),
+        );
       });
     } catch (e, st) {
       logger.e('qjs runtime debug snapshot failed', error: e, stackTrace: st);
       if (!mounted) return;
       setState(() {
-        _status = '抓取失败: $e';
+        _status = t.settings.qjsRuntimeCaptureFailed(error: e);
       });
     } finally {
       if (mounted) {
@@ -69,14 +72,14 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
   Future<void> _copyOutput() async {
     if (_output.isEmpty) {
       setState(() {
-        _status = '当前没有可复制的内容';
+        _status = t.settings.qjsRuntimeNoCopyContent;
       });
       return;
     }
     await Clipboard.setData(ClipboardData(text: _output));
     if (!mounted) return;
     setState(() {
-      _status = '已复制到剪贴板';
+      _status = t.settings.qjsRuntimeCopied;
     });
   }
 
@@ -85,7 +88,7 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('QJS 运行时调试')),
+      appBar: AppBar(title: Text(t.settings.qjsRuntimeDebug)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -97,7 +100,7 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '调试快照',
+                    t.settings.qjsRuntimeSnapshot,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -105,10 +108,10 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _runtimeController,
-                    decoration: const InputDecoration(
-                      labelText: '运行时 ID',
-                      border: OutlineInputBorder(),
-                      hintText: '例如 0a0e5858-a467-4702-994a-79e608a4589d',
+                    decoration: InputDecoration(
+                      labelText: t.settings.qjsRuntimeIdLabel,
+                      border: const OutlineInputBorder(),
+                      hintText: t.settings.qjsRuntimeIdHint,
                     ),
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _loadSnapshot(),
@@ -121,12 +124,16 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
                       FilledButton.icon(
                         onPressed: _loading ? null : _loadSnapshot,
                         icon: const Icon(Icons.play_arrow_outlined),
-                        label: Text(_loading ? '抓取中' : '抓取快照'),
+                        label: Text(
+                          _loading
+                              ? t.settings.qjsRuntimeCapturing
+                              : t.settings.qjsRuntimeCapture,
+                        ),
                       ),
                       OutlinedButton.icon(
                         onPressed: _loading ? null : _copyOutput,
                         icon: const Icon(Icons.copy_all_outlined),
-                        label: const Text('复制输出'),
+                        label: Text(t.settings.qjsRuntimeCopyOutput),
                       ),
                     ],
                   ),
@@ -145,7 +152,7 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
           ),
           const SizedBox(height: 16),
           SelectableText(
-            _output.isEmpty ? '暂无输出' : _output,
+            _output.isEmpty ? t.settings.qjsRuntimeNoOutput : _output,
             style: theme.textTheme.bodySmall?.copyWith(
               fontFamily: 'JetBrainsMonoNL-Regular',
               height: 1.5,

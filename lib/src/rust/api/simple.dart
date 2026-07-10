@@ -11,6 +11,9 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<String> greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
 
+Future<String> getSystemTimeZone() =>
+    RustLib.instance.api.crateApiSimpleGetSystemTimeZone();
+
 Future<String> sleepTest() => RustLib.instance.api.crateApiSimpleSleepTest();
 
 Future<void> antiObfuscationPicture({required ImageInfo imageInfo}) => RustLib

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -33,7 +34,8 @@ class ComicImportResult {
 
 /// 漫画导入被用户取消（例如已存在且用户选择不覆盖）。
 class ComicImportCancelledException implements Exception {
-  ComicImportCancelledException([this.message = '已取消导入']);
+  ComicImportCancelledException([String? message])
+    : message = message ?? t.bookshelf.importCancelled;
 
   final String message;
 
@@ -56,7 +58,7 @@ Future<ComicImportResult> importComicFromDirectory(
   final processedFile = File(p.join(importDir, _kProcessedComicInfoFile));
 
   if (originalFile == null || !await processedFile.exists()) {
-    throw StateError('导入目录缺少必要的 JSON 文件');
+    throw StateError(t.bookshelf.importMissingJson);
   }
 
   final originalJson =
@@ -167,10 +169,10 @@ Future<String> _resolveComicImportRoot(String extractDir) async {
   }
 
   if (candidates.isEmpty) {
-    throw StateError('未在压缩包中找到可导入的漫画目录');
+    throw StateError(t.bookshelf.importNoComicDir);
   }
   if (candidates.length > 1) {
-    throw StateError('压缩包中包含多个漫画目录，请每次只导入一本');
+    throw StateError(t.bookshelf.importMultipleComicDirs);
   }
   return candidates.first;
 }
@@ -189,7 +191,7 @@ Future<ComicImportResult> _importComic(
 }) async {
   final version = _readVersion(originalJson);
   if (version != _kVersionValue) {
-    throw StateError('该版本无法导入，请使用较新的软件版本导出后导入');
+    throw StateError(t.bookshelf.importVersionUnsupported);
   }
 
   final source = _readSource(originalJson);
@@ -205,10 +207,10 @@ Future<ComicImportResult> _importComic(
   final comicId = comicInfo['id']?.toString() ?? '';
 
   if (source.isEmpty) {
-    throw StateError('该导出文件缺少来源信息，请使用新版软件重新导出后再导入');
+    throw StateError(t.bookshelf.importMissingSource);
   }
   if (comicId.isEmpty) {
-    throw StateError('无法获取漫画 ID');
+    throw StateError(t.bookshelf.importMissingComicId);
   }
 
   final from = source;
@@ -232,7 +234,9 @@ Future<ComicImportResult> _importComic(
   if (existing.isNotEmpty) {
     final shouldOverwrite = await onConfirmOverwrite?.call(title) ?? false;
     if (!shouldOverwrite) {
-      throw ComicImportCancelledException('漫画《$title》已存在，未覆盖导入');
+      throw ComicImportCancelledException(
+        t.bookshelf.importComicExistsUncovered(title: title),
+      );
     }
   }
 
@@ -700,7 +704,8 @@ Future<Map<String, dynamic>> _normalizeProcessedJson({
       ...chapter,
       'name': folderName.isNotEmpty
           ? folderName
-          : ep?['name']?.toString() ?? '第${i + 1}集',
+          : ep?['name']?.toString() ??
+                t.bookshelf.importEpisodeFallback(index: i + 1),
       'order': chapter['order'] ?? ep?['order'] ?? (i + 1),
       'images': images,
     });

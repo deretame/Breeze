@@ -5,6 +5,7 @@ import 'package:coreml_upscale/coreml_upscale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/coreml_model_config.dart';
 import 'package:zephyr/util/coreml_model_loader.dart';
@@ -68,17 +69,17 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
   Future<void> _runUpscale() async {
     final rawInput = _inputController.text.trim();
     if (rawInput.isEmpty) {
-      setState(() => _status = '请填写输入图片路径');
+      setState(() => _status = t.realSr.coremlStatusFillInput);
       return;
     }
     if (_selectedVariant == null) {
-      setState(() => _status = '当前模型族没有可用的模型文件');
+      setState(() => _status = t.realSr.coremlStatusNoModelFile);
       return;
     }
 
     setState(() {
       _loading = true;
-      _status = '正在准备资源...';
+      _status = t.realSr.coremlStatusPreparing;
       _outputPath = null;
     });
 
@@ -88,7 +89,7 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
       final cacheDir = await getTemporaryDirectory();
       final outputPath = '${cacheDir.path}/coreml_upscale_output.png';
 
-      setState(() => _status = '正在超分...');
+      setState(() => _status = t.realSr.coremlStatusUpscaling);
 
       // 通用选项（scale）可以覆盖模型默认配置。
       final config = Map<String, dynamic>.from(_selectedVariant!.config);
@@ -109,12 +110,12 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
       if (!mounted) return;
       setState(() {
         _outputPath = outputPath;
-        _status = '完成\n$outputPath\nsize: $size bytes';
+        _status = t.realSr.coremlStatusDone(outputPath: outputPath, size: size);
       });
     } catch (e, st) {
-      logger.e('CoreML 超分失败', error: e, stackTrace: st);
+      logger.e('CoreML upscale failed', error: e, stackTrace: st);
       if (!mounted) return;
-      setState(() => _status = '失败: $e');
+      setState(() => _status = t.realSr.coremlStatusFailed(error: e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -128,21 +129,24 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
     final blockSize = variant.config['blockSize'] as int? ?? 0;
     final shrinkSize = variant.config['shrinkSize'] as int? ?? 0;
     final contentSize = CoreMLModelConfig.contentBlockSize(variant);
-    return '内容块 $contentSize×$contentSize，模型输入 $blockSize×$blockSize'
-        '（含 ${shrinkSize}px 反射边距）';
+    return t.realSr.blockInfoFormat(
+      contentSize: contentSize,
+      blockSize: blockSize,
+      shrinkSize: shrinkSize,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CoreML 超分调试')),
+      appBar: AppBar(title: Text(t.settings.coremlDebug)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // 模型族选择：速度优先 / 质量优先
           ListTile(
             leading: const Icon(Icons.speed),
-            title: const Text('模型'),
+            title: Text(t.realSr.model),
             subtitle: DropdownButton<CoreMLModelFamily>(
               value: _selectedFamily,
               isExpanded: true,
@@ -150,7 +154,7 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
                   .map(
                     (f) => DropdownMenuItem<CoreMLModelFamily>(
                       value: f,
-                      child: Text(f.label),
+                      child: Text(f.localizedLabel),
                     ),
                   )
                   .toList(),
@@ -173,7 +177,7 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
           if (_selectedVariant != null)
             ListTile(
               leading: const Icon(Icons.healing),
-              title: const Text('模型选项（降噪级别）'),
+              title: Text(t.realSr.coremlModelOption),
               subtitle: DropdownButton<CoreMLModelVariant>(
                 value: _selectedVariant,
                 isExpanded: true,
@@ -181,7 +185,7 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
                     .map(
                       (v) => DropdownMenuItem<CoreMLModelVariant>(
                         value: v,
-                        child: Text(v.displayName),
+                        child: Text(v.localizedDisplayName),
                       ),
                     )
                     .toList(),
@@ -195,14 +199,14 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
               ),
             )
           else
-            const ListTile(
-              leading: Icon(Icons.error_outline),
-              title: Text('当前模型族没有可用的模型文件'),
+            ListTile(
+              leading: const Icon(Icons.error_outline),
+              title: Text(t.realSr.coremlStatusNoModelFile),
             ),
           // 通用选项：放大倍率（当前所有模型都是 2×）
           ListTile(
             leading: const Icon(Icons.zoom_in),
-            title: const Text('通用选项（放大倍率）'),
+            title: Text(t.realSr.coremlGeneralOption),
             subtitle: DropdownButton<int>(
               value: _scale,
               isExpanded: true,
@@ -220,24 +224,21 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
           if (_selectedVariant != null)
             ListTile(
               leading: const Icon(Icons.grid_view),
-              title: const Text('分块信息'),
+              title: Text(t.realSr.coremlTileInfo),
               subtitle: Text(_blockInfo(_selectedVariant!)),
               trailing: Tooltip(
                 triggerMode: TooltipTriggerMode.tap,
                 showDuration: const Duration(seconds: 5),
-                message:
-                    'blockSize 是模型输入尺寸，包含反射边距；\n'
-                    '内容块 = blockSize - 2×shrinkSize，才是真正拼接输出的区域。\n'
-                    '切换模型时，这一组参数会随模型自动变化。',
+                message: t.realSr.blockInfoTooltip,
                 child: const Icon(Icons.help_outline),
               ),
             ),
           const SizedBox(height: 12),
           TextField(
             controller: _inputController,
-            decoration: const InputDecoration(
-              labelText: '输入图片绝对路径或 asset 路径',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: t.realSr.coremlInputHint,
+              border: const OutlineInputBorder(),
             ),
             maxLines: 2,
           ),
@@ -252,7 +253,7 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('开始超分'),
+                : Text(t.realSr.coremlStartUpscale),
           ),
           const SizedBox(height: 16),
           if (_status != null)

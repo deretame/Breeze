@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:tray_manager/tray_manager.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 
 Future<void> initSystemTray() async {
@@ -12,9 +13,9 @@ Future<void> initSystemTray() async {
 
     Menu menu = Menu(
       items: [
-        MenuItem(key: 'show_window', label: '显示主界面'),
+        MenuItem(key: 'show_window', label: t.settings.showMainWindow),
         MenuItem.separator(),
-        MenuItem(key: 'exit_app', label: '退出'),
+        MenuItem(key: 'exit_app', label: t.settings.exitApp),
       ],
     );
 

@@ -14,6 +14,7 @@ import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.da
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/section_header.dart';
 
+import 'package:zephyr/i18n/strings.g.dart';
 import '../cubit/search_aggregate_cubit.dart';
 
 @RoutePage()
@@ -195,7 +196,7 @@ class _SearchBarTrigger extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: '选择漫画源',
+            tooltip: t.search.selectSourceTooltip,
             onPressed: () => _showSourceDialog(context),
             icon: const Icon(Icons.tune),
           ),
@@ -259,7 +260,7 @@ class _FilterChipsRow extends StatelessWidget {
               children: [
                 FilterChip(
                   showCheckmark: false,
-                  label: const Text('有结果'),
+                  label: Text(t.search.hasResults),
                   selected: state.showHasResults,
                   onSelected: (value) => context
                       .read<AggregateSearchCubit>()
@@ -267,7 +268,7 @@ class _FilterChipsRow extends StatelessWidget {
                 ),
                 FilterChip(
                   showCheckmark: false,
-                  label: const Text('显示错误'),
+                  label: Text(t.search.showErrors),
                   selected: state.showErrors,
                   onSelected: (value) => context
                       .read<AggregateSearchCubit>()
@@ -326,7 +327,7 @@ class _ResultList extends StatelessWidget {
               children: [
                 SectionHeader(
                   title: _sourceTitle(pluginId),
-                  subtitle: '${items.length} 条',
+                  subtitle: t.search.resultCount(count: items.length),
                   onTap: () => _openSourceSearch(context, pluginId),
                 ),
                 if (entries.isNotEmpty)
@@ -341,9 +342,9 @@ class _ResultList extends StatelessWidget {
                     ),
                   ),
                 if (entries.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.fromLTRB(14, 2, 14, 8),
-                    child: Text('无结果'),
+                    child: Text(t.search.noResults),
                   ),
               ],
             ),
@@ -358,7 +359,9 @@ class _ResultList extends StatelessWidget {
             child: Card(
               child: ListTile(
                 leading: const Icon(Icons.error_outline),
-                title: Text('${_sourceTitle(pluginId)} 加载失败'),
+                title: Text(
+                  t.search.loadFailedForSource(source: _sourceTitle(pluginId)),
+                ),
                 subtitle: Text(
                   error,
                   maxLines: 2,
@@ -371,7 +374,7 @@ class _ResultList extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : IconButton(
-                        tooltip: '刷新此源',
+                        tooltip: t.common.refresh,
                         icon: const Icon(Icons.refresh),
                         onPressed: () => context
                             .read<AggregateSearchCubit>()

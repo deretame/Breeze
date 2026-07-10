@@ -13,6 +13,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  # 国际化
+  slang: ^4.6.0 # 国际化: 类型安全翻译
+  slang_flutter: ^4.6.0 # 国际化: Flutter 集成
+
   # 路由与状态管理
   auto_route: ^11.0.0 # 路由: 声明式路由
   bloc: ^9.0.0 # 状态: 管理核心

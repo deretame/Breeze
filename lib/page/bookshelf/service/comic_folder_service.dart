@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -188,10 +189,10 @@ class ComicFolderService {
   ) {
     final safeName = name.trim();
     if (safeName.isEmpty) {
-      throw ArgumentError('文件夹名称不能为空');
+      throw ArgumentError(t.bookshelf.folderNameEmpty);
     }
     if (safeName.contains('/')) {
-      throw ArgumentError('文件夹名称不能包含 /');
+      throw ArgumentError(t.bookshelf.folderNameSlash);
     }
 
     final newPath = _folderPath(parentPath, safeName);
@@ -215,7 +216,7 @@ class ComicFolderService {
         objectbox.comicFolderBox.put(existed);
         return existed;
       }
-      throw StateError('当前路径下已存在同名文件夹');
+      throw StateError(t.bookshelf.folderNameExists);
     }
 
     final now = _now();
@@ -280,7 +281,7 @@ class ComicFolderService {
     final safeName = newName.trim();
     if (path == kComicFolderRootPath || safeName.isEmpty) return;
     if (safeName.contains('/')) {
-      throw ArgumentError('文件夹名称不能包含 /');
+      throw ArgumentError(t.bookshelf.folderNameSlash);
     }
 
     final folder = objectbox.comicFolderBox
@@ -300,7 +301,7 @@ class ComicFolderService {
         .findFirst();
     if (duplicated != null && duplicated.id != folder.id) {
       if (duplicated.deletedAt == null) {
-        throw StateError('当前路径下已存在同名文件夹');
+        throw StateError(t.bookshelf.folderNameExists);
       }
       //  Tombstone 冲突：先物理删除旧的 tombstone
       objectbox.comicFolderBox.remove(duplicated.id);
@@ -347,7 +348,9 @@ class ComicFolderService {
           .findFirst();
       if (duplicated != null && duplicated.id != folder.id) {
         if (duplicated.deletedAt == null) {
-          throw StateError('目标位置已存在同名文件夹：$folderName');
+          throw StateError(
+            t.bookshelf.targetFolderNameExists(name: folderName),
+          );
         }
         objectbox.comicFolderBox.remove(duplicated.id);
       }
@@ -365,7 +368,7 @@ class ComicFolderService {
   ) {
     for (final path in paths) {
       if (path == targetPath || targetPath.startsWith('$path/')) {
-        throw StateError('不能复制文件夹到自身或其子路径下');
+        throw StateError(t.bookshelf.cannotCopyFolderToSelfOrChild);
       }
     }
 
@@ -391,10 +394,10 @@ class ComicFolderService {
 
   static void _validateMoveTarget(String sourcePath, String targetPath) {
     if (sourcePath == targetPath) {
-      throw StateError('不能将文件夹移动到自身');
+      throw StateError(t.bookshelf.cannotMoveFolderToSelf);
     }
     if (targetPath.startsWith('$sourcePath/')) {
-      throw StateError('不能将父文件夹移动到子文件夹中');
+      throw StateError(t.bookshelf.cannotMoveParentToChild);
     }
   }
 

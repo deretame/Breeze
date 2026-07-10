@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 Future<bool> buttonDialog(
   BuildContext context,
@@ -14,13 +15,13 @@ Future<bool> buttonDialog(
             content: Text(content),
             actions: [
               TextButton(
-                child: Text('取消'),
+                child: Text(t.common.cancel),
                 onPressed: () {
                   Navigator.of(context).pop(false); // 返回 false
                 },
               ),
               TextButton(
-                child: Text('确定'),
+                child: Text(t.common.ok),
                 onPressed: () {
                   Navigator.of(context).pop(true); // 返回 true
                 },

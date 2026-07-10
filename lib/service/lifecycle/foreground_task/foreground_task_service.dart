@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_handler.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// Android 前台服务封装。
@@ -27,9 +28,9 @@ class ForegroundTaskService {
     if (_initialized) return;
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
-        channelId: '前台任务',
-        channelName: '前台下载任务',
-        channelDescription: '这个是用来保证下载任务在后台也能继续执行的',
+        channelId: 'foreground_download_task',
+        channelName: t.foregroundTask.channelName,
+        channelDescription: t.foregroundTask.channelDescription,
         onlyAlertOnce: true,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
@@ -61,21 +62,21 @@ class ForegroundTaskService {
           serviceTypes: [ForegroundServiceTypes.dataSync],
           serviceId: Random().nextInt(1000),
           notificationTitle: appName,
-          notificationText: '等待下载任务中...',
+          notificationText: t.foregroundTask.waitingForTask,
           callback: startCallback,
           notificationButtons: [
-            const NotificationButton(id: 'cancel', text: '取消'),
+            NotificationButton(id: 'cancel', text: t.foregroundTask.cancel),
           ],
         );
 
     if (result is ServiceRequestSuccess) {
       logger.i('前台服务启动成功');
     } else {
-      String errorDetail = '未知错误';
+      String errorDetail = t.common.unknown;
       if (result is ServiceRequestFailure) {
         errorDetail = result.error.toString();
       }
-      throw Exception('前台服务启动失败: $errorDetail');
+      throw Exception(t.foregroundTask.startFailed(error: errorDetail));
     }
   }
 
@@ -122,13 +123,13 @@ class ForegroundTaskService {
       return;
     }
 
-    showInfoToast('下载需要通知权限来启动前台任务，请在系统弹窗中允许通知权限');
+    showInfoToast(t.foregroundTask.notificationPermissionRequired);
 
     notificationPermission =
         await FlutterForegroundTask.requestNotificationPermission();
 
     if (notificationPermission != NotificationPermission.granted) {
-      throw Exception('无法开始下载：请先在系统设置中开启通知权限');
+      throw Exception(t.foregroundTask.cannotStartWithoutPermission);
     }
   }
 

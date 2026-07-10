@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 class ColorThemeInfo {
   Color color;
@@ -6,6 +7,32 @@ class ColorThemeInfo {
   int index;
 
   ColorThemeInfo(this.color, this.label, this.index);
+
+  /// 用户界面显示的本地化颜色名称。
+  String get localizedLabel {
+    return switch (index) {
+      0 => t.settings.colorRed,
+      1 => t.settings.colorPink,
+      2 => t.settings.colorPurple,
+      3 => t.settings.colorDeepPurple,
+      4 => t.settings.colorIndigo,
+      5 => t.settings.colorBlue,
+      6 => t.settings.colorLightBlue,
+      7 => t.settings.colorCyan,
+      8 => t.settings.colorTeal,
+      9 => t.settings.colorGreen,
+      10 => t.settings.colorLightGreen,
+      11 => t.settings.colorLime,
+      12 => t.settings.colorYellow,
+      13 => t.settings.colorAmber,
+      14 => t.settings.colorOrange,
+      15 => t.settings.colorDeepOrange,
+      16 => t.settings.colorBrown,
+      17 => t.settings.colorGrey,
+      18 => t.settings.colorBlueGrey,
+      _ => label,
+    };
+  }
 
   @override
   String toString() {

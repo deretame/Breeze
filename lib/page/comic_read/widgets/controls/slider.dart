@@ -8,6 +8,7 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -29,7 +30,7 @@ class SliderWidget extends StatefulWidget {
     this.mapGlobalToLocalSlot,
     this.mapLocalToGlobalSlot,
     this.isTransitionSlot,
-    this.transitionLabel = '章节过渡中',
+    this.transitionLabel = '',
   });
 
   @override
@@ -88,8 +89,11 @@ class _SliderWidgetState extends State<SliderWidget> {
     final currentGlobalSlot = safeGlobalSliderValue.round();
     final isCurrentTransitionSlot =
         widget.isTransitionSlot?.call(currentGlobalSlot) ?? false;
+    final effectiveTransitionLabel = widget.transitionLabel.isEmpty
+        ? t.reader.chapterTransition
+        : widget.transitionLabel;
     final sliderLabelText = isCurrentTransitionSlot
-        ? widget.transitionLabel
+        ? effectiveTransitionLabel
         : sliderDisplayPage.toString();
 
     if (safeGlobalSliderValue != sliderValue) {
@@ -166,7 +170,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                   );
                   final toastMessage =
                       widget.isTransitionSlot?.call(targetGlobalSlot) ?? false
-                      ? widget.transitionLabel
+                      ? effectiveTransitionLabel
                       : displayPage.toString();
                   _showOverlayToast(toastMessage);
 

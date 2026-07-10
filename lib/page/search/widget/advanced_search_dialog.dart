@@ -4,6 +4,7 @@ import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
 class AdvancedSearchDialog extends StatefulWidget {
@@ -32,30 +33,30 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('高级搜索选项'),
+      title: Text(t.search.advancedSearchOptions),
       scrollable: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.allowSourceSwitch) ...[
-            _buildSectionTitle('数据来源'),
+            _buildSectionTitle(t.search.dataSource),
             _buildSourceRow(),
           ],
 
           const SizedBox(height: 16),
-          _buildSectionTitle('排序方式'),
+          _buildSectionTitle(t.search.sortBy),
           _buildSortRow(),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_tempState),
-          child: const Text('应用'),
+          child: Text(t.common.apply),
         ),
       ],
     );
@@ -107,11 +108,11 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
   }
 
   Widget _buildSortRow() {
-    const Map<int, String> sortOptions = {
-      1: '从新到旧',
-      2: '从旧到新',
-      3: '最多点赞',
-      4: '最多观看',
+    final Map<int, String> sortOptions = {
+      1: t.search.newestToOldest,
+      2: t.search.oldestToNewest,
+      3: t.search.mostLikes,
+      4: t.search.mostViews,
     };
 
     return Wrap(

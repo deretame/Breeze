@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/discover/view/discover_scheme_renderer.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_function/cubit/plugin_function_cubit.dart';
 
 class PluginFunctionDialog extends StatelessWidget {
@@ -49,7 +50,7 @@ class PluginFunctionDialog extends StatelessWidget {
                           onPressed: () => context
                               .read<PluginFunctionCubit>()
                               .load(from: from, functionId: functionId),
-                          child: const Text('重试'),
+                          child: Text(t.common.retry),
                         ),
                       ],
                     ),
@@ -75,7 +76,7 @@ class PluginFunctionDialog extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
+            child: Text(t.common.close),
           ),
         ],
       ),

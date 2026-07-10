@@ -27,6 +27,9 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/i18n/i18n_helper.dart';
+import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/i18n/system_locale_service.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -231,7 +234,9 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await initRustLib();
 
-  setQjsErrorMessageLanguage(lang: 'en');
+  // 初始化 i18n：先设置默认中文，待 GlobalSettingCubit 加载后再根据用户设置或系统语言切换。
+  LocaleSettings.setLocale(AppLocale.enUs);
+  I18nHelper.setRustErrorLanguage(AppLocale.enUs);
 
   // 初始化工作线程
   await workerManager.init(isolatesCount: Platform.numberOfProcessors);
@@ -287,6 +292,15 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
+
+  // 根据用户设置或系统语言初始化应用语言
+  if (globalSettingCubit.state.localeFollowsSystem) {
+    final systemInfo = await SystemLocaleService.getInfo();
+    await globalSettingCubit.setSystemLocale(systemInfo.locale);
+  } else {
+    await globalSettingCubit.setLocale(globalSettingCubit.state.locale);
+  }
+
   await FontProfileController.instance.init();
 
   final pluginRegistryCubit = PluginRegistryCubit();
@@ -634,156 +648,154 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: FontProfileController.instance,
-      builder: (context, _) {
-        final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    return TranslationProvider(
+      child: AnimatedBuilder(
+        animation: FontProfileController.instance,
+        builder: (context, _) {
+          final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
-        return DynamicColorBuilder(
-          builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-            ColorScheme lightColorScheme;
-            ColorScheme darkColorScheme;
+          return DynamicColorBuilder(
+            builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+              ColorScheme lightColorScheme;
+              ColorScheme darkColorScheme;
 
-            if (globalSettingState.dynamicColor == true) {
-              lightColorScheme =
-                  lightDynamic ??
-                  ColorScheme.fromSeed(
-                    seedColor: globalSettingState.seedColor,
-                    brightness: Brightness.light,
-                  );
-              darkColorScheme =
-                  darkDynamic ??
-                  ColorScheme.fromSeed(
-                    seedColor: globalSettingState.seedColor,
-                    brightness: Brightness.dark,
-                  );
-            } else {
-              final primary = globalSettingState.seedColor;
+              if (globalSettingState.dynamicColor == true) {
+                lightColorScheme =
+                    lightDynamic ??
+                    ColorScheme.fromSeed(
+                      seedColor: globalSettingState.seedColor,
+                      brightness: Brightness.light,
+                    );
+                darkColorScheme =
+                    darkDynamic ??
+                    ColorScheme.fromSeed(
+                      seedColor: globalSettingState.seedColor,
+                      brightness: Brightness.dark,
+                    );
+              } else {
+                final primary = globalSettingState.seedColor;
 
-              lightColorScheme = ColorScheme.fromSeed(
-                seedColor: primary,
-                brightness: Brightness.light,
-              );
-              darkColorScheme = ColorScheme.fromSeed(
-                seedColor: primary,
-                brightness: Brightness.dark,
-              );
-            }
-
-            final isLinuxDesktop = !kIsWeb && Platform.isLinux;
-            const linuxFontFamily = 'Noto Sans CJK SC';
-            const linuxFontFamilyFallback = <String>[
-              'WenQuanYi Micro Hei',
-              'Droid Sans Fallback',
-            ];
-
-            TextTheme withConfiguredFonts(TextTheme base) {
-              var themed = base;
-              if (isLinuxDesktop) {
-                themed = themed.apply(
-                  fontFamily: linuxFontFamily,
-                  fontFamilyFallback: linuxFontFamilyFallback,
+                lightColorScheme = ColorScheme.fromSeed(
+                  seedColor: primary,
+                  brightness: Brightness.light,
+                );
+                darkColorScheme = ColorScheme.fromSeed(
+                  seedColor: primary,
+                  brightness: Brightness.dark,
                 );
               }
-              return FontProfileController.instance.applyToTextTheme(themed);
-            }
 
-            return MaterialApp.router(
-              routerConfig: appRouter.config(),
-              scrollBehavior: const AppScrollBehavior(),
-              builder: (context, child) {
-                Widget content = Actions(
-                  actions: <Type, Action<Intent>>{
-                    EscapeIntent: CallbackAction<EscapeIntent>(
-                      onInvoke: (intent) {
-                        // 先让当前焦点失焦，避免 pop 时 InputDecorator 才第一次变 dirty；
-                        // 再把 pop 推迟到下一帧，让失焦引发的重建在当前帧完成。
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          appRouter.maybePop();
-                        });
-                        return null;
-                      },
-                    ),
-                  },
-                  child: Shortcuts(
-                    shortcuts: <ShortcutActivator, Intent>{
-                      const SingleActivator(LogicalKeyboardKey.escape):
-                          const EscapeIntent(),
-                    },
-                    child: Focus(autofocus: true, child: child!),
-                  ),
-                );
+              final isLinuxDesktop = !kIsWeb && Platform.isLinux;
+              const linuxFontFamily = 'Noto Sans CJK SC';
+              const linuxFontFamilyFallback = <String>[
+                'WenQuanYi Micro Hei',
+                'Droid Sans Fallback',
+              ];
 
-                content = Listener(
-                  onPointerDown: (PointerDownEvent event) {
-                    if (event.buttons & kBackMouseButton != 0) {
-                      appRouter.maybePop();
-                    }
-                  },
-                  child: content,
-                );
-
-                if (Platform.isWindows ||
-                    Platform.isLinux ||
-                    Platform.isMacOS) {
-                  return ValueListenableBuilder<bool>(
-                    valueListenable: desktopReaderFullscreenNotifier,
-                    builder: (context, isReaderFullscreen, _) {
-                      return Column(
-                        children: [
-                          if (!isReaderFullscreen) const CustomTitleBar(),
-                          Expanded(child: content),
-                        ],
-                      );
-                    },
+              TextTheme withConfiguredFonts(TextTheme base) {
+                var themed = base;
+                if (isLinuxDesktop) {
+                  themed = themed.apply(
+                    fontFamily: linuxFontFamily,
+                    fontFamilyFallback: linuxFontFamilyFallback,
                   );
                 }
-                return content;
-              },
-              locale: globalSettingState.locale,
-              title: appName,
-              themeMode: globalSettingState.themeMode,
-              supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              theme: ThemeData.light().copyWith(
-                primaryColor: lightColorScheme.primary,
-                colorScheme: lightColorScheme,
-                scaffoldBackgroundColor: lightColorScheme.surface,
-                cardColor: lightColorScheme.surfaceContainer,
-                chipTheme: ChipThemeData(
-                  backgroundColor: lightColorScheme.surface,
+                return FontProfileController.instance.applyToTextTheme(themed);
+              }
+
+              return MaterialApp.router(
+                routerConfig: appRouter.config(),
+                scrollBehavior: const AppScrollBehavior(),
+                builder: (context, child) {
+                  Widget content = Actions(
+                    actions: <Type, Action<Intent>>{
+                      EscapeIntent: CallbackAction<EscapeIntent>(
+                        onInvoke: (intent) {
+                          // 先让当前焦点失焦，避免 pop 时 InputDecorator 才第一次变 dirty；
+                          // 再把 pop 推迟到下一帧，让失焦引发的重建在当前帧完成。
+                          FocusManager.instance.primaryFocus?.unfocus();
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            appRouter.maybePop();
+                          });
+                          return null;
+                        },
+                      ),
+                    },
+                    child: Shortcuts(
+                      shortcuts: <ShortcutActivator, Intent>{
+                        const SingleActivator(LogicalKeyboardKey.escape):
+                            const EscapeIntent(),
+                      },
+                      child: Focus(autofocus: true, child: child!),
+                    ),
+                  );
+
+                  content = Listener(
+                    onPointerDown: (PointerDownEvent event) {
+                      if (event.buttons & kBackMouseButton != 0) {
+                        appRouter.maybePop();
+                      }
+                    },
+                    child: content,
+                  );
+
+                  if (Platform.isWindows ||
+                      Platform.isLinux ||
+                      Platform.isMacOS) {
+                    return ValueListenableBuilder<bool>(
+                      valueListenable: desktopReaderFullscreenNotifier,
+                      builder: (context, isReaderFullscreen, _) {
+                        return Column(
+                          children: [
+                            if (!isReaderFullscreen) const CustomTitleBar(),
+                            Expanded(child: content),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                  return content;
+                },
+                locale: TranslationProvider.of(context).flutterLocale,
+                title: appName,
+                themeMode: globalSettingState.themeMode,
+                supportedLocales: AppLocaleUtils.supportedLocales,
+                localizationsDelegates: GlobalMaterialLocalizations.delegates,
+                theme: ThemeData.light().copyWith(
+                  primaryColor: lightColorScheme.primary,
+                  colorScheme: lightColorScheme,
+                  scaffoldBackgroundColor: lightColorScheme.surface,
+                  cardColor: lightColorScheme.surfaceContainer,
+                  chipTheme: ChipThemeData(
+                    backgroundColor: lightColorScheme.surface,
+                  ),
+                  canvasColor: lightColorScheme.surfaceContainer,
+                  dialogTheme: DialogThemeData(
+                    backgroundColor: lightColorScheme.surfaceContainer,
+                  ),
+                  textTheme: withConfiguredFonts(ThemeData.light().textTheme),
+                  primaryTextTheme: withConfiguredFonts(
+                    ThemeData.light().primaryTextTheme,
+                  ),
                 ),
-                canvasColor: lightColorScheme.surfaceContainer,
-                dialogTheme: DialogThemeData(
-                  backgroundColor: lightColorScheme.surfaceContainer,
+                darkTheme: ThemeData.dark().copyWith(
+                  scaffoldBackgroundColor: globalSettingState.isAMOLED
+                      ? Colors.black
+                      : darkColorScheme.surface,
+                  tabBarTheme: const TabBarThemeData(
+                    dividerColor: Colors.transparent,
+                  ),
+                  colorScheme: darkColorScheme,
+                  textTheme: withConfiguredFonts(ThemeData.dark().textTheme),
+                  primaryTextTheme: withConfiguredFonts(
+                    ThemeData.dark().primaryTextTheme,
+                  ),
                 ),
-                textTheme: withConfiguredFonts(ThemeData.light().textTheme),
-                primaryTextTheme: withConfiguredFonts(
-                  ThemeData.light().primaryTextTheme,
-                ),
-              ),
-              darkTheme: ThemeData.dark().copyWith(
-                scaffoldBackgroundColor: globalSettingState.isAMOLED
-                    ? Colors.black
-                    : darkColorScheme.surface,
-                tabBarTheme: const TabBarThemeData(
-                  dividerColor: Colors.transparent,
-                ),
-                colorScheme: darkColorScheme,
-                textTheme: withConfiguredFonts(ThemeData.dark().textTheme),
-                primaryTextTheme: withConfiguredFonts(
-                  ThemeData.dark().primaryTextTheme,
-                ),
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

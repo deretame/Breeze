@@ -14,6 +14,7 @@ import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 const Set<String> _kWindowsReservedNames = {
   'CON',
@@ -159,7 +160,7 @@ Future<String> _exportComicAsFolder(
       _kImageFileNameReserveLength -
       3;
   if (rootLength > requiredRootSpace) {
-    throw StateError('导出目录路径过长，无法创建有效的导出结构');
+    throw StateError(t.comicInfo.exportPathTooLong);
   }
 
   final maxTitleLength =
@@ -204,7 +205,7 @@ Future<String> _exportComicAsFolder(
   await _exportCover(download, comicDir, comicId, from: from);
   await _copyEpisodeFiles(chapterEntries, comicDir);
 
-  showSuccessToast('漫画$title导出为文件夹完成');
+  showSuccessToast(t.comicInfo.exportFolderComplete(title: title));
   return comicDir;
 }
 
@@ -222,7 +223,7 @@ Future<String> _exportComicAsZip(
   late final String finalZipPath;
   if (exportPath != null) {
     if (_pathLength(exportPath) > maxPath) {
-      throw StateError('指定的 zip 导出路径超出系统路径长度限制');
+      throw StateError(t.comicInfo.zipExportPathTooLong);
     }
     finalZipPath = exportPath;
   } else {
@@ -231,7 +232,7 @@ Future<String> _exportComicAsZip(
     final requiredDirSpace =
         maxPath - _kMinTitleLength - 1 - zipExtensionLength;
     if (dirLength > requiredDirSpace) {
-      throw StateError('下载目录路径过长，无法创建有效的 zip 文件路径');
+      throw StateError(t.comicInfo.downloadPathTooLong);
     }
     final maxTitleLength = (maxPath - dirLength - 1 - zipExtensionLength).clamp(
       _kMinTitleLength,
@@ -278,7 +279,7 @@ Future<String> _exportComicAsZip(
   }
 
   await packFolderZip(destPath: finalZipPath, packInfo: packInfo);
-  showSuccessToast('漫画$title导出为 zip 完成');
+  showSuccessToast(t.comicInfo.exportZipComplete(title: title));
   return finalZipPath;
 }
 
@@ -298,7 +299,7 @@ UnifiedComicDownload _getDownload(String comicId, {required String from}) {
   if (fallback != null) {
     return fallback;
   }
-  throw StateError('未找到可导出的下载漫画: $comicId');
+  throw StateError(t.comicInfo.exportComicNotFound(comicId: comicId));
 }
 
 Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
@@ -617,7 +618,7 @@ String _uniqueFolderName(
       if (base.isEmpty) {
         candidate = 'c ($index)';
         if (_pathLength(candidate) > maxLength) {
-          throw StateError('无法为章节创建不重复的文件名：超出路径长度限制');
+          throw StateError(t.comicInfo.uniqueFileNameTooLong);
         }
       } else {
         candidate = '$base$suffix';

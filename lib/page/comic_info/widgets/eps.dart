@@ -8,6 +8,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 import 'package:zephyr/config/router/router.gr.dart';
 
@@ -36,7 +37,9 @@ class EpButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final episodeIndex = doc.order > 0 ? doc.order : 1;
-    final title = doc.name.trim().isEmpty ? '第$episodeIndex话' : doc.name.trim();
+    final title = doc.name.trim().isEmpty
+        ? t.comicInfo.episodeFallback(index: episodeIndex)
+        : doc.name.trim();
     return InkWell(
       onTap: () {
         final resolvedType = type == ComicEntryType.history
@@ -73,7 +76,7 @@ class EpButtonWidget extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              '第${index + 1}话',
+              t.comicInfo.episodeLabel(index: index + 1),
               style: context.theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.theme.colorScheme.primary,

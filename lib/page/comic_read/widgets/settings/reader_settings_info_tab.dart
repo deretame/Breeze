@@ -35,11 +35,11 @@ class _PageInfoVisibilitySection extends StatelessWidget {
         !readSetting.pageInfoShowTime;
 
     return _SettingsSection(
-      title: '信息项显示',
+      title: t.reader.infoDisplay,
       children: [
         _SettingsSwitchTile(
-          title: '页数',
-          subtitle: '显示当前页/总页数',
+          title: t.reader.pageNumber,
+          subtitle: t.reader.pageNumberSubtitle,
           value: readSetting.pageInfoShowPage,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -48,8 +48,8 @@ class _PageInfoVisibilitySection extends StatelessWidget {
           },
         ),
         _SettingsSwitchTile(
-          title: '网络状态',
-          subtitle: 'Linux 下可能不准确',
+          title: t.reader.networkStatus,
+          subtitle: t.reader.networkStatusSubtitle,
           value: readSetting.pageInfoShowNetwork,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -58,8 +58,8 @@ class _PageInfoVisibilitySection extends StatelessWidget {
           },
         ),
         _SettingsSwitchTile(
-          title: '电池',
-          subtitle: '默认关闭，可按需开启',
+          title: t.reader.battery,
+          subtitle: t.reader.batterySubtitle,
           value: readSetting.pageInfoShowBattery,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -68,8 +68,8 @@ class _PageInfoVisibilitySection extends StatelessWidget {
           },
         ),
         _SettingsSwitchTile(
-          title: '时间',
-          subtitle: '显示当前时间',
+          title: t.reader.time,
+          subtitle: t.reader.timeSubtitle,
           value: readSetting.pageInfoShowTime,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -77,7 +77,7 @@ class _PageInfoVisibilitySection extends StatelessWidget {
             );
           },
         ),
-        if (allHidden) _SettingsNoticeCard(text: '当前已全部关闭，阅读页中的信息条会完全隐藏。'),
+        if (allHidden) _SettingsNoticeCard(text: t.reader.allHiddenNotice),
       ],
     );
   }
@@ -96,14 +96,14 @@ class _PageInfoPlacementSection extends StatelessWidget {
         ReaderInfoHorizontalPosition.center;
 
     return _SettingsSection(
-      title: '信息条位置',
+      title: t.reader.infoBarPosition,
       children: [
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
             _SettingsChoiceChip(
-              title: '顶部',
+              title: t.reader.verticalPositionTop,
               selected:
                   readSetting.pageInfoVerticalPosition ==
                   ReaderInfoVerticalPosition.top,
@@ -116,7 +116,7 @@ class _PageInfoPlacementSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '底部',
+              title: t.reader.verticalPositionBottom,
               selected:
                   readSetting.pageInfoVerticalPosition ==
                   ReaderInfoVerticalPosition.bottom,
@@ -133,8 +133,8 @@ class _PageInfoPlacementSection extends StatelessWidget {
         if (readSetting.pageInfoVerticalPosition ==
             ReaderInfoVerticalPosition.top)
           _SettingsSwitchTile(
-            title: '显示在状态栏',
-            subtitle: '开启后，顶部信息条会进入系统状态栏区域',
+            title: t.reader.showInStatusBar,
+            subtitle: t.reader.showInStatusBarSubtitle,
             value: readSetting.pageInfoTopInStatusBar,
             onChanged: (value) {
               logger.d('pageInfoTopInStatusBar: $value');
@@ -148,7 +148,7 @@ class _PageInfoPlacementSection extends StatelessWidget {
           runSpacing: 10,
           children: [
             _SettingsChoiceChip(
-              title: '左侧',
+              title: t.reader.horizontalPositionLeft,
               selected:
                   readSetting.pageInfoHorizontalPosition ==
                   ReaderInfoHorizontalPosition.left,
@@ -162,7 +162,7 @@ class _PageInfoPlacementSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '中间',
+              title: t.reader.horizontalPositionCenter,
               selected:
                   readSetting.pageInfoHorizontalPosition ==
                   ReaderInfoHorizontalPosition.center,
@@ -176,7 +176,7 @@ class _PageInfoPlacementSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '右侧',
+              title: t.reader.horizontalPositionRight,
               selected:
                   readSetting.pageInfoHorizontalPosition ==
                   ReaderInfoHorizontalPosition.right,
@@ -192,12 +192,12 @@ class _PageInfoPlacementSection extends StatelessWidget {
           ],
         ),
         _SettingsSliderCard(
-          title: '边缘间距',
+          title: t.reader.edgePadding,
           value: readSetting.pageInfoEdgePadding.clamp(0, 48),
           min: 0,
           max: 48,
           divisions: 48,
-          suffix: 'px',
+          suffix: t.reader.pixels,
           enabled: !isHorizontalCenter,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -205,7 +205,8 @@ class _PageInfoPlacementSection extends StatelessWidget {
             );
           },
         ),
-        if (isHorizontalCenter) _SettingsNoticeCard(text: '横向在中间时，边缘间距不会生效。'),
+        if (isHorizontalCenter)
+          _SettingsNoticeCard(text: t.reader.edgePaddingDisabled),
       ],
     );
   }
@@ -221,15 +222,15 @@ class _PageInfoAppearanceSection extends StatelessWidget {
     final readSetting = globalSettingState.readSetting;
 
     return _SettingsSection(
-      title: '信息条样式',
+      title: t.reader.infoBarStyle,
       children: [
         _SettingsSliderCard(
-          title: '背景透明度',
+          title: t.reader.backgroundOpacity,
           value: readSetting.pageInfoOpacityPercent.clamp(20, 100),
           min: 20,
           max: 100,
           divisions: 80,
-          suffix: '%',
+          suffix: t.reader.percent,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
               (current) => current.copyWith(pageInfoOpacityPercent: value),
@@ -237,12 +238,12 @@ class _PageInfoAppearanceSection extends StatelessWidget {
           },
         ),
         _SettingsSliderCard(
-          title: '字体大小',
+          title: t.reader.fontSize,
           value: readSetting.pageInfoFontSize.clamp(10, 20),
           min: 10,
           max: 20,
           divisions: 10,
-          suffix: 'px',
+          suffix: t.reader.pixels,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
               (current) => current.copyWith(pageInfoFontSize: value),

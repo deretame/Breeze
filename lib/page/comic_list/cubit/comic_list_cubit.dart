@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/comic_list/models/list_filter_bundle.dart';
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_schema.dart';
@@ -190,10 +191,10 @@ class ComicListCubit extends Cubit<ComicListState> {
   String? _validateScene(ComicListScene? scene) {
     final request = scene?.body.request;
     if (request == null) {
-      return '缺少列表请求配置';
+      return t.comicList.missingListConfig;
     }
     if (request.fnPath.trim().isEmpty) {
-      return '列表请求缺少 fnPath';
+      return t.comicList.missingFnPath;
     }
     return null;
   }

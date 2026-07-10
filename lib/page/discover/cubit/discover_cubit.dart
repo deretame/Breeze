@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 单个插件 info 的加载状态。
@@ -89,7 +90,11 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     try {
       await _service.setEnabled(uuid, enabled);
     } catch (e) {
-      showErrorToast('插件${enabled ? '启用' : '关闭'}失败: $e');
+      showErrorToast(
+        enabled
+            ? t.discover.pluginEnableFailed(error: e)
+            : t.discover.pluginCloseFailed(error: e),
+      );
     } finally {
       _togglingUuids.remove(uuid);
       _emitToggling();
@@ -194,7 +199,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     } catch (e) {
       final pluginState = _service.getByUuid(uuid);
       if (pluginState?.debug == true) {
-        showErrorToast('插件调试加载失败，已回退数据库: $e');
+        showErrorToast(t.discover.pluginDebugLoadFailed(error: e));
       }
       if (!isClosed) {
         final infoStates =

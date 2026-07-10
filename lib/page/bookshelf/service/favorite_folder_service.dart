@@ -1,3 +1,4 @@
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -44,9 +45,9 @@ class FavoriteFolderService {
         .build();
     try {
       final folders = <FavoriteFolderView>[
-        const FavoriteFolderView(
+        FavoriteFolderView(
           key: kFavoriteFolderAllKey,
-          name: '全部',
+          name: t.common.all,
           isAll: true,
         ),
       ];
@@ -64,7 +65,7 @@ class FavoriteFolderService {
   static FavoriteFolderView createFolder(String name) {
     final safeName = name.trim();
     if (safeName.isEmpty) {
-      throw ArgumentError('收藏夹名称不能为空');
+      throw ArgumentError(t.bookshelf.favoriteFolderNameEmpty);
     }
     final existed = objectbox.favoriteFolderBox
         .query(
@@ -75,7 +76,7 @@ class FavoriteFolderService {
         .build()
         .findFirst();
     if (existed != null) {
-      throw StateError('已存在同名收藏夹');
+      throw StateError(t.bookshelf.favoriteFolderNameExists);
     }
 
     final now = DateTime.now().toUtc();
@@ -145,7 +146,7 @@ class FavoriteFolderService {
         .build()
         .findFirst();
     if (duplicated != null && duplicated.folderKey != safeKey) {
-      throw StateError('已存在同名收藏夹');
+      throw StateError(t.bookshelf.favoriteFolderNameExists);
     }
     final folder = objectbox.favoriteFolderBox
         .query(

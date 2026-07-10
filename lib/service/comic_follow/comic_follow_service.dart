@@ -3,12 +3,13 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 const _kMaxRetryCount = 3;
 const _kComicUpdateChannelId = 'comic_update_channel';
-const _kComicUpdateChannelName = '漫画更新提醒';
-const _kComicUpdateChannelDesc = '追更漫画检测到新章节时推送';
+final _kComicUpdateChannelName = t.comicFollow.updateChannelName;
+final _kComicUpdateChannelDesc = t.comicFollow.updateChannelDesc;
 
 class ComicFollowService {
   static final ComicFollowService instance = ComicFollowService._();
@@ -63,8 +64,10 @@ class ComicFollowService {
 
   /// 发送更新通知与应用内提示
   Future<void> notifyUpdate(int updateCount) async {
-    final title = '追更更新';
-    final body = updateCount == 1 ? '有 1 部追更漫画更新了' : '有 $updateCount 部追更漫画更新了';
+    final title = t.comicFollow.updateTitle;
+    final body = updateCount == 1
+        ? t.comicFollow.updateBodySingle
+        : t.comicFollow.updateBodyMultiple(count: updateCount);
 
     try {
       await flutterLocalNotificationsPlugin.show(
@@ -92,7 +95,7 @@ class ComicFollowService {
   }
 
   NotificationDetails _notificationDetails() {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       _kComicUpdateChannelId,
       _kComicUpdateChannelName,
       channelDescription: _kComicUpdateChannelDesc,

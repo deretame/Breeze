@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
 
 class HistoryWidget extends StatefulWidget {
@@ -28,7 +29,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           child: Row(
             children: [
               Text(
-                '搜索历史',
+                t.search.history,
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -41,7 +42,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
 
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
-                  tooltip: '清空历史',
+                  tooltip: t.search.clearHistory,
                   color: colorScheme.outline,
                   onPressed: _resetHistory,
                 ),
@@ -64,7 +65,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Tooltip(
-      message: _isNewestFirst ? "当前：最近搜索在前" : "当前：最早搜索在前",
+      message: _isNewestFirst ? t.search.newestFirst : t.search.oldestFirst,
       child: TextButton.icon(
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -76,7 +77,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           color: colorScheme.primary,
         ),
         label: Text(
-          _isNewestFirst ? "时间倒序" : "时间正序",
+          _isNewestFirst ? t.search.descending : t.search.ascending,
           style: TextStyle(fontSize: 12, color: colorScheme.primary),
         ),
         onPressed: () {
@@ -100,7 +101,7 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           ),
           const SizedBox(height: 16),
           Text(
-            "暂无搜索记录",
+            t.search.noHistory,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

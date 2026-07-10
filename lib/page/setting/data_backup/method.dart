@@ -11,6 +11,7 @@ import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/src/rust/api/data_backup.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 备份包配置信息。
@@ -129,7 +130,7 @@ Future<BackupConfig> readBackupConfig(
       zipPath: cacheZipFile.path,
     );
   } catch (e) {
-    showErrorToast('导入失败：$e');
+    showErrorToast('${t.dataBackup.importFailed}：$e');
     // 失败时清理全部临时目录，避免残留
     try {
       await cacheDir.delete(recursive: true);

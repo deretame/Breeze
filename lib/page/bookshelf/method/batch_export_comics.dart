@@ -4,6 +4,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -56,20 +57,20 @@ Future<ExportType?> _pickBatchExportType(BuildContext context) async {
   return showDialog<ExportType>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('选择导出方式'),
-      content: const Text('请选择批量导出为压缩包或文件夹'),
+      title: Text(t.bookshelf.batchExportTitle),
+      content: Text(t.bookshelf.batchExportSubtitle),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(ExportType.folder),
-          child: const Text('文件夹'),
+          child: Text(t.comicInfo.folder),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(ExportType.zip),
-          child: const Text('压缩包'),
+          child: Text(t.comicInfo.zip),
         ),
       ],
     ),
@@ -87,7 +88,7 @@ Future<String?> _resolveBatchExportDirectory() async {
   if (Platform.isAndroid) {
     final granted = await requestExportPermission();
     if (!granted) {
-      throw StateError('未授予所有文件访问权限，导出已取消');
+      throw StateError(t.comicInfo.exportPermissionDenied);
     }
     return createDownloadDir();
   }

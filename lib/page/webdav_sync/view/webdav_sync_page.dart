@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
 
 import '../../../main.dart';
@@ -75,8 +76,8 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
     final syncServiceType =
         globalSettingCubit.state.syncSetting.syncServiceType;
     final title = syncServiceType == SyncServiceType.none
-        ? '云同步配置'
-        : '${syncServiceType.label} 同步配置';
+        ? t.webdavSync.title
+        : t.webdavSync.serviceTitle(service: syncServiceType.label);
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -98,12 +99,12 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () => _clearConfig(syncServiceType),
-                    child: const Text('删除配置'),
+                    child: Text(t.webdavSync.deleteConfig),
                   ),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: () => _testAndSave(syncServiceType),
-                    child: const Text('测试连接并保存'),
+                    child: Text(t.webdavSync.testAndSave),
                   ),
                   const Spacer(),
                 ],
@@ -112,7 +113,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
             Center(
               child: TextButton(
                 onPressed: () => _showQA(context),
-                child: const Text('常见问题'),
+                child: Text(t.webdavSync.faq),
               ),
             ),
           ],
@@ -122,9 +123,9 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   }
 
   Widget _buildNoneTip() {
-    return const Padding(
-      padding: EdgeInsets.only(top: 24),
-      child: Text('请先在全局设置里选择同步服务，再回到这里填写配置。', style: TextStyle(fontSize: 16)),
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Text(t.webdavSync.noneTip, style: const TextStyle(fontSize: 16)),
     );
   }
 
@@ -134,25 +135,25 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       children: [
         TextField(
           controller: _webdavHost,
-          decoration: const InputDecoration(
-            labelText: 'WebDAV 地址',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.webdavHost,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _webdavUsername,
-          decoration: const InputDecoration(
-            labelText: '账号',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.username,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _webdavPassword,
-          decoration: const InputDecoration(
-            labelText: '密码',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.password,
+            border: const OutlineInputBorder(),
           ),
           obscureText: true,
         ),
@@ -166,10 +167,10 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       children: [
         TextField(
           controller: _s3Endpoint,
-          decoration: const InputDecoration(
-            labelText: '服务地址(Endpoint)',
-            hintText: '如: s3.amazonaws.com',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.s3Endpoint,
+            hintText: t.webdavSync.s3EndpointHint,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
@@ -192,31 +193,31 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         const SizedBox(height: 16),
         TextField(
           controller: _s3Bucket,
-          decoration: const InputDecoration(
-            labelText: '存储桶(Bucket)的名字',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.s3Bucket,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _s3Region,
-          decoration: const InputDecoration(
-            labelText: '区域(Region)（可选）',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.s3Region,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _s3Port,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: '端口（可选）',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: t.webdavSync.s3Port,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 4),
         SwitchListTile(
-          title: const Text('使用 HTTPS/SSL'),
+          title: Text(t.webdavSync.useSsl),
           thumbIcon: _thumbIcon,
           value: _s3UseSSL,
           onChanged: (value) {
@@ -226,8 +227,8 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
           },
         ),
         SwitchListTile(
-          title: const Text('路径风格 (Path-Style)'),
-          subtitle: const Text('自建 MinIO 通常需要开启此选项'),
+          title: Text(t.webdavSync.pathStyle),
+          subtitle: Text(t.webdavSync.pathStyleSubtitle),
           thumbIcon: _thumbIcon,
           value: _s3PathStyle,
           onChanged: (value) {
@@ -297,13 +298,13 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const AlertDialog(
+        return AlertDialog(
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('正在连接 WebDAV 服务器...'),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(t.webdavSync.connectingWebdav),
             ],
           ),
         );
@@ -338,7 +339,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       eventBus.fire(const NoticeSync(force: true));
 
       if (!mounted) return;
-      commonDialog(context, '成功', 'WebDAV连接成功，已保存设置。');
+      commonDialog(context, t.webdavSync.success, t.webdavSync.webdavConnected);
     } catch (e) {
       logger.e(e);
       if (mounted) {
@@ -346,7 +347,11 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       }
 
       if (!mounted) return;
-      commonDialog(context, '错误', '连接失败，请检查网络连接或WebDAV地址是否正确。\n$e');
+      commonDialog(
+        context,
+        t.webdavSync.error,
+        t.webdavSync.webdavConnectFailed(error: e.toString()),
+      );
     }
   }
 
@@ -354,7 +359,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
     final portText = _s3Port.text.trim();
     final port = portText.isEmpty ? 0 : int.tryParse(portText);
     if (port == null || port < 0 || port > 65535) {
-      commonDialog(context, '错误', '端口格式不正确，请输入 0-65535 的数字。');
+      commonDialog(context, t.webdavSync.error, t.webdavSync.invalidPort);
       return;
     }
 
@@ -362,13 +367,13 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const AlertDialog(
+        return AlertDialog(
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('正在连接 S3 服务...'),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(t.webdavSync.connectingS3),
             ],
           ),
         );
@@ -412,7 +417,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       eventBus.fire(const NoticeSync(force: true));
 
       if (!mounted) return;
-      commonDialog(context, '成功', 'S3 连接成功，已保存设置。');
+      commonDialog(context, t.webdavSync.success, t.webdavSync.s3Connected);
     } catch (e) {
       logger.e(e);
       if (mounted) {
@@ -420,29 +425,16 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       }
 
       if (!mounted) return;
-      commonDialog(context, '错误', '连接失败，请检查 S3 配置是否正确。\n$e');
+      commonDialog(
+        context,
+        t.webdavSync.error,
+        t.webdavSync.s3ConnectFailed(error: e.toString()),
+      );
     }
   }
 
   void _showQA(BuildContext context) {
-    final String disclaimerMarkdown = '''
-### 可以同步哪些内容？
-- 目前同步哔咔历史记录、禁漫收藏和禁漫历史。
-
-### WebDAV 如何配置？
-- 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。
-
-### S3 如何配置？
-- Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。
-- 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。
-
-### 自动同步间隔是多久？
-- 每 5 分钟自动同步一次。
-
-### 如何手动触发一次同步？
-- 在同步配置页测试连接并保存后会触发一次同步。
-- 或在全局设置里切换一次自动同步开关。
-''';
+    final String disclaimerMarkdown = t.webdavSync.faqMarkdown;
 
     showDialog(
       context: context,
@@ -456,7 +448,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
               onPressed: () {
                 context.pop();
               },
-              child: const Text('关闭'),
+              child: Text(t.webdavSync.close),
             ),
           ],
         );

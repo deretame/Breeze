@@ -1042,7 +1042,7 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
         return name;
       }
     }
-    return '章节 $order';
+    return t.reader.chapterOrder(order: order);
   }
 
   List<UnifiedComicChapterRef> _catalogChapters() {

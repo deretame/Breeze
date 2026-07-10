@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 class BookshelfEmptyView extends StatelessWidget {
   const BookshelfEmptyView({
     super.key,
-    this.title = '啥都没有',
+    this.title = '',
     this.icon = Icons.folder_open_outlined,
     this.onRefresh,
   });
@@ -30,7 +31,7 @@ class BookshelfEmptyView extends StatelessWidget {
                     Icon(icon, size: 72, color: theme.colorScheme.outline),
                     const SizedBox(height: 16),
                     Text(
-                      title,
+                      title.isEmpty ? t.comicList.nothingHere : title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.outline,
                       ),
@@ -40,7 +41,7 @@ class BookshelfEmptyView extends StatelessWidget {
                       FilledButton.icon(
                         onPressed: onRefresh,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('刷新'),
+                        label: Text(t.common.refresh),
                       ),
                     ],
                   ],

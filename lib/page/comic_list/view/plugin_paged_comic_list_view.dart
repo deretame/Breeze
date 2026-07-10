@@ -9,6 +9,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/error_view.dart';
 import 'package:zephyr/util/error_filter.dart';
 
@@ -256,7 +257,7 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
             return const Center(child: CircularProgressIndicator());
           case PluginPagedComicListStatus.failure:
             return ErrorView(
-              errorMessage: '${state.result}\n加载失败，请重试。',
+              errorMessage: '${state.result}\n${t.comicList.loadFailedRetry}',
               onRetry: () =>
                   context.read<PluginPagedComicListCubit>().loadInitial(),
             );
@@ -272,8 +273,11 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
   Widget _buildContent(BuildContext context, PluginPagedComicListState state) {
     if (state.list.isEmpty &&
         state.status == PluginPagedComicListStatus.success) {
-      return const Center(
-        child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+      return Center(
+        child: Text(
+          t.comicList.nothingHere,
+          style: const TextStyle(fontSize: 20.0),
+        ),
       );
     }
 

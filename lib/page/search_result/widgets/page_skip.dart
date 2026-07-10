@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 Future<int?> showNumberInputDialog({
   required BuildContext context,
-  String title = '输入页数',
-  String hintText = '请输入数字',
+  String? title,
+  String? hintText,
   int? initialValue,
 }) {
   final TextEditingController inputController = TextEditingController(
@@ -20,13 +21,15 @@ Future<int?> showNumberInputDialog({
       });
 
       return AlertDialog(
-        title: Text(title),
+        title: Text(title ?? t.searchResult.enterPageNumber),
         content: TextField(
           focusNode: focusNode,
           controller: inputController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          decoration: InputDecoration(hintText: hintText),
+          decoration: InputDecoration(
+            hintText: hintText ?? t.searchResult.pleaseEnterNumber,
+          ),
           onSubmitted: (value) {
             final int? result = int.tryParse(value);
             if (result != null) Navigator.of(innerContext).pop(result);
@@ -34,11 +37,11 @@ Future<int?> showNumberInputDialog({
         ),
         actions: <Widget>[
           TextButton(
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
             onPressed: () => Navigator.of(innerContext).pop(),
           ),
           TextButton(
-            child: const Text('确定'),
+            child: Text(t.common.ok),
             onPressed: () {
               final int? result = int.tryParse(inputController.text);
               Navigator.of(innerContext).pop(result);

@@ -8,6 +8,7 @@ import '../../main.dart';
 import '../../network/http/picture/picture.dart';
 import '../../object_box/objectbox.g.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/type/enum.dart';
 
 class ComicEntryWidget extends StatelessWidget {
@@ -117,7 +118,7 @@ class ComicEntryWidget extends StatelessWidget {
                           if (comic.updatedAtText.isNotEmpty) ...[
                             const SizedBox(height: 6),
                             Text(
-                              '更新: ${comic.updatedAtText}',
+                              t.comicEntry.updatedAt(time: comic.updatedAtText),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
@@ -133,7 +134,9 @@ class ComicEntryWidget extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
-                            comic.finished ? '完结' : '连载中',
+                            comic.finished
+                                ? t.comicEntry.finished
+                                : t.comicEntry.ongoing,
                             style: theme.textTheme.labelMedium?.copyWith(
                               color: comic.finished
                                   ? theme.colorScheme.tertiary
@@ -164,10 +167,10 @@ class ComicEntryWidget extends StatelessWidget {
   String _buildStatText() {
     final stats = <String>[];
     if (comic.likesCount > 0) {
-      stats.add('喜欢 ${comic.likesCount}');
+      stats.add(t.comicEntry.likes(count: comic.likesCount));
     }
     if (comic.viewsCount > 0) {
-      stats.add('浏览 ${comic.viewsCount}');
+      stats.add(t.comicEntry.views(count: comic.viewsCount));
     }
     return stats.join('  ');
   }
@@ -186,14 +189,14 @@ class ComicEntryWidget extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => dialogContext.pop(),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () async {
               dialogContext.pop();
               await _handleDelete();
             },
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -202,9 +205,18 @@ class ComicEntryWidget extends StatelessWidget {
 
   (String, String) _dialogContent() {
     return switch (type) {
-      ComicEntryType.favorite => ('删除收藏', '确定要删除（${comic.title}）的收藏记录吗？'),
-      ComicEntryType.history => ('删除历史记录', '确定要删除（${comic.title}）的历史记录吗？'),
-      ComicEntryType.download => ('删除下载记录', '确定要删除（${comic.title}）的下载记录及文件吗？'),
+      ComicEntryType.favorite => (
+        t.comicEntry.deleteFavorite,
+        t.comicEntry.deleteFavoriteConfirm(title: comic.title),
+      ),
+      ComicEntryType.history => (
+        t.comicEntry.deleteHistory,
+        t.comicEntry.deleteHistoryConfirm(title: comic.title),
+      ),
+      ComicEntryType.download => (
+        t.comicEntry.deleteDownload,
+        t.comicEntry.deleteDownloadConfirm(title: comic.title),
+      ),
       _ => ('', ''),
     };
   }
@@ -221,7 +233,7 @@ class ComicEntryWidget extends StatelessWidget {
       refresh?.call();
     } catch (e, s) {
       logger.e('删除失败', error: e, stackTrace: s);
-      showErrorToast('删除失败');
+      showErrorToast(t.comicEntry.deleteFailed);
     }
   }
 

@@ -8,6 +8,7 @@ import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
@@ -204,7 +205,7 @@ class _NavigationBarState extends State<NavigationBar> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: IconButton(
                   icon: Icon(Icons.search),
-                  tooltip: '搜索',
+                  tooltip: t.common.search,
                   onPressed: () {
                     context.pushRoute(
                       SearchRoute(
@@ -234,19 +235,19 @@ class _NavigationBarState extends State<NavigationBar> {
     final items = <PersistentBottomNavBarItem>[
       PersistentBottomNavBarItem(
         icon: Icon(Icons.menu_book_sharp),
-        title: "书架",
+        title: t.navigation.bookshelf,
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.explore_outlined),
-        title: "发现",
+        title: t.navigation.discover,
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.apps_outlined),
-        title: "更多",
+        title: t.navigation.more,
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
@@ -258,13 +259,13 @@ class _NavigationBarState extends State<NavigationBar> {
     return [
       PersistentBottomNavBarItem(
         icon: Icon(Icons.home_outlined),
-        title: "首页",
+        title: t.navigation.home,
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.leaderboard_outlined),
-        title: "排行",
+        title: t.navigation.rank,
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
@@ -287,17 +288,17 @@ class _NavigationBarState extends State<NavigationBar> {
       NavigationRailDestination(
         icon: Icon(Icons.menu_book_outlined),
         selectedIcon: Icon(Icons.menu_book_sharp),
-        label: Text("书架"),
+        label: Text(t.navigation.bookshelf),
       ),
       NavigationRailDestination(
         icon: Icon(Icons.explore_outlined),
         selectedIcon: Icon(Icons.explore),
-        label: Text("发现"),
+        label: Text(t.navigation.discover),
       ),
       NavigationRailDestination(
         icon: Icon(Icons.apps_outlined),
         selectedIcon: Icon(Icons.apps),
-        label: Text("更多"),
+        label: Text(t.navigation.more),
       ),
     ];
     if (!oldPageRollbackEnabled) {
@@ -307,12 +308,12 @@ class _NavigationBarState extends State<NavigationBar> {
       NavigationRailDestination(
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
-        label: Text("首页"),
+        label: Text(t.navigation.home),
       ),
       NavigationRailDestination(
         icon: Icon(Icons.leaderboard_outlined),
         selectedIcon: Icon(Icons.leaderboard),
-        label: Text("排行"),
+        label: Text(t.navigation.rank),
       ),
       ...destinations,
     ];
@@ -349,13 +350,15 @@ class _NavigationBarState extends State<NavigationBar> {
         comicFollowCubit: context.read<ComicFollowCubit>(),
       );
       if (globalState.syncSetting.syncNotify) {
-        showSuccessToast(force ? "同步成功！" : "自动同步成功！");
+        showSuccessToast(
+          force ? t.navigation.syncSuccess : t.navigation.autoSyncSuccess,
+        );
       }
     } catch (e, stackTrace) {
       logger.e(e.toString(), stackTrace: stackTrace);
       showErrorToast(
-        "请检查网络连接或稍后再试。\n${normalizeSearchErrorMessage(e)}",
-        title: force ? "同步失败" : "自动同步失败",
+        t.navigation.syncFailedMessage(error: normalizeSearchErrorMessage(e)),
+        title: force ? t.navigation.syncFailed : t.navigation.autoSyncFailed,
       );
     }
   }
@@ -397,7 +400,7 @@ class _NavigationBarState extends State<NavigationBar> {
           (route) => (route.name ?? '').contains('LoginRoute'),
         );
         if (!hasLoginRoute) {
-          showErrorToast(message ?? '登录过期，请重新登录');
+          showErrorToast(message ?? t.navigation.loginExpired);
 
           _lastLoginNavigateAt = now;
           _lastLoginPluginId = pluginId;
@@ -459,16 +462,16 @@ class _NavigationBarState extends State<NavigationBar> {
       } else {
         switch (event.type) {
           case ToastType.success:
-            title = "成功";
+            title = t.common.success;
             break;
           case ToastType.error:
-            title = "错误";
+            title = t.common.error;
             break;
           case ToastType.warning:
-            title = "警告";
+            title = t.common.warning;
             break;
           case ToastType.info:
-            title = "提示";
+            title = t.common.info;
             break;
         }
       }

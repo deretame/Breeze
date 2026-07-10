@@ -10,6 +10,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/error_view.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -30,7 +31,7 @@ class _ComicFollowPageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('追更'),
+        title: Text(t.comicFollow.title),
         actions: [
           BlocBuilder<ComicFollowCubit, ComicFollowState>(
             buildWhen: (previous, current) =>
@@ -60,7 +61,7 @@ class _ComicFollowPageContent extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             case ComicFollowStatus.failure:
               return ErrorView(
-                errorMessage: '加载失败：${state.result}',
+                errorMessage: t.comicFollow.loadFailed(result: state.result),
                 onRetry: () =>
                     context.read<ComicFollowCubit>().loadFromDatabase(),
               );
@@ -87,13 +88,13 @@ class _ComicFollowPageContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '暂无追更漫画',
+            t.comicFollow.empty,
             style: context.theme.textTheme.titleMedium?.copyWith(
               color: context.theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          Text('在漫画详情页点击追更按钮即可加入', style: TextStyle(fontSize: 14)),
+          Text(t.comicFollow.emptyHint, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
@@ -206,16 +207,16 @@ class _ComicFollowPageContent extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('取消追更'),
-        content: Text('确定不再追更《${follow.title}》吗？'),
+        title: Text(t.comicFollow.unfollow),
+        content: Text(t.comicFollow.unfollowConfirm(title: follow.title)),
         actions: [
           TextButton(
             onPressed: () => dialogContext.pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => dialogContext.pop(true),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -225,7 +226,7 @@ class _ComicFollowPageContent extends StatelessWidget {
         follow.source,
         follow.comicId,
       );
-      showSuccessToast('已取消追更');
+      showSuccessToast(t.comicFollow.unfollowed);
     }
   }
 }
@@ -360,7 +361,7 @@ class _ComicFollowListItem extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '最新章节获取失败',
+              t.comicFollow.latestChapterFailed,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.error,
                 fontWeight: FontWeight.w500,
@@ -380,7 +381,10 @@ class _ComicFollowListItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          '新增 $diff 话，共 ${follow.detectedChapterCount} 话',
+          t.comicFollow.newChapters(
+            diff: diff,
+            total: follow.detectedChapterCount,
+          ),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w700,
@@ -390,7 +394,7 @@ class _ComicFollowListItem extends StatelessWidget {
     }
 
     return Text(
-      '最新 ${follow.detectedChapterCount} 话',
+      t.comicFollow.latestCount(count: follow.detectedChapterCount),
       style: theme.textTheme.bodyMedium?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
@@ -542,7 +546,7 @@ class _ComicFollowGridItem extends StatelessWidget {
           const SizedBox(width: 4),
           Expanded(
             child: Text(
-              '获取失败',
+              t.comicFollow.fetchFailed,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
                 fontWeight: FontWeight.w500,
@@ -562,7 +566,7 @@ class _ComicFollowGridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          '新增 $diff 话',
+          t.comicFollow.newChaptersShort(diff: diff),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w700,
@@ -572,7 +576,7 @@ class _ComicFollowGridItem extends StatelessWidget {
     }
 
     return Text(
-      '最新 ${follow.detectedChapterCount} 话',
+      t.comicFollow.latestCount(count: follow.detectedChapterCount),
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
@@ -631,7 +635,9 @@ class _UpdateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final label = count != null && count! > 0 ? '+$count' : '更新';
+    final label = count != null && count! > 0
+        ? '+$count'
+        : t.comicFollow.update;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -681,7 +687,10 @@ class _RetryButton extends StatelessWidget {
     return TextButton.icon(
       onPressed: onTap,
       icon: Icon(Icons.refresh, size: 16, color: theme.colorScheme.error),
-      label: Text('重试', style: TextStyle(color: theme.colorScheme.error)),
+      label: Text(
+        t.comicFollow.retry,
+        style: TextStyle(color: theme.colorScheme.error),
+      ),
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
         visualDensity: VisualDensity.compact,

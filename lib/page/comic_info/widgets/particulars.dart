@@ -15,6 +15,7 @@ import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -303,7 +304,7 @@ class _InfoColumnState extends State<_InfoColumn> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '阅读记录',
+                            t.comicInfo.readHistory,
                             style: context.theme.textTheme.labelMedium
                                 ?.copyWith(
                                   color: context.theme.colorScheme.primary,
@@ -325,7 +326,7 @@ class _InfoColumnState extends State<_InfoColumn> {
                     if (widget.onContinueRead != null) ...[
                       const SizedBox(width: 8),
                       Text(
-                        '继续阅读',
+                        t.comicInfo.continueRead,
                         style: context.theme.textTheme.labelLarge?.copyWith(
                           color: context.theme.colorScheme.primary,
                           fontWeight: FontWeight.w800,
@@ -400,7 +401,7 @@ class _MetaPill extends StatelessWidget {
       onTap: onTap,
       onLongPress: () async {
         await Clipboard.setData(ClipboardData(text: label));
-        showSuccessToast('已复制：$label');
+        showSuccessToast(t.comicInfo.copied(label: label));
       },
       child: pill,
     );

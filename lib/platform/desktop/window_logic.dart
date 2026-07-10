@@ -5,19 +5,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/platform/desktop/native_window.dart';
 
 bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
 enum DesktopCloseBehavior {
-  ask('每次询问'),
-  hide('隐藏到托盘'),
-  close('关闭程序');
+  ask,
+  hide,
+  close;
 
-  const DesktopCloseBehavior(this.label);
+  const DesktopCloseBehavior();
 
-  final String label;
+  String get label {
+    return switch (this) {
+      DesktopCloseBehavior.ask => t.settings.desktopCloseAsk,
+      DesktopCloseBehavior.hide => t.settings.desktopCloseHide,
+      DesktopCloseBehavior.close => t.settings.desktopCloseClose,
+    };
+  }
 
   static DesktopCloseBehavior fromName(String? name) {
     return DesktopCloseBehavior.values.firstWhere(

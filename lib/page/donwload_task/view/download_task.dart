@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/donwload_task/bloc/dowload_task_bloc.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
@@ -24,26 +25,29 @@ class _DownloadTaskView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("下载任务")),
+      appBar: AppBar(title: Text(t.download.title)),
       body: BlocBuilder<DowloadTaskBloc, DowloadTaskState>(
         builder: (context, state) {
           return state.when(
             initial: () => const Center(child: CircularProgressIndicator()),
             loaded: (tasks, pendingCount) {
               if (tasks.isEmpty) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.download_outlined,
                         size: 64,
                         color: Colors.grey,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
-                        "暂无下载任务",
-                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                        t.download.noTasks,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),
@@ -60,12 +64,12 @@ class _DownloadTaskView extends StatelessWidget {
               return CustomScrollView(
                 slivers: [
                   if (downloadingTasks.isNotEmpty) ...[
-                    const SliverToBoxAdapter(
+                    SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Text(
-                          "正在下载",
-                          style: TextStyle(
+                          t.download.downloading,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
@@ -86,9 +90,9 @@ class _DownloadTaskView extends StatelessWidget {
                   if (pendingTasks.isNotEmpty) ...[
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Text(
-                          "等待中 (${pendingTasks.length})",
+                          t.download.pending(count: pendingTasks.length),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -107,7 +111,7 @@ class _DownloadTaskView extends StatelessWidget {
                             context.read<DowloadTaskBloc>().add(
                               DowloadTaskEvent.taskDeleted(task.id),
                             );
-                            showInfoToast("已删除任务");
+                            showInfoToast(t.download.taskDeleted);
                           },
                         );
                       }, childCount: pendingTasks.length),
@@ -158,14 +162,16 @@ class _DownloadingTaskTile extends StatelessWidget {
             showDialog(
               context: context,
               builder: (dialogContext) => AlertDialog(
-                title: const Text("取消任务"),
-                content: Text("确定要取消下载 ${task.comicName} 吗？"),
+                title: Text(t.download.cancelTask),
+                content: Text(
+                  t.download.cancelTaskConfirm(comicName: task.comicName),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text(
-                      "取消",
-                      style: TextStyle(color: Colors.grey),
+                    child: Text(
+                      t.common.cancel,
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ),
                   TextButton(
@@ -173,9 +179,9 @@ class _DownloadingTaskTile extends StatelessWidget {
                       bloc.add(const DowloadTaskEvent.cancelCurrentTask());
                       Navigator.of(dialogContext).pop();
                     },
-                    child: const Text(
-                      "确定",
-                      style: TextStyle(color: Colors.red),
+                    child: Text(
+                      t.common.ok,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],

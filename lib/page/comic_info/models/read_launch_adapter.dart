@@ -1,5 +1,6 @@
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 String resolveReadComicId(
   dynamic comicInfo,
@@ -14,7 +15,9 @@ String resolveReadComicId(
     return comicInfo.comicId;
   }
 
-  throw StateError('无法解析阅读 comicId: ${comicInfo.runtimeType}');
+  throw StateError(
+    t.comicInfo.resolveComicIdFailed(type: comicInfo.runtimeType.toString()),
+  );
 }
 
 int resolveReadEpsCount(
@@ -30,5 +33,7 @@ int resolveReadEpsCount(
     return comicInfo.chapters.length;
   }
 
-  throw StateError('无法解析阅读章节数: ${comicInfo.runtimeType}');
+  throw StateError(
+    t.comicInfo.resolveEpsCountFailed(type: comicInfo.runtimeType.toString()),
+  );
 }

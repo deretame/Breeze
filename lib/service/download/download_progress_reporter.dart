@@ -1,4 +1,5 @@
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 /// 下载进度报告抽象接口
 ///
@@ -9,7 +10,7 @@ abstract class DownloadProgressReporter {
   String comicName = appName;
 
   /// 当前进度消息
-  String message = '等待下载任务中...';
+  String message = t.foregroundTask.waitingForTask;
 
   void Function(String comicName, String message)? _onUpdate;
 

@@ -2,6 +2,7 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class VerticalPullNavigator extends StatelessWidget {
@@ -35,10 +36,10 @@ class VerticalPullNavigator extends StatelessWidget {
     final iconTheme = IconThemeData(color: foregroundColor);
 
     final activeHeader = ClassicHeader(
-      dragText: '继续下拉到上一章',
-      armedText: '松手跳转到上一章',
-      readyText: '松手加载到上一章',
-      processingText: '加载中...',
+      dragText: t.reader.pullDownToPrevChapter,
+      armedText: t.reader.releaseToJumpPrevChapter,
+      readyText: t.reader.releaseToLoadPrevChapter,
+      processingText: t.common.loading,
       processedText: '',
       showText: true,
       showMessage: false,
@@ -51,10 +52,10 @@ class VerticalPullNavigator extends StatelessWidget {
     );
 
     final activeFooter = ClassicFooter(
-      dragText: '继续上拉到下一章',
-      armedText: '松手跳转到下一章',
-      readyText: '松手加载到下一章',
-      processingText: '加载中...',
+      dragText: t.reader.pullUpToNextChapter,
+      armedText: t.reader.releaseToJumpNextChapter,
+      readyText: t.reader.releaseToLoadNextChapter,
+      processingText: t.common.loading,
       processedText: '',
       showText: true,
       showMessage: false,

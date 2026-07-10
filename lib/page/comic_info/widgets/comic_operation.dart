@@ -6,6 +6,7 @@ import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 import '../../../../widgets/dialog.dart';
 import '../../../widgets/toast.dart';
@@ -58,7 +59,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     final actions = [
       _OperationItemData(
         icon: isLiked ? Icons.favorite : Icons.favorite_border,
-        text: '点赞 ${normalInfo.totalLikes}',
+        text: t.comicInfo.likes(count: normalInfo.totalLikes),
         highlighted: isLiked,
         accentColor: Colors.red,
         enabled: normalInfo.allowLike,
@@ -66,13 +67,13 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       ),
       _OperationItemData(
         icon: Icons.mode_comment_outlined,
-        text: '评论 ${normalInfo.totalComments}',
+        text: t.comicInfo.comments(count: normalInfo.totalComments),
         enabled: normalInfo.allowComments,
         onTap: _openComments,
       ),
       _OperationItemData(
         icon: isCollected ? Icons.star : Icons.star_border,
-        text: isCollected ? '已收藏' : '收藏',
+        text: isCollected ? t.comicInfo.collected : t.comicInfo.collect,
         highlighted: isCollected,
         accentColor: const Color(0xFFE6A700),
         enabled: true,
@@ -80,7 +81,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       ),
       _OperationItemData(
         icon: Icons.cloud_download_outlined,
-        text: normalInfo.allowDownload ? '下载' : '禁止下载',
+        text: normalInfo.allowDownload
+            ? t.comicInfo.download
+            : t.comicInfo.downloadForbidden,
         enabled: normalInfo.allowDownload,
         onTap: _openDownload,
       ),
@@ -120,7 +123,11 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   void _openComments() {
     if (!normalInfo.allowComments) {
-      commonDialog(context, '禁止评论', '该漫画禁止评论');
+      commonDialog(
+        context,
+        t.comicInfo.commentForbiddenTitle,
+        t.comicInfo.commentForbidden,
+      );
       return;
     }
 
@@ -160,16 +167,18 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         isCollected = next;
       });
       if (next) {
-        showSuccessToast('已添加收藏');
+        showSuccessToast(t.comicInfo.addedToCollection);
       } else {
-        showSuccessToast('已取消收藏');
+        showSuccessToast(t.comicInfo.removedFromCollection);
       }
     } catch (error) {
       if (!mounted) {
         return;
       }
       showErrorToast(
-        '本地收藏失败: ${normalizeSearchErrorMessage(error)}',
+        t.comicInfo.localCollectFailed(
+          error: normalizeSearchErrorMessage(error),
+        ),
         duration: const Duration(seconds: 5),
       );
     }
@@ -180,16 +189,16 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('确认取消收藏'),
-          content: const Text('此项操作会删除该漫画在所有文件夹的记录，是否确认删除？'),
+          title: Text(t.comicInfo.confirmUncollectTitle),
+          content: Text(t.comicInfo.confirmUncollectContent),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('确认删除'),
+              child: Text(t.common.confirm),
             ),
           ],
         );
@@ -203,7 +212,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       return;
     }
     try {
-      showInfoToast(isLiked ? '取消点赞中...' : '点赞中...');
+      showInfoToast(isLiked ? t.comicInfo.unliking : t.comicInfo.liking);
       final next = await toggleCloudComicLike(
         from: widget.from,
         comicId: comicInfoView.id,
@@ -215,13 +224,15 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       setState(() {
         isLiked = next;
       });
-      showSuccessToast(next ? '点赞成功' : '已取消点赞');
+      showSuccessToast(
+        next ? t.comicInfo.likeSuccess : t.comicInfo.unlikeSuccess,
+      );
     } catch (error) {
       if (!mounted) {
         return;
       }
       showErrorToast(
-        '点赞失败: ${normalizeSearchErrorMessage(error)}',
+        t.comicInfo.likeFailed(error: normalizeSearchErrorMessage(error)),
         duration: const Duration(seconds: 5),
       );
     }

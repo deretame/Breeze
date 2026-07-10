@@ -14,6 +14,7 @@ import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_service
 
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/macos_activity.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 const _kQjsRuntimeCancelledMessage = '__QJS_RUNTIME_CANCELLED__';
@@ -95,7 +96,7 @@ class DownloadQueueManager {
   }
 
   void _cancelTask(DownloadTask dbTask) {
-    dbTask.status = "取消中...";
+    dbTask.status = t.download.statusCancelling;
     dbTask.isDownloading = false;
     dbTask.isCompleted = true;
     objectbox.downloadTaskBox.put(dbTask);
@@ -109,7 +110,10 @@ class DownloadQueueManager {
     }
 
     _progressController.add(
-      DownloadProgress(comicName: dbTask.comicName, message: '取消中...'),
+      DownloadProgress(
+        comicName: dbTask.comicName,
+        message: t.download.statusCancelling,
+      ),
     );
   }
 
@@ -188,12 +192,15 @@ class DownloadQueueManager {
     prepareDownloadCancelSignal(task.comicId);
 
     dbTask.isDownloading = true;
-    dbTask.status = "开始下载...";
+    dbTask.status = t.download.statusStartDownload;
     logger.d("dbTask.status: ${dbTask.status}");
     objectbox.downloadTaskBox.put(dbTask);
 
     _progressController.add(
-      DownloadProgress(comicName: task.comicName, message: '开始下载...'),
+      DownloadProgress(
+        comicName: task.comicName,
+        message: t.download.statusStartDownload,
+      ),
     );
 
     try {
@@ -209,15 +216,20 @@ class DownloadQueueManager {
       _progressController.add(
         DownloadProgress(
           comicName: task.comicName,
-          message: '下载完成',
+          message: t.download.notificationCompleteTitle,
           isCompleted: true,
         ),
       );
 
       if (!Platform.isAndroid) {
-        showSuccessToast("${task.comicName} 下载完成");
+        showSuccessToast(
+          t.download.toastDownloadComplete(comicName: task.comicName),
+        );
       }
-      await reporter.sendNotification("下载完成", "${task.comicName} 下载完成");
+      await reporter.sendNotification(
+        t.download.notificationCompleteTitle,
+        t.download.toastDownloadComplete(comicName: task.comicName),
+      );
 
       // 下载成功后清理所有已完成的任务记录
       _removeAllCompletedTasks();
@@ -228,14 +240,20 @@ class DownloadQueueManager {
         await _removeCancelledTaskRecord(task.comicId, source: task.from);
 
         _progressController.add(
-          DownloadProgress(comicName: task.comicName, message: '已取消'),
+          DownloadProgress(
+            comicName: task.comicName,
+            message: t.download.statusCancelling,
+          ),
         );
       } else {
         if (_isTaskGoneOrCompleted(task.comicId)) {
           logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
           await _removeCancelledTaskRecord(task.comicId, source: task.from);
           _progressController.add(
-            DownloadProgress(comicName: task.comicName, message: '已取消'),
+            DownloadProgress(
+              comicName: task.comicName,
+              message: t.download.statusCancelling,
+            ),
           );
           return;
         }
@@ -248,17 +266,26 @@ class DownloadQueueManager {
         _progressController.add(
           DownloadProgress(
             comicName: task.comicName,
-            message: '下载失败',
+            message: t.download.notificationFailedTitle,
             isFailed: true,
           ),
         );
 
         if (!Platform.isAndroid) {
           showErrorToast(
-            "${task.comicName} 下载失败 ${normalizeSearchErrorMessage(e)}",
+            t.download.toastDownloadFailed(
+              comicName: task.comicName,
+              error: normalizeSearchErrorMessage(e),
+            ),
           );
         }
-        await reporter.sendNotification("下载失败", "${task.comicName} 下载失败");
+        await reporter.sendNotification(
+          t.download.notificationFailedTitle,
+          t.download.toastDownloadFailed(
+            comicName: task.comicName,
+            error: normalizeSearchErrorMessage(e),
+          ),
+        );
       }
     } finally {
       clearDownloadCancelSignal(task.comicId);
@@ -274,7 +301,9 @@ class DownloadQueueManager {
   void addTask(DownloadTaskJson task) {
     if (taskExists(task.comicId)) {
       logger.w("任务 ${task.comicName} 已存在，跳过添加");
-      showInfoToast("${task.comicName} 任务已存在");
+      showInfoToast(
+        t.download.toastTaskAlreadyExists(comicName: task.comicName),
+      );
       return;
     }
 
@@ -284,7 +313,7 @@ class DownloadQueueManager {
       ..comicName = task.comicName
       ..isCompleted = false
       ..isDownloading = false
-      ..status = "等待中"
+      ..status = t.download.statusWaiting
       ..taskInfo = task;
 
     final id = box.put(downloadTask);
@@ -420,7 +449,8 @@ bool _isTaskCancelledOrMarked(String comicId, Object error) {
 
   final status = task.status;
   final isMarkedCancelled =
-      task.isCompleted && !task.isDownloading && status.contains('取消');
+      task.isCompleted && !task.isDownloading && status.contains('取消') ||
+      status.toLowerCase().contains('cancel');
 
   return isMarkedCancelled;
 }

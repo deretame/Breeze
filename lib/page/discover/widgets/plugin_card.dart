@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
 import '../cubit/discover_cubit.dart';
@@ -58,7 +59,7 @@ class PluginCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Text('加载中...'),
+          Text(t.common.loading),
         ],
       ),
     );
@@ -86,11 +87,11 @@ class PluginCard extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              '插件信息加载失败: $error',
+              t.discover.pluginInfoLoadFailed(error: error ?? ''),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('重试')),
+          TextButton(onPressed: onRetry, child: Text(t.common.retry)),
         ],
       ),
     );
@@ -108,7 +109,7 @@ class PluginCard extends StatelessWidget {
     final creatorName = creator['name']?.toString().trim() ?? '';
     final title = pluginName.isNotEmpty
         ? pluginName
-        : (creatorName.isNotEmpty ? creatorName : '插件能力');
+        : (creatorName.isNotEmpty ? creatorName : t.discover.pluginCapability);
     final iconUrl =
         info['iconUrl']?.toString().trim() ??
         creator['coverUrl']?.toString().trim() ??
@@ -159,7 +160,7 @@ class PluginCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
             subtitle: Text(
-              isEnabled ? description : '已关闭',
+              isEnabled ? description : t.discover.disabled,
               softWrap: true,
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,
@@ -170,12 +171,12 @@ class PluginCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  tooltip: '搜索',
+                  tooltip: t.common.search,
                   icon: const Icon(Icons.search, size: 20),
                   onPressed: isEnabled ? onSearch : null,
                 ),
                 IconButton(
-                  tooltip: '设置',
+                  tooltip: t.discover.settings,
                   icon: const Icon(Icons.settings_outlined, size: 20),
                   onPressed: () => onSettings(title),
                 ),
@@ -203,7 +204,9 @@ class PluginCard extends StatelessWidget {
                 runSpacing: 8,
                 children: rawFunctions.map((function) {
                   final id = function['id']?.toString().trim() ?? '';
-                  final text = function['title']?.toString().trim() ?? '未命名';
+                  final text =
+                      function['title']?.toString().trim() ??
+                      t.discover.unnamed;
                   var action = asJsonMap(function['action']);
                   if (action.isEmpty && id.isNotEmpty) {
                     action = {

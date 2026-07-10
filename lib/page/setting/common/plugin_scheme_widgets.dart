@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
@@ -49,11 +50,11 @@ class _PluginSettingSchemeSectionState
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const ListTile(title: Text('插件设置加载中...'));
+          return ListTile(title: Text(t.plugin.pluginSettingsLoading));
         }
         if (snapshot.hasError || !snapshot.hasData) {
           return ListTile(
-            title: const Text('插件设置加载失败'),
+            title: Text(t.plugin.pluginSettingsLoadFailed),
             subtitle: Text(snapshot.error.toString()),
             trailing: IconButton(
               icon: const Icon(Icons.refresh),
@@ -156,7 +157,7 @@ class _PluginSettingSchemeSectionState
       await widget.onValueChanged!(key, value);
     }
     if (!mounted) return;
-    showSuccessToast('已保存');
+    showSuccessToast(t.plugin.saved);
     setState(() => _future = _load());
   }
 }
@@ -212,7 +213,7 @@ class _PluginAdvancedActionSectionState
 
         return Column(
           children: actions.map((action) {
-            final title = action['title']?.toString() ?? '未命名动作';
+            final title = action['title']?.toString() ?? t.plugin.unnamedAction;
             final fnPath = action['fnPath']?.toString() ?? '';
             return ListTile(
               leading: const Icon(Icons.extension_outlined),
@@ -220,7 +221,7 @@ class _PluginAdvancedActionSectionState
               subtitle: Text(fnPath),
               onTap: () async {
                 if (fnPath.isEmpty) {
-                  showInfoToast('动作不可执行: 缺少 fnPath');
+                  showInfoToast(t.plugin.actionNotExecutable);
                   return;
                 }
 
@@ -246,13 +247,13 @@ class _PluginAdvancedActionSectionState
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('关闭'),
+                          child: Text(t.common.close),
                         ),
                       ],
                     ),
                   );
                 } catch (e) {
-                  showInfoToast('执行失败: $e');
+                  showInfoToast(t.plugin.executeFailed(error: e));
                 }
               },
             );
@@ -282,11 +283,11 @@ Future<String?> _showInputDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(controller.text),
-          child: const Text('保存'),
+          child: Text(t.common.save),
         ),
       ],
     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 
@@ -73,8 +74,8 @@ class CloudPluginCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       isActive && localVersion.isNotEmpty
-                          ? '云端 ${manifest.version}  ·  本地 $localVersion'
-                          : '云端 ${manifest.version}',
+                          ? '${t.plugin.cloudVersion(version: manifest.version)}  ·  ${t.plugin.localVersion(version: localVersion)}'
+                          : t.plugin.cloudVersion(version: manifest.version),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -98,9 +99,9 @@ class CloudPluginCard extends StatelessWidget {
             spacing: 6,
             runSpacing: 6,
             children: [
-              _CloudMetaTag(label: '仓库', value: item.repo),
+              _CloudMetaTag(label: t.plugin.repo, value: item.repo),
               if (creatorText.isNotEmpty)
-                _CloudMetaTag(label: '作者', value: creatorText),
+                _CloudMetaTag(label: t.plugin.author, value: creatorText),
             ],
           ),
           const SizedBox(height: 10),
@@ -112,14 +113,16 @@ class CloudPluginCard extends StatelessWidget {
                       ? null
                       : () => onOpenHome(manifest.home.trim()),
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('主页'),
+                  label: Text(t.plugin.homepage),
                 ),
                 const SizedBox(width: 8),
               ],
               OutlinedButton.icon(
                 onPressed: installing ? null : onInstall,
                 icon: const Icon(Icons.download_outlined, size: 16),
-                label: Text(isInstalled ? '下载更新' : '下载'),
+                label: Text(
+                  isInstalled ? t.plugin.downloadUpdate : t.plugin.download,
+                ),
               ),
             ],
           ),
@@ -152,7 +155,7 @@ class _InstalledChip extends StatelessWidget {
           ),
           const SizedBox(width: 3),
           Text(
-            '已安装',
+            t.plugin.installed,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,

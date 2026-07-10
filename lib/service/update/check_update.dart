@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/network/utils/github_proxy.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../main.dart';
@@ -132,10 +133,10 @@ Future<void> installApk(String apkUrl) async {
       // 打开 APK 文件以启动安装
       OpenFile.open(apkFilePath);
     } catch (e) {
-      showErrorToast("下载失败，请稍后再试！");
+      showErrorToast(t.update.apkDownloadFailed);
     }
   } else {
-    showErrorToast("请授予安装应用权限！");
+    showErrorToast(t.update.installPermissionRequired);
   }
 }
 
@@ -179,7 +180,7 @@ Future<void> checkUpdate(BuildContext context) async {
   final String localVersion = await getAppVersion();
   final url = 'https://github.com/deretame/Breeze/releases/tag/$cloudVersion';
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  String arch = '未知';
+  String arch = t.update.unknownArch;
   try {
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
@@ -204,14 +205,17 @@ Future<void> checkUpdate(BuildContext context) async {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('发现新版本'),
+          title: Text(t.update.newVersion),
           content: SingleChildScrollView(
             child: MarkdownBlock(data: '# $cloudVersion\n$releaseNotes'),
           ),
           actions: [
-            TextButton(child: Text('取消'), onPressed: () => context.pop()),
             TextButton(
-              child: Text('前往GitHub'),
+              child: Text(t.common.cancel),
+              onPressed: () => context.pop(),
+            ),
+            TextButton(
+              child: Text(t.update.goToGitHub),
               onPressed: () {
                 launchUrl(Uri.parse(releasePageUrl));
                 context.pop();
@@ -219,7 +223,7 @@ Future<void> checkUpdate(BuildContext context) async {
             ),
             if (Platform.isAndroid)
               TextButton(
-                child: Text('下载安装'),
+                child: Text(t.update.downloadInstall),
                 onPressed: () async {
                   context.pop();
                   for (var apkUrl in temp.assets) {

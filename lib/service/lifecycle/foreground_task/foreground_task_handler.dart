@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -21,7 +22,7 @@ class MyTaskHandler extends TaskHandler {
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     FlutterForegroundTask.updateService(
       notificationTitle: appName,
-      notificationText: '等待下载任务中...',
+      notificationText: t.foregroundTask.waitingForTask,
     );
   }
 

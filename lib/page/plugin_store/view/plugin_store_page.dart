@@ -3,6 +3,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_store/cubit/plugin_store_cubit.dart';
 import 'package:zephyr/page/plugin_store/widgets/cloud_plugin_card.dart';
 import 'package:zephyr/page/plugin_store/widgets/plugin_store_status_banner.dart';
@@ -55,7 +56,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
     return BlocBuilder<PluginStoreCubit, PluginStoreState>(
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(title: const Text('插件商店')),
+          appBar: AppBar(title: Text(t.plugin.store)),
           body: Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
@@ -82,7 +83,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
       controller: _searchController,
       enabled: !installing,
       decoration: InputDecoration(
-        hintText: '搜索插件名称或作者...',
+        hintText: t.plugin.searchHint,
         prefixIcon: const Icon(Icons.search),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -107,12 +108,12 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
         OutlinedButton.icon(
           onPressed: installing ? null : _installFromLocal,
           icon: const Icon(Icons.folder_open_outlined, size: 18),
-          label: const Text('本地安装'),
+          label: Text(t.plugin.localInstall),
         ),
         OutlinedButton.icon(
           onPressed: installing ? null : _installFromNetwork,
           icon: const Icon(Icons.language_outlined, size: 18),
-          label: const Text('网络安装'),
+          label: Text(t.plugin.networkInstall),
         ),
       ],
     );
@@ -144,10 +145,13 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
           children: [
             const Icon(Icons.cloud_outlined, size: 18),
             const SizedBox(width: 8),
-            Text('云端组件', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              t.plugin.cloudComponents,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const Spacer(),
             IconButton(
-              tooltip: '刷新',
+              tooltip: t.common.refresh,
               visualDensity: VisualDensity.compact,
               onPressed: state.cloudLoading
                   ? null
@@ -186,7 +190,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
                       ? null
                       : context.read<PluginStoreCubit>().loadCloudPlugins,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('重试'),
+                  label: Text(t.common.retry),
                 ),
               ],
             ),
@@ -195,7 +199,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              '暂无云端组件',
+              t.plugin.noCloudPlugins,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colorScheme.outline),
@@ -205,7 +209,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              '没有匹配的插件',
+              t.plugin.noMatchingPlugins,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colorScheme.outline),
@@ -245,12 +249,12 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
     }
     final uri = Uri.tryParse(resolved);
     if (uri == null) {
-      showErrorToast('无效链接: $resolved');
+      showErrorToast(t.plugin.invalidLink(url: resolved));
       return;
     }
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened) {
-      showErrorToast('无法打开链接: $resolved');
+      showErrorToast(t.plugin.cannotOpenLink(url: resolved));
     }
   }
 
@@ -277,15 +281,15 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
         fileName: file.name,
       );
     } catch (e) {
-      showErrorToast('读取本地插件失败: $e');
+      showErrorToast(t.plugin.readLocalPluginFailed(error: e.toString()));
     }
   }
 
   Future<void> _installFromNetwork() async {
     final url = await _showInputDialog(
       context,
-      title: '从网络添加插件',
-      hintText: '请输入插件脚本 URL',
+      title: t.plugin.addFromNetwork,
+      hintText: t.plugin.networkInstallHint,
     );
     if (url == null) {
       return;
@@ -293,7 +297,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
 
     final resolvedUrl = url.trim();
     if (resolvedUrl.isEmpty) {
-      showErrorToast('URL 不能为空');
+      showErrorToast(t.plugin.urlCannotBeEmpty);
       return;
     }
 
@@ -321,11 +325,11 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('开始安装'),
+            child: Text(t.plugin.startInstall),
           ),
         ],
       ),

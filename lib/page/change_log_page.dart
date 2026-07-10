@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/service/update/json/github_release_json.dart';
 import 'package:zephyr/util/error_filter.dart';
 
@@ -110,9 +111,9 @@ class _ChangelogPageState extends State<ChangelogPage> {
           });
         } else {
           // 如果是加载更多时出错，提示 Toast 或在底部显示失败
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('加载失败: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(t.changelog.loadFailedWithError(error: e))),
+          );
         }
       }
 
@@ -129,9 +130,9 @@ class _ChangelogPageState extends State<ChangelogPage> {
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('无法打开链接: $urlString')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(t.changelog.cannotOpenLink(url: urlString))),
+        );
       }
     }
   }
@@ -142,7 +143,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('更新日志'),
+        title: Text(t.changelog.title),
         centerTitle: true,
         scrolledUnderElevation: 0,
       ),
@@ -170,7 +171,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
             Icon(Icons.wifi_off_rounded, size: 64, color: colorScheme.error),
             const SizedBox(height: 16),
             Text(
-              '加载失败，请检查网络',
+              t.changelog.checkNetwork,
               style: TextStyle(color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
@@ -182,7 +183,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
                 });
                 _fetchReleases(refresh: true);
               },
-              child: const Text('重试'),
+              child: Text(t.changelog.retry),
             ),
           ],
         ),
@@ -193,7 +194,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
       return EasyRefresh(
         header: const MaterialHeader(),
         onRefresh: () => _fetchReleases(refresh: true),
-        child: const Center(child: Text('暂无更新日志')),
+        child: Center(child: Text(t.changelog.empty)),
       );
     }
 
@@ -298,7 +299,7 @@ class _ReleaseCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '发布于 $dateStr',
+                      t.changelog.publishedAt(date: dateStr),
                       style: textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -307,7 +308,7 @@ class _ReleaseCard extends StatelessWidget {
                 ),
               ),
               Tooltip(
-                message: '在浏览器中查看',
+                message: t.changelog.viewInBrowser,
                 child: IconButton(
                   icon: const Icon(Icons.open_in_new_rounded, size: 20),
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
@@ -385,7 +386,7 @@ class _ReleaseCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '附件下载',
+                          t.changelog.attachments,
                           style: textTheme.labelLarge?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.bold,

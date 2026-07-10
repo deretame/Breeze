@@ -16,6 +16,7 @@ import 'package:zephyr/page/comic_read/widgets/transition/chapter_transition_car
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 enum RowModeEntryType { image, transition }
 
@@ -159,7 +160,11 @@ class _RowModeWidgetState extends State<RowModeWidget> {
             return;
           }
           logger.d("👋 检测到在第一页尝试获取【上一话】 (Overscroll Start)");
-          buttonDialog(context, '跳转', '是否要跳转到上一章？').then((value) {
+          buttonDialog(
+            context,
+            t.reader.jumpToChapterTitle,
+            t.reader.jumpToChapterMessage(chapter: t.reader.previousChapter),
+          ).then((value) {
             if (value && context.mounted) {
               jumpChapter.jumpToChapter(context, true);
             }
@@ -176,7 +181,11 @@ class _RowModeWidgetState extends State<RowModeWidget> {
             return;
           }
           logger.d("🛑 检测到在最后一页尝试获取【下一话】 (Overscroll End)");
-          buttonDialog(context, '跳转', '是否要跳转到下一章？').then((value) {
+          buttonDialog(
+            context,
+            t.reader.jumpToChapterTitle,
+            t.reader.jumpToChapterMessage(chapter: t.reader.nextChapter),
+          ).then((value) {
             if (value && context.mounted) {
               jumpChapter.jumpToChapter(context, false);
             }

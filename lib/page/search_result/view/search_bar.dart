@@ -6,6 +6,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -114,7 +115,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
     final searchCubit = context.read<SearchCubit>();
     final source = searchCubit.state.from;
     if (source.trim().isEmpty) {
-      showWarningToast('当前插件不支持高级搜索');
+      showWarningToast(t.search.advancedSearchNotSupported);
       return;
     }
     final scheme = await _loadAdvancedSearchScheme(
@@ -125,7 +126,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
       return;
     }
     if (scheme == null) {
-      showWarningToast('当前插件不支持高级搜索');
+      showWarningToast(t.search.advancedSearchNotSupported);
       return;
     }
     final newStates = await showDialog<SearchStates>(
@@ -250,7 +251,7 @@ class _PluginAdvancedSearchDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('高级搜索选项'),
+      title: Text(t.search.advancedSearchOptions),
       scrollable: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -262,7 +263,7 @@ class _PluginAdvancedSearchDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -293,7 +294,7 @@ class _PluginAdvancedSearchDialogState
               ),
             );
           },
-          child: const Text('应用'),
+          child: Text(t.common.apply),
         ),
       ],
     );
@@ -366,7 +367,9 @@ class _PluginAdvancedSearchDialogState
               children: [
                 Expanded(
                   child: Text(
-                    selected.isEmpty ? '未选择' : '已选择 ${selected.length} 项',
+                    selected.isEmpty
+                        ? t.search.notSelected
+                        : t.search.selectedCount(count: selected.length),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -389,7 +392,7 @@ class _PluginAdvancedSearchDialogState
                           )
                           .toList(),
                       initialSelected: selected,
-                      confirmText: '应用',
+                      confirmText: t.common.apply,
                       useFilledConfirmButton: true,
                       width: 420,
                       height: 420,
@@ -401,7 +404,7 @@ class _PluginAdvancedSearchDialogState
                       _values[key] = values.toList();
                     });
                   },
-                  child: const Text('选择'),
+                  child: Text(t.common.select),
                 ),
               ],
             ),

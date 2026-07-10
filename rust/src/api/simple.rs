@@ -28,6 +28,11 @@ pub fn greet(name: String) -> String {
 }
 
 #[frb]
+pub fn get_system_time_zone() -> Result<String> {
+    iana_time_zone::get_timezone().map_err(|err| anyhow!(err.to_string()))
+}
+
+#[frb]
 pub fn sleep_test() -> String {
     std::thread::sleep(std::time::Duration::from_secs(5));
     "Done".to_string()

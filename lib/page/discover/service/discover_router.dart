@@ -5,6 +5,7 @@ import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../view/plugin_function_dialog.dart';
@@ -125,7 +126,7 @@ class DiscoverRouter {
   }) async {
     final source = _sourceFromString(payload['source']?.toString());
     if (source.isEmpty) {
-      showErrorToast('缺少插件来源，无法打开功能页');
+      showErrorToast(t.error.missingPluginSource(action: t.oldHome.function));
       return;
     }
 
@@ -133,7 +134,7 @@ class DiscoverRouter {
     if (functionId.isEmpty) {
       return;
     }
-    final title = payload['title']?.toString().trim() ?? '功能';
+    final title = payload['title']?.toString().trim() ?? t.oldHome.function;
     final presentation = payload['presentation']?.toString().trim() ?? 'page';
 
     Future<void> onAction(Map<String, dynamic> action) => route(
@@ -183,7 +184,9 @@ class DiscoverRouter {
     final parsed = _sourceFromString(payload['source']?.toString());
     final source = parsed.isEmpty ? currentFrom : parsed;
     if (source.isEmpty) {
-      showErrorToast('缺少插件来源，无法打开云端收藏');
+      showErrorToast(
+        t.error.missingPluginSource(action: t.oldHome.cloudFavorite),
+      );
       return;
     }
 
@@ -194,7 +197,7 @@ class DiscoverRouter {
     }
     context.pushRoute(
       ComicListRoute(
-        title: title ?? '云端收藏',
+        title: title ?? t.oldHome.cloudFavorite,
         sceneSource: source,
         sceneBundleFnPath: 'getCloudFavoriteSceneBundle',
         sceneBundleFnPathFallback: 'get_cloud_favorite_scene_bundle',

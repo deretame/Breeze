@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 Future<Map<String, bool>?> showSourceSelectDialog(
   BuildContext context, {
@@ -12,7 +13,7 @@ Future<Map<String, bool>?> showSourceSelectDialog(
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Text('选择漫画源'),
+            title: Text(t.search.selectSource),
             content: SizedBox(
               width: 320,
               child: Wrap(
@@ -37,11 +38,11 @@ Future<Map<String, bool>?> showSourceSelectDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('取消'),
+                child: Text(t.common.cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(dialogContext).pop(next),
-                child: const Text('应用'),
+                child: Text(t.common.apply),
               ),
             ],
           );

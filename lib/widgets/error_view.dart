@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 class ErrorView extends StatelessWidget {
   final String errorMessage;
@@ -24,7 +25,7 @@ class ErrorView extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: onRetry, child: const Text('重新加载')),
+          ElevatedButton(onPressed: onRetry, child: Text(t.common.reload)),
         ],
       ),
     );

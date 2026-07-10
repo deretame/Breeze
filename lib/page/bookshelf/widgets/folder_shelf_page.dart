@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
@@ -174,7 +175,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
         // 返回/帮助按钮
         IconButton(
           icon: Icon(state.isRoot ? Icons.help_outline : Icons.arrow_back),
-          tooltip: state.isRoot ? '书架说明' : '返回',
+          tooltip: state.isRoot ? t.bookshelf.folderHint : t.common.back,
           onPressed: state.isRoot
               ? () => _showShelfHelpDialog(context)
               : () => context.read<FolderShelfBloc>().add(
@@ -215,34 +216,34 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'new_folder',
               child: Row(
                 children: [
-                  Icon(Icons.create_new_folder_outlined),
-                  SizedBox(width: 12),
-                  Text('新建文件夹'),
+                  const Icon(Icons.create_new_folder_outlined),
+                  const SizedBox(width: 12),
+                  Text(t.bookshelf.newFolder),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'manage',
               child: Row(
                 children: [
-                  Icon(Icons.checklist),
-                  SizedBox(width: 12),
-                  Text('管理'),
+                  const Icon(Icons.checklist),
+                  const SizedBox(width: 12),
+                  Text(t.bookshelf.manage),
                 ],
               ),
             ),
             if (state.mode == ShelfPageMode.download)
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'import',
                 child: Row(
                   children: [
-                    Icon(Icons.file_download_outlined),
-                    SizedBox(width: 12),
-                    Text('导入漫画'),
+                    const Icon(Icons.file_download_outlined),
+                    const SizedBox(width: 12),
+                    Text(t.bookshelf.importComic),
                   ],
                 ),
               ),
@@ -256,18 +257,12 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     return showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('书架说明'),
-        content: const Text(
-          '• 收藏和书架是联动的：收藏一本漫画，它会出现在书架里；'
-          '只有把这本漫画从所有收藏文件夹里都删除，才会自动取消收藏。\n'
-          '• 在漫画详情页“取消收藏”，会一次性从所有收藏文件夹里移除这本漫画。\n'
-          '• 下载也是一样：只有把一本漫画从所有下载文件夹里都删除，'
-          '才会自动删除它的下载文件。',
-        ),
+        title: Text(t.bookshelf.folderHint),
+        content: Text(t.bookshelf.helpContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('知道了'),
+            child: Text(t.common.gotIt),
           ),
         ],
       ),
@@ -285,7 +280,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
         ),
         Expanded(
           child: Text(
-            '已选择 ${state.selectedCount} 项',
+            t.bookshelf.selectedCount(count: state.selectedCount),
             style: Theme.of(context).textTheme.titleMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -300,14 +295,14 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
               children: [
                 IconButton(
                   icon: const Icon(Icons.select_all),
-                  tooltip: '全选',
+                  tooltip: t.common.selectAll,
                   onPressed: () => context.read<FolderShelfBloc>().add(
                     const FolderShelfSelectAll(),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.drive_file_move_outline),
-                  tooltip: '移动到',
+                  tooltip: t.bookshelf.moveTo,
                   onPressed: state.hasSelection
                       ? () => _showTargetFolderDialog(
                           context,
@@ -321,7 +316,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 ),
                 IconButton(
                   icon: const Icon(Icons.folder_copy_outlined),
-                  tooltip: '复制到',
+                  tooltip: t.bookshelf.copyTo,
                   onPressed: state.hasSelection
                       ? () => _showTargetFolderDialog(
                           context,
@@ -336,14 +331,14 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 if (state.mode == ShelfPageMode.download)
                   IconButton(
                     icon: const Icon(Icons.file_upload_outlined),
-                    tooltip: '批量导出',
+                    tooltip: t.bookshelf.batchExport,
                     onPressed: state.hasSelection
                         ? () => _batchExportSelected(context, state)
                         : null,
                   ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  tooltip: '删除',
+                  tooltip: t.common.delete,
                   onPressed: state.hasSelection
                       ? () => _confirmDeleteSelected(context)
                       : null,
@@ -497,16 +492,16 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('新建文件夹'),
+          title: Text(t.bookshelf.createFolder),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(hintText: '文件夹名称'),
+            decoration: InputDecoration(hintText: t.bookshelf.folderName),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -515,7 +510,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                   Navigator.of(dialogContext).pop(text);
                 }
               },
-              child: const Text('确定'),
+              child: Text(t.common.ok),
             ),
           ],
         );
@@ -540,7 +535,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text('多选'),
+                title: Text(t.bookshelf.multiSelect),
                 leading: const Icon(Icons.checklist),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -550,7 +545,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 },
               ),
               ListTile(
-                title: const Text('重命名'),
+                title: Text(t.common.rename),
                 leading: const Icon(Icons.drive_file_rename_outline),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -558,7 +553,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 },
               ),
               ListTile(
-                title: const Text('删除'),
+                title: Text(t.common.delete),
                 leading: const Icon(Icons.delete_outline),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -580,16 +575,16 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('确认删除'),
-          content: const Text('确定要删除该文件夹吗？文件夹内的内容会被递归删除。'),
+          title: Text(t.bookshelf.confirmDeleteFolderTitle),
+          content: Text(t.bookshelf.confirmDeleteFolderContent),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('删除'),
+              child: Text(t.common.delete),
             ),
           ],
         );
@@ -610,16 +605,16 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('重命名文件夹'),
+          title: Text(t.bookshelf.renameFolder),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(hintText: '新名称'),
+            decoration: InputDecoration(hintText: t.common.rename),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -628,7 +623,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                   Navigator.of(dialogContext).pop(text);
                 }
               },
-              child: const Text('确定'),
+              child: Text(t.common.ok),
             ),
           ],
         );
@@ -669,7 +664,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text('多选'),
+                title: Text(t.bookshelf.multiSelect),
                 leading: const Icon(Icons.checklist),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -681,7 +676,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 },
               ),
               ListTile(
-                title: const Text('删除'),
+                title: Text(t.common.delete),
                 leading: const Icon(Icons.delete_outline),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
@@ -703,16 +698,18 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('从文件夹移除'),
-          content: Text('确定要从当前文件夹移除《${info.title}》吗？'),
+          title: Text(t.bookshelf.confirmRemoveComicTitle),
+          content: Text(
+            t.bookshelf.confirmRemoveComicContent(title: info.title),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('移除'),
+              child: Text(t.common.remove),
             ),
           ],
         );
@@ -790,7 +787,7 @@ Future<void> _showTargetFolderDialog(
           }
 
           return AlertDialog(
-            title: const Text('选择目标文件夹（可多选）'),
+            title: Text(t.bookshelf.selectTargetFolder),
             content: SizedBox(
               width: 380,
               height: 400,
@@ -800,7 +797,7 @@ Future<void> _showTargetFolderDialog(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                     leading: const SizedBox(width: 48),
-                    title: const Text('根目录'),
+                    title: Text(t.common.root),
                     trailing: Checkbox(
                       value: selectedPaths.contains(kComicFolderRootPath),
                       onChanged: isRoot
@@ -837,7 +834,7 @@ Future<void> _showTargetFolderDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('取消'),
+                child: Text(t.common.cancel),
               ),
               FilledButton(
                 onPressed: selectedPaths.isEmpty
@@ -846,7 +843,7 @@ Future<void> _showTargetFolderDialog(
                         Navigator.of(dialogContext).pop();
                         onConfirmed(selectedPaths);
                       },
-                child: const Text('确定'),
+                child: Text(t.common.ok),
               ),
             ],
           );
@@ -1002,7 +999,7 @@ Future<void> _importComic(BuildContext context) async {
     if (importRoot == null || importRoot.trim().isEmpty) return;
 
     if (!context.mounted) return;
-    showSuccessToast('开始导入漫画（仅支持 zip）');
+    showSuccessToast(t.bookshelf.importStarted);
 
     final result = await importComicFromZip(
       importRoot,
@@ -1012,14 +1009,14 @@ Future<void> _importComic(BuildContext context) async {
     );
 
     if (!context.mounted) return;
-    showSuccessToast('导入完成：${result.title}');
+    showSuccessToast(t.bookshelf.importCompleted(title: result.title));
     context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
   } on ComicImportCancelledException catch (_) {
     if (!context.mounted) return;
-    showErrorToast('导入取消');
+    showErrorToast(t.common.cancelled);
   } catch (e) {
     if (!context.mounted) return;
-    showErrorToast('导入失败: $e');
+    showErrorToast(t.error.importFailed(error: e.toString()));
   }
 }
 
@@ -1030,16 +1027,16 @@ Future<bool> _confirmComicImportOverwrite(
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('漫画已存在'),
-      content: Text('《$title》已经存在于下载列表中，是否覆盖导入？'),
+      title: Text(t.bookshelf.comicExists),
+      content: Text(t.bookshelf.confirmOverwriteImport(title: title)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('覆盖'),
+          child: Text(t.common.overwrite),
         ),
       ],
     ),
@@ -1060,7 +1057,7 @@ Future<void> _batchExportSelected(
   if (selectedComics.isEmpty) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('选中的项目中没有可导出的漫画')));
+    ).showSnackBar(SnackBar(content: Text(t.bookshelf.noExportableComics)));
     return;
   }
 
@@ -1070,11 +1067,16 @@ Future<void> _batchExportSelected(
       comics: selectedComics,
     );
     if (!context.mounted) return;
-    showSuccessToast('批量导出完成：$success/${selectedComics.length}');
+    showSuccessToast(
+      t.bookshelf.batchExportCompleted(
+        success: success,
+        total: selectedComics.length,
+      ),
+    );
     context.read<FolderShelfBloc>().add(const FolderShelfExitSelectionMode());
   } catch (e) {
     if (!context.mounted) return;
-    showErrorToast('批量导出失败: $e');
+    showErrorToast(t.bookshelf.batchExportFailed(error: e.toString()));
   }
 }
 
@@ -1083,16 +1085,16 @@ Future<void> _confirmDeleteSelected(BuildContext context) async {
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除选中的文件夹和漫画吗？文件夹会递归删除。'),
+        title: Text(t.bookshelf.confirmDeleteSelectedTitle),
+        content: Text(t.bookshelf.confirmDeleteSelectedContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('删除'),
+            child: Text(t.common.delete),
           ),
         ],
       );

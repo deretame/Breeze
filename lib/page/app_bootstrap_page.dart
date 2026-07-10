@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_cloud_update_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -25,7 +26,7 @@ class AppBootstrapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => StringSelectCubit()..setDate("初始化中...."),
+      create: (_) => StringSelectCubit()..setDate(t.appBootstrap.initializing),
       child: const AppBootstrapView(),
     );
   }
@@ -86,7 +87,7 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
 
     if (mounted) await ensureCompatibleMigration(context);
 
-    updateStatus("初始化中....");
+    updateStatus(t.appBootstrap.initializing);
     await PluginRegistryService.I.init();
     await PluginRegistryService.I.warmupPluginInfos();
     PluginCloudUpdateService.I.scheduleSilentCloudUpdate(
@@ -96,7 +97,11 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
       try {
         await PluginRegistryService.I.initializeActivePluginRuntimes();
       } catch (e, st) {
-        logger.w('后台初始化插件 runtime 失败', error: e, stackTrace: st);
+        logger.w(
+          'Background plugin runtime init failed',
+          error: e,
+          stackTrace: st,
+        );
       }
     }());
 
@@ -113,12 +118,12 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
     final globalSetting = globalSettingCubit.state;
     final appLockSetting = globalSetting.appLockSetting;
     if (appLockSetting.enabled && appLockSetting.isReady) {
-      updateStatus("请验证手势密码");
+      updateStatus(t.appBootstrap.verifyGesture);
       final unlockResult = await showGestureUnlockDialog(
         context,
         expectedHash: appLockSetting.gesturePasswordHash,
-        title: '应用已锁定',
-        hint: '请先完成手势验证',
+        title: t.gestureLock.appLocked,
+        hint: t.gestureLock.verifyToUnlock,
         showForgotPassword: true,
       );
       if (!mounted) {
@@ -128,8 +133,8 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
         final verified = await showPinVerifyDialog(
           context,
           expectedHash: appLockSetting.resetPinHash,
-          title: '重置手势密码',
-          hint: '请输入设置时保存的重置 PIN',
+          title: t.gestureLock.resetGesturePassword,
+          hint: t.gestureLock.resetPinHint,
         );
         if (!mounted) {
           return;
@@ -139,19 +144,19 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
             (current) =>
                 current.copyWith(appLockSetting: const AppLockSettingState()),
           );
-          showSuccessToast('密码已清空，请重新设置');
-          updateStatus("密码已清空，请重新设置");
+          showSuccessToast(t.gestureLock.passwordCleared);
+          updateStatus(t.gestureLock.passwordCleared);
           context.router.replace(const app_router.NavigationBar());
           return;
         }
-        updateStatus("PIN 验证未通过");
+        updateStatus(t.appBootstrap.pinVerifyFailed);
         return;
       }
       if (unlockResult != GestureUnlockResult.success) {
-        updateStatus("已取消解锁");
+        updateStatus(t.appBootstrap.unlockCancelled);
         return;
       }
-      updateStatus("验证成功，正在进入应用");
+      updateStatus(t.appBootstrap.enteringApp);
     }
 
     context.router.replace(const app_router.NavigationBar());

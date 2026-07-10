@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
 Future<Map<String, bool>?> showCategoryDialog(
@@ -14,7 +15,7 @@ Future<Map<String, bool>?> showCategoryDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('选择分类'),
+        title: Text(t.search.selectCategory),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return SizedBox(
@@ -38,9 +39,12 @@ Future<Map<String, bool>?> showCategoryDialog(
           },
         ),
         actions: <Widget>[
-          TextButton(child: const Text('取消'), onPressed: () => context.pop()),
           TextButton(
-            child: const Text('确定'),
+            child: Text(t.common.cancel),
+            onPressed: () => context.pop(),
+          ),
+          TextButton(
+            child: Text(t.common.ok),
             onPressed: () => context.pop(tempMap),
           ),
         ],

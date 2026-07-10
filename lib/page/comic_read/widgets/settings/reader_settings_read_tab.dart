@@ -41,14 +41,14 @@ class _TapPageTurnModeSection extends StatelessWidget {
     final mode = globalSettingState.readSetting.tapPageTurnMode;
 
     return _SettingsSection(
-      title: '翻页模式',
+      title: t.reader.pageMode,
       children: [
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
             _SettingsChoiceChip(
-              title: '全屏模式',
+              title: t.reader.fullscreen,
               selected: mode == ReaderTapPageTurnMode.fullScreen,
               onTap: () {
                 if (mode == ReaderTapPageTurnMode.fullScreen) {
@@ -62,7 +62,7 @@ class _TapPageTurnModeSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '左手模式',
+              title: t.reader.leftHandMode,
               selected: mode == ReaderTapPageTurnMode.leftHand,
               onTap: () {
                 if (mode == ReaderTapPageTurnMode.leftHand) {
@@ -76,7 +76,7 @@ class _TapPageTurnModeSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '右手模式',
+              title: t.reader.rightHandMode,
               selected: mode == ReaderTapPageTurnMode.rightHand,
               onTap: () {
                 if (mode == ReaderTapPageTurnMode.rightHand) {
@@ -107,14 +107,14 @@ class _ReadModeSection extends StatelessWidget {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
 
     return _SettingsSection(
-      title: '阅读模式',
+      title: t.reader.readingMode,
       children: [
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
             _SettingsChoiceChip(
-              title: '条漫',
+              title: t.reader.webtoon,
               selected: globalSettingState.readSetting.readMode == 0,
               onTap: () {
                 if (globalSettingState.readSetting.readMode == 0) {
@@ -127,7 +127,7 @@ class _ReadModeSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '单页式（从左到右）',
+              title: t.reader.singlePageLtr,
               selected: globalSettingState.readSetting.readMode == 1,
               onTap: () {
                 if (globalSettingState.readSetting.readMode == 1) {
@@ -140,7 +140,7 @@ class _ReadModeSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '单页式（从右到左）',
+              title: t.reader.singlePageRtl,
               selected: globalSettingState.readSetting.readMode == 2,
               onTap: () {
                 if (globalSettingState.readSetting.readMode == 2) {
@@ -155,8 +155,8 @@ class _ReadModeSection extends StatelessWidget {
           ],
         ),
         _SettingsSwitchTile(
-          title: '双页阅读',
-          subtitle: '在当前阅读模式中启用双页并排',
+          title: t.reader.doublePage,
+          subtitle: t.reader.doublePageSubtitle,
           value: globalSettingState.readSetting.doublePageMode,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -179,14 +179,14 @@ class _ThemeModeSection extends StatelessWidget {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
 
     return _SettingsSection(
-      title: '系统模式',
+      title: t.reader.themeMode,
       children: [
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
             _SettingsChoiceChip(
-              title: '浅色模式',
+              title: t.common.lightMode,
               selected: globalSettingState.themeMode == ThemeMode.light,
               onTap: () {
                 if (globalSettingState.themeMode == ThemeMode.light) {
@@ -198,7 +198,7 @@ class _ThemeModeSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '深色模式',
+              title: t.common.darkMode,
               selected: globalSettingState.themeMode == ThemeMode.dark,
               onTap: () {
                 if (globalSettingState.themeMode == ThemeMode.dark) {
@@ -210,7 +210,7 @@ class _ThemeModeSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '跟随系统',
+              title: t.common.followSystem,
               selected: globalSettingState.themeMode == ThemeMode.system,
               onTap: () {
                 if (globalSettingState.themeMode == ThemeMode.system) {
@@ -238,11 +238,11 @@ class _AutoReadSection extends StatelessWidget {
     final readSetting = globalSettingState.readSetting;
 
     return _SettingsSection(
-      title: '自动阅读',
+      title: t.reader.autoRead,
       children: [
         _SettingsSwitchTile(
-          title: '自动阅读',
-          subtitle: '开启后自动滚动，并在右下角显示暂停/播放按钮',
+          title: t.reader.autoRead,
+          subtitle: t.reader.autoReadSubtitle,
           value: readSetting.autoScroll,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -252,12 +252,12 @@ class _AutoReadSection extends StatelessWidget {
         ),
         if (readSetting.autoScroll)
           _SettingsSliderCard(
-            title: '条漫滚动距离',
+            title: t.reader.webtoonScrollDistance,
             value: readSetting.autoScrollColumnDistancePercent.clamp(10, 100),
             min: 10,
             max: 100,
             divisions: 90,
-            suffix: '% 屏高',
+            suffix: t.reader.screenHeightPercent,
             onChanged: (value) {
               final percent = value.clamp(10, 100);
               globalSettingCubit.updateReadSetting(
@@ -268,12 +268,12 @@ class _AutoReadSection extends StatelessWidget {
           ),
         if (readSetting.autoScroll)
           _SettingsSliderCard(
-            title: '条漫滚动间隔',
+            title: t.reader.webtoonScrollInterval,
             value: readSetting.autoScrollColumnIntervalMs.clamp(300, 5000),
             min: 300,
             max: 5000,
             divisions: 47,
-            suffix: 'ms',
+            suffix: t.reader.milliseconds,
             onChanged: (value) {
               final intervalMs = value.clamp(300, 5000);
               globalSettingCubit.updateReadSetting(
@@ -284,12 +284,12 @@ class _AutoReadSection extends StatelessWidget {
           ),
         if (readSetting.autoScroll)
           _SettingsSliderCard(
-            title: '单页式滚动间隔',
+            title: t.reader.singlePageScrollInterval,
             value: readSetting.autoScrollPageIntervalMs.clamp(800, 10000),
             min: 800,
             max: 10000,
             divisions: 92,
-            suffix: 'ms',
+            suffix: t.reader.milliseconds,
             onChanged: (value) {
               final intervalMs = value.clamp(800, 10000);
               globalSettingCubit.updateReadSetting(
@@ -312,14 +312,14 @@ class _ReadBackgroundSection extends StatelessWidget {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
 
     return _SettingsSection(
-      title: '阅读背景',
+      title: t.reader.background,
       children: [
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
             _SettingsChoiceChip(
-              title: '自动',
+              title: t.reader.auto,
               selected:
                   readSetting.readerBackgroundMode == ReaderBackgroundMode.auto,
               onTap: () {
@@ -335,7 +335,7 @@ class _ReadBackgroundSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '黑色',
+              title: t.reader.black,
               selected:
                   readSetting.readerBackgroundMode ==
                   ReaderBackgroundMode.black,
@@ -352,7 +352,7 @@ class _ReadBackgroundSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '白色',
+              title: t.reader.white,
               selected:
                   readSetting.readerBackgroundMode ==
                   ReaderBackgroundMode.white,
@@ -369,7 +369,7 @@ class _ReadBackgroundSection extends StatelessWidget {
               },
             ),
             _SettingsChoiceChip(
-              title: '灰色',
+              title: t.reader.grey,
               selected:
                   readSetting.readerBackgroundMode == ReaderBackgroundMode.grey,
               onTap: () {
@@ -401,11 +401,11 @@ class _ReadExperienceSection extends StatelessWidget {
     final readSetting = globalSettingState.readSetting;
 
     return _SettingsSection(
-      title: '阅读体验',
+      title: t.reader.readingExperience,
       children: [
         _SettingsSwitchTile(
-          title: '关闭翻页动画',
-          subtitle: '关闭整页翻页动画，小幅滚动动画不受影响',
+          title: t.reader.disableAnimation,
+          subtitle: t.reader.disableAnimationSubtitle,
           value: readSetting.noAnimation,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -414,8 +414,8 @@ class _ReadExperienceSection extends StatelessWidget {
           },
         ),
         _SettingsSwitchTile(
-          title: '阅读滤镜（仅深色模式）',
-          subtitle: '仅在阅读界面生效，可降低夜间阅读亮度',
+          title: t.reader.readFilter,
+          subtitle: t.reader.readFilterSubtitle,
           value: readSetting.readFilterEnabled,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -425,12 +425,12 @@ class _ReadExperienceSection extends StatelessWidget {
         ),
         if (readSetting.readFilterEnabled)
           _SettingsSliderCard(
-            title: '滤镜强度',
+            title: t.reader.filterIntensity,
             value: readSetting.readFilterOpacityPercent.clamp(0, 100),
             min: 0,
             max: 100,
             divisions: 100,
-            suffix: '%',
+            suffix: t.reader.percent,
             onChanged: (value) {
               final percent = value.clamp(0, 100);
               globalSettingCubit.updateReadSetting(
@@ -440,8 +440,8 @@ class _ReadExperienceSection extends StatelessWidget {
             },
           ),
         _SettingsSwitchTile(
-          title: '墨水屏优化（仅横向）',
-          subtitle: '翻页后先白屏再显示图片',
+          title: t.reader.einkOptimization,
+          subtitle: t.reader.einkOptimizationSubtitle,
           value: readSetting.einkOptimization,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -451,12 +451,12 @@ class _ReadExperienceSection extends StatelessWidget {
         ),
         if (readSetting.einkOptimization)
           _SettingsSliderCard(
-            title: '白屏时长',
+            title: t.reader.einkDelay,
             value: readSetting.einkDelayMs.clamp(50, 500),
             min: 50,
             max: 500,
             divisions: 45,
-            suffix: 'ms',
+            suffix: t.reader.milliseconds,
             onChanged: (value) {
               final delayMs = value.clamp(50, 500);
               globalSettingCubit.updateReadSetting(
@@ -465,8 +465,8 @@ class _ReadExperienceSection extends StatelessWidget {
             },
           ),
         _SettingsSwitchTile(
-          title: '两侧留白',
-          subtitle: '自定义左右留白比例',
+          title: t.reader.sidePadding,
+          subtitle: t.reader.sidePaddingSubtitle,
           value: readSetting.sidePaddingEnabled,
           onChanged: (value) {
             globalSettingCubit.updateReadSetting(
@@ -476,12 +476,12 @@ class _ReadExperienceSection extends StatelessWidget {
         ),
         if (readSetting.sidePaddingEnabled)
           _SettingsSliderCard(
-            title: '每侧留白比例',
+            title: t.reader.sidePaddingPercent,
             value: readSetting.sidePaddingPercent.clamp(0, 30),
             min: 0,
             max: 30,
             divisions: 30,
-            suffix: '%',
+            suffix: t.reader.percent,
             onChanged: (value) {
               final percent = value.clamp(0, 30);
               globalSettingCubit.updateReadSetting(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
@@ -195,18 +196,32 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         currentFolderKey != kDownloadFolderAllKey;
 
     final deleteTitle = switch (widget.mode) {
-      ShelfPageMode.favorite => inCustomFolder ? '移出收藏夹' : '删除收藏',
-      ShelfPageMode.history => '删除历史记录',
-      ShelfPageMode.download => inCustomFolder ? '移出下载文件夹' : '删除下载记录',
+      ShelfPageMode.favorite =>
+        inCustomFolder
+            ? t.bookshelf.removeFromFavoriteFolder
+            : t.bookshelf.deleteFavorite,
+      ShelfPageMode.history => t.bookshelf.deleteHistory,
+      ShelfPageMode.download =>
+        inCustomFolder
+            ? t.bookshelf.removeFromDownloadFolder
+            : t.bookshelf.deleteDownload,
     };
     final deleteContent = switch (widget.mode) {
       ShelfPageMode.favorite =>
-        inCustomFolder ? '是否要从本文件夹中移除' : '确定要删除选中的 ${selected.length} 条收藏记录吗？',
-      ShelfPageMode.history => '确定要删除选中的 ${selected.length} 条历史记录吗？',
+        inCustomFolder
+            ? t.bookshelf.confirmRemoveFromCurrentFolder
+            : t.bookshelf.confirmDeleteSelectedFavorites(
+                count: selected.length,
+              ),
+      ShelfPageMode.history => t.bookshelf.confirmDeleteSelectedHistory(
+        count: selected.length,
+      ),
       ShelfPageMode.download =>
         inCustomFolder
-            ? '是否要从本文件夹中移除'
-            : '确定要删除选中的 ${selected.length} 条下载记录及文件吗？',
+            ? t.bookshelf.confirmRemoveFromCurrentFolder
+            : t.bookshelf.confirmDeleteSelectedDownloads(
+                count: selected.length,
+              ),
     };
 
     final ok = await showDialog<bool>(
@@ -217,11 +232,11 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -306,9 +321,9 @@ class _LocalShelfPageState extends State<LocalShelfPage>
 
       _cancelSelectionMode();
       _dispatch();
-      showSuccessToast('已删除 ${selected.length} 条记录');
+      showSuccessToast(t.bookshelf.deletedRecords(count: selected.length));
     } catch (_) {
-      showErrorToast('批量删除失败');
+      showErrorToast(t.bookshelf.batchDeleteFailed);
     }
   }
 
@@ -329,7 +344,9 @@ class _LocalShelfPageState extends State<LocalShelfPage>
           }
           if (state.status == BookshelfLoadStatus.failure) {
             return BookshelfEmptyView(
-              title: state.result.isEmpty ? '加载失败' : state.result,
+              title: state.result.isEmpty
+                  ? t.common.loadingFailed
+                  : state.result,
               icon: Icons.error_outline,
               onRefresh: _dispatch,
             );
@@ -452,20 +469,24 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                             children: [
                               IconButton(
                                 visualDensity: VisualDensity.compact,
-                                tooltip: '取消',
+                                tooltip: t.common.cancel,
                                 onPressed: _cancelSelectionMode,
                                 icon: const Icon(Icons.close),
                               ),
-                              Text('已选择 ${_selectedKeys.length} 项'),
+                              Text(
+                                t.bookshelf.selectedCount(
+                                  count: _selectedKeys.length,
+                                ),
+                              ),
                               const SizedBox(width: 8),
                               TextButton(
                                 onPressed: () => _selectAll(entries),
-                                child: const Text('全选'),
+                                child: Text(t.common.selectAll),
                               ),
                               if (widget.mode == ShelfPageMode.favorite)
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
-                                  tooltip: '加入收藏夹',
+                                  tooltip: t.bookshelf.addToFavorite,
                                   onPressed: () =>
                                       _addSelectedToFolder(entries),
                                   icon: const Icon(
@@ -475,7 +496,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                               if (widget.mode == ShelfPageMode.download)
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
-                                  tooltip: '加入下载文件夹',
+                                  tooltip: t.bookshelf.addToDownloadFolder,
                                   onPressed: () =>
                                       _addSelectedToDownloadFolder(entries),
                                   icon: const Icon(
@@ -485,14 +506,14 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                               if (widget.mode == ShelfPageMode.download)
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
-                                  tooltip: '批量导出',
+                                  tooltip: t.bookshelf.batchExport,
                                   onPressed: () =>
                                       _batchExportSelected(entries),
                                   icon: const Icon(Icons.file_upload_outlined),
                                 ),
                               IconButton(
                                 visualDensity: VisualDensity.compact,
-                                tooltip: '删除选中',
+                                tooltip: t.bookshelf.deleteSelected,
                                 onPressed: () => _confirmBatchDelete(entries),
                                 icon: const Icon(Icons.delete_outline),
                               ),
@@ -526,11 +547,16 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         comics: selected,
       );
       if (!mounted) return;
-      showSuccessToast('批量导出完成：$success/${selected.length}');
+      showSuccessToast(
+        t.bookshelf.batchExportCompleted(
+          success: success,
+          total: selected.length,
+        ),
+      );
       _cancelSelectionMode();
     } catch (e) {
       if (!mounted) return;
-      showErrorToast('批量导出失败: $e');
+      showErrorToast(t.bookshelf.batchExportFailed(error: e.toString()));
     }
   }
 
@@ -546,7 +572,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         .where((item) => !item.isAll)
         .toList();
     if (folders.isEmpty) {
-      showErrorToast('请先创建自定义收藏夹');
+      showErrorToast(t.bookshelf.createFavoriteFolderFirst);
       return;
     }
     final selectedFolderKeys = await _showFolderPickDialog(folders);
@@ -556,7 +582,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     for (final folderKey in selectedFolderKeys) {
       FavoriteFolderService.addMembers(folderKey, selected.map(_entryKey));
     }
-    showSuccessToast('已加入收藏夹');
+    showSuccessToast(t.bookshelf.addedToFavorite);
   }
 
   Future<void> _addSelectedToDownloadFolder(
@@ -571,7 +597,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         .where((item) => !item.isAll)
         .toList();
     if (folders.isEmpty) {
-      showErrorToast('请先创建自定义下载文件夹');
+      showErrorToast(t.bookshelf.createDownloadFolderFirst);
       return;
     }
     final selectedFolderKeys = await _showDownloadFolderPickDialog(folders);
@@ -581,7 +607,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     for (final folderKey in selectedFolderKeys) {
       DownloadFolderService.addMembers(folderKey, selected.map(_entryKey));
     }
-    showSuccessToast('已加入下载文件夹');
+    showSuccessToast(t.bookshelf.addedToDownloadFolder);
   }
 
   Future<List<String>> _showFolderPickDialog(
@@ -593,7 +619,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
           builder: (context) => StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                title: const Text('选择收藏夹（可多选）'),
+                title: Text(t.bookshelf.selectFavoriteFolder),
                 content: SizedBox(
                   width: 360,
                   child: ListView(
@@ -617,13 +643,13 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('取消'),
+                    child: Text(t.common.cancel),
                   ),
                   FilledButton(
                     onPressed: selected.isEmpty
                         ? null
                         : () => Navigator.of(context).pop(selected.toList()),
-                    child: const Text('确定'),
+                    child: Text(t.common.ok),
                   ),
                 ],
               );
@@ -642,7 +668,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
           builder: (context) => StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                title: const Text('选择下载文件夹（可多选）'),
+                title: Text(t.bookshelf.selectDownloadFolder),
                 content: SizedBox(
                   width: 360,
                   child: ListView(
@@ -666,13 +692,13 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('取消'),
+                    child: Text(t.common.cancel),
                   ),
                   FilledButton(
                     onPressed: selected.isEmpty
                         ? null
                         : () => Navigator.of(context).pop(selected.toList()),
-                    child: const Text('确定'),
+                    child: Text(t.common.ok),
                   ),
                 ],
               );

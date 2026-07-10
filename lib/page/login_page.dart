@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'package:zephyr/config/router/router.gr.dart';
@@ -42,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
     if (from.isEmpty) {
       if (mounted) {
         setState(() {
-          _schemeError = '缺少插件标识，无法打开登录页';
+          _schemeError = t.login.missingPluginId;
           _loadingScheme = false;
         });
       }
@@ -73,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _schemeError = '登录配置加载失败: $e';
+          _schemeError = t.login.loadConfigFailed(error: e);
           _loadingScheme = false;
         });
       }
@@ -88,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
     if (fields.length < 2) {
       if (mounted) {
         setState(() {
-          _schemeError = '插件返回的登录字段不足';
+          _schemeError = t.login.insufficientFields;
           _loadingScheme = false;
         });
       }
@@ -119,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _showDialog(String title, String message) async {
     if (message.contains("invalid email or password")) {
-      message = "用户名或密码错误，请重新输入";
+      message = t.login.invalidCredentials;
     }
 
     if (!mounted) return;
@@ -134,7 +135,10 @@ class _LoginPageState extends State<LoginPage> {
             child: ListBody(children: <Widget>[Text(message)]),
           ),
           actions: <Widget>[
-            TextButton(child: const Text('确定'), onPressed: () => context.pop()),
+            TextButton(
+              child: Text(t.common.ok),
+              onPressed: () => context.pop(),
+            ),
           ],
         );
       },
@@ -144,10 +148,10 @@ class _LoginPageState extends State<LoginPage> {
   void _submitForm() async {
     if (!mounted) return;
     if (_loadingScheme || _schemeError != null) {
-      showErrorToast('登录配置未就绪，请稍后重试');
+      showErrorToast(t.login.configNotReady);
       return;
     }
-    showInfoToast("正在登录，请耐心等待...");
+    showInfoToast(t.login.loggingIn);
 
     try {
       final result = await callUnifiedComicPlugin(
@@ -158,13 +162,13 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final _ = asMap(result['raw']);
-      showSuccessToast("登录成功");
+      showSuccessToast(t.login.loginSuccess);
 
       if (!mounted) return;
       context.maybePop();
     } catch (e) {
       logger.e(e);
-      _showDialog("登录失败", normalizeSearchErrorMessage(e));
+      _showDialog(t.login.loginFailed, normalizeSearchErrorMessage(e));
     }
   }
 
@@ -176,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (_schemeError != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('登录')),
+        appBar: AppBar(title: Text(t.login.title)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -187,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _loadLoginScheme,
-                  child: const Text('重试'),
+                  child: Text(t.login.retry),
                 ),
               ],
             ),
@@ -233,7 +237,10 @@ class _LoginPageState extends State<LoginPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center, // 设置Row中的内容水平居中
               children: [
-                TextButton(onPressed: _submitForm, child: const Text('登录')),
+                TextButton(
+                  onPressed: _submitForm,
+                  child: Text(t.login.loginButton),
+                ),
               ],
             ),
             const SizedBox(height: 10), // 用于添加空间

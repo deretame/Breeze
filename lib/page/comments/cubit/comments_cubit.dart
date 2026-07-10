@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comments/model/model.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -189,12 +190,12 @@ class CommentsCubit extends Cubit<CommentsViewState> {
         }
       }
 
-      _emitNotice('发布成功');
+      _emitNotice(t.comments.postSuccess);
       if (!applied) {
         await loadInitial();
       }
     } catch (e) {
-      _emitNotice('发布失败: $e');
+      _emitNotice(t.comments.postFailed(error: e));
     } finally {
       _safeEmit(state.copyWith(posting: false));
     }

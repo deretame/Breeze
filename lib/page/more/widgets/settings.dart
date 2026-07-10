@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 
 class SettingsWidget extends StatelessWidget {
@@ -13,10 +14,10 @@ class SettingsWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(context, '常用', Icons.widgets_outlined),
+        _buildSectionTitle(context, t.more.common, Icons.widgets_outlined),
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('下载任务'),
+          title: Text(t.more.downloadTasks),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushRoute(DownloadTaskRoute()),
         ),
@@ -25,7 +26,7 @@ class SettingsWidget extends StatelessWidget {
           builder: (context, updateCount) {
             return ListTile(
               leading: const Icon(Icons.notifications_active_outlined),
-              title: const Text('追更'),
+              title: Text(t.more.comicFollow),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -39,22 +40,22 @@ class SettingsWidget extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.settings_outlined),
-          title: const Text('全局设置'),
+          title: Text(t.settings.globalTitle),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushRoute(GlobalSettingRoute()),
         ),
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
-        _buildSectionTitle(context, '其他', Icons.more_horiz),
+        _buildSectionTitle(context, t.more.others, Icons.more_horiz),
         ListTile(
           leading: const Icon(Icons.history),
-          title: const Text('更新日志'),
+          title: Text(t.more.changelog),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushRoute(ChangelogRoute()),
         ),
         ListTile(
           leading: const Icon(Icons.info_outline),
-          title: const Text('关于'),
+          title: Text(t.about.title),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushRoute(AboutRoute()),
         ),

@@ -6,6 +6,7 @@ import 'package:desktop_webview_linux/desktop_webview_linux.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/event/webview_observe_bus.dart';
 
@@ -37,7 +38,8 @@ class _WebViewPageState extends State<WebViewPage> {
   String? _mainFrameError;
   String? _lastObservedUrl;
 
-  String get _title => widget.info.isNotEmpty ? widget.info[0] : '网页';
+  String get _title =>
+      widget.info.isNotEmpty ? widget.info[0] : t.webview.title;
 
   String get _url => widget.info.length > 1 ? widget.info[1].trim() : '';
 
@@ -112,9 +114,9 @@ class _WebViewPageState extends State<WebViewPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('无法打开链接: $uri')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.webview.cannotOpenLink(uri: uri.toString()))),
+      );
     }
   }
 
@@ -259,10 +261,10 @@ class _WebViewPageState extends State<WebViewPage> {
           children: [
             const Icon(Icons.link_off, size: 44, color: Colors.grey),
             const SizedBox(height: 12),
-            const Text('链接无效，无法打开网页'),
+            Text(t.webview.invalidLink),
             const SizedBox(height: 8),
             Text(
-              _url.isEmpty ? '(空链接)' : _url,
+              _url.isEmpty ? t.webview.emptyLink : _url,
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -282,7 +284,7 @@ class _WebViewPageState extends State<WebViewPage> {
           children: [
             const Icon(Icons.error_outline, size: 44, color: Colors.orange),
             const SizedBox(height: 12),
-            Text(_mainFrameError ?? '网页加载失败'),
+            Text(_mainFrameError ?? t.webview.loadFailed),
             const SizedBox(height: 16),
             Wrap(
               spacing: 12,
@@ -297,13 +299,13 @@ class _WebViewPageState extends State<WebViewPage> {
                     });
                     _controller?.reload();
                   },
-                  child: const Text('重试'),
+                  child: Text(t.webview.retry),
                 ),
                 if (uri != null)
                   FilledButton.tonalIcon(
                     onPressed: () => _openExternal(uri),
                     icon: const Icon(Icons.open_in_browser),
-                    label: const Text('外部浏览器打开'),
+                    label: Text(t.webview.openInExternalBrowser),
                   ),
               ],
             ),
@@ -325,7 +327,9 @@ class _WebViewPageState extends State<WebViewPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            _isWebviewClosed ? 'WebView 窗口已关闭' : '网页已在独立窗口中打开',
+            _isWebviewClosed
+                ? t.webview.windowClosed
+                : t.webview.openedInExternalWindow,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -341,7 +345,7 @@ class _WebViewPageState extends State<WebViewPage> {
             const SizedBox(height: 24),
             FilledButton.tonal(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('返回'),
+              child: Text(t.webview.back),
             ),
           ],
         ],
@@ -441,7 +445,9 @@ class _WebViewPageState extends State<WebViewPage> {
             );
             if (mounted) {
               setState(() {
-                _mainFrameError = '加载失败（${error.type} / ${error.description}）';
+                _mainFrameError = t.webview.loadError(
+                  error: '${error.type} / ${error.description}',
+                );
               });
             }
           },
@@ -460,7 +466,9 @@ class _WebViewPageState extends State<WebViewPage> {
             );
             if (mounted) {
               setState(() {
-                _mainFrameError = '服务器返回异常状态码：${response.statusCode}';
+                _mainFrameError = t.webview.httpErrorStatus(
+                  statusCode: response.statusCode.toString(),
+                );
               });
             }
           },
@@ -485,7 +493,7 @@ class _WebViewPageState extends State<WebViewPage> {
           if (Platform.isLinux && !_isWebviewClosed)
             IconButton(
               icon: const Icon(Icons.close),
-              tooltip: '关闭 WebView 窗口',
+              tooltip: t.webview.closeWindow,
               onPressed: () {
                 _linuxWebview?.close();
                 if (mounted) {

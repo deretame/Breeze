@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 Future<void> initializeNotifications() async {
@@ -63,7 +64,7 @@ Future<void> initializeNotifications() async {
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
       if (granted != true) {
-        showErrorToast("请在系统设置中开启通知权限");
+        showErrorToast(t.notification.macPermissionRequired);
       }
     } else if (Platform.isIOS) {
       final bool? granted = await flutterLocalNotificationsPlugin
@@ -72,12 +73,12 @@ Future<void> initializeNotifications() async {
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
       if (granted != true) {
-        showErrorToast("请开启通知权限");
+        showErrorToast(t.notification.permissionRequired);
       }
     } else if (Platform.isAndroid) {
       final status = await Permission.notification.request();
       if (!status.isGranted) {
-        showErrorToast("请开启通知权限");
+        showErrorToast(t.notification.permissionRequired);
       }
     }
   } catch (e, stackTrace) {

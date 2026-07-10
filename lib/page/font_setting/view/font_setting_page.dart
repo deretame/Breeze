@@ -3,6 +3,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:zephyr/util/font/font_profile.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
@@ -10,19 +11,19 @@ class FontSettingPage extends StatelessWidget {
   const FontSettingPage({super.key});
 
   static const _weights = <int>[100, 200, 300, 400, 500, 600, 700, 800, 900];
-  static const _sampleText = 'Innovation in China 中国智造，慧及全球 0123456789';
+  static final _sampleText = t.fontSetting.sampleText;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '字体设置',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        title: Text(
+          t.fontSetting.title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
-            tooltip: '清空',
+            tooltip: t.fontSetting.clear,
             onPressed: _clearAll,
             icon: const Icon(Icons.restart_alt_outlined),
           ),
@@ -34,9 +35,9 @@ class FontSettingPage extends StatelessWidget {
           final controller = FontProfileController.instance;
           return ListView(
             children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text('按字重分别选择字体文件。'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(t.fontSetting.hint),
               ),
               ..._weights.map((weight) {
                 final filePath = controller.pathForWeight(weight) ?? '';
@@ -72,15 +73,17 @@ class FontSettingPage extends StatelessWidget {
   Future<void> _saveWeight(int weight, String filePath) async {
     final ok = await FontProfileController.instance.setPath(weight, filePath);
     if (!ok) {
-      showErrorToast('字体加载失败');
+      showErrorToast(t.fontSetting.loadFailed);
       return;
     }
-    showSuccessToast(filePath.isEmpty ? '已清除' : '已保存');
+    showSuccessToast(
+      filePath.isEmpty ? t.fontSetting.cleared : t.fontSetting.saved,
+    );
   }
 
   Future<void> _clearAll() async {
     await FontProfileController.instance.clearAll();
-    showSuccessToast('已清空');
+    showSuccessToast(t.fontSetting.allCleared);
   }
 }
 
@@ -121,7 +124,9 @@ class _FontWeightTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        filePath.isEmpty ? '未选择文件' : path.basename(filePath),
+        filePath.isEmpty
+            ? t.fontSetting.noFileSelected
+            : path.basename(filePath),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -146,12 +151,12 @@ class _FontWeightTile extends StatelessWidget {
         children: [
           if (onClear != null)
             IconButton(
-              tooltip: '清除',
+              tooltip: t.fontSetting.clearFile,
               onPressed: onClear,
               icon: const Icon(Icons.close_outlined),
             ),
           IconButton(
-            tooltip: '选择文件',
+            tooltip: t.fontSetting.selectFile,
             onPressed: onPick,
             icon: const Icon(Icons.folder_open_outlined),
           ),

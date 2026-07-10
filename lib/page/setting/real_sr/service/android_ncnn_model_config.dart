@@ -1,15 +1,20 @@
+import 'package:zephyr/i18n/strings.g.dart';
+
 /// Android NCNN 超分模式。
 ///
 /// 不直接暴露底层模型名给用户，只提供「效率优先」和「质量优先」两种策略：
 /// - 效率优先：waifu2x，速度更快
 /// - 质量优先：Real-CUGAN，画质更好
 enum AndroidNcnnMode {
-  efficiency('效率优先'),
-  quality('质量优先');
+  efficiency,
+  quality;
 
-  final String label;
-
-  const AndroidNcnnMode(this.label);
+  String get label {
+    return switch (this) {
+      AndroidNcnnMode.efficiency => t.realSr.modeEfficiency,
+      AndroidNcnnMode.quality => t.realSr.modeQuality,
+    };
+  }
 }
 
 /// Android NCNN 降噪档位。
@@ -21,16 +26,25 @@ enum AndroidNcnnMode {
 /// - `noise2` / `2`：中度降噪
 /// - `noise3` / `3`：强力降噪
 enum AndroidNcnnNoise {
-  noiseConservative(-1, '保守'),
-  noise0(0, '无降噪'),
-  noise1(1, '降噪 1'),
-  noise2(2, '降噪 2'),
-  noise3(3, '降噪 3');
+  noiseConservative(-1),
+  noise0(0),
+  noise1(1),
+  noise2(2),
+  noise3(3);
 
   final int noise;
-  final String label;
 
-  const AndroidNcnnNoise(this.noise, this.label);
+  const AndroidNcnnNoise(this.noise);
+
+  String get label {
+    return switch (this) {
+      AndroidNcnnNoise.noiseConservative => t.realSr.noiseConservative,
+      AndroidNcnnNoise.noise0 => t.realSr.noise0,
+      AndroidNcnnNoise.noise1 => t.realSr.noise1,
+      AndroidNcnnNoise.noise2 => t.realSr.noise2,
+      AndroidNcnnNoise.noise3 => t.realSr.noise3,
+    };
+  }
 }
 
 class NcnnModelVariant {
@@ -78,8 +92,8 @@ abstract class AndroidNcnnModelConfig {
     if (mode == AndroidNcnnMode.efficiency) {
       // 效率优先使用 waifu2x upconv 动漫模型，速度最快且适合漫画。
       // upconv 只有无降噪的 scale2.0x 模型，因此忽略传入的降噪档位。
-      return const NcnnModelVariant(
-        displayName: 'waifu2x upconv 动漫',
+      return NcnnModelVariant(
+        displayName: t.realSr.variantWaifu2xAnime,
         modelDir: 'models-upconv_7_anime_style_art_rgb',
         noise: -1,
         scale: 2,
@@ -92,7 +106,7 @@ abstract class AndroidNcnnModelConfig {
         ? 'models-se'
         : 'models-pro';
     return NcnnModelVariant(
-      displayName: 'Real-CUGAN 降噪 $noiseValue',
+      displayName: t.realSr.variantRealCuganDenoise(noise: noiseValue),
       modelDir: modelDir,
       noise: noiseValue,
       scale: 2,

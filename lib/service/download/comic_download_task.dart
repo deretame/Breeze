@@ -20,6 +20,7 @@ import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/service/download/download_progress_reporter.dart';
 import 'package:zephyr/service/download/models/download_task_json.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/service/download/image_download.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
@@ -78,8 +79,8 @@ Future<void> unifiedDownloadTask(
       taskGroupKey: task.comicId,
     );
 
-    updateTaskStatus('获取漫画信息中...');
-    reporter.updateMessage('获取漫画信息中...');
+    updateTaskStatus(t.download.statusFetchingComicInfo);
+    reporter.updateMessage(t.download.statusFetchingComicInfo);
     final detail = await getComicDetailByPlugin(
       task.comicId,
       from,
@@ -89,8 +90,8 @@ Future<void> unifiedDownloadTask(
     final downloadInfo = UnifiedComicDownloadInfo.fromString(detail.source);
     final selectedChapters = _resolveSelectedChapters(downloadInfo, task);
 
-    updateTaskStatus('下载封面中...');
-    reporter.updateMessage('下载封面中...');
+    updateTaskStatus(t.download.statusDownloadingCover);
+    reporter.updateMessage(t.download.statusDownloadingCover);
     final cover = detail.normalInfo.comicInfo.cover;
     final coverExtension = Map<String, dynamic>.from(cover.extern);
     final rawCoverFileName = cover.path.trim().isNotEmpty
@@ -128,13 +129,17 @@ Future<void> unifiedDownloadTask(
 
     void reportChapterFetchProgress(int completed, int total) {
       if (total <= 0) {
-        const message = '获取章节信息中...';
+        final message = t.download.statusFetchingChapterInfo;
         updateTaskStatus(message);
         reporter.updateMessage(message);
         return;
       }
       final percent = ((completed / total) * 100).floor();
-      final message = '获取章节信息中... ($completed/$total, $percent%)';
+      final message = t.download.statusFetchingChapterInfoProgress(
+        completed: completed,
+        total: total,
+        percent: percent,
+      );
       updateTaskStatus(message);
       reporter.updateMessage(message);
     }
@@ -494,7 +499,7 @@ void _markTaskCompleted(String comicId) {
     item
       ..isCompleted = true
       ..isDownloading = false
-      ..status = '下载完成';
+      ..status = t.download.notificationCompleteTitle;
   }
   if (tasks.isNotEmpty) {
     objectbox.downloadTaskBox.putMany(tasks);

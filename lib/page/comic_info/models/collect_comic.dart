@@ -11,6 +11,7 @@ import 'package:zephyr/util/json/json_sanitize.dart';
 import 'package:zephyr/util/path_util.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 Future<bool> isLocalComicCollected({
   required String from,
@@ -200,7 +201,7 @@ Future<bool> toggleCloudComicFavorite({
   );
   final favorited = data['favorited'];
   if (favorited is! bool) {
-    throw StateError('插件未返回有效 favorited 状态');
+    throw StateError(t.comicInfo.pluginInvalidFavorited);
   }
 
   final nextStep = data['nextStep']?.toString() ?? 'none';
@@ -223,7 +224,7 @@ Future<bool> toggleCloudComicFavorite({
     comicId: comicId,
     folder: selectedFolder,
   );
-  showSuccessToast('已添加到收藏夹: ${selectedFolder.name}');
+  showSuccessToast(t.comicInfo.addedToFolder(name: selectedFolder.name));
   return favorited;
 }
 
@@ -239,7 +240,7 @@ Future<bool> toggleCloudComicLike({
     extern: const <String, dynamic>{},
   );
   if (data['liked'] is! bool) {
-    throw StateError('插件未返回有效 liked 状态');
+    throw StateError(t.comicInfo.pluginInvalidLiked);
   }
   return data['liked'] as bool;
 }
@@ -290,7 +291,7 @@ Future<_FavoriteFolder?> _showFolderSelectionDialog(
       return StatefulBuilder(
         builder: (ctx, setState) {
           return AlertDialog(
-            title: const Text('添加到自定义收藏夹'),
+            title: Text(t.comicInfo.addToCustomFolder),
             content: ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(ctx).size.height * 0.5,
@@ -327,13 +328,13 @@ Future<_FavoriteFolder?> _showFolderSelectionDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('跳过/不添加'),
+                child: Text(t.comicInfo.skipAdd),
               ),
               ElevatedButton(
                 onPressed: selected == null
                     ? null
                     : () => Navigator.pop(dialogContext, selected),
-                child: const Text('确定添加'),
+                child: Text(t.comicInfo.confirmAdd),
               ),
             ],
           );

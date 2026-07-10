@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/discover/view/discover_scheme_renderer.dart';
 import 'package:zephyr/page/plugin_function/cubit/plugin_function_cubit.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 @RoutePage()
@@ -68,7 +69,7 @@ class _PluginFunctionView extends StatelessWidget {
                         from: from,
                         functionId: functionId,
                       ),
-                      child: const Text('重试'),
+                      child: Text(t.common.retry),
                     ),
                   ],
                 ),

@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -141,7 +142,9 @@ class _ComicInfoState extends State<_ComicInfo>
                       ? Icons.notifications_active
                       : Icons.notifications_none,
                 ),
-                tooltip: isFollowing ? '不再追更' : '加入追更',
+                tooltip: isFollowing
+                    ? t.comicInfo.unfollow
+                    : t.comicInfo.follow,
                 onPressed: () => _toggleFollow(isFollowing),
               );
             },
@@ -179,7 +182,9 @@ class _ComicInfoState extends State<_ComicInfo>
                         color: Colors.black54,
                       ),
                       const SizedBox(width: 10),
-                      Text(isFollowing ? '不再追更' : '加入追更'),
+                      Text(
+                        isFollowing ? t.comicInfo.unfollow : t.comicInfo.follow,
+                      ),
                     ],
                   ),
                 ),
@@ -187,13 +192,13 @@ class _ComicInfoState extends State<_ComicInfo>
 
               if (_type == ComicEntryType.download) {
                 menuItems.add(
-                  const PopupMenuItem<MenuOption>(
+                  PopupMenuItem<MenuOption>(
                     value: MenuOption.export,
                     child: Row(
                       children: [
-                        Icon(Icons.save_alt, color: Colors.black54),
-                        SizedBox(width: 10),
-                        Text('导出漫画'),
+                        const Icon(Icons.save_alt, color: Colors.black54),
+                        const SizedBox(width: 10),
+                        Text(t.comicInfo.exportComic),
                       ],
                     ),
                   ),
@@ -212,8 +217,10 @@ class _ComicInfoState extends State<_ComicInfo>
                       const SizedBox(width: 10),
                       Text(
                         (_currentInfo?.allowCollected ?? false)
-                            ? (_isCloudCollected ? '取消云端收藏' : '收藏到云端')
-                            : '云端收藏已关闭',
+                            ? (_isCloudCollected
+                                  ? t.comicInfo.removeCloudCollection
+                                  : t.comicInfo.collectToCloud)
+                            : t.comicInfo.cloudCollectDisabled,
                       ),
                     ],
                   ),
@@ -237,18 +244,23 @@ class _ComicInfoState extends State<_ComicInfo>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('此漫画已下架', style: TextStyle(fontSize: 20)),
+                      Text(
+                        t.comicInfo.discontinued,
+                        style: const TextStyle(fontSize: 20),
+                      ),
                       SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () => context.pop(),
-                        child: Text('返回'),
+                        child: Text(t.comicInfo.back),
                       ),
                     ],
                   ),
                 );
               }
               return ErrorView(
-                errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                errorMessage: t.comicInfo.loadFailedWithError(
+                  error: state.result.toString(),
+                ),
                 onRetry: () {
                   context.read<GetComicInfoBloc>().add(
                     GetComicInfoEvent(
@@ -400,9 +412,11 @@ class _ComicInfoState extends State<_ComicInfo>
                     ],
                     _buildDivider(context),
                     _SectionCard(
-                      title: '章节目录',
+                      title: t.comicInfo.chapterList,
                       trailing: _EpisodeHeaderBadge(
-                        label: '${normalComicAllInfo.eps.length} 话',
+                        label: t.comicInfo.episodeCount(
+                          count: normalComicAllInfo.eps.length,
+                        ),
                         icon: Icons.north,
                       ),
                       child: _EpisodeListSection(
@@ -420,7 +434,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         normalComicAllInfo.recommend,
                       ).isNotEmpty)
                         _SectionCard(
-                          title: '相关推荐',
+                          title: t.comicInfo.related,
                           child: RecommendWidget(
                             comicList: _resolveRecommendItems(
                               normalComicAllInfo.recommend,
@@ -462,20 +476,20 @@ class _ComicInfoState extends State<_ComicInfo>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('选择导出方式'),
-          content: const Text('请选择将漫画导出为压缩包还是文件夹：'),
+          title: Text(t.comicInfo.exportTitle),
+          content: Text(t.comicInfo.exportSubtitle),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('取消'),
+              child: Text(t.common.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(ExportType.folder),
-              child: const Text('文件夹'),
+              child: Text(t.comicInfo.folder),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(ExportType.zip),
-              child: const Text('压缩包'),
+              child: Text(t.comicInfo.zip),
             ),
           ],
         );
@@ -496,7 +510,7 @@ class _ComicInfoState extends State<_ComicInfo>
     if (Platform.isAndroid) {
       final granted = await requestExportPermission();
       if (!granted) {
-        throw StateError('未授予所有文件访问权限，导出已取消');
+        throw StateError(t.comicInfo.exportPermissionDenied);
       }
       return createDownloadDir();
     }
@@ -540,7 +554,10 @@ class _ComicInfoState extends State<_ComicInfo>
     final displayPath = Platform.isAndroid
         ? _simplifyAndroidPathForLog(exportDirectory)
         : exportDirectory;
-    showInfoToast('导出目录：$displayPath', duration: const Duration(seconds: 5));
+    showInfoToast(
+      t.comicInfo.exportDirectory(displayPath: displayPath),
+      duration: const Duration(seconds: 5),
+    );
   }
 
   // 导出逻辑
@@ -580,7 +597,7 @@ class _ComicInfoState extends State<_ComicInfo>
           await saveFile.delete();
         }
         await cacheZipFile.copy(targetZipPath);
-        showSuccessToast('导出成功');
+        showSuccessToast(t.comicInfo.exportSuccess);
         _logExportPath(targetZipPath);
         return;
       }
@@ -600,7 +617,9 @@ class _ComicInfoState extends State<_ComicInfo>
     } catch (e) {
       final errorMessage = e is StateError
           ? e.message.toString()
-          : "导出失败，请重试。\n${normalizeSearchErrorMessage(e)}";
+          : t.comicInfo.exportFailedWithError(
+              error: normalizeSearchErrorMessage(e),
+            );
       showErrorToast(errorMessage, duration: const Duration(seconds: 5));
     } finally {
       if (cacheZipPath != null) {
@@ -632,7 +651,7 @@ class _ComicInfoState extends State<_ComicInfo>
   Future<void> _toggleFollow(bool isFollowing) async {
     final info = _currentInfo;
     if (info == null) {
-      showErrorToast('当前详情尚未加载完成');
+      showErrorToast(t.comicInfo.detailsNotLoaded);
       return;
     }
 
@@ -649,14 +668,14 @@ class _ComicInfoState extends State<_ComicInfo>
     );
     _followSyncedForCurrentInfo = true;
     if (mounted) {
-      showSuccessToast('已加入追更');
+      showSuccessToast(t.comicInfo.followed);
     }
   }
 
   Future<void> _toggleFollowFromMenu() async {
     final info = _currentInfo;
     if (info == null) {
-      showErrorToast('当前详情尚未加载完成');
+      showErrorToast(t.comicInfo.detailsNotLoaded);
       return;
     }
     final isFollowing = context.read<ComicFollowCubit>().isFollowing(
@@ -670,16 +689,16 @@ class _ComicInfoState extends State<_ComicInfo>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('取消追更'),
-        content: Text('确定不再追更《$title》吗？'),
+        title: Text(t.comicInfo.confirmUnfollowTitle),
+        content: Text(t.comicInfo.confirmUnfollowContent(title: title)),
         actions: [
           TextButton(
             onPressed: () => dialogContext.pop(false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => dialogContext.pop(true),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -696,7 +715,7 @@ class _ComicInfoState extends State<_ComicInfo>
     );
     _followSyncedForCurrentInfo = false;
     if (mounted) {
-      showSuccessToast('已取消追更');
+      showSuccessToast(t.comicInfo.unfollowed);
     }
   }
 
@@ -718,15 +737,19 @@ class _ComicInfoState extends State<_ComicInfo>
   Future<void> _toggleCloudCollectFromMenu() async {
     final info = _currentInfo;
     if (info == null) {
-      showErrorToast('当前详情尚未加载完成');
+      showErrorToast(t.comicInfo.detailsNotLoaded);
       return;
     }
     if (!info.allowCollected) {
-      showInfoToast('云端收藏已关闭');
+      showInfoToast(t.comicInfo.cloudCollectDisabled);
       return;
     }
     try {
-      showInfoToast(_isCloudCollected ? '取消云端收藏中...' : '收藏到云端中...');
+      showInfoToast(
+        _isCloudCollected
+            ? t.comicInfo.removingCloudCollection
+            : t.comicInfo.collectingToCloud,
+      );
       final next = await toggleCloudComicFavorite(
         context: context,
         from: widget.from,
@@ -739,9 +762,13 @@ class _ComicInfoState extends State<_ComicInfo>
       setState(() {
         _isCloudCollected = next;
       });
-      showSuccessToast(next ? '云端收藏成功' : '已取消云端收藏');
+      showSuccessToast(
+        next
+            ? t.comicInfo.cloudCollectSuccess
+            : t.comicInfo.cloudUncollectSuccess,
+      );
     } catch (e) {
-      showErrorToast('云端收藏失败: $e');
+      showErrorToast(t.error.operationFailed);
     }
   }
 }
@@ -858,7 +885,7 @@ class _DescriptionCardState extends State<_DescriptionCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '简介',
+            t.comicInfo.description,
             style: context.theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -874,7 +901,9 @@ class _DescriptionCardState extends State<_DescriptionCard> {
             TextButton.icon(
               onPressed: () => setState(() => _expanded = !_expanded),
               icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-              label: Text(_expanded ? '收起' : '展开全文'),
+              label: Text(
+                _expanded ? t.comicInfo.collapse : t.comicInfo.expandFullText,
+              ),
             ),
           ],
         ],
@@ -906,7 +935,10 @@ class _EpisodeListSection extends StatelessWidget {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 18),
-        child: Text('暂无章节信息', style: context.theme.textTheme.bodyMedium),
+        child: Text(
+          t.comicInfo.noChapters,
+          style: context.theme.textTheme.bodyMedium,
+        ),
       );
     }
 
@@ -1004,7 +1036,9 @@ class _ReadActionButton extends StatelessWidget {
         hasHistory ? Icons.history_rounded : Icons.menu_book_rounded,
         size: 18,
       ),
-      label: Text(hasHistory ? '继续阅读' : '开始阅读'),
+      label: Text(
+        hasHistory ? t.comicInfo.continueRead : t.comicInfo.startRead,
+      ),
     );
   }
 }

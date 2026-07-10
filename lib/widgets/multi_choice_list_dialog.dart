@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
 class MultiChoiceDialogOption {
@@ -14,8 +15,8 @@ Future<Set<String>?> showMultiChoiceListDialog(
   required String title,
   required List<MultiChoiceDialogOption> options,
   Iterable<String> initialSelected = const <String>[],
-  String cancelText = '取消',
-  String confirmText = '确定',
+  String? cancelText,
+  String? confirmText,
   bool useFilledConfirmButton = false,
   double width = 520,
   double height = 420,
@@ -65,17 +66,17 @@ Future<Set<String>?> showMultiChoiceListDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(cancelText),
+                child: Text(cancelText ?? t.common.cancel),
               ),
               if (useFilledConfirmButton)
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(selected),
-                  child: Text(confirmText),
+                  child: Text(confirmText ?? t.common.ok),
                 )
               else
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(selected),
-                  child: Text(confirmText),
+                  child: Text(confirmText ?? t.common.ok),
                 ),
             ],
           );

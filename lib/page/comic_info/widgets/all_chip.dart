@@ -8,6 +8,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 class AllChipWidget extends StatefulWidget {
   final String comicId;
@@ -59,7 +60,9 @@ class _AllChipWidgetState extends State<AllChipWidget> {
               onLongPress: () {
                 Clipboard.setData(ClipboardData(text: processText(item.name)));
                 showSuccessToast(
-                  "已将${item.name.let(convertChineseForDisplay)}复制到剪贴板",
+                  t.comicInfo.copiedToClipboard(
+                    name: item.name.let(convertChineseForDisplay),
+                  ),
                 );
               },
               child: Chip(

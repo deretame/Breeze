@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../common/setting_ui.dart';
@@ -85,7 +86,7 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
   }
 
   String _formatSize(int? bytes) {
-    if (bytes == null) return '计算失败';
+    if (bytes == null) return t.cache.calculateFailed;
     if (bytes == 0) return '0 B';
 
     const gb = 1 << 30;
@@ -107,16 +108,16 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清理缓存'),
-        content: const Text('确定要清理所有缓存文件吗？此操作不可撤销。'),
+        title: Text(t.cache.clearCache),
+        content: Text(t.cache.clearCacheConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(t.common.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('确定'),
+            child: Text(t.common.ok),
           ),
         ],
       ),
@@ -127,10 +128,10 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
     try {
       final cachePath = await getCachePath();
       await clearCache(cachePath);
-      showSuccessToast('缓存已清理');
+      showSuccessToast(t.cache.cleared);
       _calculateCacheSize();
     } catch (_) {
-      showSuccessToast('清理失败');
+      showSuccessToast(t.cache.clearFailed);
     }
   }
 
@@ -141,9 +142,9 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '缓存管理',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        title: Text(
+          t.cache.title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
         scrolledUnderElevation: 0,
@@ -154,12 +155,14 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
           constraints: const BoxConstraints(maxWidth: 768),
           child: ListView(
             children: [
-              _buildSectionTitle(context, '当前缓存'),
+              _buildSectionTitle(context, t.cache.currentCache),
               ListTile(
                 leading: const Icon(Icons.storage_outlined),
-                title: const Text('缓存大小'),
+                title: Text(t.cache.cacheSize),
                 subtitle: Text(
-                  _calculating ? '计算中…' : _formatSize(_cacheSizeBytes),
+                  _calculating
+                      ? t.cache.calculating
+                      : _formatSize(_cacheSizeBytes),
                 ),
                 trailing: _calculating
                     ? const SizedBox(
@@ -169,29 +172,29 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
                       )
                     : IconButton(
                         icon: const Icon(Icons.refresh, size: 20),
-                        tooltip: '重新计算',
+                        tooltip: t.cache.recalculate,
                         onPressed: _calculateCacheSize,
                       ),
               ),
               const Divider(height: 1, thickness: 0.3),
               ListTile(
                 leading: const Icon(Icons.cleaning_services_outlined),
-                title: const Text('手动清理缓存'),
-                subtitle: const Text('立即删除所有缓存文件'),
+                title: Text(t.cache.manualClear),
+                subtitle: Text(t.cache.manualClearSubtitle),
                 trailing: FilledButton.tonalIcon(
                   onPressed: _handleClearCache,
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('清理'),
+                  label: Text(t.cache.clear),
                 ),
               ),
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '缓存限制'),
+              _buildSectionTitle(context, t.cache.cacheLimit),
               ListTile(
                 leading: const Icon(Icons.data_thresholding_outlined),
-                title: const Text('缓存上限'),
-                subtitle: const Text('达到上限后将自动清理旧缓存'),
+                title: Text(t.cache.sizeLimit),
+                subtitle: Text(t.cache.sizeLimitSubtitle),
                 trailing: DropdownButtonHideUnderline(
                   child: DropdownButton<int>(
                     value:
@@ -226,11 +229,11 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
-              _buildSectionTitle(context, '自动清理'),
+              _buildSectionTitle(context, t.cache.autoClean),
               SwitchListTile(
                 secondary: const Icon(Icons.auto_delete_outlined),
-                title: const Text('自动清理缓存'),
-                subtitle: const Text('关闭后将不再自动清理任何缓存'),
+                title: Text(t.cache.autoClean),
+                subtitle: Text(t.cache.autoCleanSubtitle),
                 thumbIcon: kSettingSwitchThumbIcon,
                 value: state.cacheSetting.autoCleanCache,
                 onChanged: (bool value) {

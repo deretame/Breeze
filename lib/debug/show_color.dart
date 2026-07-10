@@ -5,6 +5,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 const _defaultFontPath =
@@ -133,7 +134,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Variable Font 测试',
+              t.settings.colorPreviewVariableFont,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -141,8 +142,8 @@ class _ShowColorPageState extends State<ShowColorPage> {
             const SizedBox(height: 8),
             Text(
               hasFont
-                  ? '已加载: ${_fontPath ?? _fontFamily}'
-                  : '还没加载字体，先试推荐样本或者手动选一个 TTF/OTF 文件。',
+                  ? t.settings.colorPreviewFontLoaded(path: _fontPath ?? _fontFamily!)
+                  : t.settings.colorPreviewNoFont,
               style: theme.textTheme.bodySmall,
             ),
             if (_status != null) ...[
@@ -164,12 +165,12 @@ class _ShowColorPageState extends State<ShowColorPage> {
                       ? null
                       : () => _loadFontFromPath(_defaultFontPath),
                   icon: const Icon(Icons.science_outlined),
-                  label: const Text('加载推荐样本'),
+                  label: Text(t.settings.colorPreviewLoadRecommended),
                 ),
                 OutlinedButton.icon(
                   onPressed: _loading ? null : _pickFontFile,
                   icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('选择字体文件'),
+                  label: Text(t.settings.colorPreviewSelectFont),
                 ),
               ],
             ),
@@ -179,7 +180,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
             if (hasFont) ...[
               _buildWeightPreview(
                 context,
-                title: '按 fontWeight 渲染',
+                title: t.settings.colorPreviewByWeight,
                 builder: (weight) => TextStyle(
                   fontFamily: _fontFamily,
                   fontWeight: _asFontWeight(weight),
@@ -189,7 +190,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
               const SizedBox(height: 16),
               _buildWeightPreview(
                 context,
-                title: '按 variable axis 渲染',
+                title: t.settings.colorPreviewByVariableAxis,
                 builder: (weight) => TextStyle(
                   fontFamily: _fontFamily,
                   fontSize: 24,
@@ -206,7 +207,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
   Widget _buildDefaultWeightPreview(BuildContext context) {
     return _buildWeightPreview(
       context,
-      title: '系统默认字体对照',
+      title: t.settings.colorPreviewSystemDefault,
       builder: (weight) =>
           TextStyle(fontWeight: _asFontWeight(weight), fontSize: 24),
     );
@@ -266,7 +267,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
   Future<void> _loadFontFromPath(String path) async {
     setState(() {
       _loading = true;
-      _status = '正在加载字体...';
+      _status = t.settings.colorPreviewLoadingFont;
     });
 
     try {
@@ -280,12 +281,12 @@ class _ShowColorPageState extends State<ShowColorPage> {
       setState(() {
         _fontFamily = family;
         _fontPath = path;
-        _status = '加载成功，可以直接对比不同字重。';
+        _status = t.settings.colorPreviewLoadSuccess;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _status = '加载失败: $e';
+        _status = t.settings.colorPreviewLoadFailed(error: e);
       });
     } finally {
       if (mounted) {

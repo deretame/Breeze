@@ -8,6 +8,7 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 @RoutePage()
@@ -130,7 +131,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
           children: [
             SpeedDialChild(
               child: const Icon(Icons.vertical_align_top),
-              label: '返回顶部',
+              label: t.searchResult.returnToTop,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -146,7 +147,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
             ),
             SpeedDialChild(
               child: const Icon(Icons.shortcut),
-              label: '跳转页面',
+              label: t.searchResult.jumpToPage,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -155,7 +156,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
               onTap: () async {
                 final int? targetPage = await showNumberInputDialog(
                   context: context,
-                  title: '跳转',
+                  title: t.searchResult.jump,
                   initialValue: searchEvent.page,
                 );
 
@@ -179,7 +180,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
     builder: (context, state) {
       switch (state.status) {
         case SearchStatus.initial:
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator());
         case SearchStatus.failure:
           return Center(
             child: Column(
@@ -191,7 +192,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                   onPressed: () {
                     _refresh(SearchStatus.initial);
                   },
-                  child: Text('点击重试'),
+                  child: Text(t.searchResult.retry),
                 ),
               ],
             ),
@@ -222,8 +223,11 @@ class _SearchResultPageState extends State<_SearchResultPage>
   Widget _genericList(SearchState state) {
     if (state.status == SearchStatus.success) {
       if (state.comics.isEmpty && state.hasReachedMax) {
-        return const Center(
-          child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+        return Center(
+          child: Text(
+            t.comicList.nothingHere,
+            style: TextStyle(fontSize: 20.0),
+          ),
         );
       }
     }

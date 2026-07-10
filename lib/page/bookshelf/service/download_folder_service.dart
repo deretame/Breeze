@@ -1,3 +1,4 @@
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -44,9 +45,9 @@ class DownloadFolderService {
         .build();
     try {
       final folders = <DownloadFolderView>[
-        const DownloadFolderView(
+        DownloadFolderView(
           key: kDownloadFolderAllKey,
-          name: '全部',
+          name: t.common.all,
           isAll: true,
         ),
       ];
@@ -64,7 +65,7 @@ class DownloadFolderService {
   static DownloadFolderView createFolder(String name) {
     final safeName = name.trim();
     if (safeName.isEmpty) {
-      throw ArgumentError('下载文件夹名称不能为空');
+      throw ArgumentError(t.bookshelf.downloadFolderNameEmpty);
     }
     final existed = objectbox.downloadFolderBox
         .query(
@@ -75,7 +76,7 @@ class DownloadFolderService {
         .build()
         .findFirst();
     if (existed != null) {
-      throw StateError('已存在同名下载文件夹');
+      throw StateError(t.bookshelf.downloadFolderNameExists);
     }
 
     final now = DateTime.now().toUtc();
@@ -145,7 +146,7 @@ class DownloadFolderService {
         .build()
         .findFirst();
     if (duplicated != null && duplicated.folderKey != safeKey) {
-      throw StateError('已存在同名下载文件夹');
+      throw StateError(t.bookshelf.downloadFolderNameExists);
     }
     final folder = objectbox.downloadFolderBox
         .query(

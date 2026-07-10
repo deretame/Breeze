@@ -99,7 +99,9 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
               bottom: (isMenuVisible ? 122.0 : 14.0) + bottomSafe,
               child: FloatingActionButton.small(
                 heroTag: 'comic_auto_read_toggle',
-                tooltip: _isAutoReadPaused ? '继续自动阅读' : '暂停自动阅读',
+                tooltip: _isAutoReadPaused
+                    ? t.reader.resumeAutoRead
+                    : t.reader.pauseAutoRead,
                 onPressed: _toggleAutoReadPaused,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),

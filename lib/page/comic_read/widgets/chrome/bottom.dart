@@ -14,6 +14,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -111,33 +112,33 @@ class _BottomWidgetState extends State<BottomWidget> {
                         children: [
                           ChapterNavigationButton(
                             icon: Icons.skip_previous_rounded,
-                            tooltip: '上一章',
+                            tooltip: t.reader.previousChapter,
                             isEnabled: jumpChapter.havePrev,
                             onTap: () => _jumpToChapter(true),
                           ),
                           const SizedBox(width: 10),
                           FloatingActionIconButton(
                             icon: Icons.home_rounded,
-                            tooltip: '返回首页',
+                            tooltip: t.reader.backToHome,
                             onPressed: () => popToRoot(context),
                           ),
                           const SizedBox(width: 10),
                           FloatingActionIconButton(
                             icon: Icons.list_alt_rounded,
-                            tooltip: '跳转章节',
+                            tooltip: t.reader.selectChapter,
                             isEnabled: chapterRefs.isNotEmpty,
                             onPressed: _selectJumpChapter,
                           ),
                           const SizedBox(width: 10),
                           FloatingActionIconButton(
                             icon: Icons.tune_rounded,
-                            tooltip: '阅读设置',
+                            tooltip: t.reader.settings,
                             onPressed: _openSettingsPanel,
                           ),
                           const SizedBox(width: 10),
                           ChapterNavigationButton(
                             icon: Icons.skip_next_rounded,
-                            tooltip: '下一章',
+                            tooltip: t.reader.nextChapter,
                             isEnabled: jumpChapter.haveNext,
                             onTap: () => _jumpToChapter(false),
                           ),
@@ -194,13 +195,13 @@ class _BottomWidgetState extends State<BottomWidget> {
               content: Text(content),
               actions: [
                 TextButton(
-                  child: Text('取消'),
+                  child: Text(t.common.cancel),
                   onPressed: () {
                     Navigator.of(context).pop(false); // 返回 false
                   },
                 ),
                 TextButton(
-                  child: Text('确定'),
+                  child: Text(t.common.ok),
                   onPressed: () {
                     Navigator.of(context).pop(true); // 返回 true
                   },
@@ -213,11 +214,13 @@ class _BottomWidgetState extends State<BottomWidget> {
   }
 
   Future<void> _jumpToChapter(bool isPrev) async {
-    final dialogMessage = isPrev ? '上一章' : '下一章';
+    final dialogMessage = isPrev
+        ? t.reader.previousChapter
+        : t.reader.nextChapter;
     final result = await _bottomButtonDialog(
       context,
-      '跳转',
-      '是否要跳转到$dialogMessage？',
+      t.reader.jumpToChapterTitle,
+      t.reader.jumpToChapterMessage(chapter: dialogMessage),
     );
     if (!result) return;
     if (!mounted) return;
@@ -304,7 +307,7 @@ class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
     );
 
     return AlertDialog(
-      title: const Text('选择章节'),
+      title: Text(t.reader.selectChapter),
       content: SingleChildScrollView(
         child: ListBody(
           children: [
@@ -333,7 +336,7 @@ class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
       ),
       actions: [
         TextButton(
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

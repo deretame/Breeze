@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comments/widgets/title.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -50,7 +51,9 @@ class ComicReadAppBar extends StatelessWidget {
                 actions: [
                   if (onToggleFullscreen != null)
                     IconButton(
-                      tooltip: isDesktopFullscreen ? '退出全屏' : '全屏（f11）',
+                      tooltip: isDesktopFullscreen
+                          ? t.reader.exitFullscreen
+                          : t.reader.enterFullscreen,
                       onPressed: onToggleFullscreen,
                       icon: Icon(
                         isDesktopFullscreen

@@ -21,6 +21,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   locale: json['locale'] == null
       ? const Locale('zh', 'CN')
       : const LocaleConverter().fromJson(json['locale'] as String),
+  localeFollowsSystem: json['localeFollowsSystem'] as bool? ?? true,
   welcomePageNum: (json['welcomePageNum'] as num?)?.toInt() ?? 0,
   syncSetting: json['syncSetting'] == null
       ? const SyncSettingState()
@@ -79,6 +80,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'seedColor': const ColorConverter().toJson(instance.seedColor),
       'themeInitState': instance.themeInitState,
       'locale': const LocaleConverter().toJson(instance.locale),
+      'localeFollowsSystem': instance.localeFollowsSystem,
       'welcomePageNum': instance.welcomePageNum,
       'syncSetting': instance.syncSetting.toJson(),
       'maskedKeywords': instance.maskedKeywords,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/type/enum.dart';
 
 class PluginComicGridSliver extends StatelessWidget {
@@ -60,11 +61,14 @@ class PluginComicGridSliver extends StatelessWidget {
           selectionMode: selectionMode,
         ),
         if (hasReachedMax)
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Center(
               child: Padding(
-                padding: EdgeInsets.all(30.0),
-                child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
+                padding: const EdgeInsets.all(30.0),
+                child: Text(
+                  t.oldHome.noMore,
+                  style: const TextStyle(fontSize: 20.0),
+                ),
               ),
             ),
           ),
@@ -78,7 +82,7 @@ class PluginComicGridSliver extends StatelessWidget {
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: onRetryLoadMore,
-                    child: const Text('点击重试'),
+                    child: Text(t.oldHome.loadMoreFailed),
                   ),
                 ],
               ),
@@ -92,7 +96,7 @@ class PluginComicGridSliver extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onLoadMore,
                   icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                  label: const Text('点击加载更多'),
+                  label: Text(t.oldHome.loadMore),
                 ),
               ),
             ),

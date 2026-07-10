@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:logger/logger.dart';
 import 'package:stack_trace/stack_trace.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 bool shouldIgnoreError(dynamic error) {
   final errorStr = error.toString();
@@ -48,5 +49,5 @@ String normalizeSearchErrorMessage(Object error) {
   if (message.isNotEmpty) {
     return message;
   }
-  return '执行失败';
+  return t.error.executionFailed;
 }

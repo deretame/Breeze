@@ -2,6 +2,7 @@ import 'package:pool/pool.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/enum.dart';
 
+import 'package:zephyr/i18n/strings.g.dart';
 import 'download_progress_reporter.dart';
 
 class DownloadImageJob {
@@ -57,7 +58,7 @@ Future<void> downloadImageJobs({
   }
 
   if (jobs.isEmpty) {
-    updateProgress(100, '漫画下载进度: 100%');
+    updateProgress(100, t.download.statusDownloadProgressComplete);
     return;
   }
 
@@ -93,7 +94,10 @@ Future<void> downloadImageJobs({
       final currentPercent = (progress / jobs.length * 100).floor();
       if (currentPercent > lastReportedPercent) {
         lastReportedPercent = currentPercent;
-        updateProgress(currentPercent, '漫画下载进度: $currentPercent%');
+        updateProgress(
+          currentPercent,
+          t.download.statusDownloadProgress(percent: currentPercent),
+        );
       }
       await ensureTaskRunning();
     }

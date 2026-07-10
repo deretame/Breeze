@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import 'package:bloc/bloc.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:equatable/equatable.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
@@ -115,9 +116,9 @@ class FolderShelfState extends Equatable {
 
   static String _modeLabel(ShelfPageMode mode) {
     return switch (mode) {
-      ShelfPageMode.favorite => '收藏',
-      ShelfPageMode.history => '历史',
-      ShelfPageMode.download => '下载',
+      ShelfPageMode.favorite => t.bookshelf.favorite,
+      ShelfPageMode.history => t.bookshelf.history,
+      ShelfPageMode.download => t.bookshelf.download,
     };
   }
 }
@@ -471,7 +472,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
     try {
       final targetPaths = event.targetPaths;
       if (state.selectedFolderPaths.isNotEmpty && targetPaths.length > 1) {
-        throw StateError('移动文件夹时只能选择一个目标文件夹');
+        throw StateError(t.bookshelf.moveFoldersOnlyOneTarget);
       }
       for (final targetPath in targetPaths) {
         if (state.selectedFolderPaths.isNotEmpty) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_schema.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class PluginListFilterDialog extends StatefulWidget {
@@ -28,7 +29,11 @@ class _PluginListFilterDialogState extends State<PluginListFilterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.scheme.title.isNotEmpty ? widget.scheme.title : '筛选'),
+      title: Text(
+        widget.scheme.title.isNotEmpty
+            ? widget.scheme.title
+            : t.comicList.filter,
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -41,12 +46,12 @@ class _PluginListFilterDialogState extends State<PluginListFilterDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(t.common.cancel),
         ),
         FilledButton(
           onPressed: () =>
               Navigator.pop(context, Map<String, String>.from(_selections)),
-          child: const Text('确定'),
+          child: Text(t.common.ok),
         ),
       ],
     );
@@ -90,8 +95,8 @@ class _PluginListFilterDialogState extends State<PluginListFilterDialog> {
             final levelLabel = level == 0
                 ? null
                 : level == 1
-                ? '子分类'
-                : '第${level + 1}级分类';
+                ? t.comicList.subCategory
+                : t.comicList.levelCategory(level: level + 1);
 
             return Padding(
               padding: EdgeInsets.only(

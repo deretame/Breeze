@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 class BookshelfLoadingView extends StatelessWidget {
-  const BookshelfLoadingView({super.key, this.message = '加载中…'});
+  const BookshelfLoadingView({super.key, this.message = ''});
 
   final String message;
 
@@ -19,7 +20,7 @@ class BookshelfLoadingView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            message,
+            message.isEmpty ? t.common.loading : message,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

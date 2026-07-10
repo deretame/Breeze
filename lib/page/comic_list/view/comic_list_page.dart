@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_list/cubit/comic_list_cubit.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_dialog.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
 
@@ -56,7 +57,8 @@ class _ComicListViewState extends State<_ComicListView>
     super.build(context);
     return BlocBuilder<ComicListCubit, ComicListState>(
       builder: (context, state) {
-        final title = widget.title ?? (state.scene?.title ?? '漫画列表');
+        final title =
+            widget.title ?? (state.scene?.title ?? t.comicList.defaultTitle);
 
         return Scaffold(
           appBar: AppBar(
@@ -79,7 +81,7 @@ class _ComicListViewState extends State<_ComicListView>
     final currentFrom = state.currentFrom;
 
     if (currentFrom.isEmpty) {
-      return const Center(child: Text('缺少插件来源，无法加载列表'));
+      return Center(child: Text(t.comicList.missingSource));
     }
 
     if (state.sceneLoading) {
@@ -95,7 +97,7 @@ class _ComicListViewState extends State<_ComicListView>
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => context.read<ComicListCubit>().reload(),
-              child: const Text('重新加载'),
+              child: Text(t.comicList.reload),
             ),
           ],
         ),
@@ -119,7 +121,7 @@ class _ComicListViewState extends State<_ComicListView>
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => context.read<ComicListCubit>().loadFilter(),
-              child: const Text('重新加载'),
+              child: Text(t.comicList.reload),
             ),
           ],
         ),

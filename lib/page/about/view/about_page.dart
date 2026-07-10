@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 
 import 'package:zephyr/service/update/check_update.dart';
@@ -24,7 +25,7 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  String _appVersion = "加载中...";
+  String _appVersion = t.about.loading;
   List<Map<String, dynamic>> _contributors = [];
   bool _contributorsLoading = true;
   String? _contributorsError;
@@ -62,14 +63,14 @@ class _AboutPageState extends State<AboutPage> {
         });
       } else if (mounted) {
         setState(() {
-          _contributorsError = '获取失败';
+          _contributorsError = t.about.fetchFailed;
           _contributorsLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _contributorsError = '网络错误';
+          _contributorsError = t.about.networkError;
           _contributorsLoading = false;
         });
       }
@@ -119,9 +120,9 @@ class _AboutPageState extends State<AboutPage> {
                       // --- Sections ---
                       _buildSection(
                         icon: "🚀",
-                        title: "项目地址",
-                        desc: "喜欢这个项目吗？点个star支持一下吧！",
-                        linkText: "前往 GitHub 仓库 (deretame/Breeze) ⭐",
+                        title: t.about.projectAddress,
+                        desc: t.about.projectAddressDesc,
+                        linkText: t.about.projectLink,
                         url: "https://github.com/deretame/Breeze",
                         delay: 200,
                       ),
@@ -131,17 +132,17 @@ class _AboutPageState extends State<AboutPage> {
 
                       _buildSection(
                         icon: "💬",
-                        title: "联系方式",
-                        desc: "有任何想法或问题，欢迎来找我聊聊~",
+                        title: t.about.contact,
+                        desc: t.about.contactDesc,
                         linkText: "Telegram: @breeze_zh_cn",
                         url: "https://t.me/breeze_zh_cn",
                         delay: 400,
                       ),
                       _buildSection(
                         icon: "🛠️",
-                        title: "反馈与建议",
-                        desc: "发现BUG或者有新的点子？",
-                        linkText: "在 GitHub Issues 中提出",
+                        title: t.about.feedback,
+                        desc: t.about.feedbackDesc,
+                        linkText: t.about.feedbackLink,
                         url: "https://github.com/deretame/Breeze/issues",
                         delay: 600,
                       ),
@@ -167,7 +168,7 @@ class _AboutPageState extends State<AboutPage> {
                             letterSpacing: 1,
                           ),
                         ),
-                        child: const Text("免责声明"),
+                        child: Text(t.about.disclaimer),
                       ),
                       const SizedBox(height: 50),
                     ],
@@ -186,7 +187,7 @@ class _AboutPageState extends State<AboutPage> {
                 color: const Color(0xE612121C), // slightly transparent
                 alignment: Alignment.center,
                 child: Text(
-                  "版本号: $_appVersion",
+                  t.about.version(version: _appVersion),
                   style: const TextStyle(color: kSecondaryText, fontSize: 14),
                 ),
               ),
@@ -344,9 +345,9 @@ class _AboutPageState extends State<AboutPage> {
               children: [
                 const Text("❤️", style: TextStyle(fontSize: 20)),
                 const SizedBox(width: 10),
-                const Text(
-                  "贡献者",
-                  style: TextStyle(
+                Text(
+                  t.about.contributors,
+                  style: const TextStyle(
                     fontSize: 22,
                     color: kAccentColor,
                     fontWeight: FontWeight.bold,
@@ -354,7 +355,7 @@ class _AboutPageState extends State<AboutPage> {
                 ),
                 const Spacer(),
                 Text(
-                  "${_contributors.length}人",
+                  t.about.contributorsCount(count: _contributors.length),
                   style: const TextStyle(color: kSecondaryText, fontSize: 14),
                 ),
               ],
@@ -406,7 +407,7 @@ class _AboutPageState extends State<AboutPage> {
     required String htmlUrl,
   }) {
     return Tooltip(
-      message: "$login ($contributions 次提交)",
+      message: t.about.contributionsTooltip(login: login, count: contributions),
       child: InkWell(
         borderRadius: BorderRadius.circular(25),
         onTap: () => _launchURL(htmlUrl),
@@ -448,9 +449,9 @@ class _AboutPageState extends State<AboutPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "免责声明",
-                    style: TextStyle(
+                  Text(
+                    t.about.disclaimer,
+                    style: const TextStyle(
                       color: kAccentColor,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -469,11 +470,11 @@ class _AboutPageState extends State<AboutPage> {
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      SizedBox(height: 10),
+                    children: [
+                      const SizedBox(height: 10),
                       Text(
-                        "开源项目免责声明",
-                        style: TextStyle(
+                        t.about.disclaimerTitle,
+                        style: const TextStyle(
                           color: kAccentColor,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -482,50 +483,50 @@ class _AboutPageState extends State<AboutPage> {
                       SizedBox(height: 10),
 
                       _DisclaimerItem(
-                        "1. 项目性质与声明",
-                        "本项目为开源软件，由本人独立开发并维护。项目以\"原样\"形式提供，开发者不对项目的功能完整性、稳定性、安全性或适用性作出任何明示或暗示的担保。",
+                        t.about.disclaimerItem1Title,
+                        t.about.disclaimerItem1Content,
                       ),
                       _DisclaimerItem(
-                        "2. 责任限制",
-                        "开发者对因使用、修改或分发本项目（包括但不限于直接使用、二次开发或集成至其他项目）而导致的任何直接、间接、特殊、附带或后果性损害不承担任何责任。这些损害可能包括但不限于数据丢失、设备损坏、业务中断、利润损失或其他经济损失。",
+                        t.about.disclaimerItem2Title,
+                        t.about.disclaimerItem2Content,
                       ),
                       _DisclaimerItem(
-                        "3. 用户责任",
-                        "用户在使用本项目时，应自行评估其适用性并承担所有风险。用户须确保其使用行为符合所在国家或地区的法律法规及道德规范。开发者不对用户因违反法律法规或不当使用本项目而导致的任何后果负责。",
+                        t.about.disclaimerItem3Title,
+                        t.about.disclaimerItem3Content,
                       ),
                       _DisclaimerItem(
-                        "4. 第三方依赖与资源",
-                        "本项目可能依赖或引用第三方库、工具、服务或其他资源。开发者不对这些第三方资源的内容、功能、安全性或合法性负责。用户应自行评估并承担使用第三方资源的风险。",
+                        t.about.disclaimerItem4Title,
+                        t.about.disclaimerItem4Content,
                       ),
                       _DisclaimerItem(
-                        "5. 无担保声明",
-                        "开发者明确声明不对本项目提供任何形式的担保，包括但不限于：适销性担保；特定用途适用性担保；不侵犯第三方权利担保；无错误或无中断运行担保。",
+                        t.about.disclaimerItem5Title,
+                        t.about.disclaimerItem5Content,
                       ),
                       _DisclaimerItem(
-                        "6. 项目修改与终止",
-                        "开发者保留随时修改、暂停或终止本项目的权利，且无需提前通知用户。开发者不对因项目修改、暂停或终止而导致的任何后果负责。",
+                        t.about.disclaimerItem6Title,
+                        t.about.disclaimerItem6Content,
                       ),
                       _DisclaimerItem(
-                        "7. 贡献者责任",
-                        "如果本项目接受外部贡献，贡献者的行为仅代表其个人立场，不代表开发者的观点或立场。开发者对贡献者的行为及其贡献内容不承担责任。",
+                        t.about.disclaimerItem7Title,
+                        t.about.disclaimerItem7Content,
                       ),
                       _DisclaimerItem(
-                        "8. 法律合规性",
-                        "用户在使用本项目时，应确保其行为符合所在国家或地区的法律法规。开发者不对用户因违反法律法规而导致的任何后果负责。",
+                        t.about.disclaimerItem8Title,
+                        t.about.disclaimerItem8Content,
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Text(
-                        "重要提示",
-                        style: TextStyle(
+                        t.about.disclaimerImportant,
+                        style: const TextStyle(
                           color: kAccentColor,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       Text(
-                        "在使用本项目之前，请仔细阅读并理解本免责声明。如果您不同意本声明的任何条款，请立即停止使用本项目。继续使用本项目即表示您已阅读、理解并同意本免责声明的全部内容。",
-                        style: TextStyle(
+                        t.about.disclaimerImportantContent,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),

@@ -6,6 +6,7 @@ import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_install_service.dart';
 import 'package:zephyr/plugin/utils/plugin_cloud_download_utils.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class PluginStoreState {
@@ -63,7 +64,12 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       );
     } catch (e, stackTrace) {
       logger.w('拉取云端插件列表失败', error: e, stackTrace: stackTrace);
-      emit(state.copyWith(cloudLoading: false, cloudError: '云端组件列表加载失败: $e'));
+      emit(
+        state.copyWith(
+          cloudLoading: false,
+          cloudError: t.plugin.cloudPluginsLoadFailed(error: e),
+        ),
+      );
     }
   }
 
@@ -74,13 +80,13 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     final name = item.manifest.name.trim().isEmpty
         ? item.repo
         : item.manifest.name.trim();
-    _beginInstall('正在下载并安装 $name...');
+    _beginInstall(t.plugin.installingFromCloud(name: name));
 
     try {
       final message = await PluginInstallService.I.installFromCloud(item);
       _reportInstallSuccess(message);
     } catch (e) {
-      _reportInstallFailure('云端下载失败: $e');
+      _reportInstallFailure(t.plugin.cloudDownloadFailed(error: e));
     }
   }
 
@@ -91,7 +97,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     if (state.installing) {
       return;
     }
-    _beginInstall('正在安装本地插件...');
+    _beginInstall(t.plugin.installingFromLocal);
 
     try {
       final message = await PluginInstallService.I.installFromLocalBytes(
@@ -100,7 +106,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       );
       _reportInstallSuccess(message);
     } catch (e) {
-      _reportInstallFailure('读取本地插件失败: $e');
+      _reportInstallFailure(t.plugin.readLocalPluginFailed(error: e));
     }
   }
 
@@ -108,7 +114,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     if (state.installing) {
       return;
     }
-    _beginInstall('正在下载网络插件...');
+    _beginInstall(t.plugin.installingFromNetwork);
 
     try {
       final message = await PluginInstallService.I.installFromNetworkUrl(
@@ -116,7 +122,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       );
       _reportInstallSuccess(message);
     } catch (e) {
-      _reportInstallFailure('网络下载插件失败: $e');
+      _reportInstallFailure(t.plugin.networkDownloadFailed(error: e));
     }
   }
 

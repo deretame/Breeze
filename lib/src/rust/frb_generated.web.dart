@@ -8,6 +8,7 @@
 
 import 'api/data_backup.dart';
 import 'api/image.dart';
+import 'api/localization.dart';
 import 'api/logger.dart';
 import 'api/memory.dart';
 import 'api/qjs.dart';

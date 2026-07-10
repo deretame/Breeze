@@ -5,7 +5,7 @@ import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/api/simple.dart';
+
 import 'package:zephyr/service/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -24,15 +24,17 @@ Future<void> registerDartTools() async {
   _register('dart.getLocaleInfo', (_) async {
     final appLocale = LocaleSettings.currentLocale;
     final info = await SystemLocaleService.getInfo();
-    final timeZoneIANA = await getSystemTimeZone();
+    final timeZoneIANA = info.timeZoneName;
 
     return jsonEncode({
       'language': appLocale.languageCode,
-      'locale': I18nHelper.formatLocaleString(I18nHelper.toFlutterLocale(appLocale)),
+      'locale': I18nHelper.formatLocaleString(
+        I18nHelper.toFlutterLocale(appLocale),
+      ),
       'systemLocale': info.rawLocale,
       'timezoneOffset': info.formattedTimeZone,
       'timezoneOffsetMinutes': info.timeZoneOffset.inMinutes,
-      'timezoneName': info.timeZoneName,
+      'timezoneName': timeZoneIANA,
       'timeZone': timeZoneIANA,
       'timeZoneIANA': timeZoneIANA,
     });

@@ -142,7 +142,9 @@ class _ShowColorPageState extends State<ShowColorPage> {
             const SizedBox(height: 8),
             Text(
               hasFont
-                  ? t.settings.colorPreviewFontLoaded(path: _fontPath ?? _fontFamily!)
+                  ? t.settings.colorPreviewFontLoaded(
+                      path: _fontPath ?? _fontFamily!,
+                    )
                   : t.settings.colorPreviewNoFont,
               style: theme.textTheme.bodySmall,
             ),

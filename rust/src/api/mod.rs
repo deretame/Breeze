@@ -1,5 +1,6 @@
 pub mod data_backup;
 pub mod image;
+pub mod localization;
 pub mod logger;
 pub mod memory;
 pub mod qjs;

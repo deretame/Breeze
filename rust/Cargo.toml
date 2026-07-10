@@ -54,6 +54,10 @@ zstd = "0.13.3"
 rquickjs_playground = { path = "../rquickjs_playground" }
 chrono = "0.4.45"
 iana-time-zone = "0.1.61"
+sys-locale = "0.3.2"
+tz-rs = "0.7.3"
+icu_locale = { version = "2.2.0", features = ["compiled_data"] }
+icu_time = "2.2.0"
 terminal_size = "0.4.4"
 ferrous-opencc = { version = "0.4.0", features = ["japanese-conversion"] }
 brotli = "8.0.4"

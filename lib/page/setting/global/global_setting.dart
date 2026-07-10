@@ -366,7 +366,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     final labels = {
       null: t.settings.followSystemLanguage,
       for (final appLocale in AppLocale.values)
-        I18nHelper.toFlutterLocale(appLocale): I18nHelper.displayName(appLocale),
+        I18nHelper.toFlutterLocale(appLocale): I18nHelper.displayName(
+          appLocale,
+        ),
     };
 
     final currentValue = state.localeFollowsSystem ? null : state.locale;

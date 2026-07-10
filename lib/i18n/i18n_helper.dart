@@ -75,6 +75,40 @@ class I18nHelper {
     return '$sign${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
   }
 
+  /// 将 `+HH:mm` / `-HH:mm` 解析为 [Duration]。
+  static Duration parseTimeZoneOffset(String formatted) {
+    final sign = formatted.startsWith('-') ? -1 : 1;
+    final parts = formatted.substring(1).split(':');
+    if (parts.length != 2) return Duration.zero;
+    final hours = int.tryParse(parts[0]) ?? 0;
+    final minutes = int.tryParse(parts[1]) ?? 0;
+    return Duration(minutes: sign * (hours * 60 + minutes));
+  }
+
+  /// 将 BCP-47 语言标签解析为 Flutter [Locale]。
+  static Locale localeFromBcp47(String tag) {
+    final parts = tag.split('-');
+    var language = parts.first.toLowerCase();
+    String? script;
+    String? region;
+    for (var i = 1; i < parts.length; i++) {
+      final part = parts[i];
+      if (part.length == 4 && _isAlpha(part)) {
+        script = part;
+      } else if ((part.length == 2 || part.length == 3) && _isAlpha(part)) {
+        region = part.toUpperCase();
+      }
+    }
+    return Locale.fromSubtags(
+      languageCode: language,
+      scriptCode: script,
+      countryCode: region,
+    );
+  }
+
+  static bool _isAlpha(String s) =>
+      s.codeUnits.every((c) => (c >= 65 && c <= 90) || (c >= 97 && c <= 122));
+
   /// 同步 Rust 侧 QuickJS 错误消息语言。
   ///
   /// 传递 BCP-47 语言标签（如 `zh-CN`、`en-US`）。

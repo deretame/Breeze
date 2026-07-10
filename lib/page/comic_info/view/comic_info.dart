@@ -108,7 +108,6 @@ class _ComicInfoState extends State<_ComicInfo>
   void initState() {
     super.initState();
     _type = type;
-    initHistory(context, widget.comicId, widget.from, widget.pluginId);
   }
 
   @override
@@ -265,6 +264,13 @@ class _ComicInfoState extends State<_ComicInfo>
               comicInfoDyn = state.comicInfo;
               _currentInfo = state.allInfo;
               _isCloudCollected = state.allInfo?.isFavourite ?? false;
+              initHistory(
+                context,
+                widget.comicId,
+                widget.from,
+                widget.pluginId,
+                chapters: state.allInfo!.eps,
+              );
               return _infoView(state.allInfo!);
           }
         },
@@ -317,12 +323,6 @@ class _ComicInfoState extends State<_ComicInfo>
               ),
             );
             setState(() {
-              initHistory(
-                context,
-                widget.comicId,
-                widget.from,
-                widget.pluginId,
-              );
               _loadingComplete = false;
             });
           },

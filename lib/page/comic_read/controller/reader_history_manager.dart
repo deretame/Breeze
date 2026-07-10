@@ -102,7 +102,9 @@ class ReaderHistoryManager {
 
     // 更新左下角文字 (StringSelectCubit)
     if (!stringSelectCubit.isClosed) {
-      final historyPrefix = '历史：${epInfo.epName}';
+      final order = getCurrentChapterOrder();
+      final prefix = order > 0 ? '$order-' : '';
+      final historyPrefix = '$prefix${epInfo.epName}';
 
       stringSelectCubit.setDate(
         '$historyPrefix / ${pageIndex - 1} / $currentTime',

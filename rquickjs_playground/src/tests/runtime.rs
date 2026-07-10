@@ -29,11 +29,11 @@ fn runtime_timers_and_microtask() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     let events = parsed["events"]
         .as_array()
-        .expect(&crate::i18n_fmt!("events 必须是数组"));
+        .expect(&crate::tr!("events-must-be-an-array"));
 
     assert!(events.iter().any(|v| v == "micro"));
     assert!(events.iter().any(|v| v == "interval-1"));
@@ -63,8 +63,8 @@ fn runtime_interval_repeats_from_host_scheduler() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["has1"], true);
     assert_eq!(parsed["has2"], true);
     assert_eq!(parsed["has3"], true);
@@ -92,10 +92,10 @@ fn runtime_text_and_base64() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
-    assert_eq!(parsed["text"], crate::i18n_fmt!("A中B"));
+    assert_eq!(parsed["text"], crate::tr!("b-in-a"));
     assert_eq!(parsed["b64"], "QUJD");
     assert_eq!(parsed["raw"], "ABC");
     assert!(parsed["byteLen"].as_u64().unwrap_or(0) >= 3);
@@ -125,8 +125,8 @@ fn runtime_url_and_search_params() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["host"], "example.com");
     assert_eq!(parsed["q2"], 2);
@@ -154,8 +154,8 @@ fn runtime_urlsearchparams_rust_rewrite_paths_work() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["text"], "a=2&b=7&c=9");
     assert_eq!(parsed["hasA1"], false);
     assert_eq!(parsed["hasA2"], true);
@@ -198,8 +198,8 @@ fn runtime_url_library_complete() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["spBeforeSize"], 3);
     assert_eq!(parsed["spAfterSize"], 3);
@@ -254,8 +254,8 @@ fn runtime_url_web_global_api_surface() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["can1"], true);
     assert_eq!(parsed["can2"], false);
@@ -499,8 +499,8 @@ fn runtime_headers_rust_backed_paths_work() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["hasA"], true);
     assert_eq!(parsed["getA"], "1, 2");
     assert_eq!(parsed["hasB"], false);
@@ -523,8 +523,8 @@ fn runtime_request_clone_get_without_body() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["method"], "GET");
     assert_eq!(parsed["url"], "https://example.com/a?x=1");
@@ -1385,17 +1385,17 @@ fn runtime_console_all_levels_forwarded_to_http_endpoint() {
     "#,
     );
 
-    let _ = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let _ = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
 
     let first = rx
         .recv_timeout(Duration::from_secs(3))
-        .expect(&crate::i18n_fmt!("未收到第 1 条日志回调"));
+        .expect(&crate::tr!("did-not-receive-log-callback-1"));
     let second = rx
         .recv_timeout(Duration::from_secs(3))
-        .expect(&crate::i18n_fmt!("未收到第 2 条日志回调"));
+        .expect(&crate::tr!("did-not-receive-log-callback-2"));
     let third = rx
         .recv_timeout(Duration::from_secs(3))
-        .expect(&crate::i18n_fmt!("未收到第 3 条日志回调"));
+        .expect(&crate::tr!("did-not-receive-log-callback-3"));
 
     configure_log_http_endpoint(None);
     let _ = handle.join();

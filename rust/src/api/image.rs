@@ -11,8 +11,9 @@ use webp::Encoder;
 ///             固定使用 95.0 质量，兼顾画质与压缩率。
 #[frb]
 pub fn convert_image_to_webp(input_path: String, image_type: String) -> Result<()> {
-    let input_bytes = std::fs::read(&input_path)
-        .with_context(|| rquickjs_playground::i18n_fmt!("读取输入文件失败: {0}", input_path))?;
+    let input_bytes = std::fs::read(&input_path).with_context(|| {
+        rquickjs_playground::tr!("failed-to-read-input-file", arg0 = input_path)
+    })?;
 
     let img = load_image(&input_bytes, &image_type)?;
     let (width, height) = (img.width(), img.height());
@@ -22,8 +23,9 @@ pub fn convert_image_to_webp(input_path: String, image_type: String) -> Result<(
     let encoder = Encoder::from_rgb(&rgb, width, height);
     let webp_memory = encoder.encode(95.0);
 
-    std::fs::write(&input_path, webp_memory.to_vec())
-        .with_context(|| rquickjs_playground::i18n_fmt!("写入 WebP 文件失败: {0}", input_path))?;
+    std::fs::write(&input_path, webp_memory.to_vec()).with_context(|| {
+        rquickjs_playground::tr!("failed-to-write-webp-file", arg0 = input_path)
+    })?;
 
     Ok(())
 }
@@ -34,14 +36,17 @@ pub fn convert_image_to_webp(input_path: String, image_type: String) -> Result<(
 /// 转换后的 PNG 写入 [output_path]。
 #[frb]
 pub fn convert_image_to_png(input_path: String, output_path: String) -> Result<()> {
-    let input_bytes = std::fs::read(&input_path)
-        .with_context(|| rquickjs_playground::i18n_fmt!("读取输入文件失败: {0}", input_path))?;
+    let input_bytes = std::fs::read(&input_path).with_context(|| {
+        rquickjs_playground::tr!("failed-to-read-input-file", arg0 = input_path)
+    })?;
 
     let img = image::load_from_memory(&input_bytes)
-        .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("解析图片失败: {0}", e)))?;
+        .map_err(|e| anyhow!(rquickjs_playground::tr!("failed-to-parse-image", arg0 = e)))?;
 
     img.save_with_format(&output_path, ImageFormat::Png)
-        .with_context(|| rquickjs_playground::i18n_fmt!("写入 PNG 文件失败: {0}", output_path))?;
+        .with_context(|| {
+            rquickjs_playground::tr!("failed-to-write-png-file", arg0 = output_path)
+        })?;
 
     Ok(())
 }
@@ -62,7 +67,7 @@ fn load_image(bytes: &[u8], image_type: &str) -> Result<DynamicImage> {
         Some(fmt) => image::load_from_memory_with_format(bytes, fmt),
         None => image::load_from_memory(bytes),
     }
-    .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("解析图片失败: {0}", e)))?;
+    .map_err(|e| anyhow!(rquickjs_playground::tr!("failed-to-parse-image", arg0 = e)))?;
 
     Ok(img)
 }

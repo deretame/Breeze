@@ -57,23 +57,25 @@ pub(crate) fn start_native_buffer_gc_loop() {
                     }
                 }
             })
-            .expect(&crate::i18n_fmt!("创建 native buffer gc 线程失败"));
+            .expect(&crate::tr!("failed-to-create-native-buffer-gc-thread"));
     });
 }
 
 fn parse_u8_json_array(data_json: &str) -> AnyResult<Vec<u8>> {
     let value: Value =
-        serde_json::from_str(data_json).context(crate::i18n_fmt!("解析字节数组 JSON 失败"))?;
+        serde_json::from_str(data_json).context(crate::tr!("failed-to-parse-byte-array-json"))?;
     let arr = value
         .as_array()
-        .ok_or_else(|| anyhow!(crate::i18n_fmt!("数据必须是字节数组")))?;
+        .ok_or_else(|| anyhow!(crate::tr!("data-must-be-a-byte-array")))?;
     let mut out = Vec::with_capacity(arr.len());
     for item in arr {
         let n = item
             .as_u64()
-            .ok_or_else(|| anyhow!(crate::i18n_fmt!("字节数组元素必须是整数")))?;
+            .ok_or_else(|| anyhow!(crate::tr!("byte-array-elements-must-be-integers")))?;
         if n > 255 {
-            return Err(anyhow!(crate::i18n_fmt!("字节数组元素必须在 0-255 范围")));
+            return Err(anyhow!(crate::tr!(
+                "byte-array-elements-must-be-in-the-0-255-range"
+            )));
         }
         out.push(n as u8);
     }
@@ -88,7 +90,7 @@ pub fn native_buffer_put(data_json: String) -> String {
     let id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     pool.insert(id, NativeBufferEntry::new(bytes));
     json!({ "ok": true, "id": id }).to_string()
 }
@@ -97,7 +99,7 @@ pub fn native_buffer_put_raw(bytes: Vec<u8>) -> u64 {
     let id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     pool.insert(id, NativeBufferEntry::new(bytes));
     id
 }
@@ -105,24 +107,24 @@ pub fn native_buffer_put_raw(bytes: Vec<u8>) -> u64 {
 pub fn native_buffer_take(id: u64) -> String {
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     match pool.remove(&id) {
         Some(entry) => json!({ "ok": true, "data": entry.bytes }).to_string(),
-        None => json!({ "ok": false, "error": crate::i18n_fmt!("buffer id 不存在") }).to_string(),
+        None => json!({ "ok": false, "error": crate::tr!("buffer-id-does-not-exist") }).to_string(),
     }
 }
 
 pub fn native_buffer_take_raw(id: u64) -> Option<Vec<u8>> {
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     pool.remove(&id).map(|entry| entry.bytes)
 }
 
 pub fn native_buffer_free(id: u64) -> String {
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     let existed = pool.remove(&id).is_some();
     json!({ "ok": true, "freed": existed }).to_string()
 }
@@ -152,10 +154,10 @@ fn native_apply_op(
             Ok(bytes)
         }
         "xor" => {
-            let rhs =
-                extra.ok_or_else(|| crate::i18n_fmt!("xor 需要第二个输入参数").to_string())?;
+            let rhs = extra
+                .ok_or_else(|| crate::tr!("xor-requires-a-second-input-argument").to_string())?;
             if rhs.len() != bytes.len() {
-                return Err(crate::i18n_fmt!("xor 两个输入长度必须一致").to_string());
+                return Err(crate::tr!("xor-inputs-must-have-the-same-length").to_string());
             }
             for i in 0..bytes.len() {
                 bytes[i] ^= rhs[i];
@@ -168,37 +170,37 @@ fn native_apply_op(
             let mut out = Vec::new();
             decoder
                 .read_to_end(&mut out)
-                .map_err(|e| crate::i18n_fmt!("gzip 解压失败: {0}", e))?;
+                .map_err(|e| crate::tr!("gzip-decompression-failed-2", e = e))?;
             Ok(out)
         }
         "gzip_compress" => {
             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
             encoder
                 .write_all(&bytes)
-                .map_err(|e| crate::i18n_fmt!("gzip 压缩失败: {0}", e))?;
+                .map_err(|e| crate::tr!("gzip-compression-failed-2", e = e))?;
             encoder
                 .finish()
-                .map_err(|e| crate::i18n_fmt!("gzip 压缩失败: {0}", e))
+                .map_err(|e| crate::tr!("gzip-compression-failed-2", e = e))
         }
-        _ => Err(crate::i18n_fmt!("不支持的 native op: {0}", op)),
+        _ => Err(crate::tr!("unsupported-native-op", op = op)),
     }
 }
 
 fn parse_chain_steps(steps_json: &str) -> AnyResult<Vec<(String, Option<u64>)>> {
     let value: Value =
-        serde_json::from_str(steps_json).context(crate::i18n_fmt!("解析 steps JSON 失败"))?;
+        serde_json::from_str(steps_json).context(crate::tr!("failed-to-parse-steps-json"))?;
     let arr = value
         .as_array()
-        .ok_or_else(|| anyhow!(crate::i18n_fmt!("steps 必须是数组")))?;
+        .ok_or_else(|| anyhow!(crate::tr!("steps-must-be-an-array")))?;
     let mut out = Vec::with_capacity(arr.len());
     for item in arr {
         let obj = item
             .as_object()
-            .ok_or_else(|| anyhow!(crate::i18n_fmt!("steps 元素必须是对象")))?;
+            .ok_or_else(|| anyhow!(crate::tr!("steps-elements-must-be-objects")))?;
         let op = obj
             .get("op")
             .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!(crate::i18n_fmt!("steps 元素缺少 op 字段")))?
+            .ok_or_else(|| anyhow!(crate::tr!("steps-elements-missing-op-field")))?
             .to_string();
         let extra_input_id = obj.get("extraInputId").and_then(Value::as_u64);
         out.push((op, extra_input_id));
@@ -215,11 +217,11 @@ pub fn native_exec(
     let (input, extra) = {
         let mut pool = native_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
         let input = match pool.remove(&input_id) {
             Some(entry) => entry,
             None => {
-                return json!({ "ok": false, "error": crate::i18n_fmt!("input id 不存在") })
+                return json!({ "ok": false, "error": crate::tr!("input-id-does-not-exist") })
                     .to_string();
             }
         };
@@ -229,7 +231,7 @@ pub fn native_exec(
                 Some(entry) => Some(entry.bytes),
                 None => {
                     pool.insert(input_id, input);
-                    return json!({ "ok": false, "error": crate::i18n_fmt!("extra input id 不存在") }).to_string();
+                    return json!({ "ok": false, "error": crate::tr!("extra-input-id-does-not-exist") }).to_string();
                 }
             }
         } else {
@@ -247,7 +249,7 @@ pub fn native_exec(
     let output_id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     pool.insert(output_id, NativeBufferEntry::new(output));
     json!({ "ok": true, "id": output_id }).to_string()
 }
@@ -258,17 +260,17 @@ pub fn native_exec_chain(input_id: u64, steps_json: String) -> String {
         Err(error) => return json!({ "ok": false, "error": format!("{error}") }).to_string(),
     };
     if steps.is_empty() {
-        return json!({ "ok": false, "error": crate::i18n_fmt!("steps 不能为空") }).to_string();
+        return json!({ "ok": false, "error": crate::tr!("steps-cannot-be-empty") }).to_string();
     }
 
     let mut current = {
         let mut pool = native_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
         match pool.remove(&input_id) {
             Some(entry) => entry.bytes,
             None => {
-                return json!({ "ok": false, "error": crate::i18n_fmt!("input id 不存在") })
+                return json!({ "ok": false, "error": crate::tr!("input-id-does-not-exist") })
                     .to_string();
             }
         }
@@ -278,11 +280,11 @@ pub fn native_exec_chain(input_id: u64, steps_json: String) -> String {
         let extra = if let Some(extra_id) = extra_input_id {
             let mut pool = native_pool()
                 .lock()
-                .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+                .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
             match pool.remove(&extra_id) {
                 Some(entry) => Some(entry.bytes),
                 None => {
-                    return json!({ "ok": false, "error": crate::i18n_fmt!("extra input id 不存在") }).to_string();
+                    return json!({ "ok": false, "error": crate::tr!("extra-input-id-does-not-exist") }).to_string();
                 }
             }
         } else {
@@ -298,7 +300,7 @@ pub fn native_exec_chain(input_id: u64, steps_json: String) -> String {
     let output_id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
     let mut pool = native_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     pool.insert(output_id, NativeBufferEntry::new(current));
     json!({ "ok": true, "id": output_id }).to_string()
 }

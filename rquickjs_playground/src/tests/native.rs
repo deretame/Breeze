@@ -24,8 +24,8 @@ fn native_run_invert_min_copy_api() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["supportsBinaryBridge"], true);
     assert_eq!(parsed["len"], 3);
     assert_eq!(parsed["v0"], 255);
@@ -47,8 +47,8 @@ fn native_gzip_decompress_api() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["text"], "hello gzip");
     assert_eq!(parsed["len"], 10);
 }
@@ -68,8 +68,8 @@ fn native_gzip_compress_and_decompress_api() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["text"], "hello gzip");
     assert_eq!(parsed["gzipMagic"], true);
 }
@@ -100,8 +100,8 @@ fn native_handle_chain_grayscale() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["len"], 8);
     assert_eq!(parsed["a0"], parsed["a1"]);
     assert_eq!(parsed["a1"], parsed["a2"]);
@@ -128,8 +128,8 @@ fn native_exec_with_extra_input() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["v0"], 2);
     assert_eq!(parsed["v1"], 0);
     assert_eq!(parsed["v2"], 2);
@@ -160,8 +160,8 @@ fn native_take_into_and_chain() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["bytesWritten"], 4);
     assert_eq!(parsed["truncated"], false);
     assert_eq!(parsed["target"][0], 0);
@@ -190,8 +190,8 @@ fn native_take_into_truncated_and_source_length() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["bytesWritten"], 2);
     assert_eq!(parsed["sourceLength"], 5);
     assert_eq!(parsed["truncated"], true);
@@ -215,8 +215,8 @@ fn native_exec_chain_with_extra_input() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["out"][0], 253);
     assert_eq!(parsed["out"][1], 255);
     assert_eq!(parsed["out"][2], 253);
@@ -250,8 +250,8 @@ fn native_exec_chain_invalid_steps_errors() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["emptyHasHint"], true);
     assert_eq!(parsed["badHasHint"], true);
 }
@@ -272,8 +272,8 @@ fn bridge_call_by_function_name_with_args() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["out"][0], 254);
     assert_eq!(parsed["out"][1], 253);
     assert_eq!(parsed["out"][2], 252);
@@ -291,8 +291,8 @@ fn bridge_call_accepts_typed_array_as_binary_arg() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["out"][0], 254);
     assert_eq!(parsed["out"][1], 253);
     assert_eq!(parsed["out"][2], 252);
@@ -313,9 +313,10 @@ fn bridge_call_with_external_route_handler() {
             "argc": args.len()
         }))
     })
-    .expect(&crate::i18n_fmt!("注册 bridge 自定义路由失败"));
+    .expect(&crate::tr!("failed-to-register-bridge-custom-route"));
 
-    let route_json = serde_json::to_string(&route).expect(&crate::i18n_fmt!("序列化路由名失败"));
+    let route_json =
+        serde_json::to_string(&route).expect(&crate::tr!("failed-to-serialize-route-name"));
     let script = format!(
         r#"
       (async () => {{
@@ -325,15 +326,15 @@ fn bridge_call_with_external_route_handler() {
     "#
     );
 
-    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["first"], 42);
     assert_eq!(parsed["argc"], 2);
     assert!(parsed["runtime"].as_str().is_some());
 
     let removed = unregister_bridge_route_handler(&route)
-        .expect(&crate::i18n_fmt!("卸载 bridge 自定义路由失败"));
+        .expect(&crate::tr!("failed-to-unregister-bridge-custom-route"));
     assert!(removed);
 }
 
@@ -353,9 +354,10 @@ fn bridge_call_with_external_sync_route_handler() {
             "mode": "sync"
         }))
     })
-    .expect(&crate::i18n_fmt!("注册 bridge 同步自定义路由失败"));
+    .expect(&crate::tr!("failed-to-register-bridge-sync-custom-route"));
 
-    let route_json = serde_json::to_string(&route).expect(&crate::i18n_fmt!("序列化路由名失败"));
+    let route_json =
+        serde_json::to_string(&route).expect(&crate::tr!("failed-to-serialize-route-name"));
     let script = format!(
         r#"
       (async () => {{
@@ -365,8 +367,8 @@ fn bridge_call_with_external_sync_route_handler() {
     "#
     );
 
-    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["first"], 100);
     assert_eq!(parsed["argc"], 2);
@@ -374,7 +376,7 @@ fn bridge_call_with_external_sync_route_handler() {
     assert!(parsed["runtime"].as_str().is_some());
 
     let removed = unregister_bridge_route_handler(&route)
-        .expect(&crate::i18n_fmt!("卸载 bridge 同步自定义路由失败"));
+        .expect(&crate::tr!("failed-to-unregister-bridge-sync-custom-route"));
     assert!(removed);
 }
 
@@ -393,9 +395,10 @@ fn bridge_call_sync_route_should_not_create_bridge_pending() {
             "mode": "sync"
         }))
     })
-    .expect(&crate::i18n_fmt!("注册 bridge 同步自定义路由失败"));
+    .expect(&crate::tr!("failed-to-register-bridge-sync-custom-route"));
 
-    let route_json = serde_json::to_string(&route).expect(&crate::i18n_fmt!("序列化路由名失败"));
+    let route_json =
+        serde_json::to_string(&route).expect(&crate::tr!("failed-to-serialize-route-name"));
     let script = format!(
         r#"
       (async () => {{
@@ -407,8 +410,8 @@ fn bridge_call_sync_route_should_not_create_bridge_pending() {
     "#
     );
 
-    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(
         parsed["before"], parsed["after"],
@@ -419,7 +422,7 @@ fn bridge_call_sync_route_should_not_create_bridge_pending() {
     assert_eq!(parsed["out"]["mode"], "sync");
 
     let removed = unregister_bridge_route_handler(&route)
-        .expect(&crate::i18n_fmt!("卸载 bridge 同步自定义路由失败"));
+        .expect(&crate::tr!("failed-to-unregister-bridge-sync-custom-route"));
     assert!(removed);
 }
 
@@ -440,9 +443,10 @@ fn bridge_call_with_external_async_route_handler() {
             "async": true
         }))
     })
-    .expect(&crate::i18n_fmt!("注册 bridge 异步自定义路由失败"));
+    .expect(&crate::tr!("failed-to-register-bridge-async-custom-route"));
 
-    let route_json = serde_json::to_string(&route).expect(&crate::i18n_fmt!("序列化路由名失败"));
+    let route_json =
+        serde_json::to_string(&route).expect(&crate::tr!("failed-to-serialize-route-name"));
     let script = format!(
         r#"
       (async () => {{
@@ -452,8 +456,8 @@ fn bridge_call_with_external_async_route_handler() {
     "#
     );
 
-    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["first"], "hello");
     assert_eq!(parsed["argc"], 2);
@@ -461,7 +465,7 @@ fn bridge_call_with_external_async_route_handler() {
     assert!(parsed["runtime"].as_str().is_some());
 
     let removed = unregister_bridge_route_handler(&route)
-        .expect(&crate::i18n_fmt!("卸载 bridge 自定义路由失败"));
+        .expect(&crate::tr!("failed-to-unregister-bridge-custom-route"));
     assert!(removed);
 }
 
@@ -482,9 +486,12 @@ fn bridge_call_with_external_blocking_route_handler() {
             "mode": "blocking"
         }))
     })
-    .expect(&crate::i18n_fmt!("注册 bridge 阻塞自定义路由失败"));
+    .expect(&crate::tr!(
+        "failed-to-register-bridge-blocking-custom-route"
+    ));
 
-    let route_json = serde_json::to_string(&route).expect(&crate::i18n_fmt!("序列化路由名失败"));
+    let route_json =
+        serde_json::to_string(&route).expect(&crate::tr!("failed-to-serialize-route-name"));
     let script = format!(
         r#"
       (async () => {{
@@ -494,16 +501,17 @@ fn bridge_call_with_external_blocking_route_handler() {
     "#
     );
 
-    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
 
     assert_eq!(parsed["first"], "slow");
     assert_eq!(parsed["argc"], 2);
     assert_eq!(parsed["mode"], "blocking");
     assert!(parsed["runtime"].as_str().is_some());
 
-    let removed = unregister_bridge_route_handler(&route)
-        .expect(&crate::i18n_fmt!("卸载 bridge 阻塞自定义路由失败"));
+    let removed = unregister_bridge_route_handler(&route).expect(&crate::tr!(
+        "failed-to-unregister-bridge-blocking-custom-route"
+    ));
     assert!(removed);
 }
 
@@ -521,8 +529,8 @@ fn bridge_call_gzip_decompress() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["text"], "hello gzip");
     assert_eq!(parsed["len"], 10);
 }
@@ -542,8 +550,8 @@ fn bridge_call_gzip_compress_and_decompress() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["text"], "hello gzip");
     assert_eq!(parsed["gzipMagic"], true);
 }
@@ -562,8 +570,8 @@ fn bridge_call_native_take_returns_uint8array() {
       })()
     "#;
 
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["isUint8Array"], true);
     assert_eq!(parsed["out"][0], 254);
     assert_eq!(parsed["out"][1], 253);
@@ -585,8 +593,8 @@ fn bridge_route_allowlist_denies_non_allowed_routes() {
         max_return_binary_bytes: 32 * 1024 * 1024,
     });
 
-    let route_json =
-        serde_json::to_string("forbidden.route").expect(&crate::i18n_fmt!("序列化路由名失败"));
+    let route_json = serde_json::to_string("forbidden.route")
+        .expect(&crate::tr!("failed-to-serialize-route-name"));
     let script = format!(
         r#"
       (async () => {{
@@ -602,8 +610,8 @@ fn bridge_route_allowlist_denies_non_allowed_routes() {
       }})()
     "#
     );
-    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(&script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["code"], "BRIDGE_ROUTE_DENIED");
     assert!(
         parsed["message"]
@@ -631,8 +639,8 @@ fn bridge_args_size_limit_returns_structured_error() {
         return JSON.stringify({ code, message });
       })()
     "#;
-    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
-    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
     assert_eq!(parsed["code"], "BRIDGE_CALL_FAILED");
     assert!(
         parsed["message"]

@@ -22,11 +22,11 @@ fn run_case(name: &str, config: Value) -> Value {
 fn run_case_with_wasi(name: &str, config: Value, fs: bool) -> Value {
     ensure_pnpm_cases_built();
     let bundle = fs::read_to_string(case_bundle_path(name))
-        .expect(&crate::i18n_fmt!("读取 case bundle 失败"));
+        .expect(&crate::tr!("failed-to-read-case-bundle"));
     let bundle_json =
-        serde_json::to_string(&bundle).expect(&crate::i18n_fmt!("序列化 bundle 失败"));
+        serde_json::to_string(&bundle).expect(&crate::tr!("failed-to-serialize-bundle"));
     let config_json =
-        serde_json::to_string(&config).expect(&crate::i18n_fmt!("序列化 config 失败"));
+        serde_json::to_string(&config).expect(&crate::tr!("failed-to-serialize-config"));
 
     let script = format!(
         r#"
@@ -65,9 +65,9 @@ fn run_case_with_wasi(name: &str, config: Value, fs: bool) -> Value {
     } else {
         run_async_script(&script)
     }
-    .expect(&crate::i18n_fmt!("执行 bundle case 失败"));
+    .expect(&crate::tr!("failed-to-execute-bundle-case"));
 
-    serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析 case 结果失败"))
+    serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-case-result"))
 }
 
 fn assert_case_ok(out: &Value) {
@@ -75,10 +75,10 @@ fn assert_case_ok(out: &Value) {
         let raw = serde_json::to_string(out).unwrap_or_else(|_| "<serialize-failed>".to_string());
         panic!(
             "{}",
-            crate::i18n_fmt!(
-                "case 执行失败: {0}\\nraw={1}",
-                out["__error"].as_str().unwrap_or("未知错误"),
-                raw
+            crate::tr!(
+                "case-execution-failed-raw",
+                arg0 = out["__error"].as_str().unwrap_or("未知错误"),
+                arg1 = raw
             )
         );
     }
@@ -87,10 +87,10 @@ fn assert_case_ok(out: &Value) {
 fn unique_temp_dir() -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect(&crate::i18n_fmt!("系统时间异常"))
+        .expect(&crate::tr!("system-time-anomaly"))
         .as_nanos();
     let dir = std::env::temp_dir().join(format!("rquickjs-case-{ts}"));
-    fs::create_dir_all(&dir).expect(&crate::i18n_fmt!("创建临时目录失败"));
+    fs::create_dir_all(&dir).expect(&crate::tr!("failed-to-create-temporary-directory"));
     dir
 }
 

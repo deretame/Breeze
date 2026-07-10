@@ -26,7 +26,7 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
     // 创建tar文件
     let file = File::create(dest_path)
         .await
-        .context(rquickjs_playground::i18n_fmt!("创建tar文件失败"))?;
+        .context(rquickjs_playground::tr!("failed-to-create-tar-file"))?;
     let mut builder = Builder::new(file);
 
     // 将comic_info_string.json添加到压缩包
@@ -43,8 +43,8 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
     builder
         .append_data(&mut header, "comic_info.json", comic_info_bytes)
         .await
-        .context(rquickjs_playground::i18n_fmt!(
-            "将comic_info_string.json添加到压缩包失败"
+        .context(rquickjs_playground::tr!(
+            "failed-to-add-comic_info_string-json-to-archive"
         ))?;
 
     // 将processed_comic_info_string.json添加到压缩包
@@ -65,8 +65,8 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
             processed_info_bytes,
         )
         .await
-        .context(rquickjs_playground::i18n_fmt!(
-            "将processed_comic_info_string.json添加到压缩包失败"
+        .context(rquickjs_playground::tr!(
+            "failed-to-add-processed_comic_info_string-json-to"
         ))?;
 
     // 处理每对图片路径
@@ -79,13 +79,13 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
 
         // 首先获取文件元数据以保留权限和修改时间
         let metadata = tokio::fs::metadata(original_path).await.with_context(|| {
-            rquickjs_playground::i18n_fmt!("获取{0}的元数据失败", original_path)
+            rquickjs_playground::tr!("failed-to-get-metadata-for", arg0 = original_path)
         })?;
 
         // 流式读取原始图片文件，避免一次性加载到内存
-        let file = File::open(original_path)
-            .await
-            .with_context(|| rquickjs_playground::i18n_fmt!("打开文件{0}失败", original_path))?;
+        let file = File::open(original_path).await.with_context(|| {
+            rquickjs_playground::tr!("failed-to-open-file", arg0 = original_path)
+        })?;
 
         // 使用打包路径将图片添加到压缩包
         let mut header = Header::new_gnu();
@@ -117,14 +117,16 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
         builder
             .append_data(&mut header, pack_path, file)
             .await
-            .with_context(|| rquickjs_playground::i18n_fmt!("将{0}添加到压缩包失败", pack_path))?;
+            .with_context(|| {
+                rquickjs_playground::tr!("failed-to-add-to-archive", arg0 = pack_path)
+            })?;
     }
 
     // 完成压缩包
     builder
         .finish()
         .await
-        .context(rquickjs_playground::i18n_fmt!("完成压缩包失败"))?;
+        .context(rquickjs_playground::tr!("failed-to-finish-archive"))?;
 
     Ok(())
 }
@@ -140,8 +142,8 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
         use zip::write::FileOptions;
 
         // 创建ZIP文件
-        let file =
-            File::create(&dest_path).context(rquickjs_playground::i18n_fmt!("创建ZIP文件失败"))?;
+        let file = File::create(&dest_path)
+            .context(rquickjs_playground::tr!("failed-to-create-zip-file"))?;
         // 优化点：BufWriter 依然保留，减少系统调用，但可以考虑调整 buffer 大小
         // 默认 8KB 是比较平衡的，如果要进一步降低系统调用频率，可以设为 64KB-128KB，但会增加少量堆内存
         let writer = BufWriter::with_capacity(64 * 1024, file);
@@ -155,19 +157,19 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
         // --- 写入元数据 JSON (这些可以用 Deflated，因为文本压缩率高，但为了统一逻辑也可以 Stored) ---
         // 文本很小，这里用 Stored 也没关系，或者单独对 JSON 用 Deflated
         zip.start_file("comic_info.json", base_options)
-            .context(rquickjs_playground::i18n_fmt!(
-                "创建comic_info.json条目失败"
+            .context(rquickjs_playground::tr!(
+                "failed-to-create-comic_info-json-entry"
             ))?;
         zip.write_all(pack_info_clone.comic_info_string.as_bytes())
-            .context(rquickjs_playground::i18n_fmt!("写入comic_info.json失败"))?;
+            .context(rquickjs_playground::tr!("failed-to-write-comic_info-json"))?;
 
         zip.start_file("processed_comic_info.json", base_options)
-            .context(rquickjs_playground::i18n_fmt!(
-                "创建processed_comic_info.json条目失败"
+            .context(rquickjs_playground::tr!(
+                "failed-to-create-processed_comic_info-json-entry"
             ))?;
         zip.write_all(pack_info_clone.processed_comic_info_string.as_bytes())
-            .context(rquickjs_playground::i18n_fmt!(
-                "写入processed_comic_info.json失败"
+            .context(rquickjs_playground::tr!(
+                "failed-to-write-processed_comic_info-json"
             ))?;
 
         // --- 处理图片 ---
@@ -183,37 +185,39 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
 
             // 打开源文件
             let mut source_file = File::open(original_path).with_context(|| {
-                rquickjs_playground::i18n_fmt!("打开文件{0}失败", original_path)
+                rquickjs_playground::tr!("failed-to-open-file", arg0 = original_path)
             })?;
 
             let current_options = base_options;
 
             zip.start_file(pack_path, current_options)
-                .with_context(|| rquickjs_playground::i18n_fmt!("创建ZIP条目{0}失败", pack_path))?;
+                .with_context(|| {
+                    rquickjs_playground::tr!("failed-to-create-zip-entry-2", arg0 = pack_path)
+                })?;
 
             // 流式拷贝
             loop {
                 let bytes_read = source_file.read(&mut buffer).with_context(|| {
-                    rquickjs_playground::i18n_fmt!("读取文件{0}失败", original_path)
+                    rquickjs_playground::tr!("failed-to-read-file-2", arg0 = original_path)
                 })?;
 
                 if bytes_read == 0 {
                     break;
                 }
                 zip.write_all(&buffer[..bytes_read]).with_context(|| {
-                    rquickjs_playground::i18n_fmt!("写入ZIP条目{0}失败", pack_path)
+                    rquickjs_playground::tr!("failed-to-write-zip-entry-2", arg0 = pack_path)
                 })?;
             }
         }
 
         zip.finish()
-            .context(rquickjs_playground::i18n_fmt!("完成ZIP文件失败"))?;
+            .context(rquickjs_playground::tr!("failed-to-finish-zip-file"))?;
 
         Ok::<(), anyhow::Error>(())
     })
     .await
-    .context(rquickjs_playground::i18n_fmt!("ZIP任务执行失败"))?
-    .context(rquickjs_playground::i18n_fmt!("ZIP压缩失败"))?;
+    .context(rquickjs_playground::tr!("zip-task-execution-failed"))?
+    .context(rquickjs_playground::tr!("zip-compression-failed"))?;
 
     Ok(())
 }
@@ -283,20 +287,22 @@ pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
         let mut compressed = Vec::new();
         let mut writer = CompressorWriter::new(&mut compressed, 4096, 11, 24);
 
-        writer
-            .write_all(&data)
-            .context(rquickjs_playground::i18n_fmt!("写入压缩流数据失败"))?;
+        writer.write_all(&data).context(rquickjs_playground::tr!(
+            "failed-to-write-compressed-stream-data"
+        ))?;
 
-        writer
-            .flush()
-            .context(rquickjs_playground::i18n_fmt!("刷写压缩流失败"))?;
+        writer.flush().context(rquickjs_playground::tr!(
+            "failed-to-flush-compressed-stream"
+        ))?;
 
         drop(writer);
 
         Ok(compressed)
     })
     .await
-    .context(rquickjs_playground::i18n_fmt!("压缩线程池调度失败"))? // 捕获 JoinError
+    .context(rquickjs_playground::tr!(
+        "compression-thread-pool-scheduling-failed"
+    ))? // 捕获 JoinError
 }
 
 pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Result<Vec<u8>> {
@@ -306,14 +312,16 @@ pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Result<Vec<u8>> {
 
         reader
             .read_to_end(&mut decompressed)
-            .context(rquickjs_playground::i18n_fmt!(
-                "Brotli 解压失败：数据可能损坏或非标准格式"
+            .context(rquickjs_playground::tr!(
+                "brotli-decompression-failed-data-may-be-corrupted"
             ))?;
 
         Ok(decompressed)
     })
     .await
-    .context(rquickjs_playground::i18n_fmt!("解压线程池调度失败"))? // 捕获 JoinError
+    .context(rquickjs_playground::tr!(
+        "decompression-thread-pool-scheduling-failed"
+    ))? // 捕获 JoinError
 }
 
 /// 使用 sevenz-rust 解压 7z 文件到目标目录。
@@ -323,13 +331,21 @@ pub async fn decompress_7z(archive_path: &str, dest_path: &str) -> Result<()> {
 
     tokio::task::spawn_blocking(move || {
         std::fs::create_dir_all(&dest_path).with_context(|| {
-            rquickjs_playground::i18n_fmt!("创建解压目标目录失败: {0}", dest_path)
+            rquickjs_playground::tr!(
+                "failed-to-create-decompression-target-directory",
+                arg0 = dest_path
+            )
         })?;
         sevenz_rust::decompress_file(&archive_path, &dest_path).map_err(|err| {
-            anyhow::anyhow!(rquickjs_playground::i18n_fmt!("7z 解压失败: {0}", err))
+            anyhow::anyhow!(rquickjs_playground::tr!(
+                "msg-7z-decompression-failed",
+                arg0 = err
+            ))
         })?;
         Ok(())
     })
     .await
-    .context(rquickjs_playground::i18n_fmt!("7z 解压任务执行失败"))?
+    .context(rquickjs_playground::tr!(
+        "7z-decompression-task-execution-failed"
+    ))?
 }

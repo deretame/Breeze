@@ -367,7 +367,7 @@ fn serialize_js_value<'js>(ctx: &Ctx<'js>, value: JsValue<'js>) -> Result<String
         return value
             .as_string()
             .and_then(|s| s.to_string().ok())
-            .ok_or_else(|| crate::i18n_fmt!("无法读取字符串").to_string());
+            .ok_or_else(|| crate::tr!("cannot-read-string").to_string());
     }
     match ctx.json_stringify(value) {
         Ok(Some(js_str)) => js_str.to_string().map_err(|e| format!("{e}")),
@@ -411,7 +411,7 @@ impl HostRuntime {
     ) -> Result<AsyncContext, String> {
         let context = AsyncContext::full(runtime)
             .await
-            .map_err(|e| crate::i18n_fmt!("初始化 AsyncContext 失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-initialize-asynccontext", e = e))?;
         let polyfill = polyfill_script(options);
         context
             .with(|ctx| {
@@ -420,7 +420,7 @@ impl HostRuntime {
                 Ok::<(), rquickjs::Error>(())
             })
             .await
-            .map_err(|e| crate::i18n_fmt!("初始化 Context 绑定失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-initialize-context-bindings", e = e))?;
         Ok(context)
     }
 
@@ -429,11 +429,11 @@ impl HostRuntime {
         options: WebRuntimeOptions,
     ) -> Result<Self, String> {
         if options.fs && !cfg!(feature = "host-fs") {
-            return Err(crate::i18n_fmt!("当前构建未启用 host-fs Cargo 特性").to_string());
+            return Err(crate::tr!("current-build-does-not-enable-the-host-fs-cargo").to_string());
         }
         crate::web_runtime::set_worker_http_config(crate::web_runtime::current_http_client_config());
         let runtime = AsyncRuntime::new()
-            .map_err(|e| crate::i18n_fmt!("初始化 AsyncRuntime 失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-initialize-asyncruntime", e = e))?;
         Self::install_promise_rejection_tracker(&runtime).await;
         let context = Self::init_context(&runtime, &cache_scope_id, options).await?;
 
@@ -463,7 +463,7 @@ impl HostRuntime {
                 .async_with(async |ctx| {
                     let value: JsValue = ctx
                         .eval(script_owned.as_str())
-                        .map_err(|e: rquickjs::Error| crate::i18n_fmt!("eval失败: {0}", e))?;
+                        .map_err(|e: rquickjs::Error| crate::tr!("eval-failed", e = e))?;
                     if let Some(promise) = value.as_promise() {
                         let r = promise.clone().into_future::<JsValue>().await;
                         match r {
@@ -497,7 +497,9 @@ impl HostRuntime {
         context: &AsyncContext,
     ) -> Result<(), String> {
         let Some(signal_tx) = self.worker_signal_tx.clone() else {
-            return Err(crate::i18n_fmt!("AsyncHostRuntime worker 信号通道不可用").to_string());
+            return Err(
+                crate::tr!("asynchostruntime-worker-signal-channel-unavailable").to_string(),
+            );
         };
         context
             .with(|ctx| {
@@ -511,7 +513,7 @@ impl HostRuntime {
                 Ok::<(), rquickjs::Error>(())
             })
             .await
-            .map_err(|e| crate::i18n_fmt!("安装 AsyncHostRuntime 上下文绑定失败: {0}", e))
+            .map_err(|e| crate::tr!("failed-to-install-asynchostruntime-context", e = e))
     }
 
     async fn ensure_once_context_pool_capacity(
@@ -540,7 +542,7 @@ impl HostRuntime {
                     Ok::<(), rquickjs::Error>(())
                 })
                 .await
-                .map_err(|e| crate::i18n_fmt!("安装一次性 Context 绑定失败: {0}", e))?;
+                .map_err(|e| crate::tr!("failed-to-install-one-shot-context-bindings", e = e))?;
             self.once_contexts.push(ContextSlot {
                 context,
                 busy_task_id: None,
@@ -588,9 +590,9 @@ impl HostRuntime {
             ContextRoute::Primary => self.submit_async_task(runtime_id, task_id, script),
             ContextRoute::Once(slot_index) => {
                 let Some(slot) = self.once_contexts.get(slot_index) else {
-                    return Err(crate::i18n_fmt!(
-                        "一次性 Context slot 不存在: {0}",
-                        slot_index
+                    return Err(crate::tr!(
+                        "one-shot-context-slot-does-not-exist",
+                        slot_index = slot_index
                     ));
                 };
                 let ctx = slot.context.clone();
@@ -600,11 +602,9 @@ impl HostRuntime {
                 tokio::spawn(async move {
                     let result: Result<String, String> = ctx
                         .async_with(async |ctx| {
-                            let value: JsValue =
-                                ctx.eval(script_owned.as_str())
-                                    .map_err(|e: rquickjs::Error| {
-                                        crate::i18n_fmt!("eval失败: {0}", e)
-                                    })?;
+                            let value: JsValue = ctx
+                                .eval(script_owned.as_str())
+                                .map_err(|e: rquickjs::Error| crate::tr!("eval-failed", e = e))?;
                             if let Some(promise) = value.as_promise() {
                                 let r = promise.clone().into_future::<JsValue>().await;
                                 match r {
@@ -774,7 +774,9 @@ impl HostRuntime {
             match self.runtime.execute_pending_job().await {
                 Ok(true) => executed += 1,
                 Ok(false) => break,
-                Err(err) => return Err(crate::i18n_fmt!("执行 JS event loop job 失败: {0}", err)),
+                Err(err) => {
+                    return Err(crate::tr!("failed-to-execute-js-event-loop-job", err = err));
+                }
             }
         }
         Ok(executed)
@@ -813,7 +815,7 @@ impl AsyncHostRuntime {
 
     fn build_inner(cache_scope_id: String, options: WebRuntimeOptions) -> Result<Self, String> {
         if options.fs && !cfg!(feature = "host-fs") {
-            return Err(crate::i18n_fmt!("当前构建未启用 host-fs Cargo 特性").to_string());
+            return Err(crate::tr!("current-build-does-not-enable-the-host-fs-cargo").to_string());
         }
         let cache_scope_id_for_worker = cache_scope_id.clone();
         let options_for_worker = options;
@@ -843,7 +845,7 @@ impl AsyncHostRuntime {
                 .enable_all()
                 .thread_name(format!("qjs-{cache_scope_id_for_worker}"))
                 .build()
-                .expect(&crate::i18n_fmt!("创建 per-instance tokio runtime 失败"));
+                .expect(&crate::tr!("failed-to-create-per-instance-tokio-runtime"));
 
             let _ = handle_tx.send(rt.handle().clone());
 
@@ -856,8 +858,10 @@ impl AsyncHostRuntime {
                 {
                     Ok(host) => host,
                     Err(err) => {
-                        let _ = init_tx
-                            .send(Err(crate::i18n_fmt!("初始化 HostRuntime 失败: {0}", err)));
+                        let _ = init_tx.send(Err(crate::tr!(
+                            "failed-to-initialize-hostruntime",
+                            err = err
+                        )));
                         return;
                     }
                 };
@@ -925,7 +929,7 @@ impl AsyncHostRuntime {
 
         let tokio_handle = handle_rx
             .recv()
-            .map_err(|_| crate::i18n_fmt!("获取 tokio handle 失败").to_string())?;
+            .map_err(|_| crate::tr!("failed-to-get-tokio-handle").to_string())?;
 
         match init_rx.recv() {
             Ok(Ok(())) => Ok(Self {
@@ -944,7 +948,7 @@ impl AsyncHostRuntime {
             }
             Err(_) => {
                 unregister_runtime_shared(runtime_id);
-                Err(crate::i18n_fmt!("初始化 HostRuntime 失败: worker 提前退出").to_string())
+                Err(crate::tr!("failed-to-initialize-hostruntime-worker-exited").to_string())
             }
         }
     }
@@ -954,18 +958,16 @@ impl AsyncHostRuntime {
         let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
 
         {
-            let mut guard = self
-                .states
-                .lock()
-                .map_err(|_| crate::i18n_fmt!("提交任务失败: 状态锁已损坏").to_string())?;
+            let mut guard = self.states.lock().map_err(|_| {
+                crate::tr!("failed-to-submit-task-state-lock-is-poisoned").to_string()
+            })?;
             guard.insert(id, TaskState::Pending);
         }
 
         {
-            let mut guard = self
-                .waiters
-                .lock()
-                .map_err(|_| crate::i18n_fmt!("提交任务失败: 等待器锁已损坏").to_string())?;
+            let mut guard = self.waiters.lock().map_err(|_| {
+                crate::tr!("failed-to-submit-task-waiter-lock-is-poisoned").to_string()
+            })?;
             guard.insert(id, result_tx);
         }
 
@@ -983,7 +985,7 @@ impl AsyncHostRuntime {
             if let Ok(mut guard) = self.waiters.lock() {
                 guard.remove(&id);
             }
-            return Err(crate::i18n_fmt!("提交任务失败: worker 不可用").to_string());
+            return Err(crate::tr!("failed-to-submit-task-worker-unavailable").to_string());
         }
 
         Ok(RuntimeTaskHandle {
@@ -1084,18 +1086,18 @@ impl AsyncHostRuntime {
         let (tx, rx) = oneshot::channel::<Result<(), String>>();
         self.tx
             .send(WorkerSignal::Command(AsyncCommand::RunGc { tx }))
-            .map_err(|_| crate::i18n_fmt!("触发 GC 失败: worker 不可用").to_string())?;
+            .map_err(|_| crate::tr!("failed-to-trigger-gc-worker-unavailable").to_string())?;
         rx.await
-            .map_err(|_| crate::i18n_fmt!("触发 GC 失败: worker 已关闭").to_string())?
+            .map_err(|_| crate::tr!("failed-to-trigger-gc-worker-closed").to_string())?
     }
 
     pub async fn bundle_load(&self, name: &str, source: &str) -> Result<(), String> {
         let _ = crate::source_map::extract_and_register("__default__", source);
         self.bundle_ensure_dispatcher().await?;
         let name_literal = serde_json::to_string(name)
-            .map_err(|e| crate::i18n_fmt!("序列化 bundle 名称失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-serialize-bundle-name", e = e))?;
         let source_literal = serde_json::to_string(source)
-            .map_err(|e| crate::i18n_fmt!("序列化 bundle 脚本失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-serialize-bundle-script", e = e))?;
 
         let script = format!(
             r#"
@@ -1119,10 +1121,10 @@ impl AsyncHostRuntime {
 
         let raw = self
             .spawn(script)
-            .map_err(|e| crate::i18n_fmt!("加载 bundle 失败: {0}", e))?
+            .map_err(|e| crate::tr!("failed-to-load-bundle", e = e))?
             .wait_async()
             .await
-            .map_err(|e| crate::i18n_fmt!("加载 bundle 失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-load-bundle", e = e))?;
         let _ = parse_ok_json_payload(&raw)?;
         Ok(())
     }
@@ -1138,7 +1140,7 @@ impl AsyncHostRuntime {
             .await?
             .wait_async()
             .await
-            .map_err(|e| crate::i18n_fmt!("执行 bundle 函数失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-execute-bundle-function", e = e))?;
         parse_ok_json_payload(&raw)
     }
 
@@ -1162,12 +1164,12 @@ impl AsyncHostRuntime {
     ) -> Result<RuntimeTaskHandle, String> {
         self.bundle_ensure_dispatcher().await?;
         if !args.is_array() {
-            return Err(crate::i18n_fmt!("调用参数必须是 JSON 数组").to_string());
+            return Err(crate::tr!("call-arguments-must-be-a-json-array").to_string());
         }
 
         let script = build_bundle_call_script(name, fn_path, args)?;
         self.spawn(script)
-            .map_err(|e| crate::i18n_fmt!("提交 bundle 调用任务失败: {0}", e))
+            .map_err(|e| crate::tr!("failed-to-submit-bundle-call-task", e = e))
     }
 
     pub async fn bundle_call_once(
@@ -1181,7 +1183,7 @@ impl AsyncHostRuntime {
             .await?
             .wait_async()
             .await
-            .map_err(|e| crate::i18n_fmt!("执行一次性 bundle 调用失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-execute-one-shot-bundle-call", e = e))?;
         parse_ok_json_payload(&raw)
     }
 
@@ -1204,20 +1206,20 @@ impl AsyncHostRuntime {
         args: &Value,
     ) -> Result<RuntimeTaskHandle, String> {
         if !args.is_array() {
-            return Err(crate::i18n_fmt!("调用参数必须是 JSON 数组").to_string());
+            return Err(crate::tr!("call-arguments-must-be-a-json-array").to_string());
         }
 
         let handle = self
             .spawn_once(source, fn_path, args)
             .await
-            .map_err(|e| crate::i18n_fmt!("执行一次性 bundle 调用失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-execute-one-shot-bundle-call", e = e))?;
         Ok(handle)
     }
 
     pub async fn bundle_unload(&self, name: &str) -> Result<bool, String> {
         self.bundle_ensure_dispatcher().await?;
         let name_literal = serde_json::to_string(name)
-            .map_err(|e| crate::i18n_fmt!("序列化 bundle 名称失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-serialize-bundle-name", e = e))?;
 
         let script = format!(
             r#"
@@ -1241,10 +1243,10 @@ impl AsyncHostRuntime {
 
         let raw = self
             .spawn(script)
-            .map_err(|e| crate::i18n_fmt!("卸载 bundle 失败: {0}", e))?
+            .map_err(|e| crate::tr!("failed-to-unload-bundle", e = e))?
             .wait_async()
             .await
-            .map_err(|e| crate::i18n_fmt!("卸载 bundle 失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-unload-bundle", e = e))?;
         let data = parse_ok_json_payload(&raw)?;
         Ok(data.as_bool().unwrap_or(false))
     }
@@ -1271,14 +1273,14 @@ impl AsyncHostRuntime {
 
         let raw = self
             .spawn(script)
-            .map_err(|e| crate::i18n_fmt!("读取 bundle 列表失败: {0}", e))?
+            .map_err(|e| crate::tr!("failed-to-read-bundle-list-2", err = e))?
             .wait_async()
             .await
-            .map_err(|e| crate::i18n_fmt!("读取 bundle 列表失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-read-bundle-list-2", err = e))?;
         let data = parse_ok_json_payload(&raw)?;
-        let arr = data
-            .as_array()
-            .ok_or_else(|| crate::i18n_fmt!("读取 bundle 列表失败: 返回值不是数组").to_string())?;
+        let arr = data.as_array().ok_or_else(|| {
+            crate::tr!("failed-to-read-bundle-list-return-value-is-not-an").to_string()
+        })?;
         Ok(arr
             .iter()
             .map(|v| v.as_str().unwrap_or_default().to_string())
@@ -1288,10 +1290,10 @@ impl AsyncHostRuntime {
     async fn bundle_ensure_dispatcher(&self) -> Result<(), String> {
         let raw = self
             .spawn(BUNDLE_DISPATCHER_JS)
-            .map_err(|e| crate::i18n_fmt!("初始化 bundle dispatcher 失败: {0}", e))?
+            .map_err(|e| crate::tr!("failed-to-initialize-bundle-dispatcher", e = e))?
             .wait_async()
             .await
-            .map_err(|e| crate::i18n_fmt!("初始化 bundle dispatcher 失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-initialize-bundle-dispatcher", e = e))?;
         let _ = parse_ok_json_payload(&raw)?;
         Ok(())
     }
@@ -1310,28 +1312,26 @@ impl AsyncHostRuntime {
             move || fast_u64_hash(&source_for_hash)
         })
         .await
-        .map_err(|e| crate::i18n_fmt!("计算一次性 bundle 哈希失败: {0}", e))?;
+        .map_err(|e| crate::tr!("failed-to-compute-one-shot-bundle-hash", e = e))?;
         let submission = OnceTaskSubmission {
             source: source_owned,
             source_hash,
             fn_path: fn_path.to_string(),
             args_json: serde_json::to_string(args)
-                .map_err(|e| crate::i18n_fmt!("序列化调用参数失败: {0}", e))?,
+                .map_err(|e| crate::tr!("failed-to-serialize-call-arguments", e = e))?,
         };
 
         {
-            let mut guard = self
-                .states
-                .lock()
-                .map_err(|_| crate::i18n_fmt!("提交任务失败: 状态锁已损坏").to_string())?;
+            let mut guard = self.states.lock().map_err(|_| {
+                crate::tr!("failed-to-submit-task-state-lock-is-poisoned").to_string()
+            })?;
             guard.insert(id, TaskState::Pending);
         }
 
         {
-            let mut guard = self
-                .waiters
-                .lock()
-                .map_err(|_| crate::i18n_fmt!("提交任务失败: 等待器锁已损坏").to_string())?;
+            let mut guard = self.waiters.lock().map_err(|_| {
+                crate::tr!("failed-to-submit-task-waiter-lock-is-poisoned").to_string()
+            })?;
             guard.insert(id, result_tx);
         }
 
@@ -1349,7 +1349,7 @@ impl AsyncHostRuntime {
             if let Ok(mut guard) = self.waiters.lock() {
                 guard.remove(&id);
             }
-            return Err(crate::i18n_fmt!("提交任务失败: worker 不可用").to_string());
+            return Err(crate::tr!("failed-to-submit-task-worker-unavailable").to_string());
         }
 
         Ok(RuntimeTaskHandle {
@@ -1368,7 +1368,7 @@ impl Drop for AsyncHostRuntime {
         fail_all_active_tasks(
             &self.states,
             &self.waiters,
-            crate::i18n_fmt!("等待任务结果失败: runtime 已关闭").to_string(),
+            crate::tr!("failed-to-wait-for-task-result-runtime-is-closed").to_string(),
         );
         let _ = self.tx.send(WorkerSignal::Command(AsyncCommand::Shutdown));
         unregister_runtime_shared(self.runtime_id);
@@ -1384,7 +1384,7 @@ impl RuntimeTaskHandle {
         let Some(rx) = self.rx.take() else {
             self.drop_cleanup = false;
             clear_task_state(&self.states, self.id);
-            return Err(crate::i18n_fmt!("等待任务结果失败: 任务句柄已失效").to_string());
+            return Err(crate::tr!("failed-to-wait-for-task-result-task-handle-is").to_string());
         };
 
         let out = match rx.blocking_recv() {
@@ -1394,7 +1394,7 @@ impl RuntimeTaskHandle {
             }
             Err(_) => {
                 clear_task_state(&self.states, self.id);
-                Err(crate::i18n_fmt!("等待任务结果失败: runtime 已关闭").to_string())
+                Err(crate::tr!("failed-to-wait-for-task-result-runtime-is-closed").to_string())
             }
         };
 
@@ -1406,7 +1406,7 @@ impl RuntimeTaskHandle {
         let Some(rx) = self.rx.take() else {
             self.drop_cleanup = false;
             clear_task_state(&self.states, self.id);
-            return Err(crate::i18n_fmt!("等待任务结果失败: 任务句柄已失效").to_string());
+            return Err(crate::tr!("failed-to-wait-for-task-result-task-handle-is").to_string());
         };
 
         let out = match rx.await {
@@ -1416,7 +1416,7 @@ impl RuntimeTaskHandle {
             }
             Err(_) => {
                 clear_task_state(&self.states, self.id);
-                Err(crate::i18n_fmt!("等待任务结果失败: runtime 已关闭").to_string())
+                Err(crate::tr!("failed-to-wait-for-task-result-runtime-is-closed").to_string())
             }
         };
 
@@ -1500,8 +1500,13 @@ where
     T: DeserializeOwned,
 {
     match raw {
-        Ok(payload) => serde_json::from_str(&payload)
-            .map_err(|e| crate::i18n_fmt!("解析 JSON 任务结果失败: {0}; payload={1}", e, payload)),
+        Ok(payload) => serde_json::from_str(&payload).map_err(|e| {
+            crate::tr!(
+                "failed-to-parse-json-task-result-payload",
+                e = e,
+                payload = payload
+            )
+        }),
         Err(err) => Err(err),
     }
 }
@@ -1514,19 +1519,20 @@ fn parse_bytes_payload(raw: Result<String, String>) -> Result<Vec<u8>, String> {
 fn bytes_from_value(data: &Value) -> Result<Vec<u8>, String> {
     if let Some(obj) = data.as_object() {
         if let Some(id) = obj.get("nativeBufferId").and_then(Value::as_u64) {
-            return native_buffer_take_raw(id)
-                .ok_or_else(|| crate::i18n_fmt!("native buffer 不存在或已被消费: {0}", id));
+            return native_buffer_take_raw(id).ok_or_else(|| {
+                crate::tr!("native-buffer-does-not-exist-or-has-been-consumed", id = id)
+            });
         }
     }
 
     if let Some(arr) = data.as_array() {
         let mut out = Vec::with_capacity(arr.len());
         for (idx, item) in arr.iter().enumerate() {
-            let n = item
-                .as_u64()
-                .ok_or_else(|| crate::i18n_fmt!("字节数组第 {0} 项不是无符号整数", idx))?;
+            let n = item.as_u64().ok_or_else(|| {
+                crate::tr!("byte-array-item-is-not-an-unsigned-integer", idx = idx)
+            })?;
             if n > 255 {
-                return Err(crate::i18n_fmt!("字节数组第 {0} 项超出范围: {1}", idx, n));
+                return Err(crate::tr!("byte-array-item-out-of-range", idx = idx, n = n));
             }
             out.push(n as u8);
         }
@@ -1550,13 +1556,10 @@ fn bytes_from_value(data: &Value) -> Result<Vec<u8>, String> {
         };
         return base64::engine::general_purpose::STANDARD
             .decode(b64)
-            .map_err(|e| crate::i18n_fmt!("无法将字符串解码为 base64 字节: {0}", e));
+            .map_err(|e| crate::tr!("cannot-decode-string-as-base64-bytes", e = e));
     }
 
-    Err(
-        crate::i18n_fmt!("不支持的二进制返回类型：期望 nativeBufferId / number[] / base64字符串")
-            .to_string(),
-    )
+    Err(crate::tr!("unsupported-binary-return-type-expected").to_string())
 }
 
 fn build_bundle_call_once_script(
@@ -1566,16 +1569,16 @@ fn build_bundle_call_once_script(
     args_json: &str,
 ) -> Result<String, String> {
     let name_literal = serde_json::to_string(bundle_name)
-        .map_err(|e| crate::i18n_fmt!("序列化 bundle 名称失败: {0}", e))?;
+        .map_err(|e| crate::tr!("failed-to-serialize-bundle-name", e = e))?;
     let source_clause = if let Some(source) = source {
         let source_literal = serde_json::to_string(source)
-            .map_err(|e| crate::i18n_fmt!("序列化 bundle 脚本失败: {0}", e))?;
+            .map_err(|e| crate::tr!("failed-to-serialize-bundle-script", e = e))?;
         format!("host.loadBundle({name_literal}, {source_literal});")
     } else {
         String::new()
     };
     let fn_path_literal = serde_json::to_string(fn_path)
-        .map_err(|e| crate::i18n_fmt!("序列化函数路径失败: {0}", e))?;
+        .map_err(|e| crate::tr!("failed-to-serialize-function-path", e = e))?;
 
     Ok(format!(
         r#"
@@ -1656,21 +1659,22 @@ fn fast_u64_hash(text: &str) -> u64 {
 
 fn parse_ok_json_payload(raw: &str) -> Result<Value, String> {
     let payload: Value = serde_json::from_str(raw)
-        .map_err(|e| crate::i18n_fmt!("解析 JS 返回 JSON 失败: {0}", e))?;
+        .map_err(|e| crate::tr!("failed-to-parse-js-return-json", e = e))?;
     if payload.get("ok").and_then(Value::as_bool) == Some(true) {
         Ok(payload.get("data").cloned().unwrap_or(Value::Null))
     } else {
         let raw_error = payload
             .get("error")
             .and_then(Value::as_str)
-            .unwrap_or(crate::i18n!("执行失败"));
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| crate::tr!("execution-failed"));
         let raw_stack = payload.get("stack").and_then(Value::as_str).unwrap_or("");
         let debug_scope = payload
             .get("debug_scope")
             .and_then(Value::as_str)
             .unwrap_or("");
         Err(format_js_error_with_stack(
-            raw_error,
+            &raw_error,
             raw_stack,
             debug_scope,
         ))
@@ -1680,7 +1684,7 @@ fn parse_ok_json_payload(raw: &str) -> Result<Value, String> {
 fn format_js_error(raw: &str) -> String {
     let trimmed = raw.trim();
     if trimmed.is_empty() {
-        return crate::i18n_fmt!("执行失败").to_string();
+        return crate::tr!("execution-failed").to_string();
     }
 
     if js_error_stack_enabled() {
@@ -1728,11 +1732,11 @@ fn format_js_error_with_stack(raw_error: &str, raw_stack: &str, debug_scope: &st
 
 fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<String, String> {
     let name_literal = serde_json::to_string(name)
-        .map_err(|e| crate::i18n_fmt!("序列化 bundle 名称失败: {0}", e))?;
+        .map_err(|e| crate::tr!("failed-to-serialize-bundle-name", e = e))?;
     let fn_path_literal = serde_json::to_string(fn_path)
-        .map_err(|e| crate::i18n_fmt!("序列化函数路径失败: {0}", e))?;
-    let args_literal =
-        serde_json::to_string(args).map_err(|e| crate::i18n_fmt!("序列化调用参数失败: {0}", e))?;
+        .map_err(|e| crate::tr!("failed-to-serialize-function-path", e = e))?;
+    let args_literal = serde_json::to_string(args)
+        .map_err(|e| crate::tr!("failed-to-serialize-call-arguments", e = e))?;
 
     Ok(format!(
         r#"
@@ -1835,7 +1839,7 @@ async fn install_async_runtime_bindings(
 ) -> Result<(), String> {
     host.ensure_async_runtime_bindings_on_context(&host.context)
         .await
-        .map_err(|e| crate::i18n_fmt!("安装 AsyncHostRuntime 绑定失败: {0}", e))
+        .map_err(|e| crate::tr!("failed-to-install-asynchostruntime-bindings", e = e))
 }
 
 fn install_evented_host_bindings_worker(
@@ -2160,7 +2164,7 @@ fn read_done_outcome(
     id: u64,
 ) -> Result<String, String> {
     let Ok(guard) = states.lock() else {
-        return Err(crate::i18n_fmt!("读取任务结果失败: 状态锁已损坏").to_string());
+        return Err(crate::tr!("failed-to-read-task-result-state-lock-is-poisoned").to_string());
     };
 
     match guard.get(&id) {
@@ -2168,9 +2172,9 @@ fn read_done_outcome(
         Some(TaskState::Done(Err(err))) => Err(err.clone()),
         Some(TaskState::Dropped) => Err("task dropped".to_string()),
         Some(TaskState::Pending) | Some(TaskState::Running) => {
-            Err(crate::i18n_fmt!("读取任务结果失败: 任务尚未完成").to_string())
+            Err(crate::tr!("failed-to-read-task-result-task-not-yet-completed").to_string())
         }
-        None => Err(crate::i18n_fmt!("读取任务结果失败: 任务不存在").to_string()),
+        None => Err(crate::tr!("failed-to-read-task-result-task-does-not-exist").to_string()),
     }
 }
 

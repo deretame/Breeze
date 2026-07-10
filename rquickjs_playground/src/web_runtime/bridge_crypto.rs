@@ -190,11 +190,11 @@ pub fn dispatch_crypto_route(name: &str, args: &[Value]) -> AnyResult<Value> {
             let key_raw = require_str_arg(args, 1, "key")?;
             let payload = BASE64_STANDARD
                 .decode(payload_b64.as_bytes())
-                .context(crate::i18n_fmt!("base64 解码失败"))?;
+                .context(crate::tr!("base64-decode-failed"))?;
             let key = key_raw.into_bytes();
             let plain = crypto_ops::aes_ecb_decrypt_pkcs7(&payload, &key)?;
-            let text =
-                String::from_utf8(plain).context(crate::i18n_fmt!("解密结果不是有效 UTF-8"))?;
+            let text = String::from_utf8(plain)
+                .context(crate::tr!("decryption-result-is-not-valid-utf-8"))?;
             Ok(json!(text))
         }
         "crypto.aes_cbc_pkcs7_encrypt_b64" => {
@@ -203,7 +203,7 @@ pub fn dispatch_crypto_route(name: &str, args: &[Value]) -> AnyResult<Value> {
             let iv_raw = require_str_arg(args, 2, "iv")?;
             let plain = BASE64_STANDARD
                 .decode(plain_b64.as_bytes())
-                .context(crate::i18n_fmt!("base64 解码失败"))?;
+                .context(crate::tr!("base64-decode-failed"))?;
             let key = key_raw.into_bytes();
             let iv = iv_raw.into_bytes();
             let out = crypto_ops::aes_cbc_pkcs7_encrypt(&plain, &key, &iv)?;
@@ -215,7 +215,7 @@ pub fn dispatch_crypto_route(name: &str, args: &[Value]) -> AnyResult<Value> {
             let iv_raw = require_str_arg(args, 2, "iv")?;
             let payload = BASE64_STANDARD
                 .decode(payload_b64.as_bytes())
-                .context(crate::i18n_fmt!("base64 解码失败"))?;
+                .context(crate::tr!("base64-decode-failed"))?;
             let key = key_raw.into_bytes();
             let iv = iv_raw.into_bytes();
             let plain = crypto_ops::aes_cbc_pkcs7_decrypt(&payload, &key, &iv)?;
@@ -228,14 +228,14 @@ pub fn dispatch_crypto_route(name: &str, args: &[Value]) -> AnyResult<Value> {
             let aad_b64 = args.get(3).and_then(Value::as_str).map(ToString::to_string);
             let plain = BASE64_STANDARD
                 .decode(plain_b64.as_bytes())
-                .context(crate::i18n_fmt!("base64 解码失败"))?;
+                .context(crate::tr!("base64-decode-failed"))?;
             let key = key_raw.into_bytes();
             let nonce = nonce_raw.into_bytes();
             let aad = aad_b64
                 .map(|raw| {
                     BASE64_STANDARD
                         .decode(raw.as_bytes())
-                        .context(crate::i18n_fmt!("base64 解码失败"))
+                        .context(crate::tr!("base64-decode-failed"))
                 })
                 .transpose()?;
             let out = crypto_ops::aes_gcm_encrypt(&plain, &key, &nonce, aad.as_deref())?;
@@ -248,14 +248,14 @@ pub fn dispatch_crypto_route(name: &str, args: &[Value]) -> AnyResult<Value> {
             let aad_b64 = args.get(3).and_then(Value::as_str).map(ToString::to_string);
             let payload = BASE64_STANDARD
                 .decode(payload_b64.as_bytes())
-                .context(crate::i18n_fmt!("base64 解码失败"))?;
+                .context(crate::tr!("base64-decode-failed"))?;
             let key = key_raw.into_bytes();
             let nonce = nonce_raw.into_bytes();
             let aad = aad_b64
                 .map(|raw| {
                     BASE64_STANDARD
                         .decode(raw.as_bytes())
-                        .context(crate::i18n_fmt!("base64 解码失败"))
+                        .context(crate::tr!("base64-decode-failed"))
                 })
                 .transpose()?;
             let out = crypto_ops::aes_gcm_decrypt(&payload, &key, &nonce, aad.as_deref())?;
@@ -263,34 +263,39 @@ pub fn dispatch_crypto_route(name: &str, args: &[Value]) -> AnyResult<Value> {
         }
         _ => panic!(
             "{}",
-            crate::i18n_fmt!("dispatch_crypto_route 被传入非 crypto 路由: {0}", name)
+            crate::tr!(
+                "dispatch_crypto_route-received-a-non-crypto-route",
+                name = name
+            )
         ),
     }
 }
 
 fn require_arg<'a>(args: &'a [Value], index: usize, name: &str) -> AnyResult<&'a Value> {
     args.get(index)
-        .ok_or_else(|| anyhow!(crate::i18n_fmt!("缺少参数: {0}", name)))
+        .ok_or_else(|| anyhow!(crate::tr!("missing-argument", name = name)))
 }
 
 fn require_str_arg(args: &[Value], index: usize, name: &str) -> AnyResult<String> {
     require_arg(args, index, name)?
         .as_str()
         .map(ToString::to_string)
-        .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 {0} 必须是字符串", name)))
+        .ok_or_else(|| anyhow!(crate::tr!("argument-must-be-a-string", name = name)))
 }
 
 fn parse_u8_json_value(value: &Value) -> AnyResult<Vec<u8>> {
     let arr = value
         .as_array()
-        .ok_or_else(|| anyhow!(crate::i18n_fmt!("数据必须是字节数组")))?;
+        .ok_or_else(|| anyhow!(crate::tr!("data-must-be-a-byte-array")))?;
     let mut out = Vec::with_capacity(arr.len());
     for item in arr {
         let n = item
             .as_u64()
-            .ok_or_else(|| anyhow!(crate::i18n_fmt!("字节数组元素必须是整数")))?;
+            .ok_or_else(|| anyhow!(crate::tr!("byte-array-elements-must-be-integers")))?;
         if n > 255 {
-            return Err(anyhow!(crate::i18n_fmt!("字节数组元素必须在 0-255 范围")));
+            return Err(anyhow!(crate::tr!(
+                "byte-array-elements-must-be-in-the-0-255-range"
+            )));
         }
         out.push(n as u8);
     }

@@ -227,8 +227,8 @@ Future<void> setSocks5Proxy({required String proxy}) =>
 void setTlsVerifyEnabled({required bool enabled}) =>
     RustLib.instance.api.crateApiQjsSetTlsVerifyEnabled(enabled: enabled);
 
-/// 设置 QuickJS 运行时错误消息语言（zh/en），默认 zh
-/// Set the QuickJS runtime error-message language (zh/en), defaults to zh.
+/// 设置 QuickJS 运行时错误消息语言（BCP-47 locale），默认 zh-CN
+/// Set the QuickJS runtime error-message language (BCP-47 locale), defaults to zh-CN.
 void setQjsErrorMessageLanguage({required String lang}) =>
     RustLib.instance.api.crateApiQjsSetQjsErrorMessageLanguage(lang: lang);
 

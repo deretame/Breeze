@@ -77,9 +77,9 @@ class I18nHelper {
 
   /// 同步 Rust 侧 QuickJS 错误消息语言。
   ///
-  /// 只有中文（locale 名称包含 `zh`）时使用 `zh`，其他所有语言统一回退到 `en`。
+  /// 传递 BCP-47 语言标签（如 `zh-CN`、`en-US`）。
   static void setRustErrorLanguage(AppLocale locale) {
-    final lang = locale.name.toLowerCase().contains('zh') ? 'zh' : 'en';
-    setQjsErrorMessageLanguage(lang: lang);
+    final flutterLocale = toFlutterLocale(locale);
+    setQjsErrorMessageLanguage(lang: flutterLocale.toLanguageTag());
   }
 }

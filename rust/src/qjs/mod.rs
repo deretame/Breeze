@@ -58,23 +58,23 @@ struct HostCacheEntry {
 
 fn opencc_convert_by_config(text: &str, config_name: &str) -> Result<String> {
     if !config_name.ends_with(".json") {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "opencc config 必须是 OpenCC 配置文件名，例如 t2s.json"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "opencc-config-must-be-an-opencc-config-file-name"
         )));
     }
 
     let builtin = BuiltinConfig::from_filename(config_name).map_err(|err| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "不支持的 OpenCC 转换配置: {0} ({1})",
-            config_name,
-            err
+        anyhow!(rquickjs_playground::tr!(
+            "unsupported-opencc-conversion-config",
+            config_name = config_name,
+            err = err
         ))
     })?;
 
     let converter = OpenCC::from_config(builtin).map_err(|err| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "初始化 OpenCC 失败: {0}",
-            err
+        anyhow!(rquickjs_playground::tr!(
+            "failed-to-initialize-opencc",
+            err = err
         ))
     })?;
 
@@ -83,19 +83,20 @@ fn opencc_convert_by_config(text: &str, config_name: &str) -> Result<String> {
 
 fn opencc_convert_with_json_arg(arg: &Value) -> Result<String> {
     let obj = arg.as_object().ok_or_else(|| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "opencc 参数必须是 JSON 对象"
+        anyhow!(rquickjs_playground::tr!(
+            "opencc-argument-must-be-a-json-object"
         ))
     })?;
 
-    let text = obj
-        .get("text")
-        .and_then(Value::as_str)
-        .ok_or_else(|| anyhow!(rquickjs_playground::i18n_fmt!("opencc 参数缺少 text 字段")))?;
+    let text = obj.get("text").and_then(Value::as_str).ok_or_else(|| {
+        anyhow!(rquickjs_playground::tr!(
+            "opencc-argument-missing-text-field"
+        ))
+    })?;
 
     let config_name = obj.get("config").and_then(Value::as_str).ok_or_else(|| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "opencc 参数缺少 config 字段，例如 t2s.json"
+        anyhow!(rquickjs_playground::tr!(
+            "opencc-argument-missing-config-field-e-g-t2s-json"
         ))
     })?;
 
@@ -238,21 +239,21 @@ impl QjsRuntimeBuilder {
     pub async fn build(self) -> Result<()> {
         let runtime_name = self.runtime_name.trim().to_string();
         if runtime_name.is_empty() {
-            return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-                "runtime_name 不能为空"
+            return Err(anyhow!(rquickjs_playground::tr!(
+                "runtime_name-cannot-be-empty"
             )));
         }
 
         if let Some(bundle) = self.bundle {
             let bundle_name = bundle.bundle_name.trim().to_string();
             if bundle_name.is_empty() {
-                return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-                    "bundle_name 不能为空"
+                return Err(anyhow!(rquickjs_playground::tr!(
+                    "bundle_name-cannot-be-empty"
                 )));
             }
             if bundle.bundle_js.trim().is_empty() {
-                return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-                    "bundle_js 不能为空"
+                return Err(anyhow!(rquickjs_playground::tr!(
+                    "bundle_js-cannot-be-empty"
                 )));
             }
             return create_qjs_runtime_with_bundle_and_options(
@@ -320,8 +321,8 @@ fn new_host_cache_entry(value: Value) -> HostCacheEntry {
 
 fn handle_cache_get(runtime: &str, args: &[Value]) -> Result<Value> {
     let key = args.first().and_then(Value::as_str).ok_or_else(|| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "cache.get 参数无效: 缺少 key"
+        anyhow!(rquickjs_playground::tr!(
+            "cache-get-argument-invalid-missing-key"
         ))
     })?;
     let fallback = args.get(1).cloned().unwrap_or(Value::Null);
@@ -336,19 +337,19 @@ fn handle_cache_get(runtime: &str, args: &[Value]) -> Result<Value> {
 
 fn handle_cache_set(runtime: &str, args: &[Value]) -> Result<Value> {
     let key = args.first().and_then(Value::as_str).ok_or_else(|| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "cache.set 参数无效: 缺少 key"
+        anyhow!(rquickjs_playground::tr!(
+            "cache-set-argument-invalid-missing-key"
         ))
     })?;
     let value = args.get(1).cloned().unwrap_or(Value::Null);
     if cache_value_size_exceeds_limit(&value) {
         tracing::warn!(
             "{}",
-            rquickjs_playground::i18n_fmt!(
-                "cache.set 跳过超限写入: runtime={0}, key={1}, max_bytes={2}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
+            rquickjs_playground::tr!(
+                "cache-set-skipped-oversized-write-runtime-key",
+                arg0 = runtime,
+                arg1 = key,
+                arg2 = HOST_CACHE_VALUE_MAX_BYTES
             )
         );
         return Ok(json!(false));
@@ -360,19 +361,19 @@ fn handle_cache_set(runtime: &str, args: &[Value]) -> Result<Value> {
 
 fn handle_cache_set_if_absent(runtime: &str, args: &[Value]) -> Result<Value> {
     let key = args.first().and_then(Value::as_str).ok_or_else(|| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "cache.set_if_absent 参数无效: 缺少 key"
+        anyhow!(rquickjs_playground::tr!(
+            "cache-set_if_absent-argument-invalid-missing-key"
         ))
     })?;
     let value = args.get(1).cloned().unwrap_or(Value::Null);
     if cache_value_size_exceeds_limit(&value) {
         tracing::warn!(
             "{}",
-            rquickjs_playground::i18n_fmt!(
-                "cache.set_if_absent 跳过超限写入: runtime={0}, key={1}, max_bytes={2}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
+            rquickjs_playground::tr!(
+                "cache-set_if_absent-skipped-oversized-write",
+                arg0 = runtime,
+                arg1 = key,
+                arg2 = HOST_CACHE_VALUE_MAX_BYTES
             )
         );
         return Ok(json!(false));
@@ -391,8 +392,8 @@ fn handle_cache_set_if_absent(runtime: &str, args: &[Value]) -> Result<Value> {
 
 fn handle_cache_compare_and_set(runtime: &str, args: &[Value]) -> Result<Value> {
     let key = args.first().and_then(Value::as_str).ok_or_else(|| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "cache.compare_and_set 参数无效: 缺少 key"
+        anyhow!(rquickjs_playground::tr!(
+            "cache-compare_and_set-argument-invalid-missing-key"
         ))
     })?;
     let expected = args.get(1).cloned().unwrap_or(Value::Null);
@@ -400,11 +401,11 @@ fn handle_cache_compare_and_set(runtime: &str, args: &[Value]) -> Result<Value> 
     if cache_value_size_exceeds_limit(&next) {
         tracing::warn!(
             "{}",
-            rquickjs_playground::i18n_fmt!(
-                "cache.compare_and_set 跳过超限写入: runtime={0}, key={1}, max_bytes={2}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
+            rquickjs_playground::tr!(
+                "cache-compare_and_set-skipped-oversized-write",
+                arg0 = runtime,
+                arg1 = key,
+                arg2 = HOST_CACHE_VALUE_MAX_BYTES
             )
         );
         return Ok(json!(false));
@@ -611,7 +612,7 @@ fn spawn_tracked_task_waiter(
                 Ok(raw) => parse_ok_json_payload(&raw)
                     .and_then(|payload| {
                         serde_json::to_string(&payload)
-                            .context(rquickjs_playground::i18n_fmt!("序列化调用结果失败"))
+                            .context(rquickjs_playground::tr!("failed-to-serialize-call-result"))
                     })
                     .map(TrackedQjsTaskOutput::Json),
                 Err(err) => Err(anyhow!(err)),
@@ -637,8 +638,9 @@ fn spawn_tracked_bundle_once_task_waiter(
             TrackedQjsTaskKind::Call => match handle.wait_async().await {
                 Ok(raw) => parse_ok_json_payload(&raw)
                     .and_then(|payload| {
-                        serde_json::to_string(&payload)
-                            .context(rquickjs_playground::i18n_fmt!("序列化一次性调用结果失败"))
+                        serde_json::to_string(&payload).context(rquickjs_playground::tr!(
+                            "failed-to-serialize-one-shot-call-result"
+                        ))
                     })
                     .map(TrackedQjsTaskOutput::Json),
                 Err(err) => Err(anyhow!(err)),
@@ -666,15 +668,15 @@ async fn create_qjs_runtime_with_options(
             return "ok";
     })()"#;
     let task = runtime.spawn(init_script).map_err(|err| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "提交 QJS 初始化任务失败: {0}",
-            err
+        anyhow!(rquickjs_playground::tr!(
+            "failed-to-submit-qjs-initialization-task",
+            err = err
         ))
     })?;
     task.wait_async().await.map_err(|err| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "等待 QJS 初始化任务失败: {0}",
-            err
+        anyhow!(rquickjs_playground::tr!(
+            "failed-to-wait-for-qjs-initialization-task",
+            err = err
         ))
     })?;
     Ok(runtime)
@@ -689,11 +691,11 @@ fn ensure_runtime_options(
     if actual == expected {
         return Ok(());
     }
-    Err(anyhow!(rquickjs_playground::i18n_fmt!(
-        "runtime '{0}' 已存在且配置不匹配 (existing: fs={1}; requested: fs={2})",
-        runtime_name,
-        actual.fs,
-        expected.fs
+    Err(anyhow!(rquickjs_playground::tr!(
+        "runtime-already-exists-with-mismatched-config",
+        runtime_name = runtime_name,
+        arg1 = actual.fs,
+        arg2 = expected.fs
     )))
 }
 
@@ -702,8 +704,8 @@ async fn qjs_runtime_with_options(
     options: WebRuntimeOptions,
 ) -> Result<Arc<AsyncHostRuntime>> {
     if runtime_name.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "runtime_name 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "runtime_name-cannot-be-empty"
         )));
     }
 
@@ -732,11 +734,11 @@ async fn qjs_runtime_with_options(
 
     tracing::info!(
         "{}",
-        rquickjs_playground::i18n_fmt!(
-            "新建了一个 qjs 实例: {0} (fs={1})，thread id : {2}",
-            runtime_name,
-            options.fs,
-            format!("{:?}", std::thread::current().id())
+        rquickjs_playground::tr!(
+            "created-a-new-qjs-instance-fs-thread-id",
+            runtime_name = runtime_name,
+            arg1 = options.fs,
+            arg2 = format!("{:?}", std::thread::current().id())
         )
     );
     Ok(new_runtime)
@@ -744,8 +746,8 @@ async fn qjs_runtime_with_options(
 
 async fn qjs_runtime(runtime_name: &str) -> Result<Arc<AsyncHostRuntime>> {
     if runtime_name.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "runtime_name 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "runtime_name-cannot-be-empty"
         )));
     }
 
@@ -766,18 +768,18 @@ async fn create_qjs_runtime_with_bundle_and_options(
     options: WebRuntimeOptions,
 ) -> Result<()> {
     if runtime_name.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "runtime_name 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "runtime_name-cannot-be-empty"
         )));
     }
     if bundle_name.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "bundle_name 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "bundle_name-cannot-be-empty"
         )));
     }
     if bundle_js.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "bundle_js 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "bundle_js-cannot-be-empty"
         )));
     }
 
@@ -790,10 +792,10 @@ async fn create_qjs_runtime_with_bundle_and_options(
             replace_bundle_inner(existing_runtime, bundle_name, bundle_js).await?;
             tracing::info!(
                 "{}",
-                rquickjs_playground::i18n_fmt!(
-                    "复用 qjs 实例并替换 bundle: {0} -> {1}",
-                    runtime_name,
-                    bundle_name
+                rquickjs_playground::tr!(
+                    "reused-qjs-instance-and-replaced-bundle",
+                    runtime_name = runtime_name,
+                    bundle_name = bundle_name
                 )
             );
             return Ok(());
@@ -808,19 +810,20 @@ async fn create_qjs_runtime_with_bundle_and_options(
 
     tracing::info!(
         "{}",
-        rquickjs_playground::i18n_fmt!(
-            "新建 qjs 实例并加载 bundle: {0} -> {1} (fs={2})",
-            runtime_name,
-            bundle_name,
-            options.fs
+        rquickjs_playground::tr!(
+            "created-new-qjs-instance-and-loaded-bundle-fs",
+            runtime_name = runtime_name,
+            bundle_name = bundle_name,
+            arg2 = options.fs
         )
     );
     Ok(())
 }
 
 fn parse_args_array(args_json: &str) -> Result<Value> {
-    let args: Value = serde_json::from_str(args_json)
-        .context(rquickjs_playground::i18n_fmt!("调用参数不是合法 JSON"))?;
+    let args: Value = serde_json::from_str(args_json).context(rquickjs_playground::tr!(
+        "call-arguments-are-not-valid-json"
+    ))?;
     Ok(match args {
         Value::Array(_) => args,
         Value::Null => Value::Array(Vec::new()),
@@ -843,32 +846,36 @@ fn is_cancelled_error_text(message: &str) -> bool {
         || lower.contains("interrupted")
         || lower.contains("request aborted")
         || lower.contains("operation was aborted")
-        || message.contains(rquickjs_playground::i18n!("已取消"))
-        || message.contains(rquickjs_playground::i18n!("被取消"))
-        || message.contains(rquickjs_playground::i18n!("任务取消"))
-        || message.contains(rquickjs_playground::i18n!("用户取消"))
+        || message.contains(&rquickjs_playground::tr!("canceled"))
+        || message.contains(&rquickjs_playground::tr!("cancelled"))
+        || message.contains(&rquickjs_playground::tr!("task-cancelled"))
+        || message.contains(&rquickjs_playground::tr!("user-cancelled"))
 }
 
 fn parse_ok_json_payload(raw: &str) -> Result<Value> {
     let payload: Value = serde_json::from_str(raw)
-        .context(rquickjs_playground::i18n_fmt!("解析 JS 返回 JSON 失败"))?;
+        .context(rquickjs_playground::tr!("failed-to-parse-js-return-json-2"))?;
     if payload.get("ok").and_then(Value::as_bool) == Some(true) {
         Ok(payload.get("data").cloned().unwrap_or(Value::Null))
     } else {
         let error_message = payload
             .get("error")
             .and_then(Value::as_str)
-            .unwrap_or(rquickjs_playground::i18n!("执行失败"));
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| rquickjs_playground::tr!("execution-failed"));
         let error_stack = payload.get("stack").and_then(Value::as_str).unwrap_or("");
         let debug_scope = payload
             .get("debug_scope")
             .and_then(Value::as_str)
             .unwrap_or("");
-        let error_message = format_qjs_error_message(error_message, error_stack, debug_scope);
+        let error_message = format_qjs_error_message(&error_message, error_stack, debug_scope);
         if is_cancelled_error_text(&error_message) {
             tracing::info!(
                 "{}",
-                rquickjs_playground::i18n_fmt!("QJS 任务被取消(解析返回体): {0}", error_message)
+                rquickjs_playground::tr!(
+                    "qjs-task-cancelled-parsing-return-body",
+                    error_message = error_message
+                )
             );
             return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
         }
@@ -879,7 +886,7 @@ fn parse_ok_json_payload(raw: &str) -> Result<Value> {
 fn simplify_stack_message(raw: &str) -> String {
     let trimmed = raw.trim();
     if trimmed.is_empty() {
-        return rquickjs_playground::i18n_fmt!("执行失败").to_string();
+        return rquickjs_playground::tr!("execution-failed").to_string();
     }
 
     for line in trimmed.lines() {
@@ -953,9 +960,9 @@ fn cancel_runtime_tasks_many(runtime: &AsyncHostRuntime, task_ids: &[u64]) -> bo
 
 async fn load_bundle_inner(runtime: &AsyncHostRuntime, name: &str, bundle_js: &str) -> Result<()> {
     runtime.bundle_load(name, bundle_js).await.map_err(|err| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "加载 QJS bundle 失败: {0}",
-            err
+        anyhow!(rquickjs_playground::tr!(
+            "failed-to-load-qjs-bundle",
+            err = err
         ))
     })
 }
@@ -966,18 +973,18 @@ async fn replace_bundle_inner(
     bundle_js: &str,
 ) -> Result<()> {
     let names = runtime.bundle_list().await.map_err(|err| {
-        anyhow!(rquickjs_playground::i18n_fmt!(
-            "读取 bundle 列表失败: {0}",
-            err
+        anyhow!(rquickjs_playground::tr!(
+            "failed-to-read-bundle-list-2",
+            err = err
         ))
     })?;
 
     for existing in names {
         runtime.bundle_unload(&existing).await.map_err(|err| {
-            anyhow!(rquickjs_playground::i18n_fmt!(
-                "卸载旧 bundle 失败({0}): {1}",
-                existing,
-                err
+            anyhow!(rquickjs_playground::tr!(
+                "failed-to-unload-old-bundle",
+                existing = existing,
+                err = err
             ))
         })?;
     }
@@ -1010,7 +1017,10 @@ async fn call_loaded_bundle_inner(
             if is_cancelled_error_text(&message) {
                 tracing::info!(
                     "{}",
-                    rquickjs_playground::i18n_fmt!("QJS 任务被取消(等待结果): {0}", message)
+                    rquickjs_playground::tr!(
+                        "qjs-task-cancelled-waiting-for-result",
+                        message = message
+                    )
                 );
                 return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
             }
@@ -1064,8 +1074,8 @@ async fn call_bundle_once_start_by_json(
     kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     if bundle_js.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "bundle_js 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "bundle_js-cannot-be-empty"
         )));
     }
 
@@ -1104,8 +1114,8 @@ async fn call_current_bundle_inner(
     args: &Value,
 ) -> Result<Value> {
     let Some(name) = current_bundle_name(runtime).await? else {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "当前 runtime 未加载 bundle，请先调用 qjs_replace_bundle"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "current-runtime-has-no-bundle-loaded-please-call"
         )));
     };
     call_loaded_bundle_inner(runtime_name, runtime, &name, fn_path, args).await
@@ -1120,8 +1130,8 @@ async fn call_current_bundle_start(
     kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     let Some(name) = current_bundle_name(runtime).await? else {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "当前 runtime 未加载 bundle，请先调用 qjs_replace_bundle"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "current-runtime-has-no-bundle-loaded-please-call"
         )));
     };
 
@@ -1151,7 +1161,7 @@ async fn call_bundle_once_inner(
 
 fn parse_call_input(fn_path: &str, args_json: &str) -> Result<Value> {
     if fn_path.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!("fn_path 不能为空")));
+        return Err(anyhow!(rquickjs_playground::tr!("fn_path-cannot-be-empty")));
     }
     parse_args_array(args_json)
 }
@@ -1185,8 +1195,8 @@ async fn call_bundle_once_by_json(
     args_json: &str,
 ) -> Result<Value> {
     if bundle_js.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "bundle_js 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "bundle_js-cannot-be-empty"
         )));
     }
 
@@ -1203,8 +1213,8 @@ async fn call_current_bundle_bytes_auto_by_json(
     let runtime = qjs_runtime(runtime_name).await?;
     let args = parse_call_input(fn_path, args_json)?;
     let Some(name) = current_bundle_name(&runtime).await? else {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "当前 runtime 未加载 bundle，请先调用 qjs_replace_bundle"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "current-runtime-has-no-bundle-loaded-please-call"
         )));
     };
     runtime
@@ -1220,8 +1230,8 @@ async fn call_bundle_once_bytes_auto_by_json(
     args_json: &str,
 ) -> Result<Vec<u8>> {
     if bundle_js.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "bundle_js 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "bundle_js-cannot-be-empty"
         )));
     }
     let runtime = qjs_runtime(runtime_name).await?;
@@ -1235,8 +1245,8 @@ async fn call_bundle_once_bytes_auto_by_json(
 async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
     let bundle_url = bundle_url.trim();
     if bundle_url.is_empty() {
-        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
-            "bundle_url 不能为空"
+        return Err(anyhow!(rquickjs_playground::tr!(
+            "bundle_url-cannot-be-empty"
         )));
     }
 
@@ -1245,15 +1255,20 @@ async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
     let client = reqwest::Client::builder()
         .danger_accept_invalid_certs(http_config.disable_tls_verify)
         .build()
-        .with_context(|| rquickjs_playground::i18n_fmt!("创建 bundle 下载客户端失败"))?;
+        .with_context(|| rquickjs_playground::tr!("failed-to-create-bundle-download-client"))?;
     let response = client
         .get(bundle_url)
         .send()
         .await
-        .with_context(|| rquickjs_playground::i18n_fmt!("下载 bundle 失败: {0}", bundle_url))?
+        .with_context(|| {
+            rquickjs_playground::tr!("failed-to-download-bundle", bundle_url = bundle_url)
+        })?
         .error_for_status()
         .with_context(|| {
-            rquickjs_playground::i18n_fmt!("下载 bundle 返回非成功状态: {0}", bundle_url)
+            rquickjs_playground::tr!(
+                "bundle-download-returned-non-success-status",
+                bundle_url = bundle_url
+            )
         })?;
 
     if bundle_url.ends_with(".br") {
@@ -1261,23 +1276,28 @@ async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
             .bytes()
             .await
             .with_context(|| {
-                rquickjs_playground::i18n_fmt!("读取 Brotli bundle 响应失败: {0}", bundle_url)
+                rquickjs_playground::tr!(
+                    "failed-to-read-brotli-bundle-response",
+                    bundle_url = bundle_url
+                )
             })?
             .to_vec();
         let decompressed = crate::compressed::compressed::decompress_extreme(compressed)
             .await
             .with_context(|| {
-                rquickjs_playground::i18n_fmt!("解压 Brotli bundle 失败: {0}", bundle_url)
+                rquickjs_playground::tr!(
+                    "failed-to-decompress-brotli-bundle",
+                    bundle_url = bundle_url
+                )
             })?;
         return String::from_utf8(decompressed).with_context(|| {
-            rquickjs_playground::i18n_fmt!("bundle 不是合法 UTF-8: {0}", bundle_url)
+            rquickjs_playground::tr!("bundle-is-not-valid-utf-8", bundle_url = bundle_url)
         });
     }
 
-    response
-        .text()
-        .await
-        .with_context(|| rquickjs_playground::i18n_fmt!("读取 bundle 文本失败: {0}", bundle_url))
+    response.text().await.with_context(|| {
+        rquickjs_playground::tr!("failed-to-read-bundle-text", bundle_url = bundle_url)
+    })
 }
 
 fn is_bundle_url(value: &str) -> bool {
@@ -2030,8 +2050,8 @@ mod tests {
     fn cancelled_detection_should_match_explicit_cancel() {
         assert!(is_cancelled_error_text("__QJS_RUNTIME_CANCELLED__"));
         assert!(is_cancelled_error_text("request canceled by user"));
-        assert!(is_cancelled_error_text(rquickjs_playground::i18n!(
-            "任务已取消"
+        assert!(is_cancelled_error_text(&rquickjs_playground::tr!(
+            "task-cancelled-2"
         )));
     }
 

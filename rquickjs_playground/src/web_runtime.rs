@@ -178,7 +178,7 @@ pub fn install_host_bindings(
         return Err(rquickjs::Error::new_from_js_message(
             "rust",
             "runtime",
-            crate::i18n_fmt!("当前构建未启用 host-fs Cargo 特性"),
+            crate::tr!("current-build-does-not-enable-the-host-fs-cargo"),
         ));
     }
     let runtime_name = normalize_runtime_name(runtime_name);
@@ -623,7 +623,7 @@ fn crypto_random_bytes(ctx: Ctx, size: i32) -> rquickjs::Result<Vec<u8>> {
     if size < 0 {
         return Err(rquickjs::Exception::throw_message(
             &ctx,
-            crate::i18n!("size 必须是非负整数"),
+            &crate::tr!("size-must-be-a-non-negative-integer"),
         ));
     }
     let n = usize::try_from(size).unwrap_or(0);
@@ -694,13 +694,13 @@ fn crypto_pbkdf2_sha256_bytes(
     if iterations <= 0 {
         return Err(rquickjs::Exception::throw_message(
             &ctx,
-            crate::i18n!("iterations 必须大于 0"),
+            &crate::tr!("iterations-must-be-greater-than-0"),
         ));
     }
     if key_len < 0 {
         return Err(rquickjs::Exception::throw_message(
             &ctx,
-            crate::i18n!("keyLen 必须是非负整数"),
+            &crate::tr!("keylen-must-be-a-non-negative-integer"),
         ));
     }
     let rounds = u32::try_from(iterations).map_err(|e| map_crypto_err(&ctx, e.into()))?;
@@ -727,7 +727,7 @@ fn crypto_random_uuid_v4() -> rquickjs::Result<UuidOutput> {
 /// 把 native buffer 里的字节编码成标准 base64 字符串。
 fn base64_encode_native_buffer(ctx: Ctx, buffer_id: u64) -> rquickjs::Result<String> {
     let bytes = native_buffer_take_raw(buffer_id).ok_or_else(|| {
-        rquickjs::Exception::throw_message(&ctx, crate::i18n!("native buffer id 不存在"))
+        rquickjs::Exception::throw_message(&ctx, &crate::tr!("native-buffer-id-does-not-exist"))
     })?;
     Ok(BASE64_STANDARD.encode(&bytes))
 }
@@ -736,7 +736,7 @@ fn base64_encode_native_buffer(ctx: Ctx, buffer_id: u64) -> rquickjs::Result<Str
 fn base64_decode_to_native_buffer(ctx: Ctx, text: String) -> rquickjs::Result<u64> {
     let bytes = BASE64_STANDARD
         .decode(text.as_bytes())
-        .map_err(|e| map_crypto_err(&ctx, anyhow!(crate::i18n_fmt!("base64 解码失败: {0}", e))))?;
+        .map_err(|e| map_crypto_err(&ctx, anyhow!(crate::tr!("base64-decode-failed-2", e = e))))?;
     Ok(native_buffer_put_raw(bytes))
 }
 const LOG_MAX_PENDING: u64 = 16_384;
@@ -767,14 +767,14 @@ fn log_http_direct_client() -> AnyResult<&'static Client> {
         .no_proxy()
         .timeout(Duration::from_secs(10))
         .build()
-        .context(crate::i18n_fmt!("创建日志直连 HTTP client 失败"))?;
+        .context(crate::tr!("failed-to-create-log-direct-http-client"))?;
 
     match LOG_HTTP_DIRECT_CLIENT.set(client) {
         Ok(()) => Ok(LOG_HTTP_DIRECT_CLIENT
             .get()
-            .expect(&crate::i18n_fmt!("日志直连 HTTP client 初始化后必须可读取"))),
-        Err(_client) => Ok(LOG_HTTP_DIRECT_CLIENT.get().expect(&crate::i18n_fmt!(
-            "日志直连 HTTP client 并发初始化后必须可读取"
+            .expect(&crate::tr!("log-direct-http-client-must-be-readable-after"))),
+        Err(_client) => Ok(LOG_HTTP_DIRECT_CLIENT.get().expect(&crate::tr!(
+            "log-direct-http-client-must-be-readable-after-2"
         ))),
     }
 }
@@ -788,7 +788,7 @@ fn log_forward_runtime() -> &'static tokio::runtime::Runtime {
             .enable_all()
             .thread_name("rquickjs-log-forward")
             .build()
-            .expect(&crate::i18n_fmt!("创建 log-forward tokio runtime 失败"))
+            .expect(&crate::tr!("failed-to-create-log-forward-tokio-runtime"))
     })
 }
 
@@ -817,12 +817,12 @@ fn forward_log_event_if_needed(event: &LogEvent) {
                 .send()
                 .await
             {
-                tracing::debug!("{}", crate::i18n_fmt!("[qjs-log-http] 转发失败: {0}", e));
+                tracing::debug!("{}", crate::tr!("qjs-log-http-forwarding-failed", e = e));
             }
         } else {
             tracing::debug!(
                 "{}",
-                crate::i18n_fmt!("[qjs-log-http] 日志直连 HTTP client 不可用，跳过日志转发")
+                crate::tr!("qjs-log-http-log-direct-http-client-unavailable")
             );
         }
     });
@@ -886,7 +886,7 @@ fn log_sender() -> &'static mpsc::Sender<LogEvent> {
                     forward_log_event_if_needed(&event);
                 }
             })
-            .expect(&crate::i18n_fmt!("创建 log worker 失败"));
+            .expect(&crate::tr!("failed-to-create-log-worker"));
         tx
     })
 }
@@ -907,10 +907,10 @@ where
     {
         let mut pool = timer_req_event_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("timer event 请求池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-timer-event-request-pool"));
         cleanup_stale_pending_abort(&mut pool, &TIMER_STALE_DROPS);
         if pool.len() >= TIMER_MAX_PENDING {
-            return json!({ "ok": false, "error": crate::i18n_fmt!("timer pending 队列已满") })
+            return json!({ "ok": false, "error": crate::tr!("timer-pending-queue-is-full") })
                 .to_string();
         }
     }
@@ -952,7 +952,7 @@ where
     {
         let mut pool = timer_req_event_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("timer event 请求池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-timer-event-request-pool"));
         pool.insert(
             id,
             PendingAbortTask {
@@ -972,7 +972,7 @@ where
 pub fn timer_drop_evented(id: u64) -> String {
     let mut pool = timer_req_event_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("timer event 请求池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-timer-event-request-pool"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -986,10 +986,10 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
     {
         let mut pool = fs_req_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-fs-request-pool"));
         cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
         if pool.len() >= FS_MAX_PENDING {
-            return json!({ "ok": false, "error": crate::i18n_fmt!("fs pending 队列已满") })
+            return json!({ "ok": false, "error": crate::tr!("fs-pending-queue-is-full") })
                 .to_string();
         }
     }
@@ -1006,14 +1006,14 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
                 Ok(Ok(permit)) => permit,
                 Ok(Err(_)) => {
                     let _ = tx.send(
-                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 并发控制器不可用") })
+                        json!({ "ok": false, "error": crate::tr!("fs-concurrency-controller-unavailable") })
                             .to_string(),
                     );
                     return;
                 }
                 Err(_) => {
                     let _ = tx.send(
-                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 等待并发许可超时") })
+                        json!({ "ok": false, "error": crate::tr!("timed-out-waiting-for-fs-concurrency-permit") })
                             .to_string(),
                     );
                     return;
@@ -1029,7 +1029,7 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
     {
         let mut pool = fs_req_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-fs-request-pool"));
         pool.insert(
             id,
             PendingTask {
@@ -1050,10 +1050,11 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
 pub fn fs_task_try_take(id: u64) -> String {
     let mut pool = fs_req_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-fs-request-pool"));
     cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
     let Some(pending) = pool.get_mut(&id) else {
-        return json!({ "ok": false, "error": crate::i18n_fmt!("request id 不存在") }).to_string();
+        return json!({ "ok": false, "error": crate::tr!("request-id-does-not-exist") })
+            .to_string();
     };
 
     match pending.rx.try_recv() {
@@ -1064,7 +1065,8 @@ pub fn fs_task_try_take(id: u64) -> String {
         Err(TryRecvError::Empty) => json!({ "ok": true, "done": false }).to_string(),
         Err(TryRecvError::Disconnected) => {
             pool.remove(&id);
-            json!({ "ok": false, "error": crate::i18n_fmt!("fs 执行任务异常退出") }).to_string()
+            json!({ "ok": false, "error": crate::tr!("fs-task-execution-thread-panicked") })
+                .to_string()
         }
     }
 }
@@ -1072,7 +1074,7 @@ pub fn fs_task_try_take(id: u64) -> String {
 pub fn fs_task_drop(id: u64) -> String {
     let mut pool = fs_req_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-fs-request-pool"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -1089,10 +1091,10 @@ where
     {
         let mut pool = fs_req_event_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("fs event 请求池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-fs-event-request-pool"));
         cleanup_stale_pending_abort(&mut pool, &FS_STALE_DROPS);
         if pool.len() >= FS_MAX_PENDING {
-            return json!({ "ok": false, "error": crate::i18n_fmt!("fs pending 队列已满") })
+            return json!({ "ok": false, "error": crate::tr!("fs-pending-queue-is-full") })
                 .to_string();
         }
     }
@@ -1109,7 +1111,7 @@ where
                 Ok(Err(_)) => {
                     on_complete(
                         id,
-                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 并发控制器不可用") })
+                        json!({ "ok": false, "error": crate::tr!("fs-concurrency-controller-unavailable") })
                             .to_string(),
                     );
                     return;
@@ -1117,7 +1119,7 @@ where
                 Err(_) => {
                     on_complete(
                         id,
-                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 等待并发许可超时") })
+                        json!({ "ok": false, "error": crate::tr!("timed-out-waiting-for-fs-concurrency-permit") })
                             .to_string(),
                     );
                     return;
@@ -1134,7 +1136,7 @@ where
     {
         let mut pool = fs_req_event_pool()
             .lock()
-            .expect(&crate::i18n_fmt!("fs event 请求池加锁失败"));
+            .expect(&crate::tr!("failed-to-lock-fs-event-request-pool"));
         pool.insert(
             id,
             PendingAbortTask {
@@ -1154,7 +1156,7 @@ where
 pub fn fs_task_drop_evented(id: u64) -> String {
     let mut pool = fs_req_event_pool()
         .lock()
-        .expect(&crate::i18n_fmt!("fs event 请求池加锁失败"));
+        .expect(&crate::tr!("failed-to-lock-fs-event-request-pool"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -1218,7 +1220,7 @@ pub fn log_emit(level: String, message: String, runtime_name: String) -> String 
     if let Err(e) = log_sender().send(event) {
         LOG_PENDING.fetch_sub(1, Ordering::Relaxed);
         LOG_ERRORS.fetch_add(1, Ordering::Relaxed);
-        return json!({ "ok": false, "error": crate::i18n_fmt!("log worker 不可用: {0}", e) })
+        return json!({ "ok": false, "error": crate::tr!("log-worker-unavailable", e = e) })
             .to_string();
     }
 

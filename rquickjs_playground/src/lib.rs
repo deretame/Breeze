@@ -4,9 +4,7 @@ pub mod i18n;
 pub mod source_map;
 pub mod web_runtime;
 
-pub use i18n::{
-    ErrorMessageLang, current_error_message_language, format_message, set_error_message_language, t,
-};
+pub use i18n::{DEFAULT_LOCALE, SUPPORTED_LOCALES, current_locale, set_locale, tr, tr_args};
 
 pub use host_runtime::{
     AsyncHostRuntime, AsyncHostRuntimeBuilder, RuntimeJsonTaskHandle, RuntimeTaskHandle,

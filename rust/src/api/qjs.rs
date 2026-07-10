@@ -220,10 +220,11 @@ pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
 }
 
 #[frb(sync)]
-/// 设置 QuickJS 运行时错误消息语言（zh/en），默认 zh
-/// Set the QuickJS runtime error-message language (zh/en), defaults to zh.
+/// 设置 QuickJS 运行时错误消息语言（BCP-47 locale），默认 zh-CN
+/// Set the QuickJS runtime error-message language (BCP-47 locale), defaults to zh-CN.
 pub fn set_qjs_error_message_language(lang: String) -> Result<()> {
-    rquickjs_playground::set_error_message_language(&lang);
+    rquickjs_playground::i18n::set_locale(&lang)
+        .map_err(|e| anyhow::anyhow!("failed to set QJS locale: {e}"))?;
     Ok(())
 }
 

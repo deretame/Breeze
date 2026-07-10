@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' show min;
-
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
@@ -42,6 +40,94 @@ const Set<String> _kWindowsReservedNames = {
   'LPT9',
 };
 
+const int _kMaxNameLength = 255;
+const int _kWindowsMaxPath = 32767;
+const int _kMacOSMaxPath = 1024;
+const int _kIOSMaxPath = 1024;
+const int _kLinuxMaxPath = 4096;
+const int _kAndroidMaxPath = 4096;
+
+const int _kImageFileNameReserveLength = 64;
+const int _kMinTitleLength = 20;
+const int _kMinChapterLength = 30;
+
+int _getMaxPathLength() {
+  if (Platform.isWindows) return _kWindowsMaxPath;
+  if (Platform.isMacOS) return _kMacOSMaxPath;
+  if (Platform.isIOS) return _kIOSMaxPath;
+  if (Platform.isLinux) return _kLinuxMaxPath;
+  if (Platform.isAndroid) return _kAndroidMaxPath;
+  return _kLinuxMaxPath;
+}
+
+int _pathLength(String value) {
+  if (Platform.isWindows) return value.length;
+  return _utf8Length(value);
+}
+
+int _utf8Length(String value) => utf8.encode(value).length;
+
+String _truncateToPathLength(
+  String value,
+  int maxLength, {
+  String suffix = '',
+}) {
+  if (Platform.isWindows) {
+    return _truncateToUtf16CodeUnits(value, maxLength, suffix: suffix);
+  }
+  return _truncateToUtf8Bytes(value, maxLength, suffix: suffix);
+}
+
+String _truncateToUtf8Bytes(String value, int maxBytes, {String suffix = ''}) {
+  if (maxBytes <= 0) return '';
+  final suffixBytes = _utf8Length(suffix);
+  if (suffixBytes >= maxBytes) {
+    return _truncateToUtf8Bytes(suffix, maxBytes, suffix: '');
+  }
+  final targetBytes = maxBytes - suffixBytes;
+  final runes = value.runes.toList();
+  var low = 0;
+  var high = runes.length;
+  while (low < high) {
+    final mid = (low + high + 1) ~/ 2;
+    final candidate = String.fromCharCodes(runes.take(mid));
+    if (_utf8Length(candidate) <= targetBytes) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return String.fromCharCodes(runes.take(low)) + suffix;
+}
+
+String _truncateToUtf16CodeUnits(
+  String value,
+  int maxCodeUnits, {
+  String suffix = '',
+}) {
+  if (maxCodeUnits <= 0) return '';
+  final suffixUnits = suffix.length;
+  if (suffixUnits >= maxCodeUnits) {
+    return _truncateToUtf16CodeUnits(suffix, maxCodeUnits, suffix: '');
+  }
+  final targetUnits = maxCodeUnits - suffixUnits;
+  if (value.length <= targetUnits) return value + suffix;
+
+  final runes = value.runes.toList();
+  var low = 0;
+  var high = runes.length;
+  while (low < high) {
+    final mid = (low + high + 1) ~/ 2;
+    final candidate = String.fromCharCodes(runes.take(mid));
+    if (candidate.length <= targetUnits) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return String.fromCharCodes(runes.take(low)) + suffix;
+}
+
 Future<String> exportComic(
   String comicId,
   ExportType type,
@@ -61,12 +147,46 @@ Future<String> _exportComicAsFolder(
 }) async {
   final download = _getDownload(comicId, from: from);
   final detail = _exportDetail(download);
-  final chapterEntries = await _collectChapterEntries(download);
-  final processedDetail = _buildProcessedDetail(detail, chapterEntries);
   final title = download.title;
-  final safeTitle = _sanitizeFolderName(title, fallback: comicId);
   final root = exportPath ?? await createDownloadDir();
+  final maxPath = _getMaxPathLength();
+  final rootLength = _pathLength(root);
+
+  final requiredRootSpace =
+      maxPath -
+      _kMinTitleLength -
+      _kMinChapterLength -
+      _kImageFileNameReserveLength -
+      3;
+  if (rootLength > requiredRootSpace) {
+    throw StateError('导出目录路径过长，无法创建有效的导出结构');
+  }
+
+  final maxTitleLength =
+      (maxPath -
+              rootLength -
+              _kMinChapterLength -
+              _kImageFileNameReserveLength -
+              3)
+          .clamp(_kMinTitleLength, _kMaxNameLength);
+  final safeTitle = _sanitizeFolderName(
+    title,
+    fallback: comicId,
+    maxLength: maxTitleLength,
+  );
   final comicDir = p.join(root, safeTitle);
+  final comicDirLength = _pathLength(comicDir);
+  final maxChapterFolderLength =
+      (maxPath - comicDirLength - _kImageFileNameReserveLength - 2).clamp(
+        _kMinChapterLength,
+        _kMaxNameLength,
+      );
+
+  final chapterEntries = await _collectChapterEntries(
+    download,
+    maxChapterFolderLength: maxChapterFolderLength,
+  );
+  final processedDetail = _buildProcessedDetail(detail, chapterEntries);
 
   final dir = Directory(comicDir);
   if (await dir.exists()) {
@@ -95,13 +215,44 @@ Future<String> _exportComicAsZip(
 }) async {
   final download = _getDownload(comicId, from: from);
   final detail = _exportDetail(download);
-  final chapterEntries = await _collectChapterEntries(download);
-  final processedDetail = _buildProcessedDetail(detail, chapterEntries);
   final title = download.title;
-  final safeTitle = _sanitizeFolderName(title, fallback: comicId);
-  final finalZipPath =
-      exportPath ??
-      '${p.join(await createDownloadDir(), safeTitle.substring(0, min(safeTitle.length, 90)))}.zip';
+  final maxPath = _getMaxPathLength();
+  final zipExtensionLength = _pathLength('.zip');
+
+  late final String finalZipPath;
+  if (exportPath != null) {
+    if (_pathLength(exportPath) > maxPath) {
+      throw StateError('指定的 zip 导出路径超出系统路径长度限制');
+    }
+    finalZipPath = exportPath;
+  } else {
+    final downloadDir = await createDownloadDir();
+    final dirLength = _pathLength(downloadDir);
+    final requiredDirSpace =
+        maxPath - _kMinTitleLength - 1 - zipExtensionLength;
+    if (dirLength > requiredDirSpace) {
+      throw StateError('下载目录路径过长，无法创建有效的 zip 文件路径');
+    }
+    final maxTitleLength = (maxPath - dirLength - 1 - zipExtensionLength).clamp(
+      _kMinTitleLength,
+      _kMaxNameLength,
+    );
+    final safeTitle = _sanitizeFolderName(
+      title,
+      fallback: comicId,
+      maxLength: maxTitleLength,
+    );
+    finalZipPath = '${p.join(downloadDir, safeTitle)}.zip';
+  }
+
+  final chapterEntries = await _collectChapterEntries(
+    download,
+    maxChapterFolderLength: (maxPath - 1 - _kImageFileNameReserveLength).clamp(
+      _kMinChapterLength,
+      _kMaxNameLength,
+    ),
+  );
+  final processedDetail = _buildProcessedDetail(detail, chapterEntries);
 
   final packInfo = PackInfo(
     comicInfoString: jsonEncode(detail),
@@ -231,8 +382,9 @@ Future<void> _copyEpisodeFiles(
 }
 
 Future<List<_ExportChapterEntry>> _collectChapterEntries(
-  UnifiedComicDownload download,
-) async {
+  UnifiedComicDownload download, {
+  required int maxChapterFolderLength,
+}) async {
   final chapters = resolveDownloadChapters(download);
   // Keep persisted chapter order exactly as stored.
   // Do not reorder by name/order here, otherwise exported page sequence may drift.
@@ -246,9 +398,13 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
     final rawName = chapter.displayName.trim();
     final fallbackName = chapter.effectiveStorageId;
     final chapterPrefix = hasMultipleChapters ? '${chapterIndex + 1}.' : '';
+    final prefixLength = _pathLength(chapterPrefix);
+    final baseName =
+        '$chapterPrefix${_sanitizeFolderName(rawName.isNotEmpty ? rawName : fallbackName, fallback: fallbackName, maxLength: (maxChapterFolderLength - prefixLength).clamp(0, _kMaxNameLength))}';
     final folderName = _uniqueFolderName(
-      '$chapterPrefix${_sanitizeFolderName(rawName.isNotEmpty ? rawName : fallbackName)}',
+      baseName,
       usedFolderNames,
+      maxLength: maxChapterFolderLength,
     );
     usedFolderNames.add(folderName);
 
@@ -387,17 +543,25 @@ Map<String, dynamic> _buildProcessedDetail(
   return processed;
 }
 
-String _sanitizeFolderName(String value, {String fallback = 'chapter'}) {
+String _sanitizeFolderName(
+  String value, {
+  String fallback = 'chapter',
+  required int maxLength,
+}) {
   final fallbackNameRaw = _sanitizePathSegment(fallback);
-  final fallbackName = _avoidReservedName(
-    fallbackNameRaw.isEmpty ? 'chapter' : fallbackNameRaw,
-    'chapter',
+  final fallbackName = _truncateToPathLength(
+    _avoidReservedName(
+      fallbackNameRaw.isEmpty ? 'chapter' : fallbackNameRaw,
+      'chapter',
+    ),
+    maxLength,
   );
   final sanitized = _sanitizePathSegment(value);
   if (sanitized.isEmpty) {
     return fallbackName;
   }
-  return _avoidReservedName(sanitized, fallbackName);
+  final reserved = _avoidReservedName(sanitized, fallbackName);
+  return _truncateToPathLength(reserved, maxLength);
 }
 
 String _sanitizePathSegment(String value) {
@@ -431,15 +595,39 @@ String _safeExportExtension(String filePath) {
   return '.img';
 }
 
-String _uniqueFolderName(String baseName, Set<String> usedNames) {
-  if (!usedNames.contains(baseName)) {
-    return baseName;
+String _uniqueFolderName(
+  String baseName,
+  Set<String> usedNames, {
+  int? maxLength,
+}) {
+  if (maxLength == null || _pathLength(baseName) <= maxLength) {
+    if (!usedNames.contains(baseName)) {
+      return baseName;
+    }
   }
   var index = 2;
-  while (usedNames.contains('$baseName ($index)')) {
+  while (true) {
+    final suffix = ' ($index)';
+    var candidate = '$baseName$suffix';
+    if (maxLength != null && _pathLength(candidate) > maxLength) {
+      final maxBaseLength = maxLength - _pathLength(suffix);
+      final base = maxBaseLength > 0
+          ? _truncateToPathLength(baseName, maxBaseLength)
+          : '';
+      if (base.isEmpty) {
+        candidate = 'c ($index)';
+        if (_pathLength(candidate) > maxLength) {
+          throw StateError('无法为章节创建不重复的文件名：超出路径长度限制');
+        }
+      } else {
+        candidate = '$base$suffix';
+      }
+    }
+    if (!usedNames.contains(candidate)) {
+      return candidate;
+    }
     index++;
   }
-  return '$baseName ($index)';
 }
 
 Map<String, dynamic> _decodeMap(String raw) {

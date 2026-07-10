@@ -441,7 +441,7 @@ mod tests {
                 return JSON.stringify({ ok: true, href });
             })()
         "#;
-        let result = run_async_script(script).expect("执行脚本失败");
+        let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
         assert!(result.contains("/a"), "result: {}", result);
     }
 }

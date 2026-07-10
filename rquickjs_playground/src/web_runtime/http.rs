@@ -214,10 +214,13 @@ struct HostFormDataEntry {
 
 fn parse_host_formdata_plan(raw_json: &str) -> AnyResult<HostFormDataPlan> {
     let plan = serde_json::from_str::<HostFormDataPlan>(raw_json)
-        .context("解析 host formdata plan JSON 失败")?;
+        .context(crate::i18n_fmt!("解析 host formdata plan JSON 失败"))?;
     if let Some(kind) = &plan.kind {
         if kind != "rquickjs-formdata-v1" {
-            return Err(anyhow!("不支持的 formdata plan kind: {kind}"));
+            return Err(anyhow!(crate::i18n_fmt!(
+                "不支持的 formdata plan kind: {0}",
+                kind
+            )));
         }
     }
     Ok(plan)
@@ -228,7 +231,7 @@ pub(crate) fn decode_host_base64(raw_b64: &str) -> AnyResult<Vec<u8>> {
     BASE64_STANDARD
         .decode(raw)
         .or_else(|_| BASE64_URL_SAFE.decode(raw))
-        .context("base64 解码 formdata 字段失败")
+        .context(crate::i18n_fmt!("base64 解码 formdata 字段失败"))
 }
 
 fn build_multipart_form(plan: HostFormDataPlan) -> AnyResult<MultipartForm> {
@@ -237,7 +240,7 @@ fn build_multipart_form(plan: HostFormDataPlan) -> AnyResult<MultipartForm> {
         if entry.kind.eq_ignore_ascii_case("text") {
             let value = entry
                 .value
-                .ok_or_else(|| anyhow!("formdata 文本字段缺少 value"))?;
+                .ok_or_else(|| anyhow!(crate::i18n_fmt!("formdata 文本字段缺少 value")))?;
             form = form.text(entry.name, value);
             continue;
         }
@@ -245,7 +248,7 @@ fn build_multipart_form(plan: HostFormDataPlan) -> AnyResult<MultipartForm> {
         if entry.kind.eq_ignore_ascii_case("binary") {
             let data_b64 = entry
                 .data_b64
-                .ok_or_else(|| anyhow!("formdata 二进制字段缺少 dataB64"))?;
+                .ok_or_else(|| anyhow!(crate::i18n_fmt!("formdata 二进制字段缺少 dataB64")))?;
             let bytes = decode_host_base64(&data_b64)?;
             let mut part = MultipartPart::bytes(bytes);
             if let Some(filename) = entry.filename {
@@ -257,15 +260,21 @@ fn build_multipart_form(plan: HostFormDataPlan) -> AnyResult<MultipartForm> {
                 .map(str::trim)
                 .filter(|v| !v.is_empty())
             {
-                part = part
-                    .mime_str(content_type)
-                    .map_err(|e| anyhow!("设置 formdata part Content-Type 失败: {e}"))?;
+                part = part.mime_str(content_type).map_err(|e| {
+                    anyhow!(crate::i18n_fmt!(
+                        "设置 formdata part Content-Type 失败: {0}",
+                        e
+                    ))
+                })?;
             }
             form = form.part(entry.name, part);
             continue;
         }
 
-        return Err(anyhow!("不支持的 formdata 字段类型: {}", entry.kind));
+        return Err(anyhow!(crate::i18n_fmt!(
+            "不支持的 formdata 字段类型: {0}",
+            entry.kind
+        )));
     }
     Ok(form)
 }
@@ -277,7 +286,7 @@ fn http_client_state_cell() -> &'static Mutex<HttpClientState> {
 pub fn configure_http_client(config: HttpClientConfig) -> AnyResult<()> {
     let mut state = http_client_state_cell()
         .lock()
-        .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
+        .map_err(|_| anyhow!(crate::i18n_fmt!("HTTP client 状态锁已损坏")))?;
     state.config = config;
     Ok(())
 }
@@ -308,7 +317,7 @@ fn worker_http_config() -> HttpClientConfig {
 fn http_client() -> AnyResult<Client> {
     let state = http_client_state_cell()
         .lock()
-        .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
+        .map_err(|_| anyhow!(crate::i18n_fmt!("HTTP client 状态锁已损坏")))?;
     build_http_client(&state.config)
 }
 
@@ -335,13 +344,14 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
         if let Some(proxy_raw) = config.http_proxy.as_deref() {
             let proxy_url = normalize_http_proxy_url(proxy_raw);
             let proxy = Proxy::all(&proxy_url)
-                .with_context(|| format!("解析 HTTP 代理地址失败: {proxy_url}"))?;
+                .with_context(|| crate::i18n_fmt!("解析 HTTP 代理地址失败: {0}", proxy_url))?;
             builder = builder.proxy(proxy);
         } else if config.use_socks5_proxy {
             if let Some(proxy_raw) = config.socks5_proxy.as_deref() {
                 let proxy_url = normalize_socks5_proxy_url(proxy_raw);
-                let proxy = Proxy::all(&proxy_url)
-                    .with_context(|| format!("解析 socks5 代理地址失败: {proxy_url}"))?;
+                let proxy = Proxy::all(&proxy_url).with_context(|| {
+                    crate::i18n_fmt!("解析 socks5 代理地址失败: {0}", proxy_url)
+                })?;
                 builder = builder.proxy(proxy);
             }
         }
@@ -349,7 +359,7 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
         if let Some(proxy_raw) = config.socks5_proxy.as_deref() {
             let proxy_url = normalize_socks5_proxy_url(proxy_raw);
             let proxy = Proxy::all(&proxy_url)
-                .with_context(|| format!("解析 socks5 代理地址失败: {proxy_url}"))?;
+                .with_context(|| crate::i18n_fmt!("解析 socks5 代理地址失败: {0}", proxy_url))?;
             builder = builder.proxy(proxy);
         }
     }
@@ -358,7 +368,9 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
         builder = builder.danger_accept_invalid_certs(true);
     }
 
-    let client = builder.build().context("创建 HTTP client 失败")?;
+    let client = builder
+        .build()
+        .context(crate::i18n_fmt!("创建 HTTP client 失败"))?;
     Ok(client)
 }
 
@@ -369,10 +381,13 @@ pub fn http_request_start(
     body: Option<String>,
 ) -> String {
     {
-        let mut pool = http_req_pool().lock().expect("http 请求池加锁失败");
+        let mut pool = http_req_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("http 请求池加锁失败"));
         cleanup_stale_pending(&mut pool, &HTTP_STALE_DROPS);
         if pool.len() >= HTTP_MAX_PENDING {
-            return json!({ "ok": false, "error": "http pending 队列已满" }).to_string();
+            return json!({ "ok": false, "error": crate::i18n_fmt!("http pending 队列已满") })
+                .to_string();
         }
     }
 
@@ -387,13 +402,17 @@ pub fn http_request_start(
             let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
                 Ok(Ok(permit)) => permit,
                 Ok(Err(_)) => {
-                    let _ = tx
-                        .send(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
+                    let _ = tx.send(
+                        json!({ "ok": false, "error": crate::i18n_fmt!("http 并发控制器不可用") })
+                            .to_string(),
+                    );
                     return;
                 }
                 Err(_) => {
-                    let _ = tx
-                        .send(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
+                    let _ = tx.send(
+                        json!({ "ok": false, "error": crate::i18n_fmt!("http 等待并发许可超时") })
+                            .to_string(),
+                    );
                     return;
                 }
             };
@@ -407,7 +426,9 @@ pub fn http_request_start(
         });
 
     {
-        let mut pool = http_req_pool().lock().expect("http 请求池加锁失败");
+        let mut pool = http_req_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("http 请求池加锁失败"));
         pool.insert(
             id,
             PendingTask {
@@ -426,10 +447,12 @@ pub fn http_request_start(
 }
 
 pub fn http_request_try_take(id: u64) -> String {
-    let mut pool = http_req_pool().lock().expect("http 请求池加锁失败");
+    let mut pool = http_req_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("http 请求池加锁失败"));
     cleanup_stale_pending(&mut pool, &HTTP_STALE_DROPS);
     let Some(pending) = pool.get_mut(&id) else {
-        return json!({ "ok": false, "error": "request id 不存在" }).to_string();
+        return json!({ "ok": false, "error": crate::i18n_fmt!("request id 不存在") }).to_string();
     };
 
     match pending.rx.try_recv() {
@@ -440,13 +463,16 @@ pub fn http_request_try_take(id: u64) -> String {
         Err(TryRecvError::Empty) => json!({ "ok": true, "done": false }).to_string(),
         Err(TryRecvError::Disconnected) => {
             pool.remove(&id);
-            json!({ "ok": false, "error": "request 执行线程异常退出" }).to_string()
+            json!({ "ok": false, "error": crate::i18n_fmt!("request 执行线程异常退出") })
+                .to_string()
         }
     }
 }
 
 pub fn http_request_drop(id: u64) -> String {
-    let mut pool = http_req_pool().lock().expect("http 请求池加锁失败");
+    let mut pool = http_req_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("http 请求池加锁失败"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -470,10 +496,11 @@ where
     {
         let mut pool = http_req_event_pool()
             .lock()
-            .expect("http event 请求池加锁失败");
+            .expect(&crate::i18n_fmt!("http event 请求池加锁失败"));
         cleanup_stale_pending_abort(&mut pool, &HTTP_STALE_DROPS);
         if pool.len() >= HTTP_MAX_PENDING {
-            return json!({ "ok": false, "error": "http pending 队列已满" }).to_string();
+            return json!({ "ok": false, "error": crate::i18n_fmt!("http pending 队列已满") })
+                .to_string();
         }
     }
 
@@ -499,11 +526,17 @@ where
             let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
                 Ok(Ok(permit)) => permit,
                 Ok(Err(_)) => {
-                    finish(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
+                    finish(
+                        json!({ "ok": false, "error": crate::i18n_fmt!("http 并发控制器不可用") })
+                            .to_string(),
+                    );
                     return;
                 }
                 Err(_) => {
-                    finish(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
+                    finish(
+                        json!({ "ok": false, "error": crate::i18n_fmt!("http 等待并发许可超时") })
+                            .to_string(),
+                    );
                     return;
                 }
             };
@@ -526,7 +559,7 @@ where
     {
         let mut pool = http_req_event_pool()
             .lock()
-            .expect("http event 请求池加锁失败");
+            .expect(&crate::i18n_fmt!("http event 请求池加锁失败"));
         pool.insert(
             id,
             PendingAbortTask {
@@ -546,7 +579,7 @@ where
 pub fn http_request_drop_evented(id: u64) -> String {
     let mut pool = http_req_event_pool()
         .lock()
-        .expect("http event 请求池加锁失败");
+        .expect(&crate::i18n_fmt!("http event 请求池加锁失败"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         HTTP_EVENT_CANCELED.fetch_add(1, Ordering::Relaxed);
@@ -564,11 +597,12 @@ async fn http_request_inner_async(
     body: Option<String>,
     body_native_buffer_id: Option<u64>,
 ) -> AnyResult<String> {
-    let method = Method::from_bytes(method.as_bytes()).context("解析 HTTP method 失败")?;
+    let method =
+        Method::from_bytes(method.as_bytes()).context(crate::i18n_fmt!("解析 HTTP method 失败"))?;
     ensure_http_target_allowed(&url).await?;
     let mut headers_map = Map::new();
-    let headers_value: Value =
-        serde_json::from_str(&headers_json).context("解析 HTTP headers JSON 失败")?;
+    let headers_value: Value = serde_json::from_str(&headers_json)
+        .context(crate::i18n_fmt!("解析 HTTP headers JSON 失败"))?;
     let client = http_client()?;
     let mut offload_body_to_native = false;
     let mut formdata_body = false;
@@ -600,25 +634,36 @@ async fn http_request_inner_async(
     }
 
     if formdata_body {
-        let raw_plan = body.ok_or_else(|| anyhow!("formdata 请求缺少 body payload"))?;
+        let raw_plan =
+            body.ok_or_else(|| anyhow!(crate::i18n_fmt!("formdata 请求缺少 body payload")))?;
         let plan = parse_host_formdata_plan(&raw_plan)?;
         let form = build_multipart_form(plan)?;
         builder = builder.multipart(form);
     } else if let Some(native_buffer_id) = body_native_buffer_id {
-        let bytes = native_buffer_take_raw(native_buffer_id)
-            .ok_or_else(|| anyhow!("request body nativeBufferId 不存在: {native_buffer_id}"))?;
+        let bytes = native_buffer_take_raw(native_buffer_id).ok_or_else(|| {
+            anyhow!(crate::i18n_fmt!(
+                "request body nativeBufferId 不存在: {0}",
+                native_buffer_id
+            ))
+        })?;
         builder = builder.body(bytes);
     } else if let Some(content) = body {
         builder = builder.body(content);
     }
 
-    let response = builder.send().await.context("发送 HTTP 请求失败")?;
+    let response = builder
+        .send()
+        .await
+        .context(crate::i18n_fmt!("发送 HTTP 请求失败"))?;
     let auto_offload_body = should_auto_offload_response(response.headers());
     let status = response.status();
     let final_url = response.url().to_string();
 
     for (name, value) in response.headers() {
-        let value_text = value.to_str().context("解析 HTTP 响应头失败")?.to_string();
+        let value_text = value
+            .to_str()
+            .context(crate::i18n_fmt!("解析 HTTP 响应头失败"))?
+            .to_string();
         headers_map.insert(name.to_string(), Value::String(value_text));
     }
 
@@ -626,14 +671,16 @@ async fn http_request_inner_async(
         let body_bytes = response
             .bytes()
             .await
-            .context("读取 HTTP 响应体字节失败")?
+            .context(crate::i18n_fmt!("读取 HTTP 响应体字节失败"))?
             .to_vec();
 
         let native_buffer_id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
         let body_len = body_bytes.len();
 
         {
-            let mut pool = native_pool().lock().expect("native buffer 池加锁失败");
+            let mut pool = native_pool()
+                .lock()
+                .expect(&crate::i18n_fmt!("native buffer 池加锁失败"));
             pool.insert(native_buffer_id, NativeBufferEntry::new(body_bytes));
         }
 
@@ -660,7 +707,10 @@ async fn http_request_inner_async(
         .to_string());
     }
 
-    let body_text = response.text().await.context("读取 HTTP 响应体失败")?;
+    let body_text = response
+        .text()
+        .await
+        .context(crate::i18n_fmt!("读取 HTTP 响应体失败"))?;
 
     Ok(json!({
         "ok": true,
@@ -679,19 +729,20 @@ async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {
         return Ok(());
     }
 
-    let parsed = reqwest::Url::parse(url).with_context(|| format!("解析 URL 失败: {url}"))?;
+    let parsed =
+        reqwest::Url::parse(url).with_context(|| crate::i18n_fmt!("解析 URL 失败: {0}", url))?;
     let host = parsed
         .host_str()
-        .ok_or_else(|| anyhow!("URL 缺少 host: {url}"))?
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("URL 缺少 host: {0}", url)))?
         .trim();
 
     if host.eq_ignore_ascii_case("localhost") || host.to_ascii_lowercase().ends_with(".localhost") {
-        return Err(anyhow!("已拦截内网请求: {host}"));
+        return Err(anyhow!(crate::i18n_fmt!("已拦截内网请求: {0}", host)));
     }
 
     if let Ok(ip) = host.parse::<IpAddr>() {
         if is_private_or_local_ip(ip) {
-            return Err(anyhow!("已拦截内网请求: {host}"));
+            return Err(anyhow!(crate::i18n_fmt!("已拦截内网请求: {0}", host)));
         }
         return Ok(());
     }
@@ -699,10 +750,10 @@ async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {
     let port = parsed.port_or_known_default().unwrap_or(80);
     let resolved = lookup_host((host, port))
         .await
-        .with_context(|| format!("解析域名失败: {host}"))?;
+        .with_context(|| crate::i18n_fmt!("解析域名失败: {0}", host))?;
     for socket in resolved {
         if is_private_or_local_ip(socket.ip()) {
-            return Err(anyhow!("已拦截内网请求: {host}"));
+            return Err(anyhow!(crate::i18n_fmt!("已拦截内网请求: {0}", host)));
         }
     }
 

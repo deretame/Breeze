@@ -25,27 +25,27 @@ import 'package:window_manager/window_manager.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
-import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
+import 'package:zephyr/platform/desktop/native_window.dart';
+import 'package:zephyr/platform/desktop/system_tray.dart';
+import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/util/debouncer.dart';
-import 'package:zephyr/widgets/desktop/custom_title_bar.dart';
-import 'package:zephyr/widgets/desktop/desktop_fullscreen_controller.dart';
-import 'package:zephyr/widgets/desktop/intent.dart';
-import 'package:zephyr/platform/desktop/native_window.dart';
-import 'package:zephyr/platform/desktop/system_tray.dart';
-import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/font/font_profile.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
-import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/util/rust_loader.dart';
+import 'package:zephyr/widgets/desktop/custom_title_bar.dart';
+import 'package:zephyr/widgets/desktop/desktop_fullscreen_controller.dart';
+import 'package:zephyr/widgets/desktop/intent.dart';
 
 ObjectBox? _objectbox;
 ObjectBox get objectbox => _objectbox!;
@@ -230,6 +230,8 @@ Future<void> main(List<String> args) async {
 Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await initRustLib();
+
+  setQjsErrorMessageLanguage(lang: 'en');
 
   // 初始化工作线程
   await workerManager.init(isolatesCount: Platform.numberOfProcessors);

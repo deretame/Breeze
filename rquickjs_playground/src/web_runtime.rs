@@ -178,7 +178,7 @@ pub fn install_host_bindings(
         return Err(rquickjs::Error::new_from_js_message(
             "rust",
             "runtime",
-            "当前构建未启用 host-fs Cargo 特性",
+            crate::i18n_fmt!("当前构建未启用 host-fs Cargo 特性"),
         ));
     }
     let runtime_name = normalize_runtime_name(runtime_name);
@@ -623,7 +623,7 @@ fn crypto_random_bytes(ctx: Ctx, size: i32) -> rquickjs::Result<Vec<u8>> {
     if size < 0 {
         return Err(rquickjs::Exception::throw_message(
             &ctx,
-            "size 必须是非负整数",
+            crate::i18n!("size 必须是非负整数"),
         ));
     }
     let n = usize::try_from(size).unwrap_or(0);
@@ -694,13 +694,13 @@ fn crypto_pbkdf2_sha256_bytes(
     if iterations <= 0 {
         return Err(rquickjs::Exception::throw_message(
             &ctx,
-            "iterations 必须大于 0",
+            crate::i18n!("iterations 必须大于 0"),
         ));
     }
     if key_len < 0 {
         return Err(rquickjs::Exception::throw_message(
             &ctx,
-            "keyLen 必须是非负整数",
+            crate::i18n!("keyLen 必须是非负整数"),
         ));
     }
     let rounds = u32::try_from(iterations).map_err(|e| map_crypto_err(&ctx, e.into()))?;
@@ -726,8 +726,9 @@ fn crypto_random_uuid_v4() -> rquickjs::Result<UuidOutput> {
 
 /// 把 native buffer 里的字节编码成标准 base64 字符串。
 fn base64_encode_native_buffer(ctx: Ctx, buffer_id: u64) -> rquickjs::Result<String> {
-    let bytes = native_buffer_take_raw(buffer_id)
-        .ok_or_else(|| rquickjs::Exception::throw_message(&ctx, "native buffer id 不存在"))?;
+    let bytes = native_buffer_take_raw(buffer_id).ok_or_else(|| {
+        rquickjs::Exception::throw_message(&ctx, crate::i18n!("native buffer id 不存在"))
+    })?;
     Ok(BASE64_STANDARD.encode(&bytes))
 }
 
@@ -735,7 +736,7 @@ fn base64_encode_native_buffer(ctx: Ctx, buffer_id: u64) -> rquickjs::Result<Str
 fn base64_decode_to_native_buffer(ctx: Ctx, text: String) -> rquickjs::Result<u64> {
     let bytes = BASE64_STANDARD
         .decode(text.as_bytes())
-        .map_err(|e| map_crypto_err(&ctx, anyhow!("base64 解码失败: {e}")))?;
+        .map_err(|e| map_crypto_err(&ctx, anyhow!(crate::i18n_fmt!("base64 解码失败: {0}", e))))?;
     Ok(native_buffer_put_raw(bytes))
 }
 const LOG_MAX_PENDING: u64 = 16_384;
@@ -766,15 +767,15 @@ fn log_http_direct_client() -> AnyResult<&'static Client> {
         .no_proxy()
         .timeout(Duration::from_secs(10))
         .build()
-        .context("创建日志直连 HTTP client 失败")?;
+        .context(crate::i18n_fmt!("创建日志直连 HTTP client 失败"))?;
 
     match LOG_HTTP_DIRECT_CLIENT.set(client) {
         Ok(()) => Ok(LOG_HTTP_DIRECT_CLIENT
             .get()
-            .expect("日志直连 HTTP client 初始化后必须可读取")),
-        Err(_client) => Ok(LOG_HTTP_DIRECT_CLIENT
-            .get()
-            .expect("日志直连 HTTP client 并发初始化后必须可读取")),
+            .expect(&crate::i18n_fmt!("日志直连 HTTP client 初始化后必须可读取"))),
+        Err(_client) => Ok(LOG_HTTP_DIRECT_CLIENT.get().expect(&crate::i18n_fmt!(
+            "日志直连 HTTP client 并发初始化后必须可读取"
+        ))),
     }
 }
 
@@ -787,7 +788,7 @@ fn log_forward_runtime() -> &'static tokio::runtime::Runtime {
             .enable_all()
             .thread_name("rquickjs-log-forward")
             .build()
-            .expect("创建 log-forward tokio runtime 失败")
+            .expect(&crate::i18n_fmt!("创建 log-forward tokio runtime 失败"))
     })
 }
 
@@ -816,11 +817,48 @@ fn forward_log_event_if_needed(event: &LogEvent) {
                 .send()
                 .await
             {
-                tracing::debug!("[qjs-log-http] 转发失败: {e}");
+                tracing::debug!("{}", crate::i18n_fmt!("[qjs-log-http] 转发失败: {0}", e));
             }
         } else {
-            tracing::debug!("[qjs-log-http] 日志直连 HTTP client 不可用，跳过日志转发");
+            tracing::debug!(
+                "{}",
+                crate::i18n_fmt!("[qjs-log-http] 日志直连 HTTP client 不可用，跳过日志转发")
+            );
         }
+    });
+}
+
+/// 将一条已格式化的 tracing 日志以 fire-and-forget 方式转发到 `configure_log_http_endpoint`
+/// 配置的地址。未配置地址、client 不可用或发送失败都静默忽略，不打印任何日志。
+pub fn forward_log_line(level: impl Into<String>, message: impl Into<String>) {
+    let Some(url) = current_log_http_endpoint() else {
+        return;
+    };
+
+    let level = level.into();
+    let message = message.into();
+    let ts_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+
+    let _ = log_forward_runtime().spawn(async move {
+        let Ok(client) = log_http_direct_client() else {
+            return;
+        };
+        let payload = json!({
+            "level": level,
+            "message": message,
+            "payload": {
+                "tsMs": ts_ms
+            }
+        });
+        let _ = client
+            .post(url)
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .json(&payload)
+            .send()
+            .await;
     });
 }
 
@@ -848,7 +886,7 @@ fn log_sender() -> &'static mpsc::Sender<LogEvent> {
                     forward_log_event_if_needed(&event);
                 }
             })
-            .expect("创建 log worker 失败");
+            .expect(&crate::i18n_fmt!("创建 log worker 失败"));
         tx
     })
 }
@@ -869,10 +907,11 @@ where
     {
         let mut pool = timer_req_event_pool()
             .lock()
-            .expect("timer event 请求池加锁失败");
+            .expect(&crate::i18n_fmt!("timer event 请求池加锁失败"));
         cleanup_stale_pending_abort(&mut pool, &TIMER_STALE_DROPS);
         if pool.len() >= TIMER_MAX_PENDING {
-            return json!({ "ok": false, "error": "timer pending 队列已满" }).to_string();
+            return json!({ "ok": false, "error": crate::i18n_fmt!("timer pending 队列已满") })
+                .to_string();
         }
     }
 
@@ -913,7 +952,7 @@ where
     {
         let mut pool = timer_req_event_pool()
             .lock()
-            .expect("timer event 请求池加锁失败");
+            .expect(&crate::i18n_fmt!("timer event 请求池加锁失败"));
         pool.insert(
             id,
             PendingAbortTask {
@@ -933,7 +972,7 @@ where
 pub fn timer_drop_evented(id: u64) -> String {
     let mut pool = timer_req_event_pool()
         .lock()
-        .expect("timer event 请求池加锁失败");
+        .expect(&crate::i18n_fmt!("timer event 请求池加锁失败"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -945,10 +984,13 @@ pub fn timer_drop_evented(id: u64) -> String {
 
 pub fn fs_task_start(op: String, args_json: String) -> String {
     {
-        let mut pool = fs_req_pool().lock().expect("fs 请求池加锁失败");
+        let mut pool = fs_req_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
         cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
         if pool.len() >= FS_MAX_PENDING {
-            return json!({ "ok": false, "error": "fs pending 队列已满" }).to_string();
+            return json!({ "ok": false, "error": crate::i18n_fmt!("fs pending 队列已满") })
+                .to_string();
         }
     }
 
@@ -963,13 +1005,17 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
             let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
                 Ok(Ok(permit)) => permit,
                 Ok(Err(_)) => {
-                    let _ =
-                        tx.send(json!({ "ok": false, "error": "fs 并发控制器不可用" }).to_string());
+                    let _ = tx.send(
+                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 并发控制器不可用") })
+                            .to_string(),
+                    );
                     return;
                 }
                 Err(_) => {
-                    let _ =
-                        tx.send(json!({ "ok": false, "error": "fs 等待并发许可超时" }).to_string());
+                    let _ = tx.send(
+                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 等待并发许可超时") })
+                            .to_string(),
+                    );
                     return;
                 }
             };
@@ -981,7 +1027,9 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
         });
 
     {
-        let mut pool = fs_req_pool().lock().expect("fs 请求池加锁失败");
+        let mut pool = fs_req_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
         pool.insert(
             id,
             PendingTask {
@@ -1000,10 +1048,12 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
 }
 
 pub fn fs_task_try_take(id: u64) -> String {
-    let mut pool = fs_req_pool().lock().expect("fs 请求池加锁失败");
+    let mut pool = fs_req_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
     cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
     let Some(pending) = pool.get_mut(&id) else {
-        return json!({ "ok": false, "error": "request id 不存在" }).to_string();
+        return json!({ "ok": false, "error": crate::i18n_fmt!("request id 不存在") }).to_string();
     };
 
     match pending.rx.try_recv() {
@@ -1014,13 +1064,15 @@ pub fn fs_task_try_take(id: u64) -> String {
         Err(TryRecvError::Empty) => json!({ "ok": true, "done": false }).to_string(),
         Err(TryRecvError::Disconnected) => {
             pool.remove(&id);
-            json!({ "ok": false, "error": "fs 执行任务异常退出" }).to_string()
+            json!({ "ok": false, "error": crate::i18n_fmt!("fs 执行任务异常退出") }).to_string()
         }
     }
 }
 
 pub fn fs_task_drop(id: u64) -> String {
-    let mut pool = fs_req_pool().lock().expect("fs 请求池加锁失败");
+    let mut pool = fs_req_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("fs 请求池加锁失败"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -1035,10 +1087,13 @@ where
     F: FnOnce(u64, String) + Send + 'static,
 {
     {
-        let mut pool = fs_req_event_pool().lock().expect("fs event 请求池加锁失败");
+        let mut pool = fs_req_event_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("fs event 请求池加锁失败"));
         cleanup_stale_pending_abort(&mut pool, &FS_STALE_DROPS);
         if pool.len() >= FS_MAX_PENDING {
-            return json!({ "ok": false, "error": "fs pending 队列已满" }).to_string();
+            return json!({ "ok": false, "error": crate::i18n_fmt!("fs pending 队列已满") })
+                .to_string();
         }
     }
 
@@ -1054,14 +1109,16 @@ where
                 Ok(Err(_)) => {
                     on_complete(
                         id,
-                        json!({ "ok": false, "error": "fs 并发控制器不可用" }).to_string(),
+                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 并发控制器不可用") })
+                            .to_string(),
                     );
                     return;
                 }
                 Err(_) => {
                     on_complete(
                         id,
-                        json!({ "ok": false, "error": "fs 等待并发许可超时" }).to_string(),
+                        json!({ "ok": false, "error": crate::i18n_fmt!("fs 等待并发许可超时") })
+                            .to_string(),
                     );
                     return;
                 }
@@ -1075,7 +1132,9 @@ where
         });
 
     {
-        let mut pool = fs_req_event_pool().lock().expect("fs event 请求池加锁失败");
+        let mut pool = fs_req_event_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("fs event 请求池加锁失败"));
         pool.insert(
             id,
             PendingAbortTask {
@@ -1093,7 +1152,9 @@ where
 }
 
 pub fn fs_task_drop_evented(id: u64) -> String {
-    let mut pool = fs_req_event_pool().lock().expect("fs event 请求池加锁失败");
+    let mut pool = fs_req_event_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("fs event 请求池加锁失败"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true
@@ -1157,7 +1218,8 @@ pub fn log_emit(level: String, message: String, runtime_name: String) -> String 
     if let Err(e) = log_sender().send(event) {
         LOG_PENDING.fetch_sub(1, Ordering::Relaxed);
         LOG_ERRORS.fetch_add(1, Ordering::Relaxed);
-        return json!({ "ok": false, "error": format!("log worker 不可用: {e}") }).to_string();
+        return json!({ "ok": false, "error": crate::i18n_fmt!("log worker 不可用: {0}", e) })
+            .to_string();
     }
 
     LOG_ENQUEUED.fetch_add(1, Ordering::Relaxed);

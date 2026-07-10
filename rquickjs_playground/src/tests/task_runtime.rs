@@ -18,21 +18,22 @@ impl HttpPrivateNetworkGuard {
         let previous = current_http_client_config();
         let mut config = previous.clone();
         config.allow_private_network = true;
-        configure_http_client(config).expect("更新 HTTP 配置失败");
+        configure_http_client(config).expect(&crate::i18n_fmt!("更新 HTTP 配置失败"));
         Self { previous }
     }
 }
 
 impl Drop for HttpPrivateNetworkGuard {
     fn drop(&mut self) {
-        configure_http_client(self.previous.clone()).expect("恢复 HTTP 配置失败");
+        configure_http_client(self.previous.clone())
+            .expect(&crate::i18n_fmt!("恢复 HTTP 配置失败"));
     }
 }
 
 #[test]
 fn async_runtime_spawn_is_non_blocking() {
-    let runtime =
-        AsyncHostRuntime::new("task-runtime-non-blocking").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-non-blocking")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
 
     let script = r#"
       (async () => {
@@ -42,30 +43,32 @@ fn async_runtime_spawn_is_non_blocking() {
     "#;
 
     let start = Instant::now();
-    let handle = runtime.spawn(script).expect("提交任务失败");
+    let handle = runtime
+        .spawn(script)
+        .expect(&crate::i18n_fmt!("提交任务失败"));
     let submit_cost = start.elapsed();
 
     assert!(submit_cost < Duration::from_millis(20));
 
-    let result = handle.wait().expect("任务执行失败");
+    let result = handle.wait().expect(&crate::i18n_fmt!("任务执行失败"));
     assert!(result.contains("ok"));
 }
 
 #[test]
 fn async_runtime_stats_and_drop() {
-    let runtime =
-        AsyncHostRuntime::new("task-runtime-stats-drop").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-stats-drop")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
 
     let handle = runtime
         .spawn("(async () => { await new Promise(() => {}); return \"ok\"; })()")
-        .expect("提交任务失败");
+        .expect(&crate::i18n_fmt!("提交任务失败"));
 
     let stats = runtime.stats();
     assert!(stats.pending + stats.running >= 1);
 
     assert!(runtime.cancel(handle.id()));
 
-    let dropped = handle.wait().expect_err("任务应被 dropped");
+    let dropped = handle.wait().expect_err(crate::i18n!("任务应被 dropped"));
     assert!(dropped.contains("dropped"));
 }
 
@@ -76,8 +79,8 @@ fn async_runtime_runs_multiple_io_tasks_concurrently() {
 
     let _http_guard = HttpPrivateNetworkGuard::allow();
     let (addr, shutdown_tx, handle) = spawn_delay_server(DELAY_MS);
-    let runtime =
-        AsyncHostRuntime::new("task-runtime-concurrent-io").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-concurrent-io")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
 
     let script = format!(
         r#"
@@ -93,11 +96,15 @@ fn async_runtime_runs_multiple_io_tasks_concurrently() {
     let start = Instant::now();
     let mut handles = Vec::with_capacity(TOTAL);
     for _ in 0..TOTAL {
-        handles.push(runtime.spawn(script.clone()).expect("提交任务失败"));
+        handles.push(
+            runtime
+                .spawn(script.clone())
+                .expect(&crate::i18n_fmt!("提交任务失败")),
+        );
     }
 
     for task in handles {
-        let result = task.wait().expect("任务执行失败");
+        let result = task.wait().expect(&crate::i18n_fmt!("任务执行失败"));
         assert!(result.contains("ok"));
     }
 
@@ -108,8 +115,8 @@ fn async_runtime_runs_multiple_io_tasks_concurrently() {
 
     assert!(
         elapsed < Duration::from_millis(10000),
-        "多任务并发耗时异常: {}ms",
-        elapsed.as_millis()
+        "{}",
+        crate::i18n_fmt!("多任务并发耗时异常: {0}ms", elapsed.as_millis())
     );
 }
 
@@ -121,7 +128,8 @@ fn async_runtime_supports_many_independent_rust_async_waiters() {
     let _http_guard = HttpPrivateNetworkGuard::allow();
     let (addr, shutdown_tx, handle) = spawn_delay_server(DELAY_MS);
     let runtime = Arc::new(
-        AsyncHostRuntime::new("task-runtime-many-waiters").expect("创建 AsyncHostRuntime 失败"),
+        AsyncHostRuntime::new("task-runtime-many-waiters")
+            .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败")),
     );
 
     let script = format!(
@@ -139,7 +147,7 @@ fn async_runtime_supports_many_independent_rust_async_waiters() {
         .worker_threads(4)
         .enable_all()
         .build()
-        .expect("创建 tokio runtime 失败");
+        .expect(&crate::i18n_fmt!("创建 tokio runtime 失败"));
 
     let start = Instant::now();
     rt.block_on(async {
@@ -148,15 +156,21 @@ fn async_runtime_supports_many_independent_rust_async_waiters() {
             let runtime = Arc::clone(&runtime);
             let script = script.clone();
             join_set.spawn(async move {
-                let task = runtime.spawn(script).expect("提交任务失败");
+                let task = runtime
+                    .spawn(script)
+                    .expect(&crate::i18n_fmt!("提交任务失败"));
                 task.await
             });
         }
 
         let mut done = 0usize;
         while let Some(joined) = join_set.join_next().await {
-            let result = joined.expect("异步等待任务 panic");
-            assert!(result.is_ok(), "任务执行失败: {result:?}");
+            let result = joined.expect(&crate::i18n_fmt!("异步等待任务 panic"));
+            assert!(
+                result.is_ok(),
+                "{}",
+                crate::i18n_fmt!("任务执行失败: {0}", format!("{:?}", result))
+            );
             done += 1;
         }
         assert_eq!(done, TOTAL);
@@ -169,8 +183,8 @@ fn async_runtime_supports_many_independent_rust_async_waiters() {
 
     assert!(
         elapsed < Duration::from_millis(10000),
-        "独立 async 等待者并发耗时异常: {}ms",
-        elapsed.as_millis()
+        "{}",
+        crate::i18n_fmt!("独立 async 等待者并发耗时异常: {0}ms", elapsed.as_millis())
     );
 }
 
@@ -181,8 +195,8 @@ fn async_runtime_wait_handle_avoids_polling() {
 
     let _http_guard = HttpPrivateNetworkGuard::allow();
     let (addr, shutdown_tx, handle) = spawn_delay_server(DELAY_MS);
-    let runtime =
-        AsyncHostRuntime::new("task-runtime-wait-handle").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-wait-handle")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
 
     let script = format!(
         r#"
@@ -197,12 +211,16 @@ fn async_runtime_wait_handle_avoids_polling() {
 
     let mut handles = Vec::with_capacity(TOTAL);
     for _ in 0..TOTAL {
-        handles.push(runtime.spawn(script.clone()).expect("提交任务失败"));
+        handles.push(
+            runtime
+                .spawn(script.clone())
+                .expect(&crate::i18n_fmt!("提交任务失败")),
+        );
     }
 
     let start = Instant::now();
     for task in handles {
-        let result = task.wait().expect("任务执行失败");
+        let result = task.wait().expect(&crate::i18n_fmt!("任务执行失败"));
         assert!(result.contains("ok"));
     }
     let elapsed = start.elapsed();
@@ -212,8 +230,8 @@ fn async_runtime_wait_handle_avoids_polling() {
 
     assert!(
         elapsed < Duration::from_millis(10000),
-        "wait handle 并发耗时异常: {}ms",
-        elapsed.as_millis()
+        "{}",
+        crate::i18n_fmt!("wait handle 并发耗时异常: {0}ms", elapsed.as_millis())
     );
 }
 
@@ -224,11 +242,12 @@ struct PingPayload {
 
 #[test]
 fn async_runtime_spawn_json_is_typed_and_awaitable() {
-    let runtime = AsyncHostRuntime::new("task-runtime-json").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-json")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .expect("创建 tokio runtime 失败");
+        .expect(&crate::i18n_fmt!("创建 tokio runtime 失败"));
 
     rt.block_on(async {
         let task = runtime
@@ -239,20 +258,20 @@ fn async_runtime_spawn_json_is_typed_and_awaitable() {
               })()
             "#,
             )
-            .expect("提交任务失败");
+            .expect(&crate::i18n_fmt!("提交任务失败"));
 
-        let payload = task.await.expect("解析 typed 结果失败");
+        let payload = task.await.expect(&crate::i18n_fmt!("解析 typed 结果失败"));
         assert!(payload.ok);
     });
 }
 
 #[test]
 fn async_runtime_handle_drop_cleans_pending_state() {
-    let runtime =
-        AsyncHostRuntime::new("task-runtime-handle-drop").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-handle-drop")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
     let handle = runtime
         .spawn("(async () => { await new Promise(() => {}); return \"ok\"; })()")
-        .expect("提交任务失败");
+        .expect(&crate::i18n_fmt!("提交任务失败"));
 
     drop(handle);
     thread::sleep(Duration::from_millis(10));
@@ -268,13 +287,13 @@ fn async_runtime_handle_drop_cleans_pending_state() {
 fn bundle_call_once_can_overlap_within_runtime() {
     let runtime = Arc::new(
         AsyncHostRuntime::new("task-runtime-bundle-call-once-overlap")
-            .expect("创建 AsyncHostRuntime 失败"),
+            .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败")),
     );
     let rt = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
         .enable_all()
         .build()
-        .expect("创建 tokio runtime 失败");
+        .expect(&crate::i18n_fmt!("创建 tokio runtime 失败"));
 
     let bundle_source = r#"
       module.exports = {
@@ -298,12 +317,12 @@ fn bundle_call_once_can_overlap_within_runtime() {
         });
         warm1
             .await
-            .expect("warmup task1 join 失败")
-            .expect("warmup task1 执行失败");
+            .expect(&crate::i18n_fmt!("warmup task1 join 失败"))
+            .expect(&crate::i18n_fmt!("warmup task1 执行失败"));
         warm2
             .await
-            .expect("warmup task2 join 失败")
-            .expect("warmup task2 执行失败");
+            .expect(&crate::i18n_fmt!("warmup task2 join 失败"))
+            .expect(&crate::i18n_fmt!("warmup task2 执行失败"));
     });
 
     let elapsed = rt.block_on(async {
@@ -322,12 +341,12 @@ fn bundle_call_once_can_overlap_within_runtime() {
 
         let out1 = task1
             .await
-            .expect("task1 join 失败")
-            .expect("task1 执行失败");
+            .expect(&crate::i18n_fmt!("task1 join 失败"))
+            .expect(&crate::i18n_fmt!("task1 执行失败"));
         let out2 = task2
             .await
-            .expect("task2 join 失败")
-            .expect("task2 执行失败");
+            .expect(&crate::i18n_fmt!("task2 join 失败"))
+            .expect(&crate::i18n_fmt!("task2 执行失败"));
 
         assert_eq!(out1["ok"], true);
         assert_eq!(out2["ok"], true);
@@ -337,19 +356,22 @@ fn bundle_call_once_can_overlap_within_runtime() {
 
     assert!(
         elapsed < Duration::from_millis(140),
-        "bundle_call_once 仍然被串行化，耗时={}ms",
-        elapsed.as_millis()
+        "{}",
+        crate::i18n_fmt!(
+            "bundle_call_once 仍然被串行化，耗时={0}ms",
+            elapsed.as_millis()
+        )
     );
 }
 
 #[test]
 fn bundle_call_once_error_contains_context_and_source_url() {
     let runtime = AsyncHostRuntime::new("task-runtime-bundle-call-once-error-context")
-        .expect("创建 AsyncHostRuntime 失败");
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .expect("创建 tokio runtime 失败");
+        .expect(&crate::i18n_fmt!("创建 tokio runtime 失败"));
 
     let bundle_source = r#"
       module.exports = {
@@ -365,26 +387,28 @@ fn bundle_call_once_error_contains_context_and_source_url() {
                 .bundle_call_once(bundle_source, "boom", &json!([]))
                 .await
         })
-        .expect_err("调用应失败");
+        .expect_err(crate::i18n!("调用应失败"));
 
     assert!(
         err.contains("[bundle:__once__ fn:boom args:[] source:__bundle_once__.cjs]"),
-        "缺少调用上下文: {err}"
+        "{}",
+        crate::i18n_fmt!("缺少调用上下文: {0}", err)
     );
     assert!(
         err.contains("source:__bundle_once__.cjs"),
-        "缺少逻辑源码名: {err}"
+        "{}",
+        crate::i18n_fmt!("缺少逻辑源码名: {0}", err)
     );
 }
 
 #[test]
 fn bundle_call_once_error_shows_export_shape() {
     let runtime = AsyncHostRuntime::new("task-runtime-bundle-call-once-export-shape")
-        .expect("创建 AsyncHostRuntime 失败");
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .expect("创建 tokio runtime 失败");
+        .expect(&crate::i18n_fmt!("创建 tokio runtime 失败"));
 
     let bundle_source = r#"
       module.exports = {
@@ -399,17 +423,29 @@ fn bundle_call_once_error_shows_export_shape() {
                 .bundle_call_once(bundle_source, "searchComic", &json!([{}]))
                 .await
         })
-        .expect_err("调用应失败");
+        .expect_err(crate::i18n!("调用应失败"));
 
-    assert!(err.contains("targetType=string"), "缺少 targetType: {err}");
-    assert!(err.contains("ownerKeys="), "缺少 ownerKeys: {err}");
-    assert!(err.contains("rootKeys="), "缺少 rootKeys: {err}");
+    assert!(
+        err.contains("targetType=string"),
+        "{}",
+        crate::i18n_fmt!("缺少 targetType: {0}", err)
+    );
+    assert!(
+        err.contains("ownerKeys="),
+        "{}",
+        crate::i18n_fmt!("缺少 ownerKeys: {0}", err)
+    );
+    assert!(
+        err.contains("rootKeys="),
+        "{}",
+        crate::i18n_fmt!("缺少 rootKeys: {0}", err)
+    );
 }
 
 #[test]
 fn async_runtime_drop_unblocks_pending_waiter() {
-    let runtime =
-        AsyncHostRuntime::new("task-runtime-drop-unblock").expect("创建 AsyncHostRuntime 失败");
+    let runtime = AsyncHostRuntime::new("task-runtime-drop-unblock")
+        .expect(&crate::i18n_fmt!("创建 AsyncHostRuntime 失败"));
     let handle = runtime
         .spawn(
             r#"
@@ -419,7 +455,7 @@ fn async_runtime_drop_unblocks_pending_waiter() {
           })()
         "#,
         )
-        .expect("提交任务失败");
+        .expect(&crate::i18n_fmt!("提交任务失败"));
 
     drop(runtime);
 
@@ -430,9 +466,12 @@ fn async_runtime_drop_unblocks_pending_waiter() {
 
     let result = rx
         .recv_timeout(Duration::from_millis(800))
-        .expect("runtime 销毁后 wait 不应被无限阻塞");
-    let err = result.expect_err("runtime 销毁后任务应返回错误");
-    assert!(err.contains("runtime 已关闭"), "unexpected error: {err}");
+        .expect(&crate::i18n_fmt!("runtime 销毁后 wait 不应被无限阻塞"));
+    let err = result.expect_err(crate::i18n!("runtime 销毁后任务应返回错误"));
+    assert!(
+        err.contains(crate::i18n!("runtime 已关闭")),
+        "unexpected error: {err}"
+    );
 }
 
 fn spawn_delay_server(delay_ms: u64) -> (String, oneshot::Sender<()>, thread::JoinHandle<()>) {
@@ -444,7 +483,7 @@ fn spawn_delay_server(delay_ms: u64) -> (String, oneshot::Sender<()>, thread::Jo
             .worker_threads(2)
             .enable_all()
             .build()
-            .expect("创建 tokio runtime 失败");
+            .expect(&crate::i18n_fmt!("创建 tokio runtime 失败"));
 
         rt.block_on(async move {
             async fn ping(State(delay): State<u64>) -> Json<serde_json::Value> {
@@ -455,7 +494,7 @@ fn spawn_delay_server(delay_ms: u64) -> (String, oneshot::Sender<()>, thread::Jo
             let app = Router::new().route("/ping", get(ping)).with_state(delay_ms);
             let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
                 .await
-                .expect("绑定测试端口失败");
+                .expect(&crate::i18n_fmt!("绑定测试端口失败"));
             let addr = format!("http://{}", listener.local_addr().expect("读取地址失败"));
             addr_tx.send(addr).expect("发送测试地址失败");
 
@@ -498,6 +537,7 @@ fn sourcemap_inline_resolves_real_bundle_error() {
 
     assert!(
         err.contains("webpack://breeze-plugin-example/./src/index.ts:143:12"),
-        "sourcemap 应解析到 src/index.ts:143:12，实际错误: {err}"
+        "{}",
+        crate::i18n_fmt!("sourcemap 应解析到 src/index.ts:143:12，实际错误: {0}", err)
     );
 }

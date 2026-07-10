@@ -19,8 +19,9 @@ pub async fn create_data_backup_zip(
     download_dir: Option<String>,
 ) -> Result<()> {
     tokio::task::spawn_blocking(move || {
-        let file = File::create(&zip_path)
-            .with_context(|| format!("创建备份 zip 文件失败: {}", zip_path))?;
+        let file = File::create(&zip_path).with_context(|| {
+            rquickjs_playground::i18n_fmt!("创建备份 zip 文件失败: {0}", zip_path)
+        })?;
         let writer = BufWriter::with_capacity(64 * 1024, file);
         let mut zip = ZipWriter::new(writer);
 
@@ -29,59 +30,63 @@ pub async fn create_data_backup_zip(
             .unix_permissions(0o644);
 
         // 1. 写入数据文件（config.json / objectbox.json 等）
-        add_directory_to_zip(&mut zip, &data_dir, "", &options)
-            .with_context(|| format!("向 zip 添加数据目录失败: {}", data_dir))?;
+        add_directory_to_zip(&mut zip, &data_dir, "", &options).with_context(|| {
+            rquickjs_playground::i18n_fmt!("向 zip 添加数据目录失败: {0}", data_dir)
+        })?;
 
         // 2. 可选：写入下载的漫画文件
         if let Some(dir) = download_dir {
             if !dir.is_empty() && Path::new(&dir).exists() {
-                add_directory_to_zip(&mut zip, &dir, "downloads", &options)
-                    .with_context(|| format!("向 zip 添加下载目录失败: {}", dir))?;
+                add_directory_to_zip(&mut zip, &dir, "downloads", &options).with_context(|| {
+                    rquickjs_playground::i18n_fmt!("向 zip 添加下载目录失败: {0}", dir)
+                })?;
             }
         }
 
-        zip.finish().context("完成 zip 写入失败")?;
+        zip.finish()
+            .context(rquickjs_playground::i18n_fmt!("完成 zip 写入失败"))?;
         Ok::<(), anyhow::Error>(())
     })
     .await
-    .context("zip 备份任务执行失败")?
+    .context(rquickjs_playground::i18n_fmt!("zip 备份任务执行失败"))?
 }
 
 /// 从数据备份 zip 中直接读取 config.json 内容。
 #[frb]
 pub async fn read_data_backup_config(zip_path: String) -> Result<String> {
     tokio::task::spawn_blocking(move || {
-        let file =
-            File::open(&zip_path).with_context(|| format!("打开备份 zip 失败: {}", zip_path))?;
-        let mut archive =
-            zip::ZipArchive::new(file).with_context(|| format!("读取 zip 失败: {}", zip_path))?;
+        let file = File::open(&zip_path)
+            .with_context(|| rquickjs_playground::i18n_fmt!("打开备份 zip 失败: {0}", zip_path))?;
+        let mut archive = zip::ZipArchive::new(file)
+            .with_context(|| rquickjs_playground::i18n_fmt!("读取 zip 失败: {0}", zip_path))?;
 
         let mut entry = archive
             .by_name("config.json")
-            .with_context(|| "备份包中缺少 config.json")?;
+            .with_context(|| rquickjs_playground::i18n_fmt!("备份包中缺少 config.json"))?;
 
         let mut content = String::new();
         entry
             .read_to_string(&mut content)
-            .with_context(|| "读取 config.json 失败")?;
+            .with_context(|| rquickjs_playground::i18n_fmt!("读取 config.json 失败"))?;
 
         Ok::<String, anyhow::Error>(content)
     })
     .await
-    .context("读取备份配置任务执行失败")?
+    .context(rquickjs_playground::i18n_fmt!("读取备份配置任务执行失败"))?
 }
 
 /// 将数据备份 zip 解压到目标目录。
 #[frb]
 pub async fn extract_data_backup_zip(zip_path: String, extract_dir: String) -> Result<()> {
     tokio::task::spawn_blocking(move || {
-        std::fs::create_dir_all(&extract_dir)
-            .with_context(|| format!("创建解压目录失败: {}", extract_dir))?;
+        std::fs::create_dir_all(&extract_dir).with_context(|| {
+            rquickjs_playground::i18n_fmt!("创建解压目录失败: {0}", extract_dir)
+        })?;
 
-        let file =
-            File::open(&zip_path).with_context(|| format!("打开备份 zip 失败: {}", zip_path))?;
-        let mut archive =
-            zip::ZipArchive::new(file).with_context(|| format!("读取 zip 失败: {}", zip_path))?;
+        let file = File::open(&zip_path)
+            .with_context(|| rquickjs_playground::i18n_fmt!("打开备份 zip 失败: {0}", zip_path))?;
+        let mut archive = zip::ZipArchive::new(file)
+            .with_context(|| rquickjs_playground::i18n_fmt!("读取 zip 失败: {0}", zip_path))?;
 
         let extract_root = PathBuf::from(&extract_dir);
         let mut buffer = [0u8; 64 * 1024];
@@ -89,48 +94,54 @@ pub async fn extract_data_backup_zip(zip_path: String, extract_dir: String) -> R
         for i in 0..archive.len() {
             let mut entry = archive
                 .by_index(i)
-                .with_context(|| format!("读取 zip 第 {} 个条目失败", i))?;
+                .with_context(|| rquickjs_playground::i18n_fmt!("读取 zip 第 {0} 个条目失败", i))?;
 
             let entry_path = entry.name().to_string();
 
             // 简单防御 zip slip：拒绝包含 .. 的路径
             if entry_path.split('/').any(|s| s == "..") {
-                anyhow::bail!("发现非法 zip 条目路径: {}", entry_path);
+                anyhow::bail!(rquickjs_playground::i18n_fmt!(
+                    "发现非法 zip 条目路径: {0}",
+                    entry_path
+                ));
             }
 
             let target_path = extract_root.join(&entry_path);
 
             if entry.is_dir() {
-                std::fs::create_dir_all(&target_path)
-                    .with_context(|| format!("创建目录失败: {}", target_path.display()))?;
+                std::fs::create_dir_all(&target_path).with_context(|| {
+                    rquickjs_playground::i18n_fmt!("创建目录失败: {0}", target_path.display())
+                })?;
                 continue;
             }
 
             if let Some(parent) = target_path.parent() {
-                std::fs::create_dir_all(parent)
-                    .with_context(|| format!("创建父目录失败: {}", parent.display()))?;
+                std::fs::create_dir_all(parent).with_context(|| {
+                    rquickjs_playground::i18n_fmt!("创建父目录失败: {0}", parent.display())
+                })?;
             }
 
-            let mut out_file = File::create(&target_path)
-                .with_context(|| format!("创建文件失败: {}", target_path.display()))?;
+            let mut out_file = File::create(&target_path).with_context(|| {
+                rquickjs_playground::i18n_fmt!("创建文件失败: {0}", target_path.display())
+            })?;
 
             loop {
-                let n = entry
-                    .read(&mut buffer)
-                    .with_context(|| format!("读取 zip 条目失败: {}", entry_path))?;
+                let n = entry.read(&mut buffer).with_context(|| {
+                    rquickjs_playground::i18n_fmt!("读取 zip 条目失败: {0}", entry_path)
+                })?;
                 if n == 0 {
                     break;
                 }
-                out_file
-                    .write_all(&buffer[..n])
-                    .with_context(|| format!("写入文件失败: {}", target_path.display()))?;
+                out_file.write_all(&buffer[..n]).with_context(|| {
+                    rquickjs_playground::i18n_fmt!("写入文件失败: {0}", target_path.display())
+                })?;
             }
         }
 
         Ok::<(), anyhow::Error>(())
     })
     .await
-    .context("zip 解压任务执行失败")?
+    .context(rquickjs_playground::i18n_fmt!("zip 解压任务执行失败"))?
 }
 
 /// 递归把 `src_dir` 下的文件/目录写入 zip；`zip_prefix` 控制 zip 内的前缀路径。
@@ -145,11 +156,12 @@ fn add_directory_to_zip<W: Write + std::io::Seek>(
         return Ok(());
     }
 
-    let entries =
-        std::fs::read_dir(src_path).with_context(|| format!("读取目录失败: {}", src_dir))?;
+    let entries = std::fs::read_dir(src_path)
+        .with_context(|| rquickjs_playground::i18n_fmt!("读取目录失败: {0}", src_dir))?;
 
     for entry in entries {
-        let entry = entry.with_context(|| format!("读取目录项失败: {}", src_dir))?;
+        let entry = entry
+            .with_context(|| rquickjs_playground::i18n_fmt!("读取目录项失败: {0}", src_dir))?;
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().to_string();
 
@@ -160,13 +172,17 @@ fn add_directory_to_zip<W: Write + std::io::Seek>(
         };
 
         if path.is_dir() {
-            zip.add_directory(&zip_name, *options)
-                .with_context(|| format!("向 zip 添加目录失败: {}", zip_name))?;
+            zip.add_directory(&zip_name, *options).with_context(|| {
+                rquickjs_playground::i18n_fmt!("向 zip 添加目录失败: {0}", zip_name)
+            })?;
             add_directory_to_zip(zip, path.to_str().unwrap_or(""), &zip_name, options)
-                .with_context(|| format!("递归添加目录失败: {}", path.display()))?;
+                .with_context(|| {
+                    rquickjs_playground::i18n_fmt!("递归添加目录失败: {0}", path.display())
+                })?;
         } else {
-            add_file_to_zip(zip, &path, &zip_name, options)
-                .with_context(|| format!("向 zip 添加文件失败: {}", path.display()))?;
+            add_file_to_zip(zip, &path, &zip_name, options).with_context(|| {
+                rquickjs_playground::i18n_fmt!("向 zip 添加文件失败: {0}", path.display())
+            })?;
         }
     }
 
@@ -179,22 +195,22 @@ fn add_file_to_zip<W: Write + std::io::Seek>(
     zip_name: &str,
     options: &FileOptions<()>,
 ) -> Result<()> {
-    let mut src_file =
-        File::open(src_path).with_context(|| format!("打开文件失败: {}", src_path.display()))?;
+    let mut src_file = File::open(src_path)
+        .with_context(|| rquickjs_playground::i18n_fmt!("打开文件失败: {0}", src_path.display()))?;
 
     zip.start_file(zip_name, *options)
-        .with_context(|| format!("创建 zip 条目失败: {}", zip_name))?;
+        .with_context(|| rquickjs_playground::i18n_fmt!("创建 zip 条目失败: {0}", zip_name))?;
 
     let mut buffer = [0u8; 64 * 1024];
     loop {
-        let n = src_file
-            .read(&mut buffer)
-            .with_context(|| format!("读取文件失败: {}", src_path.display()))?;
+        let n = src_file.read(&mut buffer).with_context(|| {
+            rquickjs_playground::i18n_fmt!("读取文件失败: {0}", src_path.display())
+        })?;
         if n == 0 {
             break;
         }
         zip.write_all(&buffer[..n])
-            .with_context(|| format!("写入 zip 条目失败: {}", zip_name))?;
+            .with_context(|| rquickjs_playground::i18n_fmt!("写入 zip 条目失败: {0}", zip_name))?;
     }
 
     Ok(())

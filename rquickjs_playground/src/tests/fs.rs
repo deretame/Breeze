@@ -6,10 +6,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 fn unique_temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect("系统时间异常")
+        .expect(&crate::i18n_fmt!("系统时间异常"))
         .as_nanos();
     let dir = std::env::temp_dir().join(format!("rquickjs-{prefix}-{ts}"));
-    std::fs::create_dir_all(&dir).expect("创建临时目录失败");
+    std::fs::create_dir_all(&dir).expect(&crate::i18n_fmt!("创建临时目录失败"));
     dir
 }
 
@@ -35,8 +35,8 @@ fn fs_not_injected_by_default_runtime() {
       })()
     "#;
 
-    let result = run_async_script(script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert_eq!(parsed["hasFs"], false);
     assert_eq!(parsed["requireHasFs"], false);
 }
@@ -54,8 +54,8 @@ fn fs_only_async_apis_exposed() {
       })()
     "#;
 
-    let result = run_async_script_with_fs(script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["hasFs"], true);
     assert_eq!(parsed["hasPromisesReadFile"], true);
@@ -79,8 +79,8 @@ fn fs_read_write_append_utf8() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert_eq!(parsed["text"], "hello world");
 
     let _ = std::fs::remove_dir_all(&root);
@@ -105,8 +105,8 @@ fn fs_binary_read_write() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert_eq!(parsed["isUint8Array"], true);
     assert_eq!(parsed["length"], 4);
     assert_eq!(parsed["last"], 255);
@@ -142,8 +142,8 @@ fn fs_concurrent_promises_read_write() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert_eq!(parsed["ok"], true);
     assert_eq!(parsed["count"], 100);
 
@@ -178,9 +178,11 @@ fn fs_mkdir_readdir_stat() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
-    let names = parsed["names"].as_array().expect("names 必须是数组");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let names = parsed["names"]
+        .as_array()
+        .expect(&crate::i18n_fmt!("names 必须是数组"));
     assert!(names.iter().any(|v| v == "b"));
     assert!(names.iter().any(|v| v == "one.txt"));
     assert!(names.iter().any(|v| v == "two.txt"));
@@ -229,8 +231,8 @@ fn fs_require_promises_and_rm_flow() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert_eq!(parsed["hasRealpath"], true);
     assert_eq!(parsed["removedCode"], "ENOENT");
 }
@@ -265,8 +267,8 @@ fn fs_readdir_recursive_and_cp() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["hasA"], true);
     assert_eq!(parsed["hasB"], true);
@@ -308,8 +310,8 @@ fn fs_open_truncate_and_link() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["readChunk"], "cde");
     assert_eq!(parsed["text"], "abcd");
@@ -341,8 +343,8 @@ fn fs_mkdtemp_and_utimes() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert!(parsed["dir"].as_str().unwrap_or("").contains("tmp-"));
     assert_eq!(parsed["size"], 2);
@@ -376,8 +378,8 @@ fn fs_create_read_stream() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["text"], "hello-stream-reader");
     assert!(parsed["chunkCount"].as_u64().unwrap_or(0) >= 3);
@@ -423,8 +425,8 @@ fn fs_create_write_stream_and_pipe() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["first"], "hello-world");
     assert_eq!(parsed["second"], "pipe-source-content");
@@ -455,9 +457,11 @@ fn fs_opendir_async_iter() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
-    let names = parsed["names"].as_array().expect("names 必须是数组");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
+    let names = parsed["names"]
+        .as_array()
+        .expect(&crate::i18n_fmt!("names 必须是数组"));
 
     assert!(names.iter().any(|v| v == "a.txt"));
     assert!(names.iter().any(|v| v == "b.txt"));
@@ -498,8 +502,8 @@ fn fs_watch_detects_change() {
     "#
     );
 
-    let result = run_async_script_with_fs(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script_with_fs(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert!(parsed["count"].as_u64().unwrap_or(0) >= 1);
     assert_eq!(parsed["firstType"], "change");

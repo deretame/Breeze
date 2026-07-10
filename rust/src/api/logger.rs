@@ -3,6 +3,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 use tracing::{Event, Subscriber};
+use tracing_subscriber::fmt::writer::MakeWriter;
 use tracing_subscriber::fmt::{FmtContext, FormatEvent, FormatFields, format::Writer};
 use tracing_subscriber::registry::LookupSpan;
 
@@ -168,5 +169,59 @@ where
         write!(output, "{}└{}{}\n", color_code, top_bottom_line, reset_code)?;
 
         write!(writer, "{}", output)
+    }
+}
+
+// --- HTTP 日志转发 writer ---
+
+/// 为 `tracing_subscriber::fmt` 提供一个 writer：每次事件写入缓冲区，writer 被 drop
+/// 时把整行内容以 fire-and-forget 方式转发到 `set_log_http_forward` 配置的地址。
+/// 未配置地址、client 不可用或发送失败都静默忽略，不打印任何日志。
+#[derive(Debug, Clone, Default)]
+pub struct LogHttpMakeWriter;
+
+impl<'a> MakeWriter<'a> for LogHttpMakeWriter {
+    type Writer = LogHttpWriter;
+
+    fn make_writer(&'a self) -> Self::Writer {
+        LogHttpWriter {
+            level: "INFO".to_string(),
+            buffer: Vec::new(),
+        }
+    }
+
+    fn make_writer_for(&'a self, meta: &tracing::Metadata<'_>) -> Self::Writer {
+        LogHttpWriter {
+            level: meta.level().to_string(),
+            buffer: Vec::new(),
+        }
+    }
+}
+
+pub struct LogHttpWriter {
+    level: String,
+    buffer: Vec<u8>,
+}
+
+impl std::io::Write for LogHttpWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.buffer.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+impl Drop for LogHttpWriter {
+    fn drop(&mut self) {
+        if self.buffer.is_empty() {
+            return;
+        }
+        let message = String::from_utf8_lossy(&self.buffer).trim().to_string();
+        if !message.is_empty() {
+            rquickjs_playground::forward_log_line(&self.level, message);
+        }
     }
 }

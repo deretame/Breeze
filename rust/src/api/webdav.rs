@@ -14,10 +14,12 @@ pub async fn webdav_test_connection(
     password: String,
 ) -> Result<()> {
     let client = build_client(&host, &username, &password)?;
-    let _ = client
-        .list("/", Depth::Number(0))
-        .await
-        .map_err(|e| anyhow!("WebDAV 连接测试失败: {e}"))?;
+    let _ = client.list("/", Depth::Number(0)).await.map_err(|e| {
+        anyhow!(rquickjs_playground::i18n_fmt!(
+            "WebDAV 连接测试失败: {0}",
+            e
+        ))
+    })?;
     Ok(())
 }
 
@@ -52,14 +54,14 @@ pub async fn webdav_download_text(
     let response = client
         .get_raw(&path)
         .await
-        .map_err(|e| anyhow!("md5 下载失败: {e}"))?;
+        .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("md5 下载失败: {0}", e)))?;
     if response.status().as_u16() == 404 {
         return Ok(String::new());
     }
     let bytes = response
         .bytes()
         .await
-        .map_err(|e| anyhow!("md5 下载失败: {e}"))?;
+        .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("md5 下载失败: {0}", e)))?;
     Ok(String::from_utf8_lossy(&bytes).trim().to_string())
 }
 
@@ -126,7 +128,12 @@ pub async fn webdav_list_remote_data_files(
             {
                 Vec::new()
             }
-            Err(e) => return Err(anyhow!("WebDAV 服务请求失败: {e}")),
+            Err(e) => {
+                return Err(anyhow!(rquickjs_playground::i18n_fmt!(
+                    "WebDAV 服务请求失败: {0}",
+                    e
+                )));
+            }
         };
         for entry in entries {
             let normalized = normalize_managed_href(
@@ -241,13 +248,16 @@ pub async fn webdav_delete_remote_files(
         let response = client
             .delete_raw(&path)
             .await
-            .map_err(|e| anyhow!("文件删除失败: {e}"))?;
+            .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("文件删除失败: {0}", e)))?;
         let code = response.status().as_u16();
         if code == 404 {
             continue;
         }
         if !(code == 200 || code == 202 || code == 204) {
-            return Err(anyhow!("文件删除失败，状态码: {code}"));
+            return Err(anyhow!(rquickjs_playground::i18n_fmt!(
+                "文件删除失败，状态码: {0}",
+                code
+            )));
         }
     }
 
@@ -256,7 +266,7 @@ pub async fn webdav_delete_remote_files(
 
 fn build_client(host: &str, username: &str, password: &str) -> Result<Client> {
     if host.trim().is_empty() || username.trim().is_empty() || password.is_empty() {
-        return Err(anyhow!("WebDAV 配置不完整"));
+        return Err(anyhow!(rquickjs_playground::i18n_fmt!("WebDAV 配置不完整")));
     }
 
     ClientBuilder::new()
@@ -270,10 +280,20 @@ fn build_client(host: &str, username: &str, password: &str) -> Result<Client> {
                 .timeout(Duration::from_secs(10))
                 .danger_accept_invalid_certs(current_http_client_config().disable_tls_verify)
                 .build()
-                .map_err(|e| anyhow!("构建 HTTP 客户端失败: {e}"))?,
+                .map_err(|e| {
+                    anyhow!(rquickjs_playground::i18n_fmt!(
+                        "构建 HTTP 客户端失败: {0}",
+                        e
+                    ))
+                })?,
         )
         .build()
-        .map_err(|e| anyhow!("构建 WebDAV 客户端失败: {e}"))
+        .map_err(|e| {
+            anyhow!(rquickjs_playground::i18n_fmt!(
+                "构建 WebDAV 客户端失败: {0}",
+                e
+            ))
+        })
 }
 
 async fn ensure_directory(client: &Client, dir_path: &str) -> Result<()> {
@@ -293,10 +313,16 @@ async fn ensure_directory(client: &Client, dir_path: &str) -> Result<()> {
             if matches!(code, 201 | 204 | 405 | 301 | 302) {
                 Ok(())
             } else {
-                Err(anyhow!("目录创建失败，状态码: {code}"))
+                Err(anyhow!(rquickjs_playground::i18n_fmt!(
+                    "目录创建失败，状态码: {0}",
+                    code
+                )))
             }
         }
-        Err(e) => Err(anyhow!("目录创建失败: {e}")),
+        Err(e) => Err(anyhow!(rquickjs_playground::i18n_fmt!(
+            "目录创建失败: {0}",
+            e
+        ))),
     }
 }
 
@@ -307,26 +333,34 @@ async fn download_file_with_retry(client: &Client, request_path: &str) -> Result
         let response = client
             .get_raw(request_path)
             .await
-            .map_err(|e| anyhow!("文件下载失败: {e}"))?;
+            .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("文件下载失败: {0}", e)))?;
         let code = response.status().as_u16();
         if code == 200 || code == 206 {
             let bytes = response
                 .bytes()
                 .await
-                .map_err(|e| anyhow!("文件下载失败: {e}"))?;
+                .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("文件下载失败: {0}", e)))?;
             return Ok(bytes.to_vec());
         }
         if code == 404 {
-            return Err(anyhow!("文件不存在，状态码: {code}"));
+            return Err(anyhow!(rquickjs_playground::i18n_fmt!(
+                "文件不存在，状态码: {0}",
+                code
+            )));
         }
         if code == 409 || code == 423 || code == 429 || code >= 500 {
             tokio::time::sleep(Duration::from_secs(2)).await;
             continue;
         }
-        return Err(anyhow!("文件下载失败，状态码: {code}"));
+        return Err(anyhow!(rquickjs_playground::i18n_fmt!(
+            "文件下载失败，状态码: {0}",
+            code
+        )));
     }
 
-    Err(anyhow!("文件下载失败，重试次数用尽"))
+    Err(anyhow!(rquickjs_playground::i18n_fmt!(
+        "文件下载失败，重试次数用尽"
+    )))
 }
 
 async fn upload_bytes(
@@ -338,28 +372,31 @@ async fn upload_bytes(
     let response = client
         .start_request(dav_reqwest::Method::PUT, remote_path)
         .await
-        .map_err(|e| anyhow!("文件上传失败: {e}"))?
+        .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("文件上传失败: {0}", e)))?
         .header(
             dav_reqwest::header::CONTENT_TYPE,
             dav_reqwest::header::HeaderValue::from_str(content_type)
-                .map_err(|e| anyhow!("文件上传失败: {e}"))?,
+                .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("文件上传失败: {0}", e)))?,
         )
         .body(data)
         .send()
         .await
-        .map_err(|e| anyhow!("文件上传失败: {e}"))?;
+        .map_err(|e| anyhow!(rquickjs_playground::i18n_fmt!("文件上传失败: {0}", e)))?;
     let code = response.status().as_u16();
     if code == 201 || code == 204 || code == 200 {
         Ok(())
     } else {
-        Err(anyhow!("文件上传失败，状态码: {code}"))
+        Err(anyhow!(rquickjs_playground::i18n_fmt!(
+            "文件上传失败，状态码: {0}",
+            code
+        )))
     }
 }
 
 fn normalize_remote_path(remote_path: &str) -> Result<String> {
     let trimmed = remote_path.trim();
     if trimmed.is_empty() {
-        return Err(anyhow!("远端路径不能为空"));
+        return Err(anyhow!(rquickjs_playground::i18n_fmt!("远端路径不能为空")));
     }
 
     let raw_path = if let Ok(url) = url::Url::parse(trimmed) {

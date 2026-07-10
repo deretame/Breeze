@@ -20,8 +20,8 @@ fn fetch_get_json() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["method"], "GET");
@@ -53,8 +53,8 @@ fn fetch_post_json_body() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["method"], "POST");
     assert_eq!(parsed["body"], "{\"name\":\"quickjs\"}");
@@ -88,8 +88,8 @@ fn fetch_post_formdata_body() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["method"], "POST");
     assert!(
@@ -143,8 +143,8 @@ fn fetch_post_formdata_file_fields() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["method"], "POST");
     assert!(
@@ -190,8 +190,8 @@ fn fetch_post_urlsearchparams_body() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["method"], "POST");
     assert_eq!(parsed["body"], "name=quickjs&lang=rust");
@@ -223,8 +223,8 @@ fn fetch_headers() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["hasContentType"], true);
@@ -260,8 +260,8 @@ fn fetch_put_request() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["method"], "PUT");
@@ -291,8 +291,8 @@ fn fetch_delete_request() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["method"], "DELETE");
@@ -323,8 +323,8 @@ fn fetch_patch_request() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["method"], "PATCH");
@@ -350,8 +350,8 @@ fn fetch_text_response() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["isObject"], true);
@@ -375,7 +375,7 @@ fn fetch_abort_controller() {
       })()
     "#;
 
-    let result = run_async_script(script).expect("执行脚本失败");
+    let result = run_async_script(script).expect(&crate::i18n_fmt!("执行脚本失败"));
     assert!(result.starts_with("AbortError:"));
 }
 
@@ -410,8 +410,8 @@ fn fetch_abort_concurrent_requests_do_not_leave_pending_http_tasks() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert_eq!(parsed["total"], 20);
     assert!(parsed["aborts"].as_i64().unwrap_or(0) >= 1);
     assert_eq!(parsed["httpPending"], 0);
@@ -430,11 +430,11 @@ fn fetch_block_private_network_by_default() {
     let previous = current_http_client_config();
     let mut config = current_http_client_config();
     config.allow_private_network = false;
-    configure_http_client(config).expect("更新 HTTP 配置失败");
+    configure_http_client(config).expect(&crate::i18n_fmt!("更新 HTTP 配置失败"));
 
     let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime-private-block")
-        .expect("创建 runtime 失败");
-    configure_http_client(previous).expect("恢复 HTTP 配置失败");
+        .expect(&crate::i18n_fmt!("创建 runtime 失败"));
+    configure_http_client(previous).expect(&crate::i18n_fmt!("恢复 HTTP 配置失败"));
 
     let task = runtime
         .spawn(
@@ -449,9 +449,9 @@ fn fetch_block_private_network_by_default() {
           })()
         "#,
         )
-        .expect("执行脚本失败");
-    let result = task.wait().expect("等待脚本结果失败");
-    assert!(result.contains("已拦截内网请求"));
+        .expect(&crate::i18n_fmt!("执行脚本失败"));
+    let result = task.wait().expect(&crate::i18n_fmt!("等待脚本结果失败"));
+    assert!(result.contains(crate::i18n!("已拦截内网请求")));
 }
 
 // 说明：
@@ -463,7 +463,7 @@ fn fetch_allow_private_network_when_config_enabled() {
     let previous = current_http_client_config();
     let mut config = current_http_client_config();
     config.allow_private_network = true;
-    configure_http_client(config).expect("更新 HTTP 配置失败");
+    configure_http_client(config).expect(&crate::i18n_fmt!("更新 HTTP 配置失败"));
 
     let (base_url, tx, handle) = spawn_test_server(2);
     let script = format!(
@@ -482,17 +482,19 @@ fn fetch_allow_private_network_when_config_enabled() {
     );
 
     let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime-private-allowed")
-        .expect("创建 runtime 失败");
-    let task = runtime.spawn(&script).expect("执行脚本失败");
-    let result = task.wait().expect("等待脚本结果失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+        .expect(&crate::i18n_fmt!("创建 runtime 失败"));
+    let task = runtime
+        .spawn(&script)
+        .expect(&crate::i18n_fmt!("执行脚本失败"));
+    let result = task.wait().expect(&crate::i18n_fmt!("等待脚本结果失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["method"], "GET");
     assert_eq!(parsed["path"], "/hello?from=private-enabled");
-    assert!(!result.contains("已拦截内网请求"));
+    assert!(!result.contains(crate::i18n!("已拦截内网请求")));
 
-    configure_http_client(previous).expect("恢复 HTTP 配置失败");
+    configure_http_client(previous).expect(&crate::i18n_fmt!("恢复 HTTP 配置失败"));
     let _ = tx.send(());
     let _ = handle.join();
 }
@@ -522,8 +524,8 @@ fn fetch_multiple_headers() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["h1"], "value1");
@@ -562,8 +564,8 @@ fn fetch_offload_binary_to_native_buffer() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["offloaded"], true);
@@ -606,14 +608,14 @@ fn fetch_offloaded_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
     assert!(parsed["firstLen"].as_u64().unwrap_or(0) > 0);
     assert!(
         parsed["secondError"]
             .as_str()
             .unwrap_or("")
-            .contains("Body 已被读取")
+            .contains(crate::i18n!("Body 已被读取"))
     );
 
     let _ = tx.send(());
@@ -645,8 +647,8 @@ fn fetch_offload_arraybuffer_works_without_custom_api() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["offloaded"], true);
@@ -678,8 +680,8 @@ fn fetch_auto_offload_octet_stream_arraybuffer() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["status"], 200);
     assert_eq!(parsed["offloaded"], true);
@@ -717,8 +719,8 @@ fn fetch_post_binary_body_via_native_buffer_channel() {
         base_url
     );
 
-    let result = run_async_script(&script).expect("执行脚本失败");
-    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let result = run_async_script(&script).expect(&crate::i18n_fmt!("执行脚本失败"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析结果失败"));
 
     assert_eq!(parsed["method"], "POST");
     assert_eq!(parsed["contentType"], "application/octet-stream");

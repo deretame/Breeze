@@ -28,13 +28,13 @@ pub fn ensure_pnpm_cases_built() {
                 .args(["/C", "pnpm run test:cases:node"])
                 .current_dir(&demo_dir)
                 .output()
-                .map_err(|e| format!("执行 pnpm test:cases:node 失败: {e}"))?
+                .map_err(|e| crate::i18n_fmt!("执行 pnpm test:cases:node 失败: {0}", e))?
         } else {
             Command::new("pnpm")
                 .args(["run", "test:cases:node"])
                 .current_dir(&demo_dir)
                 .output()
-                .map_err(|e| format!("执行 pnpm test:cases:node 失败: {e}"))?
+                .map_err(|e| crate::i18n_fmt!("执行 pnpm test:cases:node 失败: {0}", e))?
         };
 
         if output.status.success() {
@@ -42,8 +42,10 @@ pub fn ensure_pnpm_cases_built() {
         } else {
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
-            Err(format!(
-                "pnpm test:cases:node 失败\nstdout:\n{stdout}\nstderr:\n{stderr}"
+            Err(crate::i18n_fmt!(
+                "pnpm test:cases:node 失败\\nstdout:\\n{0}\\nstderr:\\n{1}",
+                stdout,
+                stderr
             ))
         }
     });
@@ -61,7 +63,7 @@ pub fn spawn_test_server_with_headers(
     limit: usize,
     extra_headers: Option<Vec<(&'static str, &'static str)>>,
 ) -> (String, mpsc::Sender<()>, thread::JoinHandle<()>) {
-    let server = Server::http("127.0.0.1:0").expect("启动测试服务失败");
+    let server = Server::http("127.0.0.1:0").expect(&crate::i18n_fmt!("启动测试服务失败"));
     let addr = format!("http://{}", server.server_addr());
     let (tx, rx) = mpsc::channel::<()>();
 

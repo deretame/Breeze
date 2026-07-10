@@ -21,9 +21,12 @@ fn run_case(name: &str, config: Value) -> Value {
 
 fn run_case_with_wasi(name: &str, config: Value, fs: bool) -> Value {
     ensure_pnpm_cases_built();
-    let bundle = fs::read_to_string(case_bundle_path(name)).expect("读取 case bundle 失败");
-    let bundle_json = serde_json::to_string(&bundle).expect("序列化 bundle 失败");
-    let config_json = serde_json::to_string(&config).expect("序列化 config 失败");
+    let bundle = fs::read_to_string(case_bundle_path(name))
+        .expect(&crate::i18n_fmt!("读取 case bundle 失败"));
+    let bundle_json =
+        serde_json::to_string(&bundle).expect(&crate::i18n_fmt!("序列化 bundle 失败"));
+    let config_json =
+        serde_json::to_string(&config).expect(&crate::i18n_fmt!("序列化 config 失败"));
 
     let script = format!(
         r#"
@@ -62,18 +65,21 @@ fn run_case_with_wasi(name: &str, config: Value, fs: bool) -> Value {
     } else {
         run_async_script(&script)
     }
-    .expect("执行 bundle case 失败");
+    .expect(&crate::i18n_fmt!("执行 bundle case 失败"));
 
-    serde_json::from_str(&result).expect("解析 case 结果失败")
+    serde_json::from_str(&result).expect(&crate::i18n_fmt!("解析 case 结果失败"))
 }
 
 fn assert_case_ok(out: &Value) {
     if out["ok"] != true {
         let raw = serde_json::to_string(out).unwrap_or_else(|_| "<serialize-failed>".to_string());
         panic!(
-            "case 执行失败: {}\nraw={}",
-            out["__error"].as_str().unwrap_or("未知错误"),
-            raw
+            "{}",
+            crate::i18n_fmt!(
+                "case 执行失败: {0}\\nraw={1}",
+                out["__error"].as_str().unwrap_or("未知错误"),
+                raw
+            )
         );
     }
 }
@@ -81,10 +87,10 @@ fn assert_case_ok(out: &Value) {
 fn unique_temp_dir() -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect("系统时间异常")
+        .expect(&crate::i18n_fmt!("系统时间异常"))
         .as_nanos();
     let dir = std::env::temp_dir().join(format!("rquickjs-case-{ts}"));
-    fs::create_dir_all(&dir).expect("创建临时目录失败");
+    fs::create_dir_all(&dir).expect(&crate::i18n_fmt!("创建临时目录失败"));
     dir
 }
 

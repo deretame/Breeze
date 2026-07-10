@@ -89,8 +89,14 @@ pub(crate) fn setup_log_to_console(enabled: bool) {
 fn init_subscriber<S>(subscriber: S, platform: &str)
 where
     S: tracing::Subscriber + Send + Sync + 'static,
+    for<'a> S: tracing_subscriber::registry::LookupSpan<'a>,
 {
     use tracing_log::{AsLog, LogTracer};
+    use tracing_subscriber::{fmt, prelude::*};
+
+    use crate::api::logger::LogHttpMakeWriter;
+
+    let subscriber = subscriber.with(fmt::layer().with_writer(LogHttpMakeWriter).with_ansi(false));
 
     tracing::dispatcher::set_global_default(subscriber.into())
         .unwrap_or_else(|_| panic!("Failed to initialize tracing subscriber ({platform})"));

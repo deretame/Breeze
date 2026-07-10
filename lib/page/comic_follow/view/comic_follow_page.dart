@@ -93,12 +93,7 @@ class _ComicFollowPageContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            '在漫画详情页点击追更按钮即可加入',
-            style: context.theme.textTheme.bodySmall?.copyWith(
-              color: context.theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
+          Text('在漫画详情页点击追更按钮即可加入', style: TextStyle(fontSize: 14)),
         ],
       ),
     );

@@ -18,7 +18,7 @@ pub fn init_app() {
         crate::api::user_utils::setup_default_user_utils();
         let mut config = current_http_client_config();
         config.allow_private_network = true;
-        configure_http_client(config).expect("更新 HTTP 配置失败");
+        configure_http_client(config).expect(&rquickjs_playground::i18n_fmt!("更新 HTTP 配置失败"));
     });
 }
 

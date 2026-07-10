@@ -52,21 +52,24 @@ fn digest<D: Digest + Default>(input: &[u8]) -> Vec<u8> {
 
 /// HMAC-SHA1。
 pub fn hmac_sha1(key: &[u8], input: &[u8]) -> Result<Vec<u8>> {
-    let mut mac = <Hmac<Sha1> as Mac>::new_from_slice(key).context("初始化 hmac 失败")?;
+    let mut mac =
+        <Hmac<Sha1> as Mac>::new_from_slice(key).context(crate::i18n_fmt!("初始化 hmac 失败"))?;
     mac.update(input);
     Ok(mac.finalize().into_bytes().to_vec())
 }
 
 /// HMAC-SHA256。
 pub fn hmac_sha256(key: &[u8], input: &[u8]) -> Result<Vec<u8>> {
-    let mut mac = <Hmac<Sha256> as Mac>::new_from_slice(key).context("初始化 hmac 失败")?;
+    let mut mac =
+        <Hmac<Sha256> as Mac>::new_from_slice(key).context(crate::i18n_fmt!("初始化 hmac 失败"))?;
     mac.update(input);
     Ok(mac.finalize().into_bytes().to_vec())
 }
 
 /// HMAC-SHA512。
 pub fn hmac_sha512(key: &[u8], input: &[u8]) -> Result<Vec<u8>> {
-    let mut mac = <Hmac<Sha512> as Mac>::new_from_slice(key).context("初始化 hmac 失败")?;
+    let mut mac =
+        <Hmac<Sha512> as Mac>::new_from_slice(key).context(crate::i18n_fmt!("初始化 hmac 失败"))?;
     mac.update(input);
     Ok(mac.finalize().into_bytes().to_vec())
 }
@@ -74,13 +77,15 @@ pub fn hmac_sha512(key: &[u8], input: &[u8]) -> Result<Vec<u8>> {
 /// AES-ECB-PKCS7 解密。
 pub fn aes_ecb_decrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
     if payload.len() % 16 != 0 {
-        return Err(anyhow!("AES ECB 密文长度必须是 16 的倍数"));
+        return Err(anyhow!(crate::i18n_fmt!(
+            "AES ECB 密文长度必须是 16 的倍数"
+        )));
     }
     let mut out = vec![0u8; payload.len()];
     match key.len() {
         16 => {
-            let cipher =
-                Aes128::new_from_slice(key).map_err(|_| anyhow!("AES-128 密钥长度无效"))?;
+            let cipher = Aes128::new_from_slice(key)
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-128 密钥长度无效")))?;
             for (src, dst) in payload.chunks_exact(16).zip(out.chunks_exact_mut(16)) {
                 let mut block = aes::cipher::Block::<Aes128>::clone_from_slice(src);
                 cipher.decrypt_block(&mut block);
@@ -88,8 +93,8 @@ pub fn aes_ecb_decrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             }
         }
         24 => {
-            let cipher =
-                Aes192::new_from_slice(key).map_err(|_| anyhow!("AES-192 密钥长度无效"))?;
+            let cipher = Aes192::new_from_slice(key)
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-192 密钥长度无效")))?;
             for (src, dst) in payload.chunks_exact(16).zip(out.chunks_exact_mut(16)) {
                 let mut block = aes::cipher::Block::<Aes192>::clone_from_slice(src);
                 cipher.decrypt_block(&mut block);
@@ -97,8 +102,8 @@ pub fn aes_ecb_decrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             }
         }
         32 => {
-            let cipher =
-                Aes256::new_from_slice(key).map_err(|_| anyhow!("AES-256 密钥长度无效"))?;
+            let cipher = Aes256::new_from_slice(key)
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-256 密钥长度无效")))?;
             for (src, dst) in payload.chunks_exact(16).zip(out.chunks_exact_mut(16)) {
                 let mut block = aes::cipher::Block::<Aes256>::clone_from_slice(src);
                 cipher.decrypt_block(&mut block);
@@ -106,22 +111,24 @@ pub fn aes_ecb_decrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             }
         }
         _ => {
-            return Err(anyhow!(
-                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {0}",
                 key.len()
-            ));
+            )));
         }
     }
 
-    let pad_len = *out.last().ok_or_else(|| anyhow!("AES ECB 解密结果为空"))? as usize;
+    let pad_len =
+        *out.last()
+            .ok_or_else(|| anyhow!(crate::i18n_fmt!("AES ECB 解密结果为空")))? as usize;
     if pad_len == 0 || pad_len > 16 || pad_len > out.len() {
-        return Err(anyhow!("AES ECB PKCS7 填充无效"));
+        return Err(anyhow!(crate::i18n_fmt!("AES ECB PKCS7 填充无效")));
     }
     if !out[out.len() - pad_len..]
         .iter()
         .all(|b| *b as usize == pad_len)
     {
-        return Err(anyhow!("AES ECB PKCS7 填充无效"));
+        return Err(anyhow!(crate::i18n_fmt!("AES ECB PKCS7 填充无效")));
     }
     out.truncate(out.len() - pad_len);
     Ok(out)
@@ -138,8 +145,8 @@ pub fn aes_ecb_encrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
 
     match key.len() {
         16 => {
-            let cipher =
-                Aes128::new_from_slice(key).map_err(|_| anyhow!("AES-128 密钥长度无效"))?;
+            let cipher = Aes128::new_from_slice(key)
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-128 密钥长度无效")))?;
             for chunk in out.chunks_exact_mut(16) {
                 let mut block = aes::cipher::Block::<Aes128>::clone_from_slice(chunk);
                 cipher.encrypt_block(&mut block);
@@ -147,8 +154,8 @@ pub fn aes_ecb_encrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             }
         }
         24 => {
-            let cipher =
-                Aes192::new_from_slice(key).map_err(|_| anyhow!("AES-192 密钥长度无效"))?;
+            let cipher = Aes192::new_from_slice(key)
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-192 密钥长度无效")))?;
             for chunk in out.chunks_exact_mut(16) {
                 let mut block = aes::cipher::Block::<Aes192>::clone_from_slice(chunk);
                 cipher.encrypt_block(&mut block);
@@ -156,8 +163,8 @@ pub fn aes_ecb_encrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             }
         }
         32 => {
-            let cipher =
-                Aes256::new_from_slice(key).map_err(|_| anyhow!("AES-256 密钥长度无效"))?;
+            let cipher = Aes256::new_from_slice(key)
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-256 密钥长度无效")))?;
             for chunk in out.chunks_exact_mut(16) {
                 let mut block = aes::cipher::Block::<Aes256>::clone_from_slice(chunk);
                 cipher.encrypt_block(&mut block);
@@ -165,10 +172,10 @@ pub fn aes_ecb_encrypt_pkcs7(payload: &[u8], key: &[u8]) -> Result<Vec<u8>> {
             }
         }
         _ => {
-            return Err(anyhow!(
-                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "AES ECB 密钥长度必须是 16/24/32 字节，当前: {0}",
                 key.len()
-            ));
+            )));
         }
     }
 
@@ -184,33 +191,33 @@ pub fn aes_cbc_pkcs7_encrypt(plain: &[u8], key: &[u8], iv: &[u8]) -> Result<Vec<
     let encrypted = match key.len() {
         16 => {
             let cipher = CbcEncryptor::<Aes128>::new_from_slices(key, iv)
-                .map_err(|_| anyhow!("AES-128 CBC 参数无效"))?;
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-128 CBC 参数无效")))?;
             cipher
                 .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
-                .map_err(|_| anyhow!("AES-128 CBC 加密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-128 CBC 加密失败")))?
                 .to_vec()
         }
         24 => {
             let cipher = CbcEncryptor::<Aes192>::new_from_slices(key, iv)
-                .map_err(|_| anyhow!("AES-192 CBC 参数无效"))?;
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-192 CBC 参数无效")))?;
             cipher
                 .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
-                .map_err(|_| anyhow!("AES-192 CBC 加密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-192 CBC 加密失败")))?
                 .to_vec()
         }
         32 => {
             let cipher = CbcEncryptor::<Aes256>::new_from_slices(key, iv)
-                .map_err(|_| anyhow!("AES-256 CBC 参数无效"))?;
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-256 CBC 参数无效")))?;
             cipher
                 .encrypt_padded_mut::<Pkcs7>(&mut buf, msg_len)
-                .map_err(|_| anyhow!("AES-256 CBC 加密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-256 CBC 加密失败")))?
                 .to_vec()
         }
         _ => {
-            return Err(anyhow!(
-                "AES CBC 密钥长度必须是 16/24/32 字节，当前: {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "AES CBC 密钥长度必须是 16/24/32 字节，当前: {0}",
                 key.len()
-            ));
+            )));
         }
     };
 
@@ -222,25 +229,25 @@ pub fn aes_cbc_pkcs7_decrypt(payload: &[u8], key: &[u8], iv: &[u8]) -> Result<Ve
     let mut buf = payload.to_vec();
     let plain = match key.len() {
         16 => CbcDecryptor::<Aes128>::new_from_slices(key, iv)
-            .map_err(|e| anyhow!("AES-128 CBC 参数无效: {}", e))?
+            .map_err(|e| anyhow!(crate::i18n_fmt!("AES-128 CBC 参数无效: {0}", e)))?
             .decrypt_padded_mut::<Pkcs7>(&mut buf)
-            .map_err(|e| anyhow!("AES-128 CBC 解密失败: {}", e))?
+            .map_err(|e| anyhow!(crate::i18n_fmt!("AES-128 CBC 解密失败: {0}", e)))?
             .to_vec(),
         24 => CbcDecryptor::<Aes192>::new_from_slices(key, iv)
-            .map_err(|e| anyhow!("AES-192 CBC 参数无效: {}", e))?
+            .map_err(|e| anyhow!(crate::i18n_fmt!("AES-192 CBC 参数无效: {0}", e)))?
             .decrypt_padded_mut::<Pkcs7>(&mut buf)
-            .map_err(|e| anyhow!("AES-192 CBC 解密失败: {}", e))?
+            .map_err(|e| anyhow!(crate::i18n_fmt!("AES-192 CBC 解密失败: {0}", e)))?
             .to_vec(),
         32 => CbcDecryptor::<Aes256>::new_from_slices(key, iv)
-            .map_err(|e| anyhow!("AES-256 CBC 参数无效: {}", e))?
+            .map_err(|e| anyhow!(crate::i18n_fmt!("AES-256 CBC 参数无效: {0}", e)))?
             .decrypt_padded_mut::<Pkcs7>(&mut buf)
-            .map_err(|e| anyhow!("AES-256 CBC 解密失败: {}", e))?
+            .map_err(|e| anyhow!(crate::i18n_fmt!("AES-256 CBC 解密失败: {0}", e)))?
             .to_vec(),
         _ => {
-            return Err(anyhow!(
-                "AES CBC 密钥长度必须是 16/24/32 字节，当前: {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "AES CBC 密钥长度必须是 16/24/32 字节，当前: {0}",
                 key.len()
-            ));
+            )));
         }
     };
     Ok(plain)
@@ -256,24 +263,26 @@ pub fn aes_gcm_encrypt(
     let aad = aad.unwrap_or_default();
     let cipher_text = match key.len() {
         16 => {
-            let cipher = Aes128Gcm::new_from_slice(key).context("AES-128 GCM 参数无效")?;
+            let cipher =
+                Aes128Gcm::new_from_slice(key).context(crate::i18n_fmt!("AES-128 GCM 参数无效"))?;
             let nonce = Nonce::from_slice(nonce);
             cipher
                 .encrypt(nonce, AeadPayload { msg: plain, aad })
-                .map_err(|_| anyhow!("AES-128 GCM 加密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-128 GCM 加密失败")))?
         }
         32 => {
-            let cipher = Aes256Gcm::new_from_slice(key).context("AES-256 GCM 参数无效")?;
+            let cipher =
+                Aes256Gcm::new_from_slice(key).context(crate::i18n_fmt!("AES-256 GCM 参数无效"))?;
             let nonce = Nonce::from_slice(nonce);
             cipher
                 .encrypt(nonce, AeadPayload { msg: plain, aad })
-                .map_err(|_| anyhow!("AES-256 GCM 加密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-256 GCM 加密失败")))?
         }
         _ => {
-            return Err(anyhow!(
-                "AES GCM 密钥长度必须是 16/32 字节，当前: {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "AES GCM 密钥长度必须是 16/32 字节，当前: {0}",
                 key.len()
-            ));
+            )));
         }
     };
     Ok(cipher_text)
@@ -289,24 +298,26 @@ pub fn aes_gcm_decrypt(
     let aad = aad.unwrap_or_default();
     let plain = match key.len() {
         16 => {
-            let cipher = Aes128Gcm::new_from_slice(key).context("AES-128 GCM 参数无效")?;
+            let cipher =
+                Aes128Gcm::new_from_slice(key).context(crate::i18n_fmt!("AES-128 GCM 参数无效"))?;
             let nonce = Nonce::from_slice(nonce);
             cipher
                 .decrypt(nonce, AeadPayload { msg: payload, aad })
-                .map_err(|_| anyhow!("AES-128 GCM 解密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-128 GCM 解密失败")))?
         }
         32 => {
-            let cipher = Aes256Gcm::new_from_slice(key).context("AES-256 GCM 参数无效")?;
+            let cipher =
+                Aes256Gcm::new_from_slice(key).context(crate::i18n_fmt!("AES-256 GCM 参数无效"))?;
             let nonce = Nonce::from_slice(nonce);
             cipher
                 .decrypt(nonce, AeadPayload { msg: payload, aad })
-                .map_err(|_| anyhow!("AES-256 GCM 解密失败"))?
+                .map_err(|_| anyhow!(crate::i18n_fmt!("AES-256 GCM 解密失败")))?
         }
         _ => {
-            return Err(anyhow!(
-                "AES GCM 密钥长度必须是 16/32 字节，当前: {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "AES GCM 密钥长度必须是 16/32 字节，当前: {0}",
                 key.len()
-            ));
+            )));
         }
     };
     Ok(plain)
@@ -324,6 +335,6 @@ pub fn pbkdf2_sha256(password: &[u8], salt: &[u8], iterations: u32, key_len: usi
 /// 生成密码学安全随机字节。
 pub fn random_bytes(size: usize) -> Result<Vec<u8>> {
     let mut bytes = vec![0u8; size];
-    random_fill(&mut bytes).context("生成随机字节失败")?;
+    random_fill(&mut bytes).context(crate::i18n_fmt!("生成随机字节失败"))?;
     Ok(bytes)
 }

@@ -107,7 +107,7 @@ fn bridge_runtime_config_cell() -> &'static Mutex<BridgeRuntimeConfig> {
 pub fn configure_bridge_runtime(config: BridgeRuntimeConfig) -> AnyResult<()> {
     let mut guard = bridge_runtime_config_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 运行时配置锁已损坏"))?;
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 运行时配置锁已损坏")))?;
     *guard = config;
     Ok(())
 }
@@ -134,7 +134,7 @@ fn bridge_error_json(code: &str, message: impl Into<String>, details: Option<Val
     let fallback = info
         .get("message")
         .and_then(Value::as_str)
-        .unwrap_or("bridge 调用失败")
+        .unwrap_or(crate::i18n!("bridge 调用失败"))
         .to_string();
     json!({
         "ok": false,
@@ -171,7 +171,7 @@ fn is_bridge_route_allowed(name: &str) -> bool {
 fn normalize_bridge_route_name(name: impl Into<String>) -> AnyResult<String> {
     let name = name.into().trim().to_string();
     if name.is_empty() {
-        return Err(anyhow!("bridge 路由名不能为空"));
+        return Err(anyhow!(crate::i18n_fmt!("bridge 路由名不能为空")));
     }
     Ok(name)
 }
@@ -185,19 +185,19 @@ where
     {
         let mut handlers = bridge_route_sync_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 同步路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 同步路由表锁已损坏")))?;
         handlers.insert(name.clone(), wrapped);
     }
     {
         let mut handlers = bridge_route_async_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 异步路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 异步路由表锁已损坏")))?;
         handlers.remove(&name);
     }
     {
         let mut handlers = bridge_route_blocking_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 阻塞路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 阻塞路由表锁已损坏")))?;
         handlers.remove(&name);
     }
     Ok(())
@@ -218,19 +218,19 @@ where
     {
         let mut handlers = bridge_route_async_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 异步路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 异步路由表锁已损坏")))?;
         handlers.insert(name.clone(), wrapped);
     }
     {
         let mut handlers = bridge_route_sync_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 同步路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 同步路由表锁已损坏")))?;
         handlers.remove(&name);
     }
     {
         let mut handlers = bridge_route_blocking_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 阻塞路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 阻塞路由表锁已损坏")))?;
         handlers.remove(&name);
     }
     Ok(())
@@ -248,19 +248,19 @@ where
     {
         let mut handlers = bridge_route_blocking_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 阻塞路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 阻塞路由表锁已损坏")))?;
         handlers.insert(name.clone(), wrapped);
     }
     {
         let mut handlers = bridge_route_sync_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 同步路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 同步路由表锁已损坏")))?;
         handlers.remove(&name);
     }
     {
         let mut handlers = bridge_route_async_handler_cell()
             .lock()
-            .map_err(|_| anyhow!("bridge 异步路由表锁已损坏"))?;
+            .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 异步路由表锁已损坏")))?;
         handlers.remove(&name);
     }
     Ok(())
@@ -269,13 +269,13 @@ where
 pub fn unregister_bridge_route_handler(name: &str) -> AnyResult<bool> {
     let mut sync_handlers = bridge_route_sync_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 同步路由表锁已损坏"))?;
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 同步路由表锁已损坏")))?;
     let mut async_handlers = bridge_route_async_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 异步路由表锁已损坏"))?;
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 异步路由表锁已损坏")))?;
     let mut blocking_handlers = bridge_route_blocking_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 阻塞路由表锁已损坏"))?;
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 阻塞路由表锁已损坏")))?;
     let removed_sync = sync_handlers.remove(name).is_some();
     let removed_async = async_handlers.remove(name).is_some();
     let removed_blocking = blocking_handlers.remove(name).is_some();
@@ -289,10 +289,10 @@ fn call_registered_bridge_route_sync(
 ) -> AnyResult<Value> {
     let sync_handler = bridge_route_sync_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 同步路由表锁已损坏"))?
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 同步路由表锁已损坏")))?
         .get(&name)
         .cloned()
-        .ok_or_else(|| anyhow!("不支持的 bridge 方法: {name}"))?;
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("不支持的 bridge 方法: {0}", name)))?;
     sync_handler(runtime_name, args)
 }
 
@@ -303,7 +303,7 @@ async fn call_registered_bridge_route(
 ) -> AnyResult<Value> {
     let sync_handler = bridge_route_sync_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 同步路由表锁已损坏"))?
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 同步路由表锁已损坏")))?
         .get(&name)
         .cloned();
     if let Some(sync_handler) = sync_handler {
@@ -312,7 +312,7 @@ async fn call_registered_bridge_route(
 
     let async_handler = bridge_route_async_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 异步路由表锁已损坏"))?
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 异步路由表锁已损坏")))?
         .get(&name)
         .cloned();
     if let Some(async_handler) = async_handler {
@@ -321,7 +321,7 @@ async fn call_registered_bridge_route(
 
     let blocking_handler = bridge_route_blocking_handler_cell()
         .lock()
-        .map_err(|_| anyhow!("bridge 阻塞路由表锁已损坏"))?
+        .map_err(|_| anyhow!(crate::i18n_fmt!("bridge 阻塞路由表锁已损坏")))?
         .get(&name)
         .cloned();
     if let Some(blocking_handler) = blocking_handler {
@@ -329,24 +329,24 @@ async fn call_registered_bridge_route(
             .unwrap()
             .spawn_blocking(move || blocking_handler(runtime_name, args))
             .await
-            .map_err(|err| anyhow!("bridge blocking 路由任务 join 失败: {err}"))?;
+            .map_err(|err| {
+                anyhow!(crate::i18n_fmt!(
+                    "bridge blocking 路由任务 join 失败: {0}",
+                    err
+                ))
+            })?;
     }
 
-    Err(anyhow!("不支持的 bridge 方法: {name}"))
+    Err(anyhow!(crate::i18n_fmt!("不支持的 bridge 方法: {0}", name)))
 }
 
 fn parse_host_ok_payload(raw: String) -> AnyResult<Value> {
-    let payload: Value = serde_json::from_str(&raw).context("解析宿主返回 JSON 失败")?;
+    let payload: Value =
+        serde_json::from_str(&raw).context(crate::i18n_fmt!("解析宿主返回 JSON 失败"))?;
     if payload.get("ok").and_then(Value::as_bool) == Some(true) {
         Ok(payload)
     } else {
-        Err(anyhow!(
-            "{}",
-            payload
-                .get("error")
-                .and_then(Value::as_str)
-                .unwrap_or("调用失败")
-        ))
+        Err(anyhow!(crate::i18n_fmt!("调用失败")))
     }
 }
 
@@ -355,11 +355,11 @@ fn parse_bridge_args(args_json: Option<String>) -> AnyResult<Vec<Value>> {
     if let Some(raw) = args_json.as_ref() {
         if raw.len() > config.max_args_json_bytes {
             BRIDGE_LIMIT_HITS.fetch_add(1, Ordering::Relaxed);
-            return Err(anyhow!(
-                "bridge 参数过大: {} > {}",
+            return Err(anyhow!(crate::i18n_fmt!(
+                "bridge 参数过大: {0} > {1}",
                 raw.len(),
                 config.max_args_json_bytes
-            ));
+            )));
         }
     }
     let Some(raw) = args_json else {
@@ -368,11 +368,12 @@ fn parse_bridge_args(args_json: Option<String>) -> AnyResult<Vec<Value>> {
     if raw.trim().is_empty() {
         return Ok(Vec::new());
     }
-    let value: Value = serde_json::from_str(&raw).context("解析 bridge args JSON 失败")?;
+    let value: Value =
+        serde_json::from_str(&raw).context(crate::i18n_fmt!("解析 bridge args JSON 失败"))?;
     let mut args = value
         .as_array()
         .cloned()
-        .ok_or_else(|| anyhow!("args 必须是数组"))?;
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("args 必须是数组")))?;
     for arg in &mut args {
         decode_bridge_arg_value(arg)?;
     }
@@ -397,9 +398,15 @@ fn decode_bridge_arg_value(value: &mut Value) -> AnyResult<()> {
                 let id = map
                     .get("nativeBufferId")
                     .and_then(Value::as_u64)
-                    .ok_or_else(|| anyhow!("bridge bytes 参数缺少 nativeBufferId"))?;
-                let bytes = native_buffer_take_raw(id)
-                    .ok_or_else(|| anyhow!("bridge bytes 参数 nativeBufferId 不存在: {id}"))?;
+                    .ok_or_else(|| {
+                        anyhow!(crate::i18n_fmt!("bridge bytes 参数缺少 nativeBufferId"))
+                    })?;
+                let bytes = native_buffer_take_raw(id).ok_or_else(|| {
+                    anyhow!(crate::i18n_fmt!(
+                        "bridge bytes 参数 nativeBufferId 不存在: {0}",
+                        id
+                    ))
+                })?;
                 BRIDGE_BYTES_IN.fetch_add(bytes.len() as u64, Ordering::Relaxed);
                 *value = Value::Array(bytes.into_iter().map(Value::from).collect());
                 return Ok(());
@@ -414,33 +421,34 @@ fn decode_bridge_arg_value(value: &mut Value) -> AnyResult<()> {
 }
 
 fn require_arg<'a>(args: &'a [Value], index: usize, name: &str) -> AnyResult<&'a Value> {
-    args.get(index).ok_or_else(|| anyhow!("缺少参数: {name}"))
+    args.get(index)
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("缺少参数: {0}", name)))
 }
 
 fn require_str_arg(args: &[Value], index: usize, name: &str) -> AnyResult<String> {
     require_arg(args, index, name)?
         .as_str()
         .map(ToString::to_string)
-        .ok_or_else(|| anyhow!("参数 {name} 必须是字符串"))
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 {0} 必须是字符串", name)))
 }
 
 fn require_u64_arg(args: &[Value], index: usize, name: &str) -> AnyResult<u64> {
     require_arg(args, index, name)?
         .as_u64()
-        .ok_or_else(|| anyhow!("参数 {name} 必须是非负整数"))
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 {0} 必须是非负整数", name)))
 }
 
 fn parse_u8_json_value(value: &Value) -> AnyResult<Vec<u8>> {
     let arr = value
         .as_array()
-        .ok_or_else(|| anyhow!("数据必须是字节数组"))?;
+        .ok_or_else(|| anyhow!(crate::i18n_fmt!("数据必须是字节数组")))?;
     let mut out = Vec::with_capacity(arr.len());
     for item in arr {
         let n = item
             .as_u64()
-            .ok_or_else(|| anyhow!("字节数组元素必须是整数"))?;
+            .ok_or_else(|| anyhow!(crate::i18n_fmt!("字节数组元素必须是整数")))?;
         if n > 255 {
-            return Err(anyhow!("字节数组元素必须在 0-255 范围"));
+            return Err(anyhow!(crate::i18n_fmt!("字节数组元素必须在 0-255 范围")));
         }
         out.push(n as u8);
     }
@@ -450,14 +458,20 @@ fn parse_u8_json_value(value: &Value) -> AnyResult<Vec<u8>> {
 fn compression_gzip_decompress(input: Vec<u8>) -> AnyResult<Value> {
     let mut decoder = GzDecoder::new(input.as_slice());
     let mut out = Vec::new();
-    decoder.read_to_end(&mut out).context("gzip 解压失败")?;
+    decoder
+        .read_to_end(&mut out)
+        .context(crate::i18n_fmt!("gzip 解压失败"))?;
     Ok(json!(out))
 }
 
 fn compression_gzip_compress(input: Vec<u8>) -> AnyResult<Value> {
     let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-    encoder.write_all(&input).context("gzip 压缩失败")?;
-    let out = encoder.finish().context("gzip 压缩失败")?;
+    encoder
+        .write_all(&input)
+        .context(crate::i18n_fmt!("gzip 压缩失败"))?;
+    let out = encoder
+        .finish()
+        .context(crate::i18n_fmt!("gzip 压缩失败"))?;
     Ok(json!(out))
 }
 
@@ -471,8 +485,8 @@ fn encode_bridge_return_value(value: Value) -> Value {
         BRIDGE_LIMIT_HITS.fetch_add(1, Ordering::Relaxed);
         return bridge_error_value(
             "BRIDGE_RETURN_TOO_LARGE",
-            format!(
-                "bridge 返回二进制过大: {} > {}",
+            crate::i18n_fmt!(
+                "bridge 返回二进制过大: {0} > {1}",
                 bytes.len(),
                 config.max_return_binary_bytes
             ),
@@ -503,10 +517,10 @@ fn bridge_call_inner(
         "math.add" => {
             let a = require_arg(&args, 0, "a")?
                 .as_f64()
-                .ok_or_else(|| anyhow!("参数 a 必须是数字"))?;
+                .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 a 必须是数字")))?;
             let b = require_arg(&args, 1, "b")?
                 .as_f64()
-                .ok_or_else(|| anyhow!("参数 b 必须是数字"))?;
+                .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 b 必须是数字")))?;
             Ok(json!(a + b))
         }
         "native.put" => {
@@ -518,7 +532,7 @@ fn bridge_call_inner(
             let id = require_u64_arg(&args, 0, "id")?;
             match native_buffer_take_raw(id) {
                 Some(bytes) => Ok(json!(bytes)),
-                None => Err(anyhow!("buffer id 不存在")),
+                None => Err(anyhow!(crate::i18n_fmt!("buffer id 不存在"))),
             }
         }
         "native.exec" => {
@@ -562,10 +576,10 @@ async fn bridge_call_inner_async(
         "math.add" => {
             let a = require_arg(&args, 0, "a")?
                 .as_f64()
-                .ok_or_else(|| anyhow!("参数 a 必须是数字"))?;
+                .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 a 必须是数字")))?;
             let b = require_arg(&args, 1, "b")?
                 .as_f64()
-                .ok_or_else(|| anyhow!("参数 b 必须是数字"))?;
+                .ok_or_else(|| anyhow!(crate::i18n_fmt!("参数 b 必须是数字")))?;
             Ok(json!(a + b))
         }
         "native.put" => {
@@ -577,7 +591,7 @@ async fn bridge_call_inner_async(
             let id = require_u64_arg(&args, 0, "id")?;
             match native_buffer_take_raw(id) {
                 Some(bytes) => Ok(json!(bytes)),
-                None => Err(anyhow!("buffer id 不存在")),
+                None => Err(anyhow!(crate::i18n_fmt!("buffer id 不存在"))),
             }
         }
         "native.exec" => {
@@ -616,7 +630,7 @@ pub fn host_call(runtime_name: String, name: String, args_json: Option<String>) 
         BRIDGE_DENIED.fetch_add(1, Ordering::Relaxed);
         return bridge_error_json(
             "BRIDGE_ROUTE_DENIED",
-            format!("bridge 路由已被拒绝: {name}"),
+            crate::i18n_fmt!("bridge 路由已被拒绝: {0}", name),
             Some(json!({ "name": name })),
         );
     }
@@ -635,17 +649,19 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
         BRIDGE_DENIED.fetch_add(1, Ordering::Relaxed);
         return bridge_error_json(
             "BRIDGE_ROUTE_DENIED",
-            format!("bridge 路由已被拒绝: {name}"),
+            crate::i18n_fmt!("bridge 路由已被拒绝: {0}", name),
             Some(json!({ "name": name })),
         );
     }
     {
-        let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
+        let mut pool = bridge_req_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("bridge 请求池加锁失败"));
         cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
         if pool.len() >= BRIDGE_MAX_PENDING {
             return bridge_error_json(
                 "BRIDGE_PENDING_FULL",
-                "bridge pending 队列已满",
+                crate::i18n_fmt!("bridge pending 队列已满"),
                 Some(json!({"maxPending": BRIDGE_MAX_PENDING})),
             );
         }
@@ -672,7 +688,9 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
         });
 
     {
-        let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
+        let mut pool = bridge_req_pool()
+            .lock()
+            .expect(&crate::i18n_fmt!("bridge 请求池加锁失败"));
         pool.insert(
             id,
             PendingTask {
@@ -691,10 +709,12 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
 }
 
 pub fn host_call_try_take(id: u64) -> String {
-    let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
+    let mut pool = bridge_req_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("bridge 请求池加锁失败"));
     cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
     let Some(pending) = pool.get_mut(&id) else {
-        return json!({ "ok": false, "error": "request id 不存在" }).to_string();
+        return json!({ "ok": false, "error": crate::i18n_fmt!("request id 不存在") }).to_string();
     };
 
     match pending.rx.try_recv() {
@@ -705,13 +725,16 @@ pub fn host_call_try_take(id: u64) -> String {
         Err(TryRecvError::Empty) => json!({ "ok": true, "done": false }).to_string(),
         Err(TryRecvError::Disconnected) => {
             pool.remove(&id);
-            json!({ "ok": false, "error": "request 执行线程异常退出" }).to_string()
+            json!({ "ok": false, "error": crate::i18n_fmt!("request 执行线程异常退出") })
+                .to_string()
         }
     }
 }
 
 pub fn host_call_drop(id: u64) -> String {
-    let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
+    let mut pool = bridge_req_pool()
+        .lock()
+        .expect(&crate::i18n_fmt!("bridge 请求池加锁失败"));
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
         true

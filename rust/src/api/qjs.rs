@@ -220,6 +220,14 @@ pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
 }
 
 #[frb(sync)]
+/// 设置 QuickJS 运行时错误消息语言（zh/en），默认 zh
+/// Set the QuickJS runtime error-message language (zh/en), defaults to zh.
+pub fn set_qjs_error_message_language(lang: String) -> Result<()> {
+    rquickjs_playground::set_error_message_language(&lang);
+    Ok(())
+}
+
+#[frb(sync)]
 pub fn is_tls_verify_enabled() -> Result<bool> {
     Ok(crate::qjs::is_tls_verify_enabled())
 }

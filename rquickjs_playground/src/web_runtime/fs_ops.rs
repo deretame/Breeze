@@ -10,26 +10,27 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
         args.get(idx)
             .and_then(Value::as_str)
             .map(ToString::to_string)
-            .ok_or_else(|| format!("参数 {name} 必须是字符串"))
+            .ok_or_else(|| crate::i18n_fmt!("参数 {0} 必须是字符串", name))
     };
     let arg_bool = |idx: usize, name: &str| -> Result<bool, String> {
         args.get(idx)
             .and_then(Value::as_bool)
-            .ok_or_else(|| format!("参数 {name} 必须是布尔值"))
+            .ok_or_else(|| crate::i18n_fmt!("参数 {0} 必须是布尔值", name))
     };
     let arg_u64 = |idx: usize, name: &str| -> Result<u64, String> {
         args.get(idx)
             .and_then(Value::as_u64)
-            .ok_or_else(|| format!("参数 {name} 必须是非负整数"))
+            .ok_or_else(|| crate::i18n_fmt!("参数 {0} 必须是非负整数", name))
     };
     let arg_u32 = |idx: usize, name: &str| -> Result<u32, String> {
-        arg_u64(idx, name)
-            .and_then(|v| u32::try_from(v).map_err(|_| format!("参数 {name} 超出 u32 范围")))
+        arg_u64(idx, name).and_then(|v| {
+            u32::try_from(v).map_err(|_| crate::i18n_fmt!("参数 {0} 超出 u32 范围", name))
+        })
     };
     let arg_i64 = |idx: usize, name: &str| -> Result<i64, String> {
         args.get(idx)
             .and_then(Value::as_i64)
-            .ok_or_else(|| format!("参数 {name} 必须是整数"))
+            .ok_or_else(|| crate::i18n_fmt!("参数 {0} 必须是整数", name))
     };
     let arg_opt_str = |idx: usize| -> Option<String> {
         args.get(idx).and_then(|v| {
@@ -56,16 +57,16 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
                 fs_write_file(path, data_json, encoding, append)
             }
             _ => {
-                json!({ "ok": false, "code": "EINVAL", "error": "writeFile 参数无效" }).to_string()
+                json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("writeFile 参数无效") }).to_string()
             }
         },
         "mkdir" => match (arg_str(0, "path"), arg_bool(1, "recursive")) {
             (Ok(path), Ok(recursive)) => fs_mkdir(path, recursive),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "mkdir 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("mkdir 参数无效") }).to_string(),
         },
         "readdir" => match (arg_str(0, "path"), arg_bool(1, "withFileTypes")) {
             (Ok(path), Ok(with_file_types)) => fs_readdir(path, with_file_types),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "readdir 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("readdir 参数无效") }).to_string(),
         },
         "stat" => match arg_str(0, "path") {
             Ok(path) => fs_stat(path),
@@ -89,15 +90,15 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
             arg_bool(2, "force"),
         ) {
             (Ok(path), Ok(recursive), Ok(force)) => fs_rm(path, recursive, force),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "rm 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("rm 参数无效") }).to_string(),
         },
         "rename" => match (arg_str(0, "oldPath"), arg_str(1, "newPath")) {
             (Ok(old_path), Ok(new_path)) => fs_rename(old_path, new_path),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "rename 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("rename 参数无效") }).to_string(),
         },
         "copyFile" => match (arg_str(0, "src"), arg_str(1, "dst")) {
             (Ok(src), Ok(dst)) => fs_copy_file(src, dst),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "copyFile 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("copyFile 参数无效") }).to_string(),
         },
         "cp" => match (
             arg_str(0, "src"),
@@ -109,7 +110,7 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
             (Ok(src), Ok(dst), Ok(recursive), Ok(force), Ok(error_on_exist)) => {
                 fs_cp(src, dst, recursive, force, error_on_exist)
             }
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "cp 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("cp 参数无效") }).to_string(),
         },
         "realpath" => match arg_str(0, "path") {
             Ok(path) => fs_realpath(path),
@@ -125,32 +126,32 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
             arg_bool(2, "isDir"),
         ) {
             (Ok(target), Ok(path), Ok(is_dir)) => fs_symlink(target, path, is_dir),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "symlink 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("symlink 参数无效") }).to_string(),
         },
         "link" => match (arg_str(0, "existingPath"), arg_str(1, "newPath")) {
             (Ok(existing_path), Ok(new_path)) => fs_link(existing_path, new_path),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "link 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("link 参数无效") }).to_string(),
         },
         "truncate" => match (arg_str(0, "path"), arg_u64(1, "len")) {
             (Ok(path), Ok(len)) => fs_truncate(path, len),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "truncate 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("truncate 参数无效") }).to_string(),
         },
         "chmod" => match (arg_str(0, "path"), arg_u32(1, "mode")) {
             (Ok(path), Ok(mode)) => fs_chmod(path, mode),
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "chmod 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("chmod 参数无效") }).to_string(),
         },
         "utimes" => match (arg_str(0, "path"), arg_i64(1, "atime"), arg_i64(2, "mtime")) {
             (Ok(path), Ok(atime_millis), Ok(mtime_millis)) => {
                 fs_utimes(path, atime_millis, mtime_millis)
             }
-            _ => json!({ "ok": false, "code": "EINVAL", "error": "utimes 参数无效" }).to_string(),
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("utimes 参数无效") }).to_string(),
         },
         "mkdtemp" => match arg_str(0, "prefix") {
             Ok(prefix) => fs_mkdtemp(prefix),
             Err(e) => json!({ "ok": false, "code": "EINVAL", "error": e }).to_string(),
         },
         _ => {
-            json!({ "ok": false, "code": "EINVAL", "error": format!("不支持的 fs 异步操作: {op}") })
+            json!({ "ok": false, "code": "EINVAL", "error": crate::i18n_fmt!("不支持的 fs 异步操作: {0}", op) })
                 .to_string()
         }
     }
@@ -209,7 +210,7 @@ pub fn fs_read_file(path: String, encoding: Option<String>) -> String {
                 json!({
                     "ok": false,
                     "code": "EINVAL",
-                    "error": format!("不支持的编码: {encoding}")
+                    "error": crate::i18n_fmt!("不支持的编码: {0}", encoding)
                 })
                 .to_string()
             }
@@ -223,18 +224,20 @@ fn parse_fs_write_payload(data_json: String, encoding: Option<String>) -> Result
     let kind = value
         .get("kind")
         .and_then(Value::as_str)
-        .ok_or("缺少 kind 字段")?;
+        .ok_or(crate::i18n_fmt!("缺少 kind 字段"))?;
 
     if kind == "bytes" {
         let list = value
             .get("data")
             .and_then(Value::as_array)
-            .ok_or("bytes 数据格式错误")?;
+            .ok_or(crate::i18n_fmt!("bytes 数据格式错误"))?;
         let mut out = Vec::with_capacity(list.len());
         for item in list {
-            let num = item.as_u64().ok_or("bytes 数据必须是 0-255 的整数")?;
+            let num = item
+                .as_u64()
+                .ok_or(crate::i18n_fmt!("bytes 数据必须是 0-255 的整数"))?;
             if num > 255 {
-                return Err("bytes 数据必须在 0-255 范围内".to_string());
+                return Err(crate::i18n_fmt!("bytes 数据必须在 0-255 范围内").to_string());
             }
             out.push(num as u8);
         }
@@ -245,15 +248,15 @@ fn parse_fs_write_payload(data_json: String, encoding: Option<String>) -> Result
         let text = value
             .get("data")
             .and_then(Value::as_str)
-            .ok_or("text 数据格式错误")?;
+            .ok_or(crate::i18n_fmt!("text 数据格式错误"))?;
         let encoding = normalize_encoding(encoding);
         if encoding.is_empty() || encoding == "utf8" || encoding == "utf-8" {
             return Ok(text.as_bytes().to_vec());
         }
-        return Err(format!("不支持的编码: {encoding}"));
+        return Err(crate::i18n_fmt!("不支持的编码: {0}", encoding));
     }
 
-    Err(format!("不支持的 kind: {kind}"))
+    Err(crate::i18n_fmt!("不支持的 kind: {0}", kind))
 }
 
 pub fn fs_write_file(
@@ -367,7 +370,7 @@ pub fn fs_rm(path: String, recursive: bool, force: bool) -> String {
         if force {
             return json!({ "ok": true }).to_string();
         }
-        return json!({ "ok": false, "code": "ENOENT", "error": "文件或目录不存在" }).to_string();
+        return json!({ "ok": false, "code": "ENOENT", "error": crate::i18n_fmt!("文件或目录不存在") }).to_string();
     }
 
     let result = if target.is_dir() {
@@ -454,7 +457,7 @@ fn create_symlink_impl(target: &str, path: &str, is_dir: bool) -> io::Result<()>
 fn create_symlink_impl(_target: &str, _path: &str, _is_dir: bool) -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
-        "当前平台不支持符号链接",
+        crate::i18n_fmt!("当前平台不支持符号链接"),
     ))
 }
 
@@ -501,7 +504,7 @@ fn chmod_impl(path: &str, mode: u32) -> io::Result<()> {
 fn chmod_impl(_path: &str, _mode: u32) -> io::Result<()> {
     Err(io::Error::new(
         io::ErrorKind::Unsupported,
-        "当前平台不支持 chmod",
+        crate::i18n_fmt!("当前平台不支持 chmod"),
     ))
 }
 
@@ -561,14 +564,15 @@ pub fn fs_cp(
     let dst_path = Path::new(&dst);
 
     if !src_path.exists() {
-        return json!({ "ok": false, "code": "ENOENT", "error": "源路径不存在" }).to_string();
+        return json!({ "ok": false, "code": "ENOENT", "error": crate::i18n_fmt!("源路径不存在") })
+            .to_string();
     }
     if dst_path.exists() {
         if error_on_exist {
-            return json!({ "ok": false, "code": "EEXIST", "error": "目标路径已存在" }).to_string();
+            return json!({ "ok": false, "code": "EEXIST", "error": crate::i18n_fmt!("目标路径已存在") }).to_string();
         }
         if !force {
-            return json!({ "ok": false, "code": "EEXIST", "error": "目标路径已存在，且未启用 force" }).to_string();
+            return json!({ "ok": false, "code": "EEXIST", "error": crate::i18n_fmt!("目标路径已存在，且未启用 force") }).to_string();
         }
     }
 
@@ -576,7 +580,7 @@ pub fn fs_cp(
         if !recursive {
             Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "复制目录时必须启用 recursive",
+                crate::i18n_fmt!("复制目录时必须启用 recursive"),
             ))
         } else {
             copy_dir_recursive(src_path, dst_path)
@@ -611,6 +615,7 @@ pub fn fs_mkdtemp(prefix: String) -> String {
             Err(error) => return fs_error_payload(error),
         }
     }
-    json!({ "ok": false, "code": "EEXIST", "error": "无法创建唯一临时目录" }).to_string()
+    json!({ "ok": false, "code": "EEXIST", "error": crate::i18n_fmt!("无法创建唯一临时目录") })
+        .to_string()
 }
 use super::*;

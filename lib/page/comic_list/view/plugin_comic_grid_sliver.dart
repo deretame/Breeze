@@ -22,6 +22,7 @@ class PluginComicGridSliver extends StatelessWidget {
     this.shrinkWrap = false,
     this.onEntryTap,
     this.onEntryLongPress,
+    this.onEntrySecondaryTapDown,
     this.isEntrySelected,
     this.selectionMode = false,
   });
@@ -39,7 +40,13 @@ class PluginComicGridSliver extends StatelessWidget {
   final ScrollPhysics? physics;
   final bool shrinkWrap;
   final ValueChanged<ComicSimplifyEntryInfo>? onEntryTap;
-  final ValueChanged<ComicSimplifyEntryInfo>? onEntryLongPress;
+  final void Function(
+    ComicSimplifyEntryInfo info,
+    LongPressStartDetails details,
+  )?
+  onEntryLongPress;
+  final void Function(ComicSimplifyEntryInfo info, TapDownDetails details)?
+  onEntrySecondaryTapDown;
   final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
   final bool selectionMode;
 
@@ -57,6 +64,7 @@ class PluginComicGridSliver extends StatelessWidget {
           onDeleteSuccess: onDeleteSuccess,
           onEntryTap: onEntryTap,
           onEntryLongPress: onEntryLongPress,
+          onEntrySecondaryTapDown: onEntrySecondaryTapDown,
           isEntrySelected: isEntrySelected,
           selectionMode: selectionMode,
         ),

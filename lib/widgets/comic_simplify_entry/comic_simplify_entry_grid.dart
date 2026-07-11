@@ -24,7 +24,13 @@ class BaseComicGridSliver extends StatelessWidget {
   final VoidCallback? refresh;
   final ValueChanged<String>? onDeleteSuccess;
   final ValueChanged<ComicSimplifyEntryInfo>? onEntryTap;
-  final ValueChanged<ComicSimplifyEntryInfo>? onEntryLongPress;
+  final void Function(
+    ComicSimplifyEntryInfo info,
+    LongPressStartDetails details,
+  )?
+  onEntryLongPress;
+  final void Function(ComicSimplifyEntryInfo info, TapDownDetails details)?
+  onEntrySecondaryTapDown;
   final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
   final bool selectionMode;
   final bool roundedCorner;
@@ -38,6 +44,7 @@ class BaseComicGridSliver extends StatelessWidget {
     this.onDeleteSuccess,
     this.onEntryTap,
     this.onEntryLongPress,
+    this.onEntrySecondaryTapDown,
     this.isEntrySelected,
     this.selectionMode = false,
     this.roundedCorner = true,
@@ -59,6 +66,7 @@ class BaseComicGridSliver extends StatelessWidget {
             onDeleteSuccess: onDeleteSuccess,
             onTapOverride: onEntryTap,
             onLongPressOverride: onEntryLongPress,
+            onSecondaryTapDown: onEntrySecondaryTapDown,
             isSelected: isEntrySelected?.call(entries[index]) ?? false,
             selectionMode: selectionMode,
             roundedCorner: roundedCorner,
@@ -75,7 +83,13 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
   final VoidCallback? refresh;
   final ValueChanged<String>? onDeleteSuccess;
   final ValueChanged<ComicSimplifyEntryInfo>? onEntryTap;
-  final ValueChanged<ComicSimplifyEntryInfo>? onEntryLongPress;
+  final void Function(
+    ComicSimplifyEntryInfo info,
+    LongPressStartDetails details,
+  )?
+  onEntryLongPress;
+  final void Function(ComicSimplifyEntryInfo info, TapDownDetails details)?
+  onEntrySecondaryTapDown;
   final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
   final bool selectionMode;
   final bool roundedCorner;
@@ -91,6 +105,7 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
     this.onDeleteSuccess,
     this.onEntryTap,
     this.onEntryLongPress,
+    this.onEntrySecondaryTapDown,
     this.isEntrySelected,
     this.selectionMode = false,
     this.roundedCorner = true,

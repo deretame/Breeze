@@ -423,7 +423,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             selectionMode: _selectionMode,
             isEntrySelected: (entry) =>
                 _selectedKeys.contains(_entryKey(entry)),
-            onEntryLongPress: (entry) {
+            onEntryLongPress: (entry, details) {
               if (!_selectionMode) {
                 _enterSelectionModeWith(entry);
                 return;

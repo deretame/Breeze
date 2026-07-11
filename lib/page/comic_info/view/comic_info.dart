@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/widgets/comic_entry/models/models.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
-import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -22,9 +22,10 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
+import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
-import 'package:zephyr/config/router/router.dart';
 import '../../../widgets/error_view.dart';
+import '../../../widgets/fluent_dropdown.dart';
 import '../../../widgets/toast.dart';
 
 enum MenuOption { export, cloudCollect, follow }
@@ -149,7 +150,8 @@ class _ComicInfoState extends State<_ComicInfo>
               );
             },
           ),
-          PopupMenuButton<MenuOption>(
+          FluentPopupMenuButton<MenuOption>(
+            icon: const Icon(Icons.more_vert),
             onSelected: (MenuOption item) {
               switch (item) {
                 case MenuOption.export:
@@ -168,61 +170,42 @@ class _ComicInfoState extends State<_ComicInfo>
                 widget.pluginId,
                 widget.comicId,
               );
-              List<PopupMenuEntry<MenuOption>> menuItems = [];
-
-              menuItems.add(
-                PopupMenuItem<MenuOption>(
+              final menuItems = <FluentPopupMenuItem<MenuOption>>[
+                FluentPopupMenuItem<MenuOption>(
                   value: MenuOption.follow,
-                  child: Row(
-                    children: [
-                      Icon(
-                        isFollowing
-                            ? Icons.notifications_off
-                            : Icons.notifications_active,
-                        color: Colors.black54,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        isFollowing ? t.comicInfo.unfollow : t.comicInfo.follow,
-                      ),
-                    ],
+                  leading: Icon(
+                    isFollowing
+                        ? Icons.notifications_off
+                        : Icons.notifications_active,
+                  ),
+                  title: Text(
+                    isFollowing ? t.comicInfo.unfollow : t.comicInfo.follow,
                   ),
                 ),
-              );
+              ];
 
               if (_type == ComicEntryType.download) {
                 menuItems.add(
-                  PopupMenuItem<MenuOption>(
+                  FluentPopupMenuItem<MenuOption>(
                     value: MenuOption.export,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.save_alt, color: Colors.black54),
-                        const SizedBox(width: 10),
-                        Text(t.comicInfo.exportComic),
-                      ],
-                    ),
+                    leading: const Icon(Icons.save_alt),
+                    title: Text(t.comicInfo.exportComic),
                   ),
                 );
               }
 
               menuItems.add(
-                PopupMenuItem<MenuOption>(
+                FluentPopupMenuItem<MenuOption>(
                   value: MenuOption.cloudCollect,
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isCloudCollected ? Icons.star : Icons.star_border,
-                        color: Colors.black54,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        (_currentInfo?.allowCollected ?? false)
-                            ? (_isCloudCollected
-                                  ? t.comicInfo.removeCloudCollection
-                                  : t.comicInfo.collectToCloud)
-                            : t.comicInfo.cloudCollectDisabled,
-                      ),
-                    ],
+                  leading: Icon(
+                    _isCloudCollected ? Icons.star : Icons.star_border,
+                  ),
+                  title: Text(
+                    (_currentInfo?.allowCollected ?? false)
+                        ? (_isCloudCollected
+                              ? t.comicInfo.removeCloudCollection
+                              : t.comicInfo.collectToCloud)
+                        : t.comicInfo.cloudCollectDisabled,
                   ),
                 ),
               );

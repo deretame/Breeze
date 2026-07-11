@@ -11,19 +11,20 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
+import 'package:zephyr/page/bookshelf/method/method.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_empty_view.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_grid_shimmer.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_loading_view.dart';
-import 'package:zephyr/page/bookshelf/method/method.dart';
 import 'package:zephyr/page/bookshelf/widgets/folder_shelf_item.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class FolderShelfPage extends StatelessWidget {
@@ -201,7 +202,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 ),
         ),
         // 管理菜单
-        PopupMenuButton<String>(
+        FluentPopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {
             switch (value) {
@@ -216,36 +217,21 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             }
           },
           itemBuilder: (context) => [
-            PopupMenuItem(
+            FluentPopupMenuItem(
               value: 'new_folder',
-              child: Row(
-                children: [
-                  const Icon(Icons.create_new_folder_outlined),
-                  const SizedBox(width: 12),
-                  Text(t.bookshelf.newFolder),
-                ],
-              ),
+              leading: const Icon(Icons.create_new_folder_outlined),
+              title: Text(t.bookshelf.newFolder),
             ),
-            PopupMenuItem(
+            FluentPopupMenuItem(
               value: 'manage',
-              child: Row(
-                children: [
-                  const Icon(Icons.checklist),
-                  const SizedBox(width: 12),
-                  Text(t.bookshelf.manage),
-                ],
-              ),
+              leading: const Icon(Icons.checklist),
+              title: Text(t.bookshelf.manage),
             ),
             if (state.mode == ShelfPageMode.download)
-              PopupMenuItem(
+              FluentPopupMenuItem(
                 value: 'import',
-                child: Row(
-                  children: [
-                    const Icon(Icons.file_download_outlined),
-                    const SizedBox(width: 12),
-                    Text(t.bookshelf.importComic),
-                  ],
-                ),
+                leading: const Icon(Icons.file_download_outlined),
+                title: Text(t.bookshelf.importComic),
               ),
           ],
         ),
@@ -428,13 +414,25 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                                   FolderShelfEnterFolder(folderPath),
                                 ),
                           onLongPress: state.selectionMode
-                              ? () => context.read<FolderShelfBloc>().add(
-                                  FolderShelfToggleFolderSelection(folderPath),
-                                )
-                              : () => _showFolderActions(
+                              ? (details) =>
+                                    context.read<FolderShelfBloc>().add(
+                                      FolderShelfToggleFolderSelection(
+                                        folderPath,
+                                      ),
+                                    )
+                              : (details) => _showFolderActions(
                                   context,
                                   folder,
                                   folderPath,
+                                  details.globalPosition,
+                                ),
+                          onSecondaryTapDown: state.selectionMode
+                              ? null
+                              : (details) => _showFolderActions(
+                                  context,
+                                  folder,
+                                  folderPath,
+                                  details.globalPosition,
                                 ),
                         );
                       }
@@ -461,12 +459,24 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                               )
                             : null,
                         onLongPressOverride: state.selectionMode
-                            ? (info) => context.read<FolderShelfBloc>().add(
-                                FolderShelfToggleComicSelection(
-                                  '${info.from.trim()}:${info.id}',
-                                ),
-                              )
-                            : (info) => _showComicActions(context, info),
+                            ? (info, details) =>
+                                  context.read<FolderShelfBloc>().add(
+                                    FolderShelfToggleComicSelection(
+                                      '${info.from.trim()}:${info.id}',
+                                    ),
+                                  )
+                            : (info, details) => _showComicActions(
+                                context,
+                                info,
+                                details.globalPosition,
+                              ),
+                        onSecondaryTapDown: state.selectionMode
+                            ? null
+                            : (info, details) => _showComicActions(
+                                context,
+                                info,
+                                details.globalPosition,
+                              ),
                       );
                     },
                   ),
@@ -526,43 +536,41 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     BuildContext context,
     ComicFolder folder,
     String folderPath,
+    Offset position,
   ) {
-    showModalBottomSheet(
+    final anchor = Rect.fromCenter(center: position, width: 1, height: 1);
+
+    FluentPopupMenu.show<String>(
       context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text(t.bookshelf.multiSelect),
-                leading: const Icon(Icons.checklist),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  context.read<FolderShelfBloc>().add(
-                    FolderShelfToggleFolderSelection(folderPath),
-                  );
-                },
-              ),
-              ListTile(
-                title: Text(t.common.rename),
-                leading: const Icon(Icons.drive_file_rename_outline),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _showRenameFolderDialog(context, folder, folderPath);
-                },
-              ),
-              ListTile(
-                title: Text(t.common.delete),
-                leading: const Icon(Icons.delete_outline),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _confirmDeleteSingleFolder(context, folderPath);
-                },
-              ),
-            ],
-          ),
-        );
+      anchor: anchor,
+      items: [
+        FluentPopupMenuItem(
+          value: 'multi_select',
+          leading: const Icon(Icons.checklist),
+          title: Text(t.bookshelf.multiSelect),
+        ),
+        FluentPopupMenuItem(
+          value: 'rename',
+          leading: const Icon(Icons.drive_file_rename_outline),
+          title: Text(t.common.rename),
+        ),
+        FluentPopupMenuItem(
+          value: 'delete',
+          leading: const Icon(Icons.delete_outline),
+          title: Text(t.common.delete),
+        ),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 'multi_select':
+            context.read<FolderShelfBloc>().add(
+              FolderShelfToggleFolderSelection(folderPath),
+            );
+          case 'rename':
+            _showRenameFolderDialog(context, folder, folderPath);
+          case 'delete':
+            _confirmDeleteSingleFolder(context, folderPath);
+        }
       },
     );
   }
@@ -655,37 +663,37 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     }
   }
 
-  void _showComicActions(BuildContext context, ComicSimplifyEntryInfo info) {
-    showModalBottomSheet(
+  void _showComicActions(
+    BuildContext context,
+    ComicSimplifyEntryInfo info,
+    Offset position,
+  ) {
+    final anchor = Rect.fromCenter(center: position, width: 1, height: 1);
+
+    FluentPopupMenu.show<String>(
       context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text(t.bookshelf.multiSelect),
-                leading: const Icon(Icons.checklist),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  context.read<FolderShelfBloc>().add(
-                    FolderShelfToggleComicSelection(
-                      '${info.from.trim()}:${info.id}',
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                title: Text(t.common.delete),
-                leading: const Icon(Icons.delete_outline),
-                onTap: () {
-                  Navigator.of(sheetContext).pop();
-                  _confirmRemoveComic(context, info);
-                },
-              ),
-            ],
-          ),
-        );
+      anchor: anchor,
+      items: [
+        FluentPopupMenuItem(
+          value: 'multi_select',
+          leading: const Icon(Icons.checklist),
+          title: Text(t.bookshelf.multiSelect),
+        ),
+        FluentPopupMenuItem(
+          value: 'delete',
+          leading: const Icon(Icons.delete_outline),
+          title: Text(t.common.delete),
+        ),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 'multi_select':
+            context.read<FolderShelfBloc>().add(
+              FolderShelfToggleComicSelection('${info.from.trim()}:${info.id}'),
+            );
+          case 'delete':
+            _confirmRemoveComic(context, info);
+        }
       },
     );
   }

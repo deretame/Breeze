@@ -11,13 +11,15 @@ class FolderShelfItem extends StatelessWidget {
     required this.folder,
     this.onTap,
     this.onLongPress,
+    this.onSecondaryTapDown,
     this.selectionMode = false,
     this.isSelected = false,
   });
 
   final ComicFolder folder;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
+  final GestureLongPressStartCallback? onLongPress;
+  final GestureTapDownCallback? onSecondaryTapDown;
   final bool selectionMode;
   final bool isSelected;
 
@@ -33,7 +35,8 @@ class FolderShelfItem extends StatelessWidget {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
-          onLongPress: onLongPress,
+          onLongPressStart: onLongPress,
+          onSecondaryTapDown: onSecondaryTapDown,
           child: SizedBox(
             width: width,
             height: height,

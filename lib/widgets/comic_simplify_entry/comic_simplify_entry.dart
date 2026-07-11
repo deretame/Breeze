@@ -170,7 +170,13 @@ class ComicSimplifyEntry extends StatelessWidget {
   final VoidCallback? refresh;
   final ValueChanged<String>? onDeleteSuccess;
   final ValueChanged<ComicSimplifyEntryInfo>? onTapOverride;
-  final ValueChanged<ComicSimplifyEntryInfo>? onLongPressOverride;
+  final void Function(
+    ComicSimplifyEntryInfo info,
+    LongPressStartDetails details,
+  )?
+  onLongPressOverride;
+  final void Function(ComicSimplifyEntryInfo info, TapDownDetails details)?
+  onSecondaryTapDown;
   final bool isSelected;
   final bool selectionMode;
   final bool topPadding;
@@ -184,6 +190,7 @@ class ComicSimplifyEntry extends StatelessWidget {
     this.onDeleteSuccess,
     this.onTapOverride,
     this.onLongPressOverride,
+    this.onSecondaryTapDown,
     this.isSelected = false,
     this.selectionMode = false,
     this.topPadding = true,
@@ -211,15 +218,18 @@ class ComicSimplifyEntry extends StatelessWidget {
             }
             _navigateToComicInfo(context);
           },
-          onLongPress: () {
+          onLongPressStart: (details) {
             final onLongPressHandler = onLongPressOverride;
             if (onLongPressHandler != null) {
-              onLongPressHandler(info);
+              onLongPressHandler(info, details);
               return;
             }
             if (type != ComicEntryType.normal) {
               _showDeleteDialog(context);
             }
+          },
+          onSecondaryTapDown: (details) {
+            onSecondaryTapDown?.call(info, details);
           },
           child: SizedBox(
             width: width,

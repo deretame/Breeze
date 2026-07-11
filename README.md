@@ -12,6 +12,7 @@
 ## 项目开发指南
 
 插件开发相关文档请参阅：<https://deretame.github.io/plugin-dev-docs/>
+插件列表：<https://github.com/deretame/Breeze-plugin-list>
 
 > **注：** 插件功能仍在beta阶段，可能会有较大改动，不建议基于此开发插件，仅适合学习用途。
 

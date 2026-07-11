@@ -5,6 +5,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class PluginSettingSchemeSection extends StatefulWidget {
@@ -103,22 +104,20 @@ class _PluginSettingSchemeSectionState
       ).map((e) => e.toString()).toList();
       final current =
           value?.toString() ?? (options.isNotEmpty ? options.first : '');
+      final effectiveValue = options.contains(current)
+          ? current
+          : (options.isEmpty ? '' : options.first);
       return ListTile(
         title: Text(label),
-        trailing: DropdownButton<String>(
-          value: options.contains(current)
-              ? current
-              : (options.isEmpty ? null : options.first),
-          items: options
-              .map(
-                (option) =>
-                    DropdownMenuItem(value: option, child: Text(option)),
-              )
-              .toList(),
-          onChanged: (next) async {
-            if (next == null) return;
-            await _persistField(key, next);
-          },
+        trailing: FluentDropdown<String>(
+          value: effectiveValue,
+          displayValue: effectiveValue,
+          items: {for (final option in options) option: option},
+          onChanged: options.isEmpty
+              ? null
+              : (next) async {
+                  await _persistField(key, next);
+                },
         ),
       );
     }

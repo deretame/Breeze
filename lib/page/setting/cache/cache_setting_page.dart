@@ -7,6 +7,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../common/setting_ui.dart';
@@ -195,35 +196,25 @@ class _CacheSettingPageState extends State<CacheSettingPage> {
                 leading: const Icon(Icons.data_thresholding_outlined),
                 title: Text(t.cache.sizeLimit),
                 subtitle: Text(t.cache.sizeLimitSubtitle),
-                trailing: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value:
+                trailing: Builder(
+                  builder: (context) {
+                    final effectiveCacheLimit =
                         _cacheLimitOptions.contains(
                           state.cacheSetting.cacheSizeLimit,
                         )
                         ? state.cacheSetting.cacheSizeLimit
-                        : 1073741824,
-                    icon: const Icon(Icons.expand_more),
-                    onChanged: (int? value) {
-                      if (value != null) {
+                        : 1073741824;
+                    return FluentDropdown<int>(
+                      value: effectiveCacheLimit,
+                      displayValue: _cacheLimitLabels[effectiveCacheLimit]!,
+                      items: _cacheLimitLabels,
+                      onChanged: (int value) {
                         cubit.updateCacheSetting(
                           (current) => current.copyWith(cacheSizeLimit: value),
                         );
-                      }
-                    },
-                    items: _cacheLimitOptions.map<DropdownMenuItem<int>>((
-                      size,
-                    ) {
-                      return DropdownMenuItem<int>(
-                        value: size,
-                        child: Text(_cacheLimitLabels[size] ?? '$size'),
-                      );
-                    }).toList(),
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                      fontSize: 15,
-                    ),
-                  ),
+                      },
+                    );
+                  },
                 ),
               ),
 

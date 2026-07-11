@@ -9,6 +9,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/coreml_model_config.dart';
 import 'package:zephyr/util/coreml_model_loader.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 
 @RoutePage()
 class CoreMLUpscaleDebugPage extends StatefulWidget {
@@ -147,21 +148,17 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
           ListTile(
             leading: const Icon(Icons.speed),
             title: Text(t.realSr.model),
-            subtitle: DropdownButton<CoreMLModelFamily>(
+            trailing: FluentDropdown<CoreMLModelFamily>(
               value: _selectedFamily,
-              isExpanded: true,
-              items: CoreMLModelConfig.families
-                  .map(
-                    (f) => DropdownMenuItem<CoreMLModelFamily>(
-                      value: f,
-                      child: Text(f.localizedLabel),
-                    ),
-                  )
-                  .toList(),
+              displayValue: _selectedFamily.localizedLabel,
+              items: {
+                for (final family in CoreMLModelConfig.families)
+                  family: family.localizedLabel,
+              },
               onChanged: _loading
                   ? null
                   : (value) {
-                      if (value != null && value != _selectedFamily) {
+                      if (value != _selectedFamily) {
                         setState(() {
                           _selectedFamily = value;
                           // 切换模型族后，模型专有选项（降噪变体）重置为该族第一个。
@@ -178,23 +175,17 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
             ListTile(
               leading: const Icon(Icons.healing),
               title: Text(t.realSr.coremlModelOption),
-              subtitle: DropdownButton<CoreMLModelVariant>(
-                value: _selectedVariant,
-                isExpanded: true,
-                items: _selectedFamily.variants
-                    .map(
-                      (v) => DropdownMenuItem<CoreMLModelVariant>(
-                        value: v,
-                        child: Text(v.localizedDisplayName),
-                      ),
-                    )
-                    .toList(),
+              trailing: FluentDropdown<CoreMLModelVariant>(
+                value: _selectedVariant!,
+                displayValue: _selectedVariant!.localizedDisplayName,
+                items: {
+                  for (final variant in _selectedFamily.variants)
+                    variant: variant.localizedDisplayName,
+                },
                 onChanged: _loading
                     ? null
                     : (value) {
-                        if (value != null) {
-                          setState(() => _selectedVariant = value);
-                        }
+                        setState(() => _selectedVariant = value);
                       },
               ),
             )
@@ -207,16 +198,14 @@ class _CoreMLUpscaleDebugPageState extends State<CoreMLUpscaleDebugPage> {
           ListTile(
             leading: const Icon(Icons.zoom_in),
             title: Text(t.realSr.coremlGeneralOption),
-            subtitle: DropdownButton<int>(
+            trailing: FluentDropdown<int>(
               value: _scale,
-              isExpanded: true,
-              items: const [DropdownMenuItem(value: 2, child: Text('2×'))],
+              displayValue: '$_scale×',
+              items: const {2: '2×'},
               onChanged: _loading
                   ? null
                   : (value) {
-                      if (value != null) {
-                        setState(() => _scale = value);
-                      }
+                      setState(() => _scale = value);
                     },
             ),
           ),

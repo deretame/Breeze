@@ -6,22 +6,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/impeller_config.dart';
-import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
-import 'package:zephyr/config/router/router.gr.dart';
 import '../common/setting_ui.dart';
 import 'widgets.dart';
 
@@ -372,34 +372,28 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     };
 
     final currentValue = state.localeFollowsSystem ? null : state.locale;
+    final currentLabel = labels[currentValue]!;
 
     return ListTile(
       leading: const Icon(Icons.language_outlined),
       title: Text(t.settings.language),
       subtitle: Text(t.settings.languageSubtitle),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<Locale?>(
-          value: currentValue,
-          icon: const Icon(Icons.expand_more),
-          onChanged: (Locale? value) async {
-            if (value == null) {
-              final systemInfo = await SystemLocaleService.getInfo();
-              await cubit.setSystemLocale(systemInfo.locale);
-            } else {
-              await cubit.setLocale(value, followsSystem: false);
-            }
-            if (mounted) {
-              showInfoToast(t.settings.languageChangedRestartHint);
-            }
-          },
-          items: labels.entries.map((entry) {
-            return DropdownMenuItem<Locale?>(
-              value: entry.key,
-              child: Text(entry.value),
-            );
-          }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 15),
-        ),
+      trailing: FluentDropdown<Locale?>(
+        value: currentValue,
+        displayValue: currentLabel,
+        items: labels,
+        onChanged: (value) async {
+          if (value == currentValue) return;
+          if (value == null) {
+            final systemInfo = await SystemLocaleService.getInfo();
+            await cubit.setSystemLocale(systemInfo.locale);
+          } else {
+            await cubit.setLocale(value, followsSystem: false);
+          }
+          if (mounted) {
+            showInfoToast(t.settings.languageChangedRestartHint);
+          }
+        },
       ),
     );
   }
@@ -415,25 +409,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       leading: const Icon(Icons.dark_mode_outlined),
       title: Text(t.settings.theme),
       subtitle: Text(t.settings.themeSubtitle),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<ThemeMode>(
-          value: state.themeMode,
-          icon: const Icon(Icons.expand_more),
-          onChanged: (ThemeMode? value) {
-            if (value != null) {
-              cubit.updateState(
-                (current) => current.copyWith(themeMode: value),
-              );
-            }
-          },
-          items: themeItems.entries.map((entry) {
-            return DropdownMenuItem<ThemeMode>(
-              value: entry.key,
-              child: Text(entry.value),
-            );
-          }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 15),
-        ),
+      trailing: FluentDropdown<ThemeMode>(
+        value: state.themeMode,
+        displayValue: themeItems[state.themeMode]!,
+        items: themeItems,
+        onChanged: (ThemeMode value) {
+          cubit.updateState((current) => current.copyWith(themeMode: value));
+        },
       ),
     );
   }
@@ -510,42 +492,31 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _syncServiceType(GlobalSettingState state, GlobalSettingCubit cubit) {
+    final syncServiceItems = <SyncServiceType, String>{
+      SyncServiceType.none: t.settings.syncServiceNone,
+      SyncServiceType.webdav: t.settings.syncServiceWebdav,
+      SyncServiceType.s3: t.settings.syncServiceS3,
+    };
+
     return ListTile(
       leading: const Icon(Icons.storage_outlined),
       title: Text(t.settings.syncService),
       subtitle: Text(t.settings.syncServiceSubtitle),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<SyncServiceType>(
-          value: state.syncSetting.syncServiceType,
-          icon: const Icon(Icons.expand_more),
-          onChanged: (SyncServiceType? value) {
-            if (value == null || value == state.syncSetting.syncServiceType) {
-              return;
-            }
-
-            cubit.updateSyncSetting(
-              (current) => current.copyWith(
-                syncServiceType: value,
-                syncSettings: value == SyncServiceType.none
-                    ? false
-                    : current.syncSettings,
-              ),
-            );
-          },
-          items: SyncServiceType.values
-              .map(
-                (value) => DropdownMenuItem<SyncServiceType>(
-                  value: value,
-                  child: Text(switch (value) {
-                    SyncServiceType.none => t.settings.syncServiceNone,
-                    SyncServiceType.webdav => t.settings.syncServiceWebdav,
-                    SyncServiceType.s3 => t.settings.syncServiceS3,
-                  }),
-                ),
-              )
-              .toList(),
-          style: TextStyle(color: context.textColor, fontSize: 15),
-        ),
+      trailing: FluentDropdown<SyncServiceType>(
+        value: state.syncSetting.syncServiceType,
+        displayValue: syncServiceItems[state.syncSetting.syncServiceType]!,
+        items: syncServiceItems,
+        onChanged: (SyncServiceType value) {
+          if (value == state.syncSetting.syncServiceType) return;
+          cubit.updateSyncSetting(
+            (current) => current.copyWith(
+              syncServiceType: value,
+              syncSettings: value == SyncServiceType.none
+                  ? false
+                  : current.syncSettings,
+            ),
+          );
+        },
       ),
     );
   }
@@ -554,38 +525,26 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     GlobalSettingState state,
     GlobalSettingCubit cubit,
   ) {
+    final chineseConvertItems = <ChineseConvertMode, String>{
+      ChineseConvertMode.off: t.settings.chineseConvertOff,
+      ChineseConvertMode.simplified: t.settings.chineseConvertSimplified,
+      ChineseConvertMode.traditional: t.settings.chineseConvertTraditional,
+    };
+
     return ListTile(
       leading: const Icon(Icons.translate_outlined),
       title: Text(t.settings.chineseConvert),
       subtitle: Text(t.settings.chineseConvertSubtitle),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<ChineseConvertMode>(
-          value: state.chineseConvertMode,
-          icon: const Icon(Icons.expand_more),
-          onChanged: (ChineseConvertMode? value) {
-            if (value == null || value == state.chineseConvertMode) {
-              return;
-            }
-            cubit.updateState(
-              (current) => current.copyWith(chineseConvertMode: value),
-            );
-          },
-          items: ChineseConvertMode.values
-              .map(
-                (value) => DropdownMenuItem<ChineseConvertMode>(
-                  value: value,
-                  child: Text(switch (value) {
-                    ChineseConvertMode.off => t.settings.chineseConvertOff,
-                    ChineseConvertMode.simplified =>
-                      t.settings.chineseConvertSimplified,
-                    ChineseConvertMode.traditional =>
-                      t.settings.chineseConvertTraditional,
-                  }),
-                ),
-              )
-              .toList(),
-          style: TextStyle(color: context.textColor, fontSize: 15),
-        ),
+      trailing: FluentDropdown<ChineseConvertMode>(
+        value: state.chineseConvertMode,
+        displayValue: chineseConvertItems[state.chineseConvertMode]!,
+        items: chineseConvertItems,
+        onChanged: (ChineseConvertMode value) {
+          if (value == state.chineseConvertMode) return;
+          cubit.updateState(
+            (current) => current.copyWith(chineseConvertMode: value),
+          );
+        },
       ),
     );
   }
@@ -660,28 +619,23 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         ? 0
         : state.welcomePageNum.clamp(0, splashPageList.length - 1);
 
+    final splashPageItems = {for (final page in splashPageList) page: page};
+
     return ListTile(
       leading: const Icon(Icons.rocket_launch_outlined),
       title: Text(t.settings.splashPage),
       subtitle: Text(t.settings.splashPageSubtitle),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: splashPageList[selectedIndex],
-          icon: const Icon(Icons.expand_more),
-          onChanged: (String? value) {
-            if (value != null) {
-              showSuccessToast(t.common.restartToTakeEffect);
-              cubit.updateState(
-                (current) =>
-                    current.copyWith(welcomePageNum: splashPage[value]!),
-              );
-            }
-          },
-          items: splashPageList.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value));
-          }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 15),
-        ),
+      trailing: FluentDropdown<String>(
+        value: splashPageList[selectedIndex],
+        displayValue: splashPageList[selectedIndex],
+        items: splashPageItems,
+        onChanged: (String value) {
+          if (value == splashPageList[selectedIndex]) return;
+          showSuccessToast(t.common.restartToTakeEffect);
+          cubit.updateState(
+            (current) => current.copyWith(welcomePageNum: splashPage[value]!),
+          );
+        },
       ),
     );
   }
@@ -703,37 +657,27 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _desktopCloseBehaviorTile() {
+    final closeBehaviorItems = <DesktopCloseBehavior, String>{
+      DesktopCloseBehavior.ask: t.settings.desktopCloseAsk,
+      DesktopCloseBehavior.hide: t.settings.desktopCloseHide,
+      DesktopCloseBehavior.close: t.settings.desktopCloseClose,
+    };
+
     return ListTile(
       leading: const Icon(Icons.close_fullscreen_outlined),
       title: Text(t.settings.desktopCloseBehavior),
       subtitle: Text(t.settings.desktopCloseBehaviorSubtitle),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<DesktopCloseBehavior>(
-          value: _desktopCloseBehavior,
-          icon: const Icon(Icons.expand_more),
-          onChanged: (DesktopCloseBehavior? value) async {
-            if (value == null || value == _desktopCloseBehavior) {
-              return;
-            }
-            await WindowLogic.saveCloseBehavior(value);
-            if (!mounted) return;
-            setState(() => _desktopCloseBehavior = value);
-            showSuccessToast(t.common.settingSaved);
-          },
-          items: DesktopCloseBehavior.values
-              .map(
-                (value) => DropdownMenuItem<DesktopCloseBehavior>(
-                  value: value,
-                  child: Text(switch (value) {
-                    DesktopCloseBehavior.ask => t.settings.desktopCloseAsk,
-                    DesktopCloseBehavior.hide => t.settings.desktopCloseHide,
-                    DesktopCloseBehavior.close => t.settings.desktopCloseClose,
-                  }),
-                ),
-              )
-              .toList(),
-          style: TextStyle(color: context.textColor, fontSize: 15),
-        ),
+      trailing: FluentDropdown<DesktopCloseBehavior>(
+        value: _desktopCloseBehavior,
+        displayValue: closeBehaviorItems[_desktopCloseBehavior]!,
+        items: closeBehaviorItems,
+        onChanged: (DesktopCloseBehavior value) async {
+          if (value == _desktopCloseBehavior) return;
+          await WindowLogic.saveCloseBehavior(value);
+          if (!mounted) return;
+          setState(() => _desktopCloseBehavior = value);
+          showSuccessToast(t.common.settingSaved);
+        },
       ),
     );
   }

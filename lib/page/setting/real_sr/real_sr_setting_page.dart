@@ -10,6 +10,7 @@ import 'package:zephyr/page/setting/real_sr/service/desktop_ncnn_model_config.da
 import 'package:zephyr/page/setting/real_sr/service/real_sr_settings.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../common/setting_ui.dart';
@@ -249,86 +250,64 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
           leading: const Icon(Icons.hd_outlined),
           title: Text(t.realSr.resolutionThreshold),
           subtitle: Text(t.realSr.resolutionThresholdSubtitle),
-          trailing: DropdownButtonHideUnderline(
-            child: DropdownButton<RealSrResolutionThreshold>(
-              value: _effectiveResolutionThreshold,
-              icon: const Icon(Icons.expand_more),
-              onChanged: (RealSrResolutionThreshold? value) {
-                if (value != null) _setResolutionThreshold(value);
-              },
-              items: _availableThresholds
-                  .map(
-                    (value) => DropdownMenuItem<RealSrResolutionThreshold>(
-                      value: value,
-                      child: Text(value.label),
-                    ),
-                  )
-                  .toList(),
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 15,
-              ),
-            ),
+          trailing: FluentDropdown<RealSrResolutionThreshold>(
+            value: _effectiveResolutionThreshold,
+            displayValue: _effectiveResolutionThreshold.label,
+            items: {
+              for (final threshold in _availableThresholds)
+                threshold: threshold.label,
+            },
+            onChanged: _setResolutionThreshold,
           ),
         ),
 
         const SizedBox(height: 8),
         const Divider(height: 1, thickness: 0.3),
         _buildSectionTitle(context, t.realSr.performanceSection),
-        ListTile(
-          leading: const Icon(Icons.speed_outlined),
-          title: Text(t.realSr.concurrency),
-          subtitle: Text(t.realSr.concurrencySubtitle),
-          trailing: DropdownButtonHideUnderline(
-            child: DropdownButton<int>(
-              value: _realSrConcurrencyOptions.contains(_concurrency)
-                  ? _concurrency
-                  : RealSrSettings.defaultConcurrency,
-              icon: const Icon(Icons.expand_more),
-              onChanged: (int? value) {
-                if (value != null) _setConcurrency(value);
-              },
-              items: _realSrConcurrencyOptions.map((value) {
-                return DropdownMenuItem<int>(
-                  value: value,
-                  child: Text(_realSrConcurrencyLabels[value] ?? '$value'),
-                );
-              }).toList(),
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 15,
+        Builder(
+          builder: (context) {
+            final effectiveConcurrency =
+                _realSrConcurrencyOptions.contains(_concurrency)
+                ? _concurrency
+                : RealSrSettings.defaultConcurrency;
+            return ListTile(
+              leading: const Icon(Icons.speed_outlined),
+              title: Text(t.realSr.concurrency),
+              subtitle: Text(t.realSr.concurrencySubtitle),
+              trailing: FluentDropdown<int>(
+                value: effectiveConcurrency,
+                displayValue: _realSrConcurrencyLabels[effectiveConcurrency]!,
+                items: {
+                  for (final option in _realSrConcurrencyOptions)
+                    option: _realSrConcurrencyLabels[option]!,
+                },
+                onChanged: _setConcurrency,
               ),
-            ),
-          ),
+            );
+          },
         ),
 
         // iOS / macOS 使用 CoreML，分块大小由模型决定，不显示可配置项。
         if (!_usesCoreML)
-          ListTile(
-            leading: const Icon(Icons.grid_on_outlined),
-            title: Text(t.realSr.tileSize),
-            subtitle: Text(t.realSr.tileSizeSubtitle),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: _realSrTileSizeOptions.contains(_tileSize)
-                    ? _tileSize
-                    : 0,
-                icon: const Icon(Icons.expand_more),
-                onChanged: (int? value) {
-                  if (value != null) _setTileSize(value);
-                },
-                items: _realSrTileSizeOptions.map((value) {
-                  return DropdownMenuItem<int>(
-                    value: value,
-                    child: Text(_realSrTileSizeLabels[value] ?? '$value'),
-                  );
-                }).toList(),
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontSize: 15,
+          Builder(
+            builder: (context) {
+              final effectiveTileSize =
+                  _realSrTileSizeOptions.contains(_tileSize) ? _tileSize : 0;
+              return ListTile(
+                leading: const Icon(Icons.grid_on_outlined),
+                title: Text(t.realSr.tileSize),
+                subtitle: Text(t.realSr.tileSizeSubtitle),
+                trailing: FluentDropdown<int>(
+                  value: effectiveTileSize,
+                  displayValue: _realSrTileSizeLabels[effectiveTileSize]!,
+                  items: {
+                    for (final option in _realSrTileSizeOptions)
+                      option: _realSrTileSizeLabels[option]!,
+                  },
+                  onChanged: _setTileSize,
                 ),
-              ),
-            ),
+              );
+            },
           ),
 
         const SizedBox(height: 8),
@@ -341,52 +320,28 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
             leading: const Icon(Icons.speed_outlined),
             title: Text(t.realSr.model),
             subtitle: Text(t.realSr.modelSubtitle),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton<CoreMLModelFamily>(
-                value: _coreMLFamily,
-                icon: const Icon(Icons.expand_more),
-                onChanged: (CoreMLModelFamily? value) {
-                  if (value != null) _setCoreMLFamily(value);
-                },
-                items: CoreMLModelConfig.families
-                    .map(
-                      (value) => DropdownMenuItem<CoreMLModelFamily>(
-                        value: value,
-                        child: Text(value.localizedLabel),
-                      ),
-                    )
-                    .toList(),
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontSize: 15,
-                ),
-              ),
+            trailing: FluentDropdown<CoreMLModelFamily>(
+              value: _coreMLFamily,
+              displayValue: _coreMLFamily.localizedLabel,
+              items: {
+                for (final family in CoreMLModelConfig.families)
+                  family: family.localizedLabel,
+              },
+              onChanged: _setCoreMLFamily,
             ),
           ),
           ListTile(
             leading: const Icon(Icons.healing_outlined),
             title: Text(t.realSr.noiseLevel),
             subtitle: Text(t.realSr.noiseLevelSubtitle),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton<CoreMLModelVariant>(
-                value: _coreMLVariant,
-                icon: const Icon(Icons.expand_more),
-                onChanged: (CoreMLModelVariant? value) {
-                  if (value != null) _setCoreMLVariant(value);
-                },
-                items: _coreMLFamily.variants
-                    .map(
-                      (value) => DropdownMenuItem<CoreMLModelVariant>(
-                        value: value,
-                        child: Text(value.localizedDisplayName),
-                      ),
-                    )
-                    .toList(),
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontSize: 15,
-                ),
-              ),
+            trailing: FluentDropdown<CoreMLModelVariant>(
+              value: _coreMLVariant,
+              displayValue: _coreMLVariant.localizedDisplayName,
+              items: {
+                for (final variant in _coreMLFamily.variants)
+                  variant: variant.localizedDisplayName,
+              },
+              onChanged: _setCoreMLVariant,
             ),
           ),
           ListTile(
@@ -413,52 +368,26 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
             leading: const Icon(Icons.speed_outlined),
             title: Text(t.realSr.desktopStrategy),
             subtitle: Text(t.realSr.desktopStrategySubtitle),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton<AndroidNcnnMode>(
-                value: _desktopNcnnMode,
-                icon: const Icon(Icons.expand_more),
-                onChanged: (AndroidNcnnMode? value) {
-                  if (value != null) _setDesktopNcnnMode(value);
-                },
-                items: AndroidNcnnMode.values
-                    .map(
-                      (value) => DropdownMenuItem<AndroidNcnnMode>(
-                        value: value,
-                        child: Text(value.label),
-                      ),
-                    )
-                    .toList(),
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontSize: 15,
-                ),
-              ),
+            trailing: FluentDropdown<AndroidNcnnMode>(
+              value: _desktopNcnnMode,
+              displayValue: _desktopNcnnMode.label,
+              items: {
+                for (final mode in AndroidNcnnMode.values) mode: mode.label,
+              },
+              onChanged: _setDesktopNcnnMode,
             ),
           ),
           ListTile(
             leading: const Icon(Icons.healing_outlined),
             title: Text(t.realSr.desktopNoiseLevel),
             subtitle: Text(t.realSr.desktopNoiseLevelSubtitle),
-            trailing: DropdownButtonHideUnderline(
-              child: DropdownButton<AndroidNcnnNoise>(
-                value: _desktopNcnnNoise,
-                icon: const Icon(Icons.expand_more),
-                onChanged: (AndroidNcnnNoise? value) {
-                  if (value != null) _setDesktopNcnnNoise(value);
-                },
-                items: AndroidNcnnNoise.values
-                    .map(
-                      (value) => DropdownMenuItem<AndroidNcnnNoise>(
-                        value: value,
-                        child: Text(value.label),
-                      ),
-                    )
-                    .toList(),
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  fontSize: 15,
-                ),
-              ),
+            trailing: FluentDropdown<AndroidNcnnNoise>(
+              value: _desktopNcnnNoise,
+              displayValue: _desktopNcnnNoise.label,
+              items: {
+                for (final noise in AndroidNcnnNoise.values) noise: noise.label,
+              },
+              onChanged: _setDesktopNcnnNoise,
             ),
           ),
         ],

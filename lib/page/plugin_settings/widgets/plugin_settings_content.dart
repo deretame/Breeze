@@ -6,6 +6,7 @@ import 'package:zephyr/page/plugin_settings/widgets/plugin_settings_sections.dar
 import 'package:zephyr/page/setting/common/plugin_user_info_card.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 
 class PluginSettingsContent extends StatelessWidget {
@@ -325,26 +326,27 @@ class PluginSettingsContent extends StatelessWidget {
           ),
         )
         .label;
-    final triggerKey = GlobalKey();
+    final items = <dynamic, String>{
+      for (final option in options) option.value: option.label,
+    };
 
     return PluginSettingsFieldRow(
       title: label,
       subtitle: '',
-      trailing: _buildSelectTrigger(
-        context,
-        key: triggerKey,
-        label: selectedLabel,
+      trailing: FluentDropdown<dynamic>(
+        value: value,
+        displayValue: selectedLabel,
+        items: items,
+        onChanged: deleted
+            ? null
+            : (picked) async {
+                if (picked == null || picked.toString() == value?.toString()) {
+                  return;
+                }
+                await onCommitField(field, picked);
+              },
       ),
-      onTap: () async {
-        final picked = await _showChoiceMenu(
-          context,
-          triggerKey,
-          options,
-          value,
-        );
-        if (picked == null) return;
-        await onCommitField(field, picked);
-      },
+      onTap: null,
     );
   }
 
@@ -423,86 +425,6 @@ class PluginSettingsContent extends StatelessWidget {
       subtitle: fnPath,
       trailing: const Icon(Icons.play_arrow, size: 18),
       onTap: fnPath.isEmpty ? null : () => onRunAction(action),
-    );
-  }
-
-  Widget _buildSelectTrigger(
-    BuildContext context, {
-    required GlobalKey key,
-    required String label,
-  }) {
-    final localColorScheme = Theme.of(context).colorScheme;
-    return Container(
-      key: key,
-      constraints: const BoxConstraints(minWidth: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: localColorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: localColorScheme.outlineVariant),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Icon(Icons.expand_more, size: 16),
-        ],
-      ),
-    );
-  }
-
-  Future<dynamic> _showChoiceMenu(
-    BuildContext context,
-    GlobalKey triggerKey,
-    List<PluginSettingsOptionPair> options,
-    dynamic selected,
-  ) async {
-    final triggerContext = triggerKey.currentContext;
-    if (triggerContext == null) return null;
-    final box = triggerContext.findRenderObject() as RenderBox?;
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (box == null || overlay == null) return null;
-
-    final position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        box.localToGlobal(Offset.zero, ancestor: overlay),
-        box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    return showMenu<dynamic>(
-      context: context,
-      position: position,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      constraints: const BoxConstraints(minWidth: 180),
-      items: options
-          .map(
-            (option) => PopupMenuItem<dynamic>(
-              value: option.value,
-              child: Row(
-                children: [
-                  Expanded(child: Text(option.label)),
-                  if (selected?.toString() == option.value?.toString())
-                    Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
     );
   }
 

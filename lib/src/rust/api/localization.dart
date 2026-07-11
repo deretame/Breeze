@@ -27,6 +27,18 @@ String getSystemLanguage() =>
 List<String> getSystemLanguages() =>
     RustLib.instance.api.crateApiLocalizationGetSystemLanguages();
 
+/// 将任意 locale 字符串规范化为统一的 BCP-47 格式。
+/// Normalize an arbitrary locale string to a unified BCP-47 format.
+///
+/// 先用 ICU4X 做规范化和常见别名处理，再按本项目惯例对中文做简化：
+/// - `zh-Hans-CN` / `zh-Hans` / `zh-CN` / `zh` → `zh-CN`
+/// - `zh-Hant-TW` / `zh-Hant` / `zh-TW` → `zh-TW`
+/// - `zh-Hant-HK` / `zh-HK` → `zh-HK`
+///
+/// 其他 locale 按 ICU4X 规范化输出，如 `en-US`、`de-DE`、`ja-JP`。
+String formatLocaleBcp47({required String locale}) =>
+    RustLib.instance.api.crateApiLocalizationFormatLocaleBcp47(locale: locale);
+
 /// 获取系统时区 IANA 名称，如 `Asia/Shanghai`。
 /// Get the system timezone IANA name, e.g. `Asia/Shanghai`.
 String getSystemTimezone() =>

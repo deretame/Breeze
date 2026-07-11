@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
-
 import 'package:zephyr/service/update/check_update.dart';
+import 'package:zephyr/src/rust/api/localization.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 void _register(
@@ -28,8 +28,8 @@ Future<void> registerDartTools() async {
 
     return jsonEncode({
       'language': appLocale.languageCode,
-      'locale': I18nHelper.formatLocaleString(
-        I18nHelper.toFlutterLocale(appLocale),
+      'locale': formatLocaleBcp47(
+        locale: I18nHelper.toFlutterLocale(appLocale).toLanguageTag(),
       ),
       'systemLocale': info.rawLocale,
       'timezoneOffset': info.formattedTimeZone,

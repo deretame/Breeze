@@ -82,6 +82,20 @@ fn normalize_locale(raw: &str) -> Result<String> {
     Ok(locale.id.to_string())
 }
 
+/// 将任意 locale 字符串规范化为统一的 BCP-47 格式。
+/// Normalize an arbitrary locale string to a unified BCP-47 format.
+///
+/// 先用 ICU4X 做规范化和常见别名处理，再按本项目惯例对中文做简化：
+/// - `zh-Hans-CN` / `zh-Hans` / `zh-CN` / `zh` → `zh-CN`
+/// - `zh-Hant-TW` / `zh-Hant` / `zh-TW` → `zh-TW`
+/// - `zh-Hant-HK` / `zh-HK` → `zh-HK`
+///
+/// 其他 locale 按 ICU4X 规范化输出，如 `en-US`、`de-DE`、`ja-JP`。
+#[frb(sync)]
+pub fn format_locale_bcp47(locale: String) -> Result<String> {
+    normalize_locale(&locale)
+}
+
 /// 获取系统时区 IANA 名称，如 `Asia/Shanghai`。
 /// Get the system timezone IANA name, e.g. `Asia/Shanghai`.
 #[frb(sync)]
@@ -154,6 +168,17 @@ mod tests {
         assert_eq!(normalize_locale("en-US").unwrap(), "en-US");
         assert_eq!(normalize_locale("de_DE").unwrap(), "de-DE");
         assert_eq!(normalize_locale("ja-JP").unwrap(), "ja-JP");
+    }
+
+    #[test]
+    fn format_locale_bcp47_works() {
+        assert_eq!(format_locale_bcp47("zh_CN".to_string()).unwrap(), "zh-CN");
+        assert_eq!(
+            format_locale_bcp47("zh-Hans-CN".to_string()).unwrap(),
+            "zh-CN"
+        );
+        assert_eq!(format_locale_bcp47("en-US".to_string()).unwrap(), "en-US");
+        assert_eq!(format_locale_bcp47("de_DE".to_string()).unwrap(), "de-DE");
     }
 
     #[test]

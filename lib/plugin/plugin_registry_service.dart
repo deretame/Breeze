@@ -279,6 +279,11 @@ class PluginRegistryService {
     if (enabled) {
       await ensurePluginRuntimeReady(_states[uuid]!, runtimeName: runtimeName);
       await runPluginInitIfNeeded(_states[uuid]!, runtimeName: runtimeName);
+      try {
+        await fetchPluginInfo(uuid: uuid, runtimeName: runtimeName);
+      } catch (e, st) {
+        logger.w('启用插件后刷新 info 失败: $uuid', error: e, stackTrace: st);
+      }
     } else {
       try {
         final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);

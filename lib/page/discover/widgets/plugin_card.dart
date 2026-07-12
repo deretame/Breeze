@@ -5,6 +5,8 @@ import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
+import 'package:zephyr/page/setting/common/setting_ui.dart';
+
 import '../cubit/discover_cubit.dart';
 
 class PluginCard extends StatelessWidget {
@@ -192,7 +194,11 @@ class PluginCard extends StatelessWidget {
                           ),
                         ),
                       )
-                    : Switch(value: isEnabled, onChanged: onToggleEnabled),
+                    : Switch(
+                        value: isEnabled,
+                        thumbIcon: kSettingSwitchThumbIcon,
+                        onChanged: onToggleEnabled,
+                      ),
               ],
             ),
           ),

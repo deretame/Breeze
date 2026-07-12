@@ -5,17 +5,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo;
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
-import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';

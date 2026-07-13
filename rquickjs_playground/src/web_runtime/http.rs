@@ -37,8 +37,10 @@ pub(crate) fn http_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
     HTTP_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-pub(crate) fn http_req_event_pool() -> &'static Mutex<HashMap<u64, PendingAbortTask>> {
-    HTTP_REQ_EVENT_POOL.get_or_init(|| Mutex::new(HashMap::new()))
+fn http_promise_cancel_senders() -> &'static Mutex<HashMap<u64, oneshot::Sender<()>>> {
+    static HTTP_PROMISE_CANCEL_SENDERS: OnceLock<Mutex<HashMap<u64, oneshot::Sender<()>>>> =
+        OnceLock::new();
+    HTTP_PROMISE_CANCEL_SENDERS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 pub(crate) fn http_io_sem() -> &'static Arc<Semaphore> {
@@ -491,112 +493,80 @@ pub fn http_request_drop(id: u64) -> String {
     json!({ "ok": true, "dropped": existed }).to_string()
 }
 
-pub fn http_request_start_evented<F>(
+pub fn http_request_promise(
+    ctx: Ctx<'_>,
     method: String,
     url: String,
     headers_json: String,
     body: Option<String>,
     body_native_buffer_id: Option<u64>,
-    on_complete: F,
-) -> String
-where
-    F: FnOnce(u64, String) + Send + 'static,
-{
-    {
-        let mut pool = http_req_event_pool()
-            .lock()
-            .expect(&crate::tr!("failed-to-lock-http-event-request-pool"));
-        cleanup_stale_pending_abort(&mut pool, &HTTP_STALE_DROPS);
-        if pool.len() >= HTTP_MAX_PENDING {
-            return json!({ "ok": false, "error": crate::tr!("http-pending-queue-is-full") })
-                .to_string();
-        }
-    }
-
+) -> rquickjs::Result<QjsValue<'_>> {
     let id = HTTP_REQ_ID.fetch_add(1, Ordering::Relaxed);
-    let sem = Arc::clone(http_io_sem());
-    let request_label = format!("method={} url={}", method, url);
-
-    let task = tokio::runtime::Handle::try_current()
-        .unwrap()
-        .spawn(async move {
-            let finish = |payload: String| {
-                let should_callback = http_req_event_pool()
-                    .lock()
-                    .map(|mut pool| pool.remove(&id).is_some())
-                    .unwrap_or(false);
-                if should_callback {
-                    HTTP_EVENT_COMPLETED.fetch_add(1, Ordering::Relaxed);
-                    on_complete(id, payload);
-                } else {
-                    HTTP_EVENT_SUPPRESSED.fetch_add(1, Ordering::Relaxed);
-                }
-            };
-            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-                Ok(Ok(permit)) => permit,
-                Ok(Err(_)) => {
-                    finish(
-                        json!({ "ok": false, "error": crate::tr!("http-concurrency-controller-unavailable") })
-                            .to_string(),
-                    );
-                    return;
-                }
-                Err(_) => {
-                    finish(
-                        json!({ "ok": false, "error": crate::tr!("timed-out-waiting-for-http-concurrency-permit") })
-                            .to_string(),
-                    );
-                    return;
-                }
-            };
-            let payload = match http_request_inner_async(
-                method,
-                url,
-                headers_json,
-                body,
-                body_native_buffer_id,
-            )
-            .await
-            {
-                Ok(payload) => payload,
-                Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
-            };
-            drop(permit);
-            finish(payload);
-        });
-
+    let (cancel_tx, cancel_rx) = oneshot::channel::<()>();
     {
-        let mut pool = http_req_event_pool()
+        let mut senders = http_promise_cancel_senders()
             .lock()
-            .expect(&crate::tr!("failed-to-lock-http-event-request-pool"));
-        pool.insert(
-            id,
-            PendingAbortTask {
-                task,
-                created_at: Instant::now(),
-                meta: PendingAbortTaskMeta {
-                    kind: "http_evented",
-                    label: request_label,
-                },
-            },
-        );
+            .expect(&crate::tr!("failed-to-lock-http-promise-cancel-senders"));
+        senders.insert(id, cancel_tx);
     }
 
-    json!({ "ok": true, "id": id }).to_string()
+    let future = async move {
+        let sem = Arc::clone(http_io_sem());
+        let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
+            Ok(Ok(permit)) => permit,
+            Ok(Err(_)) => {
+                return json!({ "ok": false, "error": crate::tr!("http-concurrency-controller-unavailable") })
+                    .to_string();
+            }
+            Err(_) => {
+                return json!({ "ok": false, "error": crate::tr!("timed-out-waiting-for-http-concurrency-permit") })
+                    .to_string();
+            }
+        };
+
+        let result = tokio::select! {
+            biased;
+            _ = cancel_rx => {
+                Ok(json!({
+                    "ok": false,
+                    "error": crate::tr!("request-was-canceled"),
+                    "canceled": true
+                })
+                .to_string())
+            }
+            r = http_request_inner_async(method, url, headers_json, body, body_native_buffer_id) => r,
+        };
+
+        drop(permit);
+
+        match result {
+            Ok(payload) => payload,
+            Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
+        }
+    };
+
+    let promise = Promise::wrap_future(&ctx, future)?;
+    let obj = promise.into_inner();
+    if let Err(e) = obj.set("__hostRequestId", id) {
+        http_promise_cancel_senders().lock().unwrap().remove(&id);
+        return Err(e);
+    }
+    Ok(obj.into_value())
 }
 
-pub fn http_request_drop_evented(id: u64) -> String {
-    let mut pool = http_req_event_pool()
+pub fn http_request_cancel(id: u64) -> String {
+    let sender = http_promise_cancel_senders()
         .lock()
-        .expect(&crate::tr!("failed-to-lock-http-event-request-pool"));
-    let existed = if let Some(pending) = pool.remove(&id) {
-        pending.task.abort();
+        .expect(&crate::tr!("failed-to-lock-http-promise-cancel-senders"))
+        .remove(&id);
+    let existed = if let Some(tx) = sender {
+        let _ = tx.send(());
         HTTP_EVENT_CANCELED.fetch_add(1, Ordering::Relaxed);
         true
     } else {
         false
     };
-    json!({ "ok": true, "dropped": existed }).to_string()
+    json!({ "ok": true, "canceled": existed }).to_string()
 }
 
 async fn http_request_inner_async(

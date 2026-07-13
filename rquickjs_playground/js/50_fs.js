@@ -1,26 +1,5 @@
 (() => {
   const { stringToArrayBuffer } = globalThis.__web;
-  const EVENTED_FS_PENDING = new Map();
-
-  globalThis.__host_runtime_fs_complete = function __host_runtime_fs_complete(requestId, payloadRaw) {
-    const pending = EVENTED_FS_PENDING.get(Number(requestId));
-    if (!pending) return;
-    EVENTED_FS_PENDING.delete(Number(requestId));
-
-    const { resolve, reject, finish, mapResult, path } = pending;
-    let payload;
-    try {
-      payload = JSON.parse(String(payloadRaw || "{}"));
-    } catch (err) {
-      finish(() => reject(err));
-      return;
-    }
-    if (!payload.ok) {
-      finish(() => reject(createFSError(payload, path)));
-      return;
-    }
-    finish(() => resolve(mapResult ? mapResult(payload) : undefined));
-  };
 
   class MiniEmitter {
     constructor() {
@@ -548,40 +527,13 @@
 
   function callHost(hostFn, args, path, mapResult) {
     const op = FS_ASYNC_OP_MAP.get(hostFn);
-    if (op && typeof globalThis.__fs_task_start_evented === "function") {
-      return new Promise((resolve, reject) => {
-        let requestId = null;
-        let settled = false;
-
-        const finish = (fn) => {
-          if (settled) return;
-          settled = true;
-          fn();
-        };
-
-        try {
-          const start = JSON.parse(globalThis.__fs_task_start_evented(op, JSON.stringify(args)));
-          if (!start.ok) {
-            finish(() => reject(createFSError({ error: start.error, code: "EIO" }, path)));
-            return;
-          }
-          requestId = Number(start.id);
-          EVENTED_FS_PENDING.set(requestId, {
-            resolve,
-            reject,
-            finish,
-            mapResult,
-            path,
-          });
-        } catch (err) {
-          if (requestId !== null && typeof globalThis.__fs_task_drop_evented === "function") {
-            try {
-              globalThis.__fs_task_drop_evented(requestId);
-            } catch (_dropErr) {
-            }
-          }
-          finish(() => reject(err));
+    if (op && typeof globalThis.__fs_task_promise === "function") {
+      return globalThis.__fs_task_promise(op, JSON.stringify(args)).then((payloadRaw) => {
+        const payload = JSON.parse(String(payloadRaw || "{}"));
+        if (!payload.ok) {
+          throw createFSError(payload, path);
         }
+        return mapResult ? mapResult(payload) : undefined;
       });
     }
 

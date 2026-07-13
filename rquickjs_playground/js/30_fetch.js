@@ -1,47 +1,5 @@
 (() => {
   const HOST_FORMDATA_BODY_HEADER = "x-rquickjs-host-body-formdata-v1";
-  const EVENTED_HTTP_PENDING = new Map();
-  const prevHttpComplete = globalThis.__host_runtime_http_complete;
-
-  globalThis.__host_runtime_http_complete = function __host_runtime_http_complete(requestId, payloadRaw) {
-    const pending = EVENTED_HTTP_PENDING.get(Number(requestId));
-    if (!pending) {
-      if (typeof prevHttpComplete === "function") prevHttpComplete(requestId, payloadRaw);
-      return;
-    }
-    EVENTED_HTTP_PENDING.delete(Number(requestId));
-
-    const { request, resolve, reject, finish, dropPending } = pending;
-
-    let payload;
-    try {
-      payload = JSON.parse(String(payloadRaw || "{}"));
-    } catch (err) {
-      dropPending();
-      finish(() => reject(err));
-      return;
-    }
-
-    if (!payload.ok) {
-      dropPending();
-      finish(() => reject(new TypeError(payload.error || "网络请求失败")));
-      return;
-    }
-
-    finish(() =>
-      resolve(
-        new Response(payload.body || "", {
-          status: payload.status,
-          statusText: payload.statusText,
-          headers: payload.headers || {},
-          url: payload.url || request.url,
-          offloaded: payload.offloaded === true,
-          nativeBufferId: payload.nativeBufferId,
-          offloadedBytes: payload.offloadedBytes,
-        }),
-      ),
-    );
-  };
 
   const {
     parseBodyInit,
@@ -424,14 +382,13 @@
   }
 
   function fetch(input, init = {}) {
-      const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
-      const waitBodyInit = request && request._bodyInitPromise
-        ? request._bodyInitPromise
-        : Promise.resolve();
+    const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
+    const waitBodyInit = request && request._bodyInitPromise
+      ? request._bodyInitPromise
+      : Promise.resolve();
 
-    return waitBodyInit.then(() => new Promise((resolve, reject) => {
+    return waitBodyInit.then(async () => {
       let requestId = null;
-      let settled = false;
       let timeoutId = null;
       let timeoutFired = false;
       let signal = request.signal;
@@ -452,22 +409,6 @@
         if (typeof cleanupSignal === "function") {
           cleanupSignal();
           cleanupSignal = null;
-        }
-      };
-
-      const finish = (cb) => {
-        if (settled) return;
-        settled = true;
-        clearTimeoutIfNeeded();
-        cleanupSignalListeners();
-        cb();
-      };
-
-      const dropPending = () => {
-        if (requestId === null) return;
-        try {
-          globalThis.__http_request_drop_evented(requestId);
-        } catch (_err) {
         }
       };
 
@@ -542,22 +483,24 @@
         } else {
           timeoutId = setTimeout(() => {
             timeoutFired = true;
-            EVENTED_HTTP_PENDING.delete(requestId);
-            dropPending();
-            const timeoutErr = new Error("请求超时");
-            timeoutErr.name = "TimeoutError";
-            finish(() => reject(timeoutErr));
+            if (requestId !== null) {
+              try {
+                globalThis.__http_request_cancel(requestId);
+              } catch (_err) {
+              }
+            }
           }, request.timeout);
         }
       }
 
-      try {
-        if (signal && signal.aborted) {
-          finish(() => reject(buildAbortError()));
-          return;
-        }
+      if (signal && signal.aborted) {
+        cleanupSignalListeners();
+        clearTimeoutIfNeeded();
+        throw buildAbortError();
+      }
 
-        const startedRaw = globalThis.__http_request_start_evented(
+      try {
+        const promise = globalThis.__http_request_promise(
           request.method,
           request.url,
           JSON.stringify(request.headers.toObject()),
@@ -566,17 +509,15 @@
             ? null
             : Number(request._bodyNativeBufferId),
         );
-        const started = JSON.parse(startedRaw);
-        if (!started.ok) {
-          finish(() => reject(new TypeError(started.error || "网络请求失败")));
-          return;
-        }
-        requestId = Number(started.id);
+        requestId = Number(promise.__hostRequestId);
 
         const onAbort = () => {
-          EVENTED_HTTP_PENDING.delete(requestId);
-          dropPending();
-          finish(() => reject(buildAbortError()));
+          if (requestId !== null) {
+            try {
+              globalThis.__http_request_cancel(requestId);
+            } catch (_err) {
+            }
+          }
         };
         if (signal) {
           signal.addEventListener("abort", onAbort);
@@ -586,22 +527,44 @@
 
           if (signal.aborted) {
             onAbort();
-            return;
+            cleanupSignalListeners();
+            clearTimeoutIfNeeded();
+            throw buildAbortError();
           }
         }
 
-        EVENTED_HTTP_PENDING.set(requestId, {
-          request,
-          resolve,
-          reject,
-          finish,
-          dropPending,
+        const payloadRaw = await promise;
+        cleanupSignalListeners();
+        clearTimeoutIfNeeded();
+
+        let payload;
+        try {
+          payload = JSON.parse(String(payloadRaw || "{}"));
+        } catch (err) {
+          throw err;
+        }
+
+        if (!payload.ok) {
+          if (payload.canceled === true) {
+            throw buildAbortError();
+          }
+          throw new TypeError(payload.error || "网络请求失败");
+        }
+
+        return new Response(payload.body || "", {
+          status: payload.status,
+          statusText: payload.statusText,
+          headers: payload.headers || {},
+          url: payload.url || request.url,
+          offloaded: payload.offloaded === true,
+          nativeBufferId: payload.nativeBufferId,
+          offloadedBytes: payload.offloadedBytes,
         });
-      } catch (err) {
-        dropPending();
-        finish(() => reject(err));
+      } finally {
+        cleanupSignalListeners();
+        clearTimeoutIfNeeded();
       }
-    }));
+    });
   }
 
   globalThis.__web.Request = Request;

@@ -32,10 +32,11 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use filetime::{FileTime, set_file_times};
 use reqwest::multipart::{Form as MultipartForm, Part as MultipartPart};
 use reqwest::{Client, Method, Proxy};
-use rquickjs::{Ctx, Function, IntoJs, function::Func};
+use rquickjs::{Ctx, Function, IntoJs, Promise, Value as QjsValue, function::Func};
 use subtle::ConstantTimeEq;
 use tokio::net::lookup_host;
 use tokio::sync::Semaphore;
+use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use url::form_urlencoded;
@@ -57,9 +58,9 @@ pub use self::bridge::{
     register_bridge_route_sync_handler, unregister_bridge_route_handler,
 };
 pub use self::http::{
-    HttpClientConfig, configure_http_client, current_http_client_config, http_request_drop,
-    http_request_drop_evented, http_request_start, http_request_start_evented,
-    http_request_try_take, set_worker_http_config,
+    HttpClientConfig, configure_http_client, current_http_client_config, http_request_cancel,
+    http_request_drop, http_request_promise, http_request_start, http_request_try_take,
+    set_worker_http_config,
 };
 pub use self::native_buffer::{
     native_buffer_free, native_buffer_put, native_buffer_put_raw, native_buffer_take,
@@ -186,6 +187,11 @@ pub fn install_host_bindings(
     globals.set("__http_request_start", Func::from(http_request_start))?;
     globals.set("__http_request_try_take", Func::from(http_request_try_take))?;
     globals.set("__http_request_drop", Func::from(http_request_drop))?;
+    globals.set(
+        "__http_request_promise",
+        Function::new(ctx.clone(), http_request_promise)?,
+    )?;
+    globals.set("__http_request_cancel", Func::from(http_request_cancel))?;
     globals.set("__urlsp_rewrite", Func::from(urlsp_rewrite))?;
     globals.set("__urlsp_query", Func::from(urlsp_query))?;
     globals.set("__headers_rewrite", Func::from(headers_rewrite))?;
@@ -335,6 +341,11 @@ pub fn install_host_bindings(
         globals.set("__fs_task_start", Func::from(fs_task_start))?;
         globals.set("__fs_task_try_take", Func::from(fs_task_try_take))?;
         globals.set("__fs_task_drop", Func::from(fs_task_drop))?;
+        globals.set(
+            "__fs_task_promise",
+            Function::new(ctx.clone(), fs_task_promise)?,
+        )?;
+        globals.set("__fs_task_cancel", Func::from(fs_task_cancel))?;
     }
     globals.set("__sourcemap_lookup", Func::from(sourcemap_lookup))?;
     crate::html::js_binding::install(ctx)?;
@@ -357,21 +368,18 @@ static FETCH_STATE_ID: AtomicU64 = AtomicU64::new(1);
 static HTTP_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
 static BRIDGE_REQ_ID: AtomicU64 = AtomicU64::new(1);
 static BRIDGE_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
-static HTTP_REQ_EVENT_POOL: OnceLock<Mutex<HashMap<u64, PendingAbortTask>>> = OnceLock::new();
 static FS_REQ_ID: AtomicU64 = AtomicU64::new(1);
 static FS_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
-static FS_REQ_EVENT_POOL: OnceLock<Mutex<HashMap<u64, PendingAbortTask>>> = OnceLock::new();
 static TIMER_REQ_ID: AtomicU64 = AtomicU64::new(1);
 static TIMER_REQ_EVENT_POOL: OnceLock<Mutex<HashMap<u64, PendingAbortTask>>> = OnceLock::new();
 static HTTP_CLIENT_STATE: OnceLock<Mutex<HttpClientState>> = OnceLock::new();
 static HTTP_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 static FS_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 static HTTP_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
-static HTTP_EVENT_COMPLETED: AtomicU64 = AtomicU64::new(0);
 static HTTP_EVENT_CANCELED: AtomicU64 = AtomicU64::new(0);
-static HTTP_EVENT_SUPPRESSED: AtomicU64 = AtomicU64::new(0);
 static BRIDGE_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static FS_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
+static FS_EVENT_CANCELED: AtomicU64 = AtomicU64::new(0);
 static TIMER_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static LOG_TX: OnceLock<mpsc::Sender<LogEvent>> = OnceLock::new();
 static LOG_HTTP_ENDPOINT: OnceLock<Mutex<Option<String>>> = OnceLock::new();
@@ -490,8 +498,10 @@ fn fs_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
     FS_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-fn fs_req_event_pool() -> &'static Mutex<HashMap<u64, PendingAbortTask>> {
-    FS_REQ_EVENT_POOL.get_or_init(|| Mutex::new(HashMap::new()))
+fn fs_promise_cancel_senders() -> &'static Mutex<HashMap<u64, oneshot::Sender<()>>> {
+    static FS_PROMISE_CANCEL_SENDERS: OnceLock<Mutex<HashMap<u64, oneshot::Sender<()>>>> =
+        OnceLock::new();
+    FS_PROMISE_CANCEL_SENDERS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 fn timer_req_event_pool() -> &'static Mutex<HashMap<u64, PendingAbortTask>> {
@@ -1084,86 +1094,86 @@ pub fn fs_task_drop(id: u64) -> String {
     json!({ "ok": true, "dropped": existed }).to_string()
 }
 
-pub fn fs_task_start_evented<F>(op: String, args_json: String, on_complete: F) -> String
-where
-    F: FnOnce(u64, String) + Send + 'static,
-{
-    {
-        let mut pool = fs_req_event_pool()
-            .lock()
-            .expect(&crate::tr!("failed-to-lock-fs-event-request-pool"));
-        cleanup_stale_pending_abort(&mut pool, &FS_STALE_DROPS);
-        if pool.len() >= FS_MAX_PENDING {
-            return json!({ "ok": false, "error": crate::tr!("fs-pending-queue-is-full") })
-                .to_string();
-        }
-    }
-
+pub fn fs_task_promise(
+    ctx: Ctx<'_>,
+    op: String,
+    args_json: String,
+) -> rquickjs::Result<QjsValue<'_>> {
     let id = FS_REQ_ID.fetch_add(1, Ordering::Relaxed);
-    let sem = Arc::clone(fs_io_sem());
-    let request_label = format!("op={}", op);
-
-    let task = tokio::runtime::Handle::try_current()
-        .unwrap()
-        .spawn(async move {
-            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-                Ok(Ok(permit)) => permit,
-                Ok(Err(_)) => {
-                    on_complete(
-                        id,
-                        json!({ "ok": false, "error": crate::tr!("fs-concurrency-controller-unavailable") })
-                            .to_string(),
-                    );
-                    return;
-                }
-                Err(_) => {
-                    on_complete(
-                        id,
-                        json!({ "ok": false, "error": crate::tr!("timed-out-waiting-for-fs-concurrency-permit") })
-                            .to_string(),
-                    );
-                    return;
-                }
-            };
-            let payload = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json))
-                .await
-                .unwrap_or_else(|e| json!({ "ok": false, "error": e.to_string() }).to_string());
-            drop(permit);
-            on_complete(id, payload);
-            let _ = fs_req_event_pool().lock().map(|mut pool| pool.remove(&id));
-        });
-
+    let (cancel_tx, cancel_rx) = oneshot::channel::<()>();
     {
-        let mut pool = fs_req_event_pool()
+        let mut senders = fs_promise_cancel_senders()
             .lock()
-            .expect(&crate::tr!("failed-to-lock-fs-event-request-pool"));
-        pool.insert(
-            id,
-            PendingAbortTask {
-                task,
-                created_at: Instant::now(),
-                meta: PendingAbortTaskMeta {
-                    kind: "fs_evented",
-                    label: request_label,
-                },
-            },
-        );
+            .expect(&crate::tr!("failed-to-lock-fs-promise-cancel-senders"));
+        senders.insert(id, cancel_tx);
     }
 
-    json!({ "ok": true, "id": id }).to_string()
+    let future = async move {
+        let sem = Arc::clone(fs_io_sem());
+        let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
+            Ok(Ok(permit)) => permit,
+            Ok(Err(_)) => {
+                return json!({
+                    "ok": false,
+                    "code": "ECONNRESET",
+                    "error": crate::tr!("fs-concurrency-controller-unavailable")
+                })
+                .to_string();
+            }
+            Err(_) => {
+                return json!({
+                    "ok": false,
+                    "code": "ETIMEDOUT",
+                    "error": crate::tr!("timed-out-waiting-for-fs-concurrency-permit")
+                })
+                .to_string();
+            }
+        };
+
+        let result = tokio::select! {
+            biased;
+            _ = cancel_rx => {
+                Ok(json!({
+                    "ok": false,
+                    "code": "ECANCELED",
+                    "error": crate::tr!("fs-task-was-canceled"),
+                    "canceled": true
+                })
+                .to_string())
+            }
+            r = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json)) => r,
+        };
+
+        drop(permit);
+
+        match result {
+            Ok(payload) => payload,
+            Err(error) => json!({ "ok": false, "code": "EIO", "error": error.to_string() }).to_string(),
+        }
+    };
+
+    let promise = Promise::wrap_future(&ctx, future)?;
+    let obj = promise.into_inner();
+    if let Err(e) = obj.set("__hostTaskId", id) {
+        fs_promise_cancel_senders().lock().unwrap().remove(&id);
+        return Err(e);
+    }
+    Ok(obj.into_value())
 }
 
-pub fn fs_task_drop_evented(id: u64) -> String {
-    let mut pool = fs_req_event_pool()
+pub fn fs_task_cancel(id: u64) -> String {
+    let sender = fs_promise_cancel_senders()
         .lock()
-        .expect(&crate::tr!("failed-to-lock-fs-event-request-pool"));
-    let existed = if let Some(pending) = pool.remove(&id) {
-        pending.task.abort();
+        .expect(&crate::tr!("failed-to-lock-fs-promise-cancel-senders"))
+        .remove(&id);
+    let existed = if let Some(tx) = sender {
+        let _ = tx.send(());
+        FS_EVENT_CANCELED.fetch_add(1, Ordering::Relaxed);
         true
     } else {
         false
     };
-    json!({ "ok": true, "dropped": existed }).to_string()
+    json!({ "ok": true, "canceled": existed }).to_string()
 }
 
 fn normalize_runtime_name(input: &str) -> String {
@@ -1314,9 +1324,10 @@ pub fn runtime_stats() -> String {
             "bridge": BRIDGE_STALE_DROPS.load(Ordering::Relaxed),
         },
         "httpEvented": {
-            "completed": HTTP_EVENT_COMPLETED.load(Ordering::Relaxed),
             "canceled": HTTP_EVENT_CANCELED.load(Ordering::Relaxed),
-            "suppressedCallbacks": HTTP_EVENT_SUPPRESSED.load(Ordering::Relaxed),
+        },
+        "fsEvented": {
+            "canceled": FS_EVENT_CANCELED.load(Ordering::Relaxed),
         },
         "logs": {
             "pending": LOG_PENDING.load(Ordering::Relaxed),

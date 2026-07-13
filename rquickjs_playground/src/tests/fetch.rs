@@ -403,7 +403,7 @@ fn fetch_abort_concurrent_requests_do_not_leave_pending_http_tasks() {
           total,
           aborts,
           httpPending: stats && stats.pending ? Number(stats.pending.http || 0) : -1,
-          eventCanceled: stats && stats.httpEvented ? Number(stats.httpEvented.canceled || 0) : -1
+          canceled: stats && stats.httpEvented ? Number(stats.httpEvented.canceled || 0) : -1
         }});
       }})()
     "#,
@@ -415,7 +415,7 @@ fn fetch_abort_concurrent_requests_do_not_leave_pending_http_tasks() {
     assert_eq!(parsed["total"], 20);
     assert!(parsed["aborts"].as_i64().unwrap_or(0) >= 1);
     assert_eq!(parsed["httpPending"], 0);
-    assert!(parsed["eventCanceled"].as_i64().unwrap_or(0) >= 1);
+    assert!(parsed["canceled"].as_i64().unwrap_or(0) >= 1);
 
     let _ = tx.send(());
     let _ = handle.join();

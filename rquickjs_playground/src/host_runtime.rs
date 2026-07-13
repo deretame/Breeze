@@ -14,13 +14,9 @@ use tokio::sync::mpsc as tokio_mpsc;
 use tokio::sync::oneshot;
 
 use crate::web_runtime::{
-    WebRuntimeOptions, http_request_drop_evented, http_request_start_evented,
-    install_host_bindings, native_buffer_take_raw, polyfill_script, timer_drop_evented,
-    timer_start_kind_evented,
+    WebRuntimeOptions, install_host_bindings, native_buffer_take_raw, polyfill_script,
+    timer_drop_evented, timer_start_kind_evented,
 };
-
-#[cfg(feature = "host-fs")]
-use crate::web_runtime::{fs_task_drop_evented, fs_task_start_evented};
 
 const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
   try {
@@ -309,17 +305,6 @@ enum AsyncCommand {
 }
 
 enum HostEvent {
-    HttpCompleted {
-        route: ContextRoute,
-        id: u64,
-        payload: String,
-    },
-    #[cfg(feature = "host-fs")]
-    FsCompleted {
-        route: ContextRoute,
-        id: u64,
-        payload: String,
-    },
     TimerCompleted {
         route: ContextRoute,
         id: u64,
@@ -506,7 +491,6 @@ impl HostRuntime {
                 install_evented_host_bindings_worker(
                     &ctx,
                     signal_tx.clone(),
-                    self.options,
                     ContextRoute::Primary,
                 )?;
                 ctx.eval::<(), _>(BUNDLE_DISPATCHER_JS)?;
@@ -535,7 +519,6 @@ impl HostRuntime {
                                 "worker signal channel unavailable",
                             )
                         })?,
-                        self.options,
                         ContextRoute::Once(slot_index),
                     )?;
                     ctx.eval::<(), _>(BUNDLE_DISPATCHER_JS)?;
@@ -1845,43 +1828,9 @@ async fn install_async_runtime_bindings(
 fn install_evented_host_bindings_worker(
     ctx: &rquickjs::Ctx<'_>,
     signal_tx: tokio_mpsc::UnboundedSender<WorkerSignal>,
-    options: WebRuntimeOptions,
     route: ContextRoute,
 ) -> Result<(), rquickjs::Error> {
     let globals = ctx.globals();
-
-    let http_tx = signal_tx.clone();
-    globals.set(
-        "__http_request_start_evented",
-        Function::new(
-            ctx.clone(),
-            move |method: String,
-                  url: String,
-                  headers_json: String,
-                  body: Option<String>,
-                  body_native_buffer_id: Option<u64>| {
-                let tx = http_tx.clone();
-                http_request_start_evented(
-                    method,
-                    url,
-                    headers_json,
-                    body,
-                    body_native_buffer_id,
-                    move |id, payload| {
-                        let _ = tx.send(WorkerSignal::HostEvent(HostEvent::HttpCompleted {
-                            route,
-                            id,
-                            payload,
-                        }));
-                    },
-                )
-            },
-        )?,
-    )?;
-    globals.set(
-        "__http_request_drop_evented",
-        Func::from(http_request_drop_evented),
-    )?;
 
     let timer_tx = signal_tx.clone();
     globals.set(
@@ -1898,25 +1847,6 @@ fn install_evented_host_bindings_worker(
         })?,
     )?;
     globals.set("__timer_drop_evented", Func::from(timer_drop_evented))?;
-
-    #[cfg(feature = "host-fs")]
-    if options.fs {
-        let fs_tx = signal_tx.clone();
-        globals.set(
-            "__fs_task_start_evented",
-            Function::new(ctx.clone(), move |op: String, args_json: String| {
-                let tx = fs_tx.clone();
-                fs_task_start_evented(op, args_json, move |id, payload| {
-                    let _ = tx.send(WorkerSignal::HostEvent(HostEvent::FsCompleted {
-                        route,
-                        id,
-                        payload,
-                    }));
-                })
-            })?,
-        )?;
-        globals.set("__fs_task_drop_evented", Func::from(fs_task_drop_evented))?;
-    }
 
     Ok(())
 }
@@ -2027,9 +1957,6 @@ async fn handle_worker_command(
 
 async fn handle_host_event(host: &HostRuntime, event: HostEvent) {
     let route = match &event {
-        HostEvent::HttpCompleted { route, .. } => *route,
-        #[cfg(feature = "host-fs")]
-        HostEvent::FsCompleted { route, .. } => *route,
         HostEvent::TimerCompleted { route, .. } => *route,
     };
     let result = host
@@ -2045,15 +1972,6 @@ fn handle_host_event_in_ctx(
 ) -> Result<(), rquickjs::Error> {
     let globals = ctx.globals();
     match event {
-        HostEvent::HttpCompleted { id, payload, .. } => {
-            let func: Function = globals.get("__host_runtime_http_complete")?;
-            func.call::<_, ()>((id, payload))
-        }
-        #[cfg(feature = "host-fs")]
-        HostEvent::FsCompleted { id, payload, .. } => {
-            let func: Function = globals.get("__host_runtime_fs_complete")?;
-            func.call::<_, ()>((id, payload))
-        }
         HostEvent::TimerCompleted { id, payload, .. } => {
             let func: Function = globals.get("__host_runtime_timer_complete")?;
             func.call::<_, ()>((id, payload))

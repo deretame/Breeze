@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/page/comic_read/controller/reader_history_manager.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_cubit.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/service/reader/reader_history_service.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 /// 阅读器历史记录控制器。
 ///
-/// 封装历史写入管理器，并负责页面加载后的历史位置恢复。
+/// 封装历史服务调用、状态文本同步与历史位置恢复。
+/// 所有 ObjectBox 与 worker isolate 副作用均已下沉到 [ReaderHistoryService]。
 class ReaderHistoryController {
   ReaderHistoryController({
     required this.comicId,
@@ -39,29 +39,40 @@ class ReaderHistoryController {
   final bool Function() isHistoryEntry;
   final Future<void> Function(int target) jumpToGlobalSlot;
 
-  late final ReaderHistoryManager _manager;
+  final _service = ReaderHistoryService.instance;
+  StreamSubscription<String>? _statusSubscription;
   bool isSkipped = false;
 
   Future<void> init() async {
-    _manager = ReaderHistoryManager(
+    await _service.loadHistory(
+      source: from,
       comicId: comicId,
-      order: order,
-      from: from,
       comicInfo: comicInfo,
-      historyWriter: HistoryWriter(),
-      stringSelectCubit: stringSelectCubit,
-      getPageIndex: getPageIndex,
-      getCurrentChapterOrder: getCurrentChapterOrder,
-      getEpInfo: getEpInfo,
     );
-    await _manager.init();
+    _statusSubscription = _service.statusStream.listen((status) {
+      if (!stringSelectCubit.isClosed) {
+        stringSelectCubit.setDate(status);
+      }
+    });
   }
 
-  void markLoaded() => _manager.markLoaded();
+  void markLoaded() {
+    _service.markLoaded();
+    _service.startPeriodicSave(
+      () => HistorySnapshot(
+        pageIndex: getPageIndex(),
+        chapterOrder: getCurrentChapterOrder(),
+        epInfo: getEpInfo(),
+      ),
+    );
+  }
 
-  void stop() => _manager.stop();
+  void stop() {
+    _statusSubscription?.cancel();
+    _service.stop();
+  }
 
-  int getHistoryPageIndex() => _manager.getHistoryPageIndex();
+  int getHistoryPageIndex() => _service.lastPageIndex;
 
   /// 章节成功加载后恢复历史阅读位置，仅执行一次。
   Future<void> handleHistoryScroll(BuildContext context) async {

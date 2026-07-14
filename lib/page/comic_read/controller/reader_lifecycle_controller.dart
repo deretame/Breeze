@@ -4,14 +4,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/controller/reader_auto_read_controller.dart';
 import 'package:zephyr/page/comic_read/controller/reader_history_controller.dart';
 import 'package:zephyr/page/comic_read/controller/reader_system_ui_controller.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/widgets/desktop/desktop_fullscreen_controller.dart';
+import 'package:zephyr/service/reader/reader_desktop_fullscreen_service.dart';
 
 /// 阅读器生命周期控制器。
 ///
@@ -41,6 +40,7 @@ class ReaderLifecycleController {
   final VoidCallback onFlushImageSizeCache;
   final bool Function() isDesktopPlatform;
 
+  final _desktopFullscreenService = ReaderDesktopFullscreenService.instance;
   StreamSubscription<bool>? _menuVisibleSubscription;
 
   bool _hasBootstrappedReadState = false;
@@ -77,11 +77,10 @@ class ReaderLifecycleController {
   Future<void> toggleDesktopFullscreen() async {
     if (!isDesktopPlatform()) return;
     final target = !_isDesktopFullscreen;
-    await windowManager.setFullScreen(target);
+    await _desktopFullscreenService.setFullscreen(target);
     if (!_mounted) return;
     onRefreshState();
     _isDesktopFullscreen = target;
-    setDesktopReaderFullscreen(target);
     _scheduleSystemUiSync();
   }
 
@@ -120,10 +119,10 @@ class ReaderLifecycleController {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_mounted) return;
       if (isDesktopPlatform()) {
-        final isFullscreen = await windowManager.isFullScreen();
+        final isFullscreen = await _desktopFullscreenService.isFullscreen();
         onRefreshState();
         _isDesktopFullscreen = isFullscreen;
-        setDesktopReaderFullscreen(isFullscreen);
+        _desktopFullscreenService.syncFullscreen(isFullscreen);
       }
       onSyncSystemUi(force: true);
       await Future.delayed(const Duration(milliseconds: 200));
@@ -146,10 +145,10 @@ class ReaderLifecycleController {
   }
 
   Future<void> _restoreDesktopFullscreen() async {
-    setDesktopReaderFullscreen(false);
+    _desktopFullscreenService.syncFullscreen(false);
     if (!isDesktopPlatform()) return;
     if (_isDesktopFullscreen) {
-      await windowManager.setFullScreen(false);
+      await _desktopFullscreenService.setFullscreen(false);
     }
   }
 }

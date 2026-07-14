@@ -4,126 +4,120 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:worker_manager/worker_manager.dart';
-import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
+    as normal;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/util/worker_isolate.dart';
 
-import '../../../main.dart'; // 引用 objectbox
-import '../../../object_box/model.dart';
-import '../../../object_box/objectbox.g.dart';
-import '../../../page/comic_info/json/normal/normal_comic_all_info.dart'
-    as normal;
+/// 供 [ReaderHistoryService] 周期性保存时使用的快照。
+class HistorySnapshot {
+  const HistorySnapshot({
+    required this.pageIndex,
+    required this.chapterOrder,
+    required this.epInfo,
+  });
 
-class ReaderHistoryManager {
-  final String comicId;
-  final int order;
-  final String from;
-  final dynamic comicInfo;
-  final HistoryWriter historyWriter;
+  final int pageIndex;
+  final int chapterOrder;
+  final NormalComicEpInfo epInfo;
+}
 
-  // 状态回调
-  final int Function() getPageIndex;
-  final int Function() getCurrentChapterOrder;
-  final NormalComicEpInfo Function() getEpInfo;
-  final StringSelectCubit stringSelectCubit;
+/// 阅读器历史记录服务。
+///
+/// 封装 ObjectBox 历史记录查询、worker isolate 写入与序列化逻辑，
+/// 通过 [statusStream] 把左下角状态文本暴露给 controller，自身不依赖任何 cubit。
+class ReaderHistoryService {
+  static final ReaderHistoryService instance = ReaderHistoryService._();
+  ReaderHistoryService._();
 
-  // 内部状态
+  final _statusController = StreamController<String>.broadcast();
+  Stream<String> get statusStream => _statusController.stream;
+
+  String? _source;
+  String? _comicId;
+  normal.ComicInfo? _comicInfo;
   UnifiedComicHistory? _history;
   Timer? _timer;
   DateTime? _lastUpdateTime;
   bool _isInserting = false;
-  bool _isLoading = true; // 对应原本的 _loading，但这其实是数据是否准备好的标志
-  normal.ComicInfo? _comicInfo; // 用于存储解析后的 comicInfo 数据，避免重复解析
+  bool _isLoading = true;
+  HistorySnapshot Function()? _snapshotProvider;
 
-  ReaderHistoryManager({
-    required this.comicId,
-    required this.order,
-    required this.from,
-    required this.comicInfo,
-    required this.historyWriter,
-    required this.getPageIndex,
-    required this.getCurrentChapterOrder,
-    required this.getEpInfo,
-    required this.stringSelectCubit,
-  });
+  /// 加载指定漫画的历史记录，并解析 comicInfo 供后续写入使用。
+  Future<void> loadHistory({
+    required String source,
+    required String comicId,
+    required dynamic comicInfo,
+  }) async {
+    _source = source;
+    _comicId = comicId;
+    _comicInfo = _resolveNormalComicInfo(comicInfo);
+    _isLoading = true;
 
-  /// 初始化：查询或创建历史记录对象
-  Future<void> init() async {
     final query = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
+        .query(UnifiedComicHistory_.uniqueKey.equals('$source:$comicId'))
         .build();
     try {
       _history = query.findFirst();
     } finally {
       query.close();
     }
-
-    _comicInfo = _resolveNormalComicInfo(comicInfo);
-
-    _startTimer();
   }
 
-  void _startTimer() {
+  /// 上次加载到的历史页码，未加载或为 null 时返回 0。
+  int get lastPageIndex => _history?.pageIndex ?? 0;
+
+  /// 标记数据加载完成，可以开始写入。
+  void markLoaded() => _isLoading = false;
+
+  /// 启动周期性保存。
+  ///
+  /// [provider] 由 controller 提供，用于在每次触发时获取当前阅读快照。
+  void startPeriodicSave(HistorySnapshot Function() provider) {
+    _snapshotProvider = provider;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      _writeToDatabase();
+      _writeHistory();
     });
   }
 
-  /// 标记数据加载完成，可以开始写入
-  void markLoaded() {
-    _isLoading = false;
-  }
+  /// 立即停止周期性保存。
+  void stop() => _timer?.cancel();
 
-  void stop() {
-    _timer?.cancel();
-  }
-
-  /// 获取历史记录中的页码，用于初始定位
-  int getHistoryPageIndex() {
-    return _history?.pageIndex ?? 0;
-  }
-
-  Future<void> _writeToDatabase() async {
-    // 基础检查
-    if (_isLoading || comicInfo == null) return;
+  Future<void> _writeHistory() async {
+    if (_isLoading || _comicInfo == null) return;
     if (_isInserting) return;
     if (_lastUpdateTime != null &&
         DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
       return;
     }
 
-    final pageIndex = getPageIndex();
-    final epInfo = getEpInfo();
+    final snapshot = _snapshotProvider?.call();
+    if (snapshot == null) return;
+
     final currentTime = DateTime.now().toLocal().toString().substring(0, 19);
+    _statusController.add(
+      '${snapshot.chapterOrder > 0 ? '${snapshot.chapterOrder}-' : ''}'
+      '${snapshot.epInfo.epName} / ${snapshot.pageIndex - 1} / $currentTime',
+    );
 
-    // 更新左下角文字 (StringSelectCubit)
-    if (!stringSelectCubit.isClosed) {
-      final order = getCurrentChapterOrder();
-      final prefix = order > 0 ? '$order-' : '';
-      final historyPrefix = '$prefix${epInfo.epName}';
-
-      stringSelectCubit.setDate(
-        '$historyPrefix / ${pageIndex - 1} / $currentTime',
-      );
-    }
-
-    // 写入数据库
     _isInserting = true;
     try {
       final timestamp = DateTime.now().toUtc();
       final payload = <String, dynamic>{
         'dbRootPath': p.dirname(objectbox.store.directoryPath),
-        'source': from,
-        'comicId': comicId,
+        'source': _source,
+        'comicId': _comicId,
         'normalInfo': _serializeComicInfoForWorker(_comicInfo!),
-        'chapterId': epInfo.epId,
-        'chapterTitle': epInfo.epName,
-        'chapterOrder': getCurrentChapterOrder(),
-        'pageIndex': pageIndex,
+        'chapterId': snapshot.epInfo.epId,
+        'chapterTitle': snapshot.epInfo.epName,
+        'chapterOrder': snapshot.chapterOrder,
+        'pageIndex': snapshot.pageIndex,
         'timestamp': timestamp.toIso8601String(),
       };
       final rootIsolateToken = captureWorkerIsolateToken();
@@ -142,10 +136,10 @@ class ReaderHistoryManager {
 
   normal.ComicInfo _resolveNormalComicInfo(dynamic comicInfo) {
     if (comicInfo is PluginComicDetailSource) {
-      return (comicInfo).normalInfo.comicInfo;
+      return comicInfo.normalInfo.comicInfo;
     }
     if (comicInfo is UnifiedComicDownload) {
-      final detail = jsonDecode((comicInfo).detailJson) as Map<String, dynamic>;
+      final detail = jsonDecode(comicInfo.detailJson) as Map<String, dynamic>;
       return normal.NormalComicAllInfo.fromJson(detail).comicInfo;
     }
 

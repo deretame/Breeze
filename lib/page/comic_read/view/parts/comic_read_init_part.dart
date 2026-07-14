@@ -71,6 +71,12 @@ extension _ComicReadInitPart on _ComicReadPageState {
 
   // 初始化历史记录控制器，处理进度恢复与落盘。
   void _initHistoryController() {
+    // 周期性保存的回调可能在 widget 卸载后仍被触发一次，
+    // 因此在这里直接拿到 cubit 引用，避免闭包中继续使用 BuildContext。
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final readerCubit = context.read<ReaderCubit>();
+    final seamlessCubit = context.read<ReaderSeamlessCubit>();
+
     _historyController = ReaderHistoryController(
       comicId: comicId,
       order: widget.order,
@@ -78,9 +84,8 @@ extension _ComicReadInitPart on _ComicReadPageState {
       comicInfo: widget.comicInfo,
       stringSelectCubit: context.read<StringSelectCubit>(),
       getPageIndex: () {
-        final setting = context.read<GlobalSettingCubit>().state.readSetting;
-        final globalSlotIndex = context.read<ReaderCubit>().state.pageIndex;
-        final seamlessCubit = context.read<ReaderSeamlessCubit>();
+        final setting = globalSettingCubit.state.readSetting;
+        final globalSlotIndex = readerCubit.state.pageIndex;
         final slotIndex = seamlessCubit.isSeamlessEnabled()
             ? seamlessCubit.mapGlobalToLocalSlot(globalSlotIndex)
             : globalSlotIndex;

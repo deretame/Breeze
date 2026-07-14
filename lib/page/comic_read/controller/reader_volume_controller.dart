@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/controller/reader_action_controller.dart';
-import 'package:zephyr/util/volume_key_handler.dart';
+import 'package:zephyr/service/reader/reader_volume_service.dart';
 
 class ReaderVolumeController {
   late ReaderActionController actionController;
+  final _service = ReaderVolumeService.instance;
   StreamSubscription<String>? _subscription;
-  bool _isInterceptionEnabled = false;
 
   ReaderVolumeController();
 
@@ -17,20 +17,18 @@ class ReaderVolumeController {
   }
 
   void listen() {
-    if (!Platform.isAndroid) return;
     _subscription?.cancel();
-    _subscription = VolumeKeyHandler.volumeKeyEvents.listen(_handleEvent);
+    if (!Platform.isAndroid) return;
+    _subscription = _service.volumeEvents.listen(_handleEvent);
   }
 
   void dispose() {
-    if (!Platform.isAndroid) return;
-    disableInterception();
+    _service.dispose();
     _subscription?.cancel();
   }
 
   /// 根据设置和菜单状态同步是否拦截音量键。
   void sync(ReadSettingState readSetting, bool isMenuVisible) {
-    if (!Platform.isAndroid) return;
     final shouldEnable = readSetting.volumeKeyPageTurn && !isMenuVisible;
     if (shouldEnable) {
       enableInterception();
@@ -39,21 +37,9 @@ class ReaderVolumeController {
     }
   }
 
-  void enableInterception() {
-    if (!Platform.isAndroid) return;
-    if (!_isInterceptionEnabled) {
-      VolumeKeyHandler.enableVolumeKeyInterception();
-      _isInterceptionEnabled = true;
-    }
-  }
+  void enableInterception() => _service.enableInterception();
 
-  void disableInterception() {
-    if (!Platform.isAndroid) return;
-    if (_isInterceptionEnabled) {
-      VolumeKeyHandler.disableVolumeKeyInterception();
-      _isInterceptionEnabled = false;
-    }
-  }
+  void disableInterception() => _service.disableInterception();
 
   void _handleEvent(String event) {
     if (event == 'volume_down') {

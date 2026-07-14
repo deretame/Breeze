@@ -47,7 +47,7 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/widgets/desktop/custom_title_bar.dart';
-import 'package:zephyr/widgets/desktop/desktop_fullscreen_controller.dart';
+import 'package:zephyr/service/reader/reader_desktop_fullscreen_service.dart';
 import 'package:zephyr/widgets/desktop/intent.dart';
 
 ObjectBox? _objectbox;
@@ -743,7 +743,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                       Platform.isLinux ||
                       Platform.isMacOS) {
                     return ValueListenableBuilder<bool>(
-                      valueListenable: desktopReaderFullscreenNotifier,
+                      valueListenable: ReaderDesktopFullscreenService
+                          .instance
+                          .fullscreenNotifier,
                       builder: (context, isReaderFullscreen, _) {
                         return Column(
                           children: [

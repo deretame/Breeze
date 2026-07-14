@@ -892,7 +892,10 @@ impl AsyncHostRuntime {
                         break;
                     }
 
-                    match tokio::time::timeout(Duration::from_millis(1), rx.recv()).await {
+                    // 50ms watchdog：防止某些异步路径漏发信号导致工作线程睡死。
+                    // 漫画/图片请求本身耗时较长，50ms 的兜底延迟对用户体验几乎无影响，
+                    // 同时能显著降低空闲时的线程唤醒频率。
+                    match tokio::time::timeout(Duration::from_millis(50), rx.recv()).await {
                         Ok(Some(signal)) => {
                             running = handle_worker_signal(
                                 signal,

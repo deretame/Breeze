@@ -152,7 +152,7 @@ Widget _buildColumnSingleImage({
             entry: entry,
             comicId: comicId,
             from: from,
-            slotIndex: entry.chapterLocalPageIndex ?? item.entryIndex,
+            slotIndex: entry.chapterPageIndex ?? item.entryIndex,
             cacheIndex: cacheIndex,
             isColumn: true,
           ),
@@ -187,7 +187,7 @@ Widget _buildRowSingleImage({
         from: from,
         slotIndex: slotIndex,
         cacheIndex: item.entryIndex,
-        displayNumber: (entry.chapterLocalPageIndex ?? 0) + 1,
+        displayNumber: (entry.chapterPageIndex ?? 0) + 1,
         isColumn: false,
       ),
     ),
@@ -246,7 +246,7 @@ Widget _buildColumnDoublePageImage({
           entry: left.entry,
           comicId: comicId,
           from: from,
-          slotIndex: left.entry.chapterLocalPageIndex ?? left.entryIndex,
+          slotIndex: left.entry.chapterPageIndex ?? left.entryIndex,
           cacheIndex: _resolveImageCacheIndex(left.entry, left.entryIndex),
           isColumn: true,
         ),
@@ -260,8 +260,7 @@ Widget _buildColumnDoublePageImage({
                 entry: right.entry,
                 comicId: comicId,
                 from: from,
-                slotIndex:
-                    right.entry.chapterLocalPageIndex ?? right.entryIndex,
+                slotIndex: right.entry.chapterPageIndex ?? right.entryIndex,
                 cacheIndex: _resolveImageCacheIndex(
                   right.entry,
                   right.entryIndex,
@@ -318,7 +317,7 @@ Widget _buildRowDoublePageImage({
             from: from,
             slotIndex: slotIndex,
             cacheIndex: slot.left!.entryIndex,
-            displayNumber: (slot.left!.entry.chapterLocalPageIndex ?? 0) + 1,
+            displayNumber: (slot.left!.entry.chapterPageIndex ?? 0) + 1,
             isColumn: false,
           )
         : const SizedBox.shrink(),
@@ -333,7 +332,7 @@ Widget _buildRowDoublePageImage({
             from: from,
             slotIndex: slotIndex,
             cacheIndex: slot.right!.entryIndex,
-            displayNumber: (slot.right!.entry.chapterLocalPageIndex ?? 0) + 1,
+            displayNumber: (slot.right!.entry.chapterPageIndex ?? 0) + 1,
             isColumn: false,
           )
         : const SizedBox.shrink(),
@@ -355,7 +354,7 @@ Widget _buildRowDoublePageImage({
 }
 
 int _resolveImageCacheIndex(ReadModeEntry entry, int fallbackIndex) {
-  final localPageIndex = entry.chapterLocalPageIndex;
+  final localPageIndex = entry.chapterPageIndex;
   if (entry.type != ReadModeEntryType.image || localPageIndex == null) {
     return fallbackIndex;
   }

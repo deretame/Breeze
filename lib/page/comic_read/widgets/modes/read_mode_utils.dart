@@ -14,7 +14,7 @@ class ReadModeEntry {
     required this.chapterId,
     required this.chapterOrder,
     required this.chapterTitle,
-    required this.chapterLocalPageIndex,
+    required this.chapterPageIndex,
     required this.transitionStatus,
     this.previousChapterOrder,
     this.previousChapterTitle,
@@ -25,14 +25,14 @@ class ReadModeEntry {
     required String chapterId,
     required int chapterOrder,
     required String chapterTitle,
-    required int chapterLocalPageIndex,
+    required int chapterPageIndex,
   }) : this._(
          type: ReadModeEntryType.image,
          doc: doc,
          chapterId: chapterId,
          chapterOrder: chapterOrder,
          chapterTitle: chapterTitle,
-         chapterLocalPageIndex: chapterLocalPageIndex,
+         chapterPageIndex: chapterPageIndex,
          transitionStatus: SeamlessTransitionStatus.ready,
        );
 
@@ -48,7 +48,7 @@ class ReadModeEntry {
          chapterId: null,
          chapterOrder: chapterOrder,
          chapterTitle: chapterTitle,
-         chapterLocalPageIndex: null,
+         chapterPageIndex: null,
          previousChapterOrder: previousChapterOrder,
          previousChapterTitle: previousChapterTitle,
          transitionStatus: transitionStatus,
@@ -59,23 +59,11 @@ class ReadModeEntry {
   final String? chapterId;
   final int chapterOrder;
   final String chapterTitle;
-  final int? chapterLocalPageIndex;
+  final int? chapterPageIndex;
   final int? previousChapterOrder;
   final String? previousChapterTitle;
   final SeamlessTransitionStatus transitionStatus;
 }
-
-/// 列模式条目（[ReadModeEntry] 的别名）。
-typedef ColumnModeEntry = ReadModeEntry;
-
-/// 行模式条目（[ReadModeEntry] 的别名）。
-typedef RowModeEntry = ReadModeEntry;
-
-/// 列模式条目类型（[ReadModeEntryType] 的别名）。
-typedef ColumnModeEntryType = ReadModeEntryType;
-
-/// 行模式条目类型（[ReadModeEntryType] 的别名）。
-typedef RowModeEntryType = ReadModeEntryType;
 
 /// 双页槽位中的单个条目包装。
 class ReadModeSlotItem {

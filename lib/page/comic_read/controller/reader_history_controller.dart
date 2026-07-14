@@ -21,7 +21,7 @@ class ReaderHistoryController {
     required this.from,
     required this.comicInfo,
     required this.stringSelectCubit,
-    required this.getPageIndex,
+    required this.getStoredPageIndex,
     required this.getCurrentChapterOrder,
     required this.getEpInfo,
     required this.isHistoryEntry,
@@ -33,7 +33,7 @@ class ReaderHistoryController {
   final String from;
   final dynamic comicInfo;
   final StringSelectCubit stringSelectCubit;
-  final int Function() getPageIndex;
+  final int Function() getStoredPageIndex;
   final int Function() getCurrentChapterOrder;
   final NormalComicEpInfo Function() getEpInfo;
   final bool Function() isHistoryEntry;
@@ -60,7 +60,7 @@ class ReaderHistoryController {
     _service.markLoaded();
     _service.startPeriodicSave(
       () => HistorySnapshot(
-        pageIndex: getPageIndex(),
+        pageIndex: getStoredPageIndex(),
         chapterOrder: getCurrentChapterOrder(),
         epInfo: getEpInfo(),
       ),

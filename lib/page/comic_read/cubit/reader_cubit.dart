@@ -12,18 +12,18 @@ class ReaderCubit extends Cubit<ReaderState> {
   // 更新总页数
   void updateTotalSlots(int total) => emit(state.copyWith(totalSlots: total));
 
-  // 更新页面索引（同步计算滑块值）
-  void updatePageIndex(int index) {
-    if (state.pageIndex == index) return;
+  // 更新当前全局槽位（同步计算滑块值）
+  void updateCurrentSlot(int index) {
+    if (state.currentSlot == index) return;
 
     double newSliderValue = state.sliderValue;
-    // 如果不是在拖动滑块，则根据页面自动同步滑块位置
+    // 如果不是在拖动滑块，则根据槽位自动同步滑块位置
     if (!state.isSliderRolling && state.totalSlots > 0) {
       final maxIndex = (state.totalSlots - 1).clamp(0, 999999);
       newSliderValue = index.clamp(0, maxIndex).toDouble();
     }
 
-    emit(state.copyWith(pageIndex: index, sliderValue: newSliderValue));
+    emit(state.copyWith(currentSlot: index, sliderValue: newSliderValue));
   }
 
   // 滑块拖动逻辑

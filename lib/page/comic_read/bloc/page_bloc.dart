@@ -5,6 +5,7 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/comic_read/method/get_local_info.dart';
 import 'package:zephyr/page/comic_read/method/get_plugin_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/error_filter.dart';
 
@@ -57,12 +58,14 @@ class PageBloc extends Bloc<PageEvent, PageState> {
 
       emit(state.copyWith(status: PageStatus.success, epInfo: result));
     } on StateError catch (_) {
-      emit(state.copyWith(status: PageStatus.failure, result: "no element"));
+      emit(
+        state.copyWith(status: PageStatus.failure, errorMessage: "no element"),
+      );
     } catch (e) {
       emit(
         state.copyWith(
           status: PageStatus.failure,
-          result: normalizeSearchErrorMessage(e),
+          errorMessage: normalizeSearchErrorMessage(e),
         ),
       );
     }

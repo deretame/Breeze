@@ -13,8 +13,8 @@ class ComicErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    logger.d(state.result);
-    if (state.result.toLowerCase().contains("no element")) {
+    logger.d(state.errorMessage);
+    if (state.errorMessage.toLowerCase().contains("no element")) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -34,7 +34,9 @@ class ComicErrorWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              t.reader.loadFailedWithResult(result: state.result.toString()),
+              t.reader.loadFailedWithResult(
+                result: state.errorMessage.toString(),
+              ),
               style: TextStyle(fontSize: 20),
             ),
             SizedBox(height: 10),

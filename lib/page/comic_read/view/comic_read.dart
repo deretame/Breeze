@@ -16,6 +16,7 @@ import 'package:zephyr/page/comic_read/cubit/reader_seamless_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_state.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -38,7 +39,7 @@ class ComicReadPage extends StatelessWidget {
   final String requestId;
   final String storageChapterId;
   final String logicalKey;
-  final Map<String, dynamic> chapterExtern;
+  final ChapterExtern chapterExtern;
   final int epsNumber;
   final String from;
   final ComicEntryType type;
@@ -118,7 +119,7 @@ class _ComicReadPage extends StatefulWidget {
   final String requestId;
   final String storageChapterId;
   final String logicalKey;
-  final Map<String, dynamic> chapterExtern;
+  final ChapterExtern chapterExtern;
   final int epsNumber; // 这个的意思是一共有多少章
   final String from;
   final ComicEntryType type;
@@ -308,7 +309,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final totalSlots = seamlessCubit.resolveTotalSlots(readSetting);
     final maxSlot = (totalSlots - 1).clamp(0, 999999999);
     final safeTarget = targetGlobalSlot.clamp(0, maxSlot);
-    cubit.updatePageIndex(safeTarget);
+    cubit.updateCurrentSlot(safeTarget);
     cubit.updateSliderChanged(safeTarget.toDouble());
     seamlessCubit.applyCurrentChapterByGlobalSlot(safeTarget, readSetting);
 

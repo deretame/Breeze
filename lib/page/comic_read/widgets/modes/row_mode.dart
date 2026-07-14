@@ -16,7 +16,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 
 class RowModeWidget extends StatefulWidget {
-  final List<RowModeEntry> entries;
+  final List<ReadModeEntry> entries;
   final String comicId;
   final PageController pageController;
   final ScrollPhysics scrollPhysics;
@@ -26,10 +26,10 @@ class RowModeWidget extends StatefulWidget {
   final ReaderVolumeController volumeController;
   final bool havePrev;
   final bool haveNext;
-  final ValueChanged<int>? onCurrentSlotChanged;
+  final ValueChanged<int> onGlobalSlotChanged;
   final Future<void> Function()? onEdgePrevious;
   final Future<void> Function()? onEdgeNext;
-  final ValueChanged<int>? onTransitionAction;
+  final ValueChanged<int> onTransitionAction;
 
   const RowModeWidget({
     super.key,
@@ -43,10 +43,10 @@ class RowModeWidget extends StatefulWidget {
     required this.volumeController,
     required this.havePrev,
     required this.haveNext,
-    this.onCurrentSlotChanged,
+    required this.onGlobalSlotChanged,
     this.onEdgePrevious,
     this.onEdgeNext,
-    this.onTransitionAction,
+    required this.onTransitionAction,
   });
 
   @override
@@ -219,15 +219,15 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   void _onPageChanged(int page) {
     final cubit = context.read<ReaderCubit>();
-    cubit.updatePageIndex(page);
-    widget.onCurrentSlotChanged?.call(page);
+    cubit.updateCurrentSlot(page);
+    widget.onGlobalSlotChanged(page);
     if (!cubit.state.isComicRolling) {
       final maxIndex = (cubit.state.totalSlots - 1).clamp(
         0,
         double.maxFinite.toInt(),
       );
       cubit.updateSliderChanged(
-        (cubit.state.pageIndex).clamp(0, maxIndex).toDouble(),
+        (cubit.state.currentSlot).clamp(0, maxIndex).toDouble(),
       );
       cubit.updateMenuVisible(visible: false);
       widget.volumeController.enableInterception();

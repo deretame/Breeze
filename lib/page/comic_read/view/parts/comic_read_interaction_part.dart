@@ -63,7 +63,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
           parentPhysics: physics,
           disableScroll: _isScrollLockedByMultiTouch,
           volumeController: _volumeController,
-          onCurrentSlotChanged: seamlessEnabled
+          onGlobalSlotChanged: seamlessEnabled
               ? (globalSlot) async {
                   final result = await seamlessCubit.onGlobalSlotObserved(
                     globalSlot,
@@ -76,13 +76,13 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
                     );
                   }
                 }
-              : null,
+              : (_) {},
           onTransitionAction: seamlessEnabled
               ? (nextOrder) async {
                   final result = await seamlessCubit.onTransitionAction(
                     nextOrder,
                     readSetting,
-                    context.read<ReaderCubit>().state.pageIndex,
+                    context.read<ReaderCubit>().state.currentSlot,
                   );
                   if (result.targetGlobalSlot != null && mounted) {
                     await _jumpToGlobalSlot(
@@ -91,7 +91,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
                     );
                   }
                 }
-              : null,
+              : (_) {},
         );
       },
     );
@@ -123,7 +123,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
       volumeController: _volumeController,
       havePrev: canLoadPrev,
       haveNext: canLoadNext,
-      onCurrentSlotChanged: seamlessEnabled
+      onGlobalSlotChanged: seamlessEnabled
           ? (globalSlot) async {
               final result = await seamlessCubit.onGlobalSlotObserved(
                 globalSlot,
@@ -136,7 +136,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
                 );
               }
             }
-          : null,
+          : (_) {},
       onEdgePrevious: seamlessEnabled
           ? () async {
               final result = await seamlessCubit.triggerBoundary(
@@ -170,7 +170,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
               final result = await seamlessCubit.onTransitionAction(
                 nextOrder,
                 readSetting,
-                context.read<ReaderCubit>().state.pageIndex,
+                context.read<ReaderCubit>().state.currentSlot,
               );
               if (result.targetGlobalSlot != null && mounted) {
                 await _jumpToGlobalSlot(
@@ -179,7 +179,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
                 );
               }
             }
-          : null,
+          : (_) {},
     );
   }
 }

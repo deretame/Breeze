@@ -8,6 +8,7 @@ import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
 
 class JumpChapter {
@@ -21,11 +22,11 @@ class JumpChapter {
   String requestId;
   String storageChapterId;
   String logicalKey;
-  Map<String, dynamic> chapterExtern;
+  ChapterExtern chapterExtern;
   dynamic comicInfo;
   String comicId;
-  ComicEntryType tempType;
-  int epsNumber;
+  ComicEntryType resolvedEntryType;
+  int totalChapterCount;
 
   JumpChapter._({
     required this.haveNext,
@@ -41,8 +42,8 @@ class JumpChapter {
     required this.chapterExtern,
     required this.comicInfo,
     required this.comicId,
-    required this.tempType,
-    required this.epsNumber,
+    required this.resolvedEntryType,
+    required this.totalChapterCount,
   });
 
   void jumpToChapter(BuildContext context, bool isPrev) {
@@ -72,21 +73,21 @@ class JumpChapter {
     requestId = chapter.effectiveRequestId;
     storageChapterId = chapter.storageId ?? '';
     logicalKey = chapter.id;
-    chapterExtern = Map<String, dynamic>.from(chapter.extern);
+    chapterExtern = ChapterExtern.from(chapter.extern);
 
     router.replace(
       ComicReadRoute(
         key: Key(Uuid().v4()),
         comicInfo: comicInfo,
         comicId: comicId,
-        type: tempType,
+        type: resolvedEntryType,
         order: order,
         chapterId: chapterId,
         requestId: requestId,
         storageChapterId: storageChapterId,
         logicalKey: logicalKey,
         chapterExtern: chapterExtern,
-        epsNumber: epsNumber,
+        epsNumber: totalChapterCount,
         from: from,
         stringSelectCubit: context.read<StringSelectCubit>(),
       ),
@@ -102,19 +103,19 @@ class JumpChapter {
     String requestId,
     String storageChapterId,
     String logicalKey,
-    Map<String, dynamic> chapterExtern,
-    int epsNumber,
+    ChapterExtern chapterExtern,
+    int totalChapterCount,
     String comicId,
     String from,
   ) {
     final chapters = resolveUnifiedComicChapters(comicInfo, from);
 
-    var tempType = type;
-    if (tempType == ComicEntryType.historyAndDownload) {
-      tempType = ComicEntryType.download;
+    var resolvedEntryType = type;
+    if (resolvedEntryType == ComicEntryType.historyAndDownload) {
+      resolvedEntryType = ComicEntryType.download;
     }
-    if (tempType == ComicEntryType.history) {
-      tempType = ComicEntryType.normal;
+    if (resolvedEntryType == ComicEntryType.history) {
+      resolvedEntryType = ComicEntryType.normal;
     }
 
     const adapter = DownloadChapterAdapter();
@@ -157,15 +158,15 @@ class JumpChapter {
       requestId: current?.effectiveRequestId ?? requestId,
       storageChapterId: current?.storageId ?? storageChapterId,
       logicalKey: current?.id ?? logicalKey,
-      chapterExtern: Map<String, dynamic>.from(
+      chapterExtern: ChapterExtern.from(
         chapterExtern.isNotEmpty
             ? chapterExtern
             : (current?.extern ?? const <String, dynamic>{}),
       ),
       comicInfo: comicInfo,
       comicId: comicId,
-      tempType: tempType,
-      epsNumber: epsNumber,
+      resolvedEntryType: resolvedEntryType,
+      totalChapterCount: totalChapterCount,
     );
   }
 

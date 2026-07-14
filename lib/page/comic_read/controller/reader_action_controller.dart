@@ -26,7 +26,7 @@ class ReaderActionController {
 
   int get _readMode => _readSetting.readMode;
 
-  int get _pageIndex => context.read<ReaderCubit>().state.pageIndex;
+  int get _currentSlot => context.read<ReaderCubit>().state.currentSlot;
 
   int get _totalSlots => context.read<ReaderCubit>().state.totalSlots;
 
@@ -135,22 +135,22 @@ class ReaderActionController {
       final totalSlots = _totalSlots;
       if (totalSlots <= 0 || !scrollController.hasClients) return;
 
-      final currentPage = _pageIndex + (next ? 1 : -1);
+      final currentSlot = _currentSlot + (next ? 1 : -1);
 
-      final targetPage = currentPage.clamp(0, totalSlots - 1);
+      final targetSlot = currentSlot.clamp(0, totalSlots - 1);
 
       logger.d(
-        'index: $_pageIndex currentPage: $currentPage targetPage: $targetPage',
+        'index: $_currentSlot currentSlot: $currentSlot targetSlot: $targetSlot',
       );
 
       if (_noAnimation) {
         observerController.jumpTo(
-          index: targetPage,
+          index: targetSlot,
           offset: (offset) => getReaderTopOffset(_activeContext),
         );
       } else {
         observerController.animateTo(
-          index: targetPage,
+          index: targetSlot,
           duration: kReaderAnimationDuration,
           curve: Curves.easeInOut,
           offset: (offset) => getReaderTopOffset(_activeContext),
@@ -237,12 +237,12 @@ class ReaderActionController {
       final totalSlots = _totalSlots;
       if (totalSlots <= 0) return;
 
-      final currentPage = _pageIndex;
-      final targetPage = (currentPage + (shouldGoForward ? 1 : -1)).clamp(
+      final currentSlot = _currentSlot;
+      final targetSlot = (currentSlot + (shouldGoForward ? 1 : -1)).clamp(
         0,
         totalSlots - 1,
       );
-      pageController.jumpToPage(targetPage);
+      pageController.jumpToPage(targetSlot);
       return;
     }
 

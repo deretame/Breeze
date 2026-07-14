@@ -179,7 +179,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
       (GlobalSettingCubit c) => c.state.readSetting.readMode,
     );
     final currentPageIndex = context.select(
-      (ReaderCubit c) => c.state.pageIndex,
+      (ReaderCubit c) => c.state.currentSlot,
     );
     final canUseEinkMask =
         !isColumn && readMode != 0 && readSetting.einkOptimization;

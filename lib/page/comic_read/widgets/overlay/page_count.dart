@@ -192,7 +192,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   @override
   Widget build(BuildContext context) {
     final pageIndex = context.select<ReaderCubit, int>(
-      (value) => value.state.pageIndex,
+      (value) => value.state.currentSlot,
     );
     final readSetting = context.select<GlobalSettingCubit, ReadSettingState>(
       (cubit) => cubit.state.readSetting,

@@ -175,7 +175,7 @@ class _BottomWidgetState extends State<BottomWidget> {
     showReaderSettingsSheet(
       context,
       changePageIndex: (int value) {
-        readerCubit.updatePageIndex(value);
+        readerCubit.updateCurrentSlot(value);
         readerCubit.updateSliderChanged(0.0);
       },
     );

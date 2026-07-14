@@ -9,6 +9,7 @@ import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/config/router/router.gr.dart' show ComicReadRoute;
 
@@ -52,7 +53,7 @@ void goToComicRead(
       requestId: chapter?.effectiveRequestId ?? '',
       storageChapterId: chapter?.storageId ?? '',
       logicalKey: chapter?.id ?? '',
-      chapterExtern: Map<String, dynamic>.from(
+      chapterExtern: ChapterExtern.from(
         chapter?.extern ?? const <String, dynamic>{},
       ),
       epsNumber: epsCount,

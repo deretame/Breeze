@@ -5,31 +5,31 @@ enum PageStatus { initial, success, failure }
 final class PageState extends Equatable {
   final PageStatus status;
   final NormalComicEpInfo? epInfo;
-  final String result;
+  final String errorMessage;
 
   const PageState({
     this.status = PageStatus.initial,
     this.epInfo,
-    this.result = '',
+    this.errorMessage = '',
   });
 
   PageState copyWith({
     PageStatus? status,
     NormalComicEpInfo? epInfo,
-    String? result,
+    String? errorMessage,
   }) {
     return PageState(
       status: status ?? this.status,
       epInfo: epInfo ?? this.epInfo,
-      result: result ?? this.result,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
   String toString() {
-    return '''PostState { status: $status,  categories: ${epInfo.toString()}, result: $result }''';
+    return '''PageState { status: $status, epInfo: ${epInfo.toString()}, errorMessage: $errorMessage }''';
   }
 
   @override
-  List<Object?> get props => [status, epInfo, result];
+  List<Object?> get props => [status, epInfo, errorMessage];
 }

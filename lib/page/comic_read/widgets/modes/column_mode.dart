@@ -14,7 +14,7 @@ import 'package:zephyr/page/comic_read/widgets/modes/read_mode_utils.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class ColumnModeWidget extends StatefulWidget {
-  final List<ColumnModeEntry> entries;
+  final List<ReadModeEntry> entries;
   final bool enableDoublePage;
   final bool isRtl;
   final String comicId;
@@ -24,8 +24,8 @@ class ColumnModeWidget extends StatefulWidget {
   final ScrollPhysics? parentPhysics;
   final bool disableScroll;
   final ReaderVolumeController volumeController;
-  final ValueChanged<int>? onCurrentSlotChanged;
-  final ValueChanged<int>? onTransitionAction;
+  final ValueChanged<int> onGlobalSlotChanged;
+  final ValueChanged<int> onTransitionAction;
 
   const ColumnModeWidget({
     super.key,
@@ -39,8 +39,8 @@ class ColumnModeWidget extends StatefulWidget {
     this.parentPhysics,
     this.disableScroll = false,
     required this.volumeController,
-    this.onCurrentSlotChanged,
-    this.onTransitionAction,
+    required this.onGlobalSlotChanged,
+    required this.onTransitionAction,
   });
 
   @override
@@ -143,11 +143,11 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             if (slotCount <= 0) return;
 
             final clampedPageIndex = middleValue.clamp(0, slotCount - 1);
-            widget.onCurrentSlotChanged?.call(clampedPageIndex);
+            widget.onGlobalSlotChanged(clampedPageIndex);
 
             final cubit = context.read<ReaderCubit>();
-            if (cubit.state.pageIndex != clampedPageIndex) {
-              cubit.updatePageIndex(clampedPageIndex);
+            if (cubit.state.currentSlot != clampedPageIndex) {
+              cubit.updateCurrentSlot(clampedPageIndex);
             }
 
             if (cubit.state.isMenuVisible) {

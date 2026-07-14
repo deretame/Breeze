@@ -177,7 +177,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
           chapterId: epInfo.epId,
           chapterOrder: _initialOrder,
           chapterTitle: epInfo.epName,
-          chapterLocalPageIndex: index,
+          chapterPageIndex: index,
         );
       }, growable: false);
     }
@@ -214,7 +214,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
             chapterId: chapter.epInfo.epId,
             chapterOrder: chapter.order,
             chapterTitle: chapter.epInfo.epName,
-            chapterLocalPageIndex: pageIndex,
+            chapterPageIndex: pageIndex,
           ),
         );
       }
@@ -277,7 +277,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         continue;
       }
 
-      final localPageIndex = entry.chapterLocalPageIndex ?? 0;
+      final localPageIndex = entry.chapterPageIndex ?? 0;
       final cacheIndex = resolveStableSizeCacheIndex(
         chapterOrder: entry.chapterOrder,
         localPageIndex: localPageIndex,
@@ -305,7 +305,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
           chapterId: epInfo.epId,
           chapterOrder: _initialOrder,
           chapterTitle: epInfo.epName,
-          chapterLocalPageIndex: index,
+          chapterPageIndex: index,
         );
       }, growable: false);
     }
@@ -340,7 +340,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
             chapterId: chapter.epInfo.epId,
             chapterOrder: chapter.order,
             chapterTitle: chapter.epInfo.epName,
-            chapterLocalPageIndex: pageIndex,
+            chapterPageIndex: pageIndex,
           ),
         );
       }

@@ -5,6 +5,7 @@ import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/comic_read/model/comic_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 
 Future<NormalComicEpInfo> getPluginReadSnapshot(
   String comicId,
@@ -14,7 +15,7 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   String? selectedChapterId,
   String requestId,
   String logicalKey,
-  Map<String, dynamic> chapterExtern,
+  ChapterExtern chapterExtern,
 ) async {
   const adapter = DownloadChapterAdapter();
   const matcher = DownloadChapterMatcher();

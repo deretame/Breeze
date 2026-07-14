@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -106,9 +107,9 @@ class EpButtonWidget extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> enrichEpisodeChapterExtern(
+  ChapterExtern enrichEpisodeChapterExtern(
     Ep episode,
-    Map<String, dynamic> chapterExtern,
+    ChapterExtern chapterExtern,
   ) {
     return chapterExtern;
   }

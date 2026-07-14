@@ -7,7 +7,7 @@ class PageEvent extends Equatable {
   final String requestId;
   final String storageChapterId;
   final String logicalKey;
-  final Map<String, dynamic> chapterExtern;
+  final ChapterExtern chapterExtern;
   final String from;
   final ComicEntryType type;
   final dynamic comicInfo;

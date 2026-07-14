@@ -83,9 +83,9 @@ extension _ComicReadInitPart on _ComicReadPageState {
       from: widget.from,
       comicInfo: widget.comicInfo,
       stringSelectCubit: context.read<StringSelectCubit>(),
-      getPageIndex: () {
+      getStoredPageIndex: () {
         final setting = globalSettingCubit.state.readSetting;
-        final globalSlotIndex = readerCubit.state.pageIndex;
+        final globalSlotIndex = readerCubit.state.currentSlot;
         final slotIndex = seamlessCubit.isSeamlessEnabled()
             ? seamlessCubit.mapGlobalToLocalSlot(globalSlotIndex)
             : globalSlotIndex;

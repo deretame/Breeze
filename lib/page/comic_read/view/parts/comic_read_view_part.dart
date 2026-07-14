@@ -10,7 +10,7 @@ extension _ComicReadViewPart on _ComicReadPageState {
           ? () => unawaited(_lifecycleController.toggleDesktopFullscreen())
           : null,
       changePageIndex: (int value) {
-        cubit.updatePageIndex(value);
+        cubit.updateCurrentSlot(value);
         cubit.updateSliderChanged(0.0);
       },
     );

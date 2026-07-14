@@ -21,7 +21,8 @@ class SliderWidget extends StatefulWidget {
   final int Function(int localSlot)? mapLocalToGlobalSlot;
   final bool Function(int globalSlot)? isTransitionSlot;
   final String transitionLabel;
-  final double Function(BuildContext context, int globalSlot)? estimateColumnOffset;
+  final double Function(BuildContext context, int globalSlot)?
+  estimateColumnOffset;
 
   const SliderWidget({
     super.key,
@@ -318,7 +319,7 @@ class _SliderWidgetState extends State<SliderWidget> {
     void jumpNow() {
       widget.observerController.jumpTo(
         index: targetGlobalSlot,
-        offset: (offset) => MediaQuery.of(context).padding.top + 5.0,
+        offset: (offset) => getReaderTopOffset(context),
       );
     }
 

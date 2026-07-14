@@ -1,8 +1,13 @@
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
+
 const int kReadModeColumn = 0;
 const int kReadModeRowLtr = 1;
 const int kReadModeRowRtl = 2;
+
+/// 双页模式下左右页之间的间距。
+const double kDoublePageGap = 6.0;
 
 bool isColumnReadMode(int readMode) => readMode == kReadModeColumn;
 
@@ -47,6 +52,23 @@ int getSlotIndexFromStoredHistoryPage({
     return normalized;
   }
   return normalized ~/ 2;
+}
+
+/// 阅读器内容顶部偏移。
+///
+/// 在状态栏下方留出 5.0 的呼吸边距。
+double getReaderTopOffset(BuildContext context) {
+  return MediaQuery.of(context).padding.top + 5.0;
+}
+
+/// 生成稳定的图片尺寸缓存索引。
+///
+/// 不同章节的同一 localPageIndex 会落到不同 bucket，避免缓存冲突。
+int resolveStableSizeCacheIndex({
+  required int chapterOrder,
+  required int localPageIndex,
+}) {
+  return 100000 + (Object.hash(chapterOrder, localPageIndex) & 0x3FFFFFFF);
 }
 
 double getConstrainedImageWidth({

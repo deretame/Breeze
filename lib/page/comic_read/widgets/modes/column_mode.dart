@@ -321,8 +321,10 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
       );
     }
 
-    const panelGap = 6.0;
-    final panelWidth = ((contentWidth - panelGap) / 2).clamp(1.0, contentWidth);
+    final panelWidth = ((contentWidth - kDoublePageGap) / 2).clamp(
+      1.0,
+      contentWidth,
+    );
     final left = slot.left;
     final right = slot.right;
     if (left == null) {
@@ -376,8 +378,8 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         );
 
         final children = widget.isRtl
-            ? [rightChild, const SizedBox(width: panelGap), leftChild]
-            : [leftChild, const SizedBox(width: panelGap), rightChild];
+            ? [rightChild, const SizedBox(width: kDoublePageGap), leftChild]
+            : [leftChild, const SizedBox(width: kDoublePageGap), rightChild];
 
         return Container(
           color: backgroundColor,
@@ -465,8 +467,10 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     if (entry.type != ColumnModeEntryType.image || localPageIndex == null) {
       return fallbackIndex;
     }
-    final mixed = Object.hash(entry.chapterOrder, localPageIndex) & 0x3FFFFFFF;
-    return 100000 + mixed;
+    return resolveStableSizeCacheIndex(
+      chapterOrder: entry.chapterOrder,
+      localPageIndex: localPageIndex,
+    );
   }
 
   double _resolveDisplayHeight({

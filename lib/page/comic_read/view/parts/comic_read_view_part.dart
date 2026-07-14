@@ -70,7 +70,7 @@ extension _ComicReadViewPart on _ComicReadPageState {
                 imageSizeCubit,
                 contentWidth,
               );
-              return height + MediaQuery.of(context).padding.top + 5.0;
+              return height + getReaderTopOffset(context);
             }
           : null,
     );

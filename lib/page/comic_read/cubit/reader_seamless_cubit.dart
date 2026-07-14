@@ -281,9 +281,10 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       }
 
       final localPageIndex = entry.chapterLocalPageIndex ?? 0;
-      final cacheIndex =
-          100000 +
-          (Object.hash(entry.chapterOrder, localPageIndex) & 0x3FFFFFFF);
+      final cacheIndex = resolveStableSizeCacheIndex(
+        chapterOrder: entry.chapterOrder,
+        localPageIndex: localPageIndex,
+      );
       final size = imageSizeCubit.state.getSizeValue(cacheIndex);
 
       if (size.width > 0 && size.height > 0) {

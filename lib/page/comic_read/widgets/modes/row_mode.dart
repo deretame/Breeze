@@ -364,8 +364,10 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       );
     }
 
-    const double panelGap = 6;
-    final panelWidth = ((contentWidth - panelGap) / 2).clamp(1.0, contentWidth);
+    final panelWidth = ((contentWidth - kDoublePageGap) / 2).clamp(
+      1.0,
+      contentWidth,
+    );
 
     final leftChild = SizedBox(
       width: panelWidth,
@@ -381,8 +383,8 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     );
 
     final children = isRtl
-        ? [rightChild, const SizedBox(width: panelGap), leftChild]
-        : [leftChild, const SizedBox(width: panelGap), rightChild];
+        ? [rightChild, const SizedBox(width: kDoublePageGap), leftChild]
+        : [leftChild, const SizedBox(width: kDoublePageGap), rightChild];
 
     return Container(
       color: backgroundColor,

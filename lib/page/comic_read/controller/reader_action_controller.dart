@@ -4,6 +4,7 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class ReaderActionController {
   final BuildContext context;
@@ -145,14 +146,14 @@ class ReaderActionController {
       if (_noAnimation) {
         observerController.jumpTo(
           index: targetPage,
-          offset: (offset) => (MediaQuery.of(_activeContext).padding.top + 5.0),
+          offset: (offset) => getReaderTopOffset(_activeContext),
         );
       } else {
         observerController.animateTo(
           index: targetPage,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          offset: (offset) => (MediaQuery.of(_activeContext).padding.top + 5.0),
+          offset: (offset) => getReaderTopOffset(_activeContext),
         );
       }
     } else {

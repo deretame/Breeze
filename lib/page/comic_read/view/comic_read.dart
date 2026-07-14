@@ -336,8 +336,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
               contentWidth,
             );
         if (estimatedHeight > 0) {
-          final paddingTop = MediaQuery.of(context).padding.top + 5.0;
-          final newOffset = estimatedHeight + paddingTop;
+          final newOffset = estimatedHeight + getReaderTopOffset(context);
           scrollController.jumpTo(
             newOffset.clamp(
               scrollController.position.minScrollExtent,
@@ -351,7 +350,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
         if (!mounted || !scrollController.hasClients) return;
         observerController.jumpTo(
           index: safeTarget,
-          offset: (offset) => MediaQuery.of(context).padding.top + 5.0,
+          offset: (offset) => getReaderTopOffset(context),
         );
       });
       return;

@@ -8,12 +8,11 @@ import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart'
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/dialogs/button_dialog.dart';
-import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
+import 'package:zephyr/page/comic_read/widgets/modes/read_mode_slot_builder.dart';
+import 'package:zephyr/page/comic_read/widgets/modes/read_mode_transition_style.dart';
 import 'package:zephyr/page/comic_read/widgets/modes/read_mode_utils.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 
 class RowModeWidget extends StatefulWidget {
@@ -27,7 +26,7 @@ class RowModeWidget extends StatefulWidget {
   final ReaderVolumeController volumeController;
   final bool havePrev;
   final bool haveNext;
-  final ValueChanged<int>? onSlotChanged;
+  final ValueChanged<int>? onCurrentSlotChanged;
   final Future<void> Function()? onEdgePrevious;
   final Future<void> Function()? onEdgeNext;
   final ValueChanged<int>? onTransitionAction;
@@ -44,7 +43,7 @@ class RowModeWidget extends StatefulWidget {
     required this.volumeController,
     required this.havePrev,
     required this.haveNext,
-    this.onSlotChanged,
+    this.onCurrentSlotChanged,
     this.onEdgePrevious,
     this.onEdgeNext,
     this.onTransitionAction,
@@ -71,7 +70,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     final readSetting = globalSettingState.readSetting;
     final isDoublePage = readSetting.doublePageMode;
     final doublePageSlots = isDoublePage
-        ? _buildDoublePageSlots(widget.entries)
+        ? buildReadModeDoublePageSlots(widget.entries)
         : const <ReadModeDoublePageSlot>[];
     final slotCount = isDoublePage
         ? doublePageSlots.length
@@ -81,6 +80,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     );
     final jumpChapter = widget.jumpChapter;
     const offset = 4;
+    const transitionStyle = ReadModeTransitionStyle.row;
 
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -178,22 +178,25 @@ class _RowModeWidgetState extends State<RowModeWidget> {
                   sidePaddingPercent: readSetting.sidePaddingPercent,
                 );
 
-                if (!isDoublePage) {
-                  return _buildSinglePage(
-                    index: index,
-                    pageWidth: pageWidth,
-                    contentWidth: contentWidth,
-                    backgroundColor: backgroundColor,
-                  );
-                }
-
-                return _buildDoublePage(
-                  slot: doublePageSlots[index],
+                return buildReadModeSlot(
+                  context: context,
                   slotIndex: index,
-                  pageWidth: pageWidth,
+                  singleItem: isDoublePage
+                      ? null
+                      : ReadModeSlotItem(
+                          entryIndex: index,
+                          entry: widget.entries[index],
+                        ),
+                  doublePageSlot: isDoublePage ? doublePageSlots[index] : null,
+                  axis: ReadModeAxis.row,
+                  containerWidth: pageWidth,
                   contentWidth: contentWidth,
                   backgroundColor: backgroundColor,
                   isRtl: isReverseRowReadMode(readMode),
+                  comicId: widget.comicId,
+                  from: widget.from,
+                  onTransitionAction: widget.onTransitionAction,
+                  transitionStyle: transitionStyle,
                 );
               },
             );
@@ -217,7 +220,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
   void _onPageChanged(int page) {
     final cubit = context.read<ReaderCubit>();
     cubit.updatePageIndex(page);
-    widget.onSlotChanged?.call(page);
+    widget.onCurrentSlotChanged?.call(page);
     if (!cubit.state.isComicRolling) {
       final maxIndex = (cubit.state.totalSlots - 1).clamp(
         0,
@@ -229,124 +232,5 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       cubit.updateMenuVisible(visible: false);
       widget.volumeController.enableInterception();
     }
-  }
-
-  Widget _buildSinglePage({
-    required int index,
-    required double pageWidth,
-    required double contentWidth,
-    required Color backgroundColor,
-  }) {
-    final entry = widget.entries[index];
-    if (entry.type == ReadModeEntryType.transition) {
-      return buildReadModeTransitionItem(
-        entry: entry,
-        backgroundColor: backgroundColor,
-        onTap: () => widget.onTransitionAction?.call(entry.chapterOrder),
-        containerWidth: pageWidth,
-      );
-    }
-
-    return Container(
-      color: backgroundColor,
-      width: pageWidth,
-      alignment: Alignment.center,
-      child: SizedBox(
-        width: contentWidth,
-        child: _buildReadImage(
-          slotItem: ReadModeSlotItem(entryIndex: index, entry: entry),
-          slotIndex: index,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDoublePage({
-    required ReadModeDoublePageSlot slot,
-    required int slotIndex,
-    required double pageWidth,
-    required double contentWidth,
-    required Color backgroundColor,
-    required bool isRtl,
-  }) {
-    if (slot.transition != null) {
-      final transition = slot.transition!.entry;
-      return buildReadModeTransitionItem(
-        entry: transition,
-        backgroundColor: backgroundColor,
-        onTap: () => widget.onTransitionAction?.call(transition.chapterOrder),
-        containerWidth: pageWidth,
-      );
-    }
-
-    final panelWidth = ((contentWidth - kDoublePageGap) / 2).clamp(
-      1.0,
-      contentWidth,
-    );
-
-    final leftChild = SizedBox(
-      width: panelWidth,
-      child: slot.left != null
-          ? _buildReadImage(slotItem: slot.left!, slotIndex: slotIndex)
-          : const SizedBox.shrink(),
-    );
-    final rightChild = SizedBox(
-      width: panelWidth,
-      child: slot.right != null
-          ? _buildReadImage(slotItem: slot.right!, slotIndex: slotIndex)
-          : const SizedBox.shrink(),
-    );
-
-    final children = isRtl
-        ? [rightChild, const SizedBox(width: kDoublePageGap), leftChild]
-        : [leftChild, const SizedBox(width: kDoublePageGap), rightChild];
-
-    return Container(
-      color: backgroundColor,
-      width: pageWidth,
-      alignment: Alignment.center,
-      child: SizedBox(
-        width: contentWidth,
-        child: Row(children: children),
-      ),
-    );
-  }
-
-  Widget _buildReadImage({
-    required ReadModeSlotItem slotItem,
-    required int slotIndex,
-  }) {
-    final entry = slotItem.entry;
-    if (entry.type != ReadModeEntryType.image ||
-        entry.doc == null ||
-        entry.chapterId == null) {
-      return const SizedBox.shrink();
-    }
-
-    final chapterLocalPageIndex = entry.chapterLocalPageIndex ?? 0;
-    final resolvedChapterId = entry.doc!.storageChapterId.trim().isNotEmpty
-        ? entry.doc!.storageChapterId
-        : entry.chapterId!;
-    return ReadImageWidget(
-      pictureInfo: PictureInfo(
-        from: widget.from,
-        url: entry.doc!.fileServer,
-        path: entry.doc!.path,
-        cartoonId: widget.comicId,
-        chapterId: resolvedChapterId,
-        pictureType: PictureType.page,
-        extern: entry.doc!.extern,
-      ),
-      index: slotIndex,
-      cacheIndex: slotItem.entryIndex,
-      displayNumber: chapterLocalPageIndex + 1,
-      isColumn: false,
-    );
-  }
-
-  List<ReadModeDoublePageSlot> _buildDoublePageSlots(
-    List<RowModeEntry> entries,
-  ) {
-    return buildReadModeDoublePageSlots(entries);
   }
 }

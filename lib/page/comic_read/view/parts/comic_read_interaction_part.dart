@@ -63,7 +63,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
           parentPhysics: physics,
           disableScroll: _isScrollLockedByMultiTouch,
           volumeController: _volumeController,
-          onMiddleSlotObserved: seamlessEnabled
+          onCurrentSlotChanged: seamlessEnabled
               ? (globalSlot) async {
                   final result = await seamlessCubit.onGlobalSlotObserved(
                     globalSlot,
@@ -123,7 +123,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
       volumeController: _volumeController,
       havePrev: canLoadPrev,
       haveNext: canLoadNext,
-      onSlotChanged: seamlessEnabled
+      onCurrentSlotChanged: seamlessEnabled
           ? (globalSlot) async {
               final result = await seamlessCubit.onGlobalSlotObserved(
                 globalSlot,

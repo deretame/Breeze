@@ -101,6 +101,7 @@ class _ComicInfoState extends State<_ComicInfo>
   dynamic comicInfoDyn;
   late ComicEntryType _type;
   bool _loadingComplete = false;
+  bool _isReversed = false;
   String _title = "";
   NormalComicAllInfo? _currentInfo;
   bool _isCloudCollected = false;
@@ -299,6 +300,11 @@ class _ComicInfoState extends State<_ComicInfo>
       );
     }
 
+    var displayEps = List<dynamic>.from(normalComicAllInfo.eps);
+    if (_isReversed) {
+      displayEps = displayEps.reversed.toList();
+    }
+
     _syncFollowIfNeeded(normalComicAllInfo);
 
     return BlocSelector<StringSelectCubit, String, bool>(
@@ -308,6 +314,7 @@ class _ComicInfoState extends State<_ComicInfo>
           onRefresh: () async {
             _type = ComicEntryType.normal;
             _followSyncedForCurrentInfo = false;
+            _isReversed = false;
 
             context.read<GetComicInfoBloc>().add(
               GetComicInfoEvent(
@@ -400,10 +407,11 @@ class _ComicInfoState extends State<_ComicInfo>
                         label: t.comicInfo.episodeCount(
                           count: normalComicAllInfo.eps.length,
                         ),
-                        icon: Icons.north,
+                        icon: _isReversed ? Icons.south : Icons.north,
+                        onTap: _toggleOrder,
                       ),
                       child: _EpisodeListSection(
-                        episodes: normalComicAllInfo.eps,
+                        episodes: displayEps,
                         allInfo: comicInfoDyn,
                         epsLength: normalComicAllInfo.eps.length,
                         type: _type,
@@ -614,6 +622,9 @@ class _ComicInfoState extends State<_ComicInfo>
     }
   }
 
+  // 切换章节列表的倒序/正序显示
+  void _toggleOrder() => setState(() => _isReversed = !_isReversed);
+
   void _syncFollowIfNeeded(NormalComicAllInfo info) {
     if (_type == ComicEntryType.download) {
       return;
@@ -796,16 +807,22 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _EpisodeHeaderBadge extends StatelessWidget {
-  const _EpisodeHeaderBadge({required this.label, required this.icon});
+  const _EpisodeHeaderBadge({
+    required this.label,
+    required this.icon,
+    this.onTap,
+  });
 
   final String label;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

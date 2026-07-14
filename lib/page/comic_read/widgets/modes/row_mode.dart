@@ -70,7 +70,10 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     final readSetting = globalSettingState.readSetting;
     final isDoublePage = readSetting.doublePageMode;
     final doublePageSlots = isDoublePage
-        ? buildReadModeDoublePageSlots(widget.entries)
+        ? buildReadModeDoublePageSlots(
+            widget.entries,
+            insertLeadingBlank: readSetting.doublePageLeadingBlank,
+          )
         : const <ReadModeDoublePageSlot>[];
     final slotCount = isDoublePage
         ? doublePageSlots.length

@@ -101,6 +101,9 @@ class _ComicReadSuccessWidgetState extends State<ComicReadSuccessWidget> {
               final totalSlots = getReadModeSlotCount(
                 imageCount: widget.epInfo.length,
                 enableDoublePage: readSetting.doublePageMode,
+                insertLeadingBlank:
+                    readSetting.doublePageMode &&
+                    readSetting.doublePageLeadingBlank,
               );
               final resolvedTotalSlots =
                   widget.resolveTotalSlots?.call(readSetting) ?? totalSlots;

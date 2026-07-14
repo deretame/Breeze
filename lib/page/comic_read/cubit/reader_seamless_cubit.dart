@@ -105,6 +105,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
             getReadModeSlotCount(
               imageCount: initialEpInfo.length,
               enableDoublePage: readSetting.doublePageMode,
+              insertLeadingBlank: _insertLeadingBlank(readSetting),
             ),
       ),
     );
@@ -261,6 +262,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       targetSlot: targetGlobalSlot,
       entryCount: entries.length,
       enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
     );
@@ -377,6 +379,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       return getReadModeSlotCount(
         imageCount: fallback,
         enableDoublePage: readSetting.doublePageMode,
+        insertLeadingBlank: _insertLeadingBlank(readSetting),
       );
     }
 
@@ -385,6 +388,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       return _resolveDisplaySlotCount(
         entryCount: entries.length,
         enableDoublePage: readSetting.doublePageMode,
+        insertLeadingBlank: _insertLeadingBlank(readSetting),
         isTransitionAt: (entryIndex) =>
             entries[entryIndex].type == ReadModeEntryType.transition,
       );
@@ -393,6 +397,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     return _resolveDisplaySlotCount(
       entryCount: entries.length,
       enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
     );
@@ -427,6 +432,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         targetSlot: globalSlot,
         entryCount: entries.length,
         enableDoublePage: readSetting.doublePageMode,
+        insertLeadingBlank: _insertLeadingBlank(readSetting),
         isTransitionAt: (entryIndex) =>
             entries[entryIndex].type == ReadModeEntryType.transition,
       );
@@ -439,6 +445,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       targetSlot: globalSlot,
       entryCount: entries.length,
       enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
     );
@@ -459,6 +466,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         targetSlot: globalSlot,
         entryCount: entries.length,
         enableDoublePage: readSetting.doublePageMode,
+        insertLeadingBlank: _insertLeadingBlank(readSetting),
         isTransitionAt: (entryIndex) =>
             entries[entryIndex].type == ReadModeEntryType.transition,
       );
@@ -473,6 +481,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       targetSlot: globalSlot,
       entryCount: entries.length,
       enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
     );
@@ -1053,7 +1062,8 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     return _resolveImageSlotContextFromEntries(
       globalSlot,
       entries,
-      readSetting.doublePageMode,
+      enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
     );
   }
 
@@ -1069,22 +1079,28 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     return _resolveChapterSlotContextFromEntries(
       chapterOrder,
       entries,
-      readSetting.doublePageMode,
+      enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
     );
   }
+
+  bool _insertLeadingBlank(ReadSettingState readSetting) =>
+      readSetting.doublePageMode && readSetting.doublePageLeadingBlank;
 
   int? _chapterOrderOfImageEntry(ReadModeEntry entry) =>
       entry.type == ReadModeEntryType.image ? entry.chapterOrder : null;
 
   _ImageSlotContext? _resolveImageSlotContextFromEntries(
     int globalSlot,
-    List<ReadModeEntry> entries,
-    bool enableDoublePage,
-  ) {
+    List<ReadModeEntry> entries, {
+    required bool enableDoublePage,
+    required bool insertLeadingBlank,
+  }) {
     final slotEntries = _resolveDisplaySlotEntries(
       targetSlot: globalSlot,
       entryCount: entries.length,
       enableDoublePage: enableDoublePage,
+      insertLeadingBlank: insertLeadingBlank,
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
     );
@@ -1098,6 +1114,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     _forEachDisplaySlot(
       entryCount: entries.length,
       enableDoublePage: enableDoublePage,
+      insertLeadingBlank: insertLeadingBlank,
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
       onSlot: (slotIndex, primaryEntryIndex, secondaryEntryIndex) {
@@ -1117,14 +1134,16 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
 
   _ImageSlotContext? _resolveChapterSlotContextFromEntries(
     int chapterOrder,
-    List<ReadModeEntry> entries,
-    bool enableDoublePage,
-  ) {
+    List<ReadModeEntry> entries, {
+    required bool enableDoublePage,
+    required bool insertLeadingBlank,
+  }) {
     var chapterStartSlot = -1;
     var chapterSlotCount = 0;
     _forEachDisplaySlot(
       entryCount: entries.length,
       enableDoublePage: enableDoublePage,
+      insertLeadingBlank: insertLeadingBlank,
       isTransitionAt: (entryIndex) =>
           entries[entryIndex].type == ReadModeEntryType.transition,
       onSlot: (slotIndex, primaryEntryIndex, secondaryEntryIndex) {
@@ -1145,6 +1164,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   int _resolveDisplaySlotCount({
     required int entryCount,
     required bool enableDoublePage,
+    required bool insertLeadingBlank,
     required bool Function(int entryIndex) isTransitionAt,
   }) {
     if (entryCount <= 0) return 0;
@@ -1152,6 +1172,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     _forEachDisplaySlot(
       entryCount: entryCount,
       enableDoublePage: enableDoublePage,
+      insertLeadingBlank: insertLeadingBlank,
       isTransitionAt: isTransitionAt,
       onSlot: (slotIndex, primaryEntryIndex, secondaryEntryIndex) {
         count = slotIndex + 1;
@@ -1164,6 +1185,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     required int targetSlot,
     required int entryCount,
     required bool enableDoublePage,
+    required bool insertLeadingBlank,
     required bool Function(int entryIndex) isTransitionAt,
   }) {
     if (targetSlot < 0 || entryCount <= 0) return null;
@@ -1171,6 +1193,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     _forEachDisplaySlot(
       entryCount: entryCount,
       enableDoublePage: enableDoublePage,
+      insertLeadingBlank: insertLeadingBlank,
       isTransitionAt: isTransitionAt,
       onSlot: (slotIndex, primaryEntryIndex, secondaryEntryIndex) {
         if (slotIndex != targetSlot || result != null) return;
@@ -1180,9 +1203,14 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     return result;
   }
 
+  /// 与 [buildReadModeDoublePageSlots] 保持一致的槽位遍历。
+  ///
+  /// 首页留白槽位以「该页图片 entry 为 primary、secondary 为 null」表示，
+  /// 仅用于槽位计数/章节归属；UI 侧单独渲染左侧空白。
   void _forEachDisplaySlot({
     required int entryCount,
     required bool enableDoublePage,
+    required bool insertLeadingBlank,
     required bool Function(int entryIndex) isTransitionAt,
     required void Function(
       int slotIndex,
@@ -1193,12 +1221,24 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   }) {
     var slotIndex = 0;
     var entryIndex = 0;
+    var needLeadingBlank = enableDoublePage && insertLeadingBlank;
     while (entryIndex < entryCount) {
       final primaryEntryIndex = entryIndex;
       if (!enableDoublePage || isTransitionAt(primaryEntryIndex)) {
         onSlot(slotIndex, primaryEntryIndex, null);
         slotIndex++;
         entryIndex++;
+        if (enableDoublePage && isTransitionAt(primaryEntryIndex)) {
+          needLeadingBlank = insertLeadingBlank;
+        }
+        continue;
+      }
+
+      if (needLeadingBlank) {
+        onSlot(slotIndex, primaryEntryIndex, null);
+        slotIndex++;
+        entryIndex++;
+        needLeadingBlank = false;
         continue;
       }
 

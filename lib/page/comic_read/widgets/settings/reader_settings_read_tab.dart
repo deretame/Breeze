@@ -165,6 +165,18 @@ class _ReadModeSection extends StatelessWidget {
             changePageIndex(0);
           },
         ),
+        if (globalSettingState.readSetting.doublePageMode)
+          _SettingsSwitchTile(
+            title: t.reader.doublePageLeadingBlank,
+            subtitle: t.reader.doublePageLeadingBlankSubtitle,
+            value: globalSettingState.readSetting.doublePageLeadingBlank,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(doublePageLeadingBlank: value),
+              );
+              changePageIndex(0);
+            },
+          ),
       ],
     );
   }

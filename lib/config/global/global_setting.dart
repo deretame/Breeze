@@ -230,6 +230,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(3000) int autoScrollPageIntervalMs,
     @Default(72) int autoScrollColumnDistancePercent,
     @Default(false) bool doublePageMode,
+    @Default(false) bool doublePageLeadingBlank,
     @Default(false) bool sidePaddingEnabled,
     @Default(10) int sidePaddingPercent,
     @Default(true) bool volumeKeyPageTurn,

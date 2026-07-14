@@ -207,7 +207,7 @@ Widget _buildColumnDoublePageImage({
 }) {
   final left = slot.left;
   final right = slot.right;
-  if (left == null) return const SizedBox.shrink();
+  if (left == null && right == null) return const SizedBox.shrink();
 
   final panelWidth = ((contentWidth - kDoublePageGap) / 2).clamp(
     1.0,
@@ -216,7 +216,11 @@ Widget _buildColumnDoublePageImage({
 
   return BlocSelector<ImageSizeCubit, ImageSizeState, (Size, Size)>(
     selector: (state) => (
-      state.getSizeValue(_resolveImageCacheIndex(left.entry, left.entryIndex)),
+      left != null
+          ? state.getSizeValue(
+              _resolveImageCacheIndex(left.entry, left.entryIndex),
+            )
+          : const Size(0, 0),
       right != null
           ? state.getSizeValue(
               _resolveImageCacheIndex(right.entry, right.entryIndex),
@@ -224,10 +228,12 @@ Widget _buildColumnDoublePageImage({
           : const Size(0, 0),
     ),
     builder: (context, pairSize) {
-      final leftHeight = _resolveDisplayHeight(
-        cachedSize: pairSize.$1,
-        targetWidth: panelWidth,
-      );
+      final leftHeight = left != null
+          ? _resolveDisplayHeight(
+              cachedSize: pairSize.$1,
+              targetWidth: panelWidth,
+            )
+          : 0.0;
       final rightHeight = right != null
           ? _resolveDisplayHeight(
               cachedSize: pairSize.$2,
@@ -241,15 +247,17 @@ Widget _buildColumnDoublePageImage({
       final leftChild = SizedBox(
         width: panelWidth,
         height: rowHeight,
-        child: buildReadModeImage(
-          context: context,
-          entry: left.entry,
-          comicId: comicId,
-          from: from,
-          slotIndex: left.entry.chapterPageIndex ?? left.entryIndex,
-          cacheIndex: _resolveImageCacheIndex(left.entry, left.entryIndex),
-          isColumn: true,
-        ),
+        child: left != null
+            ? buildReadModeImage(
+                context: context,
+                entry: left.entry,
+                comicId: comicId,
+                from: from,
+                slotIndex: left.entry.chapterPageIndex ?? left.entryIndex,
+                cacheIndex: _resolveImageCacheIndex(left.entry, left.entryIndex),
+                isColumn: true,
+              )
+            : const SizedBox.shrink(),
       );
       final rightChild = SizedBox(
         width: panelWidth,

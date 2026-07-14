@@ -93,6 +93,8 @@ extension _ComicReadInitPart on _ComicReadPageState {
         return getStoredHistoryPageIndex(
           slotIndex: slotIndex,
           enableDoublePage: enableDoublePage,
+          insertLeadingBlank:
+              enableDoublePage && setting.doublePageLeadingBlank,
         );
       },
       getCurrentChapterOrder: () => _jumpChapter.order,

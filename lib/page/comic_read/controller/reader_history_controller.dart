@@ -124,6 +124,9 @@ class ReaderHistoryController {
       var targetIndex = getSlotIndexFromStoredHistoryPage(
         storedHistoryPage: historyIndex,
         enableDoublePage: enableDoublePage,
+        insertLeadingBlank:
+            enableDoublePage &&
+            globalSettingState.readSetting.doublePageLeadingBlank,
       );
       final seamlessCubit = context.read<ReaderSeamlessCubit>();
       if (seamlessCubit.isSeamlessEnabled()) {

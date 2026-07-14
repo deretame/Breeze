@@ -282,6 +282,43 @@ class RealSrSuperResolution {
     }
   }
 
+  /// 删除当前平台已下载的超分模型。
+  ///
+  /// - iOS / macOS：删除临时目录下的 CoreML 模型目录
+  /// - Android / Windows / Linux：删除 `super_resolution` 目录及缓存中的压缩包
+  static Future<void> deleteModel() async {
+    if (Platform.isIOS || Platform.isMacOS) {
+      final tempDir = await getTemporaryDirectory();
+      final modelsDir = Directory(p.join(tempDir.path, 'coreml_models'));
+      if (modelsDir.existsSync()) {
+        await modelsDir.delete(recursive: true);
+      }
+      _missingModelNotified = false;
+      return;
+    }
+
+    if (Platform.isAndroid || Platform.isWindows || Platform.isLinux) {
+      final destDir = await _modelDirectory;
+      if (Directory(destDir).existsSync()) {
+        await Directory(destDir).delete(recursive: true);
+      }
+
+      final assetName = _assetName;
+      if (assetName != null) {
+        final archivePath = p.join(await getCachePath(), assetName);
+        final archiveFile = File(archivePath);
+        if (archiveFile.existsSync()) {
+          await archiveFile.delete();
+        }
+      }
+
+      _missingModelNotified = false;
+      return;
+    }
+
+    throw UnsupportedError('当前平台不支持删除 RealSR 模型');
+  }
+
   /// 判断图片是否需要超分：仅当能解析出横向分辨率且小于阈值时返回 true。
   static Future<bool> shouldUpscale(
     String inputPath, {

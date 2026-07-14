@@ -85,7 +85,7 @@ class ReadModeDoublePageSlot {
     : this._(transition: transition, left: null, right: null);
 
   const ReadModeDoublePageSlot.images({
-    required ReadModeSlotItem left,
+    ReadModeSlotItem? left,
     ReadModeSlotItem? right,
   }) : this._(transition: null, left: left, right: right);
 
@@ -98,12 +98,15 @@ class ReadModeDoublePageSlot {
 ///
 /// 规则：
 /// - 遇到过渡条目单独占一个槽位；
-/// - 普通图片两两合并为一个槽位（左 + 可选右），若下一条是过渡则右侧为空。
+/// - 普通图片两两合并为一个槽位（左 + 可选右），若下一条是过渡则右侧为空；
+/// - [insertLeadingBlank] 为 true 时，每个连续图片段开头先插入「空白 | 首页」。
 List<ReadModeDoublePageSlot> buildReadModeDoublePageSlots(
-  List<ReadModeEntry> entries,
-) {
+  List<ReadModeEntry> entries, {
+  bool insertLeadingBlank = false,
+}) {
   final slots = <ReadModeDoublePageSlot>[];
   var i = 0;
+  var needLeadingBlank = insertLeadingBlank;
   while (i < entries.length) {
     final current = entries[i];
     if (current.type == ReadModeEntryType.transition) {
@@ -113,6 +116,18 @@ List<ReadModeDoublePageSlot> buildReadModeDoublePageSlots(
         ),
       );
       i++;
+      needLeadingBlank = insertLeadingBlank;
+      continue;
+    }
+
+    if (needLeadingBlank) {
+      slots.add(
+        ReadModeDoublePageSlot.images(
+          right: ReadModeSlotItem(entryIndex: i, entry: current),
+        ),
+      );
+      i++;
+      needLeadingBlank = false;
       continue;
     }
 

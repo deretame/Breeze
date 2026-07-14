@@ -392,8 +392,8 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '设置'
 	String get title => '设置';
 
-	/// zh-CN: '全局设置'
-	String get globalTitle => '全局设置';
+	/// zh-CN: '设置'
+	String get globalTitle => '设置';
 
 	/// zh-CN: '外观与显示'
 	String get appearance => '外观与显示';
@@ -454,6 +454,12 @@ class Translations$settings$zh_CN {
 
 	/// zh-CN: '内容与网络'
 	String get contentAndNetwork => '内容与网络';
+
+	/// zh-CN: '内容'
+	String get content => '内容';
+
+	/// zh-CN: '网络'
+	String get network => '网络';
 
 	/// zh-CN: '屏蔽关键词'
 	String get maskedKeywords => '屏蔽关键词';
@@ -1496,6 +1502,12 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '在当前阅读模式中启用双页并排'
 	String get doublePageSubtitle => '在当前阅读模式中启用双页并排';
 
+	/// zh-CN: '首页留白'
+	String get doublePageLeadingBlank => '首页留白';
+
+	/// zh-CN: '在每章最前插入一页空白，使配对整体错一位'
+	String get doublePageLeadingBlankSubtitle => '在每章最前插入一页空白，使配对整体错一位';
+
 	/// zh-CN: '系统模式'
 	String get themeMode => '系统模式';
 
@@ -2273,8 +2285,8 @@ class Translations$webdavSync$zh_CN {
 	/// zh-CN: '$service 同步配置'
 	String serviceTitle({required Object service}) => '${service} 同步配置';
 
-	/// zh-CN: '请先在全局设置里选择同步服务，再回到这里填写配置。'
-	String get noneTip => '请先在全局设置里选择同步服务，再回到这里填写配置。';
+	/// zh-CN: '请先在设置里选择同步服务，再回到这里填写配置。'
+	String get noneTip => '请先在设置里选择同步服务，再回到这里填写配置。';
 
 	/// zh-CN: '删除配置'
 	String get deleteConfig => '删除配置';
@@ -2354,8 +2366,8 @@ class Translations$webdavSync$zh_CN {
 	/// zh-CN: '错误'
 	String get error => '错误';
 
-	/// zh-CN: '### 可以同步哪些内容？ - 目前同步哔咔历史记录、禁漫收藏和禁漫历史。 ### WebDAV 如何配置？ - 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。 ### S3 如何配置？ - Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。 - 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。 ### 自动同步间隔是多久？ - 每 5 分钟自动同步一次。 ### 如何手动触发一次同步？ - 在同步配置页测试连接并保存后会触发一次同步。 - 或在全局设置里切换一次自动同步开关。'
-	String get faqMarkdown => '### 可以同步哪些内容？\n- 目前同步哔咔历史记录、禁漫收藏和禁漫历史。\n\n### WebDAV 如何配置？\n- 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。\n\n### S3 如何配置？\n- Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。\n- 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。\n\n### 自动同步间隔是多久？\n- 每 5 分钟自动同步一次。\n\n### 如何手动触发一次同步？\n- 在同步配置页测试连接并保存后会触发一次同步。\n- 或在全局设置里切换一次自动同步开关。';
+	/// zh-CN: '### 可以同步哪些内容？ - 目前同步哔咔历史记录、禁漫收藏和禁漫历史。 ### WebDAV 如何配置？ - 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。 ### S3 如何配置？ - Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。 - 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。 ### 自动同步间隔是多久？ - 每 5 分钟自动同步一次。 ### 如何手动触发一次同步？ - 在同步配置页测试连接并保存后会触发一次同步。 - 或在设置里切换一次自动同步开关。'
+	String get faqMarkdown => '### 可以同步哪些内容？\n- 目前同步哔咔历史记录、禁漫收藏和禁漫历史。\n\n### WebDAV 如何配置？\n- 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。\n\n### S3 如何配置？\n- Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。\n- 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。\n\n### 自动同步间隔是多久？\n- 每 5 分钟自动同步一次。\n\n### 如何手动触发一次同步？\n- 在同步配置页测试连接并保存后会触发一次同步。\n- 或在设置里切换一次自动同步开关。';
 }
 
 // Path: realSr
@@ -2374,6 +2386,9 @@ class Translations$realSr$zh_CN {
 
 	/// zh-CN: '模型下载失败'
 	String get modelDownloadFailed => '模型下载失败';
+
+	/// zh-CN: '通用'
+	String get generalSection => '通用';
 
 	/// zh-CN: '自动超分'
 	String get autoUpscaleSection => '自动超分';
@@ -2464,6 +2479,18 @@ class Translations$realSr$zh_CN {
 
 	/// zh-CN: '重新下载'
 	String get redownload => '重新下载';
+
+	/// zh-CN: '删除模型'
+	String get deleteModel => '删除模型';
+
+	/// zh-CN: '确定要删除已下载的超分模型吗？删除后需要重新下载才能使用。'
+	String get deleteModelConfirm => '确定要删除已下载的超分模型吗？删除后需要重新下载才能使用。';
+
+	/// zh-CN: '模型已删除'
+	String get modelDeleted => '模型已删除';
+
+	/// zh-CN: '模型删除失败'
+	String get modelDeleteFailed => '模型删除失败';
 
 	/// zh-CN: '模型未下载'
 	String get modelNotDownloaded => '模型未下载';
@@ -3617,7 +3644,7 @@ extension on Translations {
 			'navigation.syncFailedMessage' => ({required Object error}) => '请检查网络连接或稍后再试。\n${error}',
 			'navigation.loginExpired' => '登录过期，请重新登录',
 			'settings.title' => '设置',
-			'settings.globalTitle' => '全局设置',
+			'settings.globalTitle' => '设置',
 			'settings.appearance' => '外观与显示',
 			'settings.theme' => '主题模式',
 			'settings.themeSubtitle' => '选择策略，切换明暗主题',
@@ -3638,6 +3665,8 @@ extension on Translations {
 			'settings.notchAdaptation' => '异形屏适配',
 			'settings.notchAdaptationSubtitle' => '开启后预留安全区，避免内容遮挡',
 			'settings.contentAndNetwork' => '内容与网络',
+			'settings.content' => '内容',
+			'settings.network' => '网络',
 			'settings.maskedKeywords' => '屏蔽关键词',
 			'settings.maskedKeywordsSubtitle' => '添加关键词，过滤不想看到的内容（仅搜索生效）',
 			'settings.maskedKeywordsEmpty' => '暂无屏蔽词',
@@ -3976,6 +4005,8 @@ extension on Translations {
 			'reader.singlePageRtl' => '单页式（从右到左）',
 			'reader.doublePage' => '双页阅读',
 			'reader.doublePageSubtitle' => '在当前阅读模式中启用双页并排',
+			'reader.doublePageLeadingBlank' => '首页留白',
+			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
 			'reader.autoReadSubtitle' => '开启后自动滚动，并在右下角显示暂停/播放按钮',
@@ -4032,12 +4063,12 @@ extension on Translations {
 			'reader.chapterNotDownloaded' => '章节未下载',
 			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\n加载失败',
 			'reader.chapterOrder' => ({required Object order}) => '章节 ${order}',
+			_ => null,
+		} ?? switch (path) {
 			'reader.doubleTapAction' => '双击操作',
 			'reader.doubleTapZoom' => '双击缩放',
 			'reader.doubleTapZoomSubtitle' => '双击图片可在缩放和还原之间切换',
 			'reader.doubleTapOpenMenu' => '双击打开操作栏',
-			_ => null,
-		} ?? switch (path) {
 			'reader.doubleTapOpenMenuSubtitle' => '双击页面打开操作栏（与双击缩放互斥）',
 			'reader.volumeKeyPageTurn' => '音量键翻页',
 			'reader.enableVolumeKeyPageTurn' => '启用音量键翻页',
@@ -4216,7 +4247,7 @@ extension on Translations {
 			'dataBackup.restartPrompt' => '数据导入成功，请重启应用以生效。',
 			'webdavSync.title' => '云同步配置',
 			'webdavSync.serviceTitle' => ({required Object service}) => '${service} 同步配置',
-			'webdavSync.noneTip' => '请先在全局设置里选择同步服务，再回到这里填写配置。',
+			'webdavSync.noneTip' => '请先在设置里选择同步服务，再回到这里填写配置。',
 			'webdavSync.deleteConfig' => '删除配置',
 			'webdavSync.testAndSave' => '测试连接并保存',
 			'webdavSync.faq' => '常见问题',
@@ -4243,10 +4274,11 @@ extension on Translations {
 			'webdavSync.close' => '关闭',
 			'webdavSync.success' => '成功',
 			'webdavSync.error' => '错误',
-			'webdavSync.faqMarkdown' => '### 可以同步哪些内容？\n- 目前同步哔咔历史记录、禁漫收藏和禁漫历史。\n\n### WebDAV 如何配置？\n- 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。\n\n### S3 如何配置？\n- Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。\n- 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。\n\n### 自动同步间隔是多久？\n- 每 5 分钟自动同步一次。\n\n### 如何手动触发一次同步？\n- 在同步配置页测试连接并保存后会触发一次同步。\n- 或在全局设置里切换一次自动同步开关。',
+			'webdavSync.faqMarkdown' => '### 可以同步哪些内容？\n- 目前同步哔咔历史记录、禁漫收藏和禁漫历史。\n\n### WebDAV 如何配置？\n- 填写 WebDAV 地址、账号、密码，点击测试连接并保存即可。\n\n### S3 如何配置？\n- Endpoint 示例：`s3.amazonaws.com`、`s3.filebase.com`、`play.min.io`。\n- 如果是自建 MinIO，可填写自定义端口，必要时关闭 SSL。\n\n### 自动同步间隔是多久？\n- 每 5 分钟自动同步一次。\n\n### 如何手动触发一次同步？\n- 在同步配置页测试连接并保存后会触发一次同步。\n- 或在设置里切换一次自动同步开关。',
 			'realSr.title' => '图片超分（实验性）',
 			'realSr.unlimited' => '不限制',
 			'realSr.modelDownloadFailed' => '模型下载失败',
+			'realSr.generalSection' => '通用',
 			'realSr.autoUpscaleSection' => '自动超分',
 			'realSr.autoUpscale' => '自动超分',
 			'realSr.autoUpscaleSubtitleUnavailable' => '模型未下载，开启后无法自动超分',
@@ -4277,6 +4309,10 @@ extension on Translations {
 			'realSr.downloadingModel' => '正在下载模型',
 			'realSr.modelReady' => '模型已就绪',
 			'realSr.redownload' => '重新下载',
+			'realSr.deleteModel' => '删除模型',
+			'realSr.deleteModelConfirm' => '确定要删除已下载的超分模型吗？删除后需要重新下载才能使用。',
+			'realSr.modelDeleted' => '模型已删除',
+			'realSr.modelDeleteFailed' => '模型删除失败',
 			'realSr.modelNotDownloaded' => '模型未下载',
 			'realSr.modelNotDownloadedSubtitle' => '使用超分前需要先下载模型',
 			'realSr.downloadModel' => '下载模型',
@@ -4541,6 +4577,8 @@ extension on Translations {
 			'download.statusFetchingChapterInfo' => '获取章节信息中...',
 			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => '获取章节信息中... (${completed}/${total}, ${percent}%)',
 			'download.statusDownloadProgress' => ({required Object percent}) => '漫画下载进度: ${percent}%',
+			_ => null,
+		} ?? switch (path) {
 			'download.statusDownloadProgressComplete' => '漫画下载进度: 100%',
 			'download.statusStartDownload' => '开始下载...',
 			'download.statusWaiting' => '等待中',
@@ -4550,8 +4588,6 @@ extension on Translations {
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} 任务已存在',
 			'download.notificationCompleteTitle' => '下载完成',
 			'download.notificationFailedTitle' => '下载失败',
-			_ => null,
-		} ?? switch (path) {
 			'foregroundTask.channelName' => '前台下载任务',
 			'foregroundTask.channelDescription' => '这个是用来保证下载任务在后台也能继续执行的',
 			'foregroundTask.waitingForTask' => '等待下载任务中...',

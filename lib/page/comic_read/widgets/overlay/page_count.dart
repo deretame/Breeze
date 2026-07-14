@@ -249,6 +249,8 @@ class _PageCountWidgetState extends State<PageCountWidget> {
       final currentDisplayPage = getDisplayPageNumber(
         slotIndex: localSlotIndex,
         enableDoublePage: readSetting.doublePageMode,
+        insertLeadingBlank:
+            readSetting.doublePageMode && readSetting.doublePageLeadingBlank,
       ).clamp(1, totalPageCount);
       pageText = '$currentDisplayPage/$totalPageCount';
     }

@@ -37,28 +37,35 @@ bool isReverseRowReadMode(int readMode) => readMode == kReadModeRowRtl;
 int getReadModeSlotCount({
   required int imageCount,
   required bool enableDoublePage,
+  bool insertLeadingBlank = false,
 }) {
   if (imageCount <= 0) return 0;
   if (!enableDoublePage) return imageCount;
+  if (insertLeadingBlank) return (imageCount + 2) ~/ 2;
   return (imageCount + 1) ~/ 2;
 }
 
 int getDisplayPageNumber({
   required int slotIndex,
   required bool enableDoublePage,
+  bool insertLeadingBlank = false,
 }) {
   final normalizedSlot = slotIndex < 0 ? 0 : slotIndex;
-  final page = normalizedSlot + 1;
-  return enableDoublePage ? (page * 2 - 1) : page;
+  if (!enableDoublePage) return normalizedSlot + 1;
+  if (!insertLeadingBlank) return (normalizedSlot + 1) * 2 - 1;
+  if (normalizedSlot <= 0) return 1;
+  return normalizedSlot * 2;
 }
 
 int getStoredHistoryPageIndex({
   required int slotIndex,
   required bool enableDoublePage,
+  bool insertLeadingBlank = false,
 }) {
   return getDisplayPageNumber(
         slotIndex: slotIndex,
         enableDoublePage: enableDoublePage,
+        insertLeadingBlank: insertLeadingBlank,
       ) +
       1;
 }
@@ -66,13 +73,19 @@ int getStoredHistoryPageIndex({
 int getSlotIndexFromStoredHistoryPage({
   required int storedHistoryPage,
   required bool enableDoublePage,
+  bool insertLeadingBlank = false,
 }) {
   if (storedHistoryPage <= 1) return 0;
   final normalized = storedHistoryPage - 2;
   if (!enableDoublePage) {
     return normalized;
   }
-  return normalized ~/ 2;
+  if (!insertLeadingBlank) {
+    return normalized ~/ 2;
+  }
+  final displayPage = storedHistoryPage - 1;
+  if (displayPage <= 1) return 0;
+  return displayPage ~/ 2;
 }
 
 /// 阅读器内容顶部偏移。

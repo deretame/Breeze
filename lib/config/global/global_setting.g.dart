@@ -255,6 +255,7 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
       autoScrollColumnDistancePercent:
           (json['autoScrollColumnDistancePercent'] as num?)?.toInt() ?? 72,
       doublePageMode: json['doublePageMode'] as bool? ?? false,
+      doublePageLeadingBlank: json['doublePageLeadingBlank'] as bool? ?? false,
       sidePaddingEnabled: json['sidePaddingEnabled'] as bool? ?? false,
       sidePaddingPercent: (json['sidePaddingPercent'] as num?)?.toInt() ?? 10,
       volumeKeyPageTurn: json['volumeKeyPageTurn'] as bool? ?? true,
@@ -303,6 +304,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'autoScrollPageIntervalMs': instance.autoScrollPageIntervalMs,
   'autoScrollColumnDistancePercent': instance.autoScrollColumnDistancePercent,
   'doublePageMode': instance.doublePageMode,
+  'doublePageLeadingBlank': instance.doublePageLeadingBlank,
   'sidePaddingEnabled': instance.sidePaddingEnabled,
   'sidePaddingPercent': instance.sidePaddingPercent,
   'volumeKeyPageTurn': instance.volumeKeyPageTurn,

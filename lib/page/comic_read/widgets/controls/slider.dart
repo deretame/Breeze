@@ -85,9 +85,12 @@ class _SliderWidgetState extends State<SliderWidget> {
       localMaxValue,
     );
 
+    final insertLeadingBlank =
+        readSetting.doublePageMode && readSetting.doublePageLeadingBlank;
     final sliderDisplayPage = getDisplayPageNumber(
       slotIndex: safeSliderValue.round(),
       enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: insertLeadingBlank,
     );
     final currentGlobalSlot = safeGlobalSliderValue.round();
     final isCurrentTransitionSlot =
@@ -170,6 +173,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                   final displayPage = getDisplayPageNumber(
                     slotIndex: currentStep,
                     enableDoublePage: readSetting.doublePageMode,
+                    insertLeadingBlank: insertLeadingBlank,
                   );
                   final toastMessage =
                       widget.isTransitionSlot?.call(targetGlobalSlot) ?? false

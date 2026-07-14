@@ -95,7 +95,10 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         );
 
         final doublePageSlots = _isDoublePage
-            ? buildReadModeDoublePageSlots(widget.entries)
+            ? buildReadModeDoublePageSlots(
+                widget.entries,
+                insertLeadingBlank: readSetting.doublePageLeadingBlank,
+              )
             : const <ReadModeDoublePageSlot>[];
         final slotCount = _isDoublePage
             ? doublePageSlots.length

@@ -203,7 +203,7 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 
 	// Translations
 	@override String get title => 'Settings';
-	@override String get globalTitle => 'Global Settings';
+	@override String get globalTitle => 'Settings';
 	@override String get appearance => 'Appearance';
 	@override String get theme => 'Theme mode';
 	@override String get themeSubtitle => 'Choose strategy to switch light/dark theme';
@@ -224,6 +224,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get notchAdaptation => 'Notch adaptation';
 	@override String get notchAdaptationSubtitle => 'Reserve safe area to avoid content being obscured';
 	@override String get contentAndNetwork => 'Content & Network';
+	@override String get content => 'Content';
+	@override String get network => 'Network';
 	@override String get maskedKeywords => 'Masked keywords';
 	@override String get maskedKeywordsSubtitle => 'Add keywords to filter unwanted content (search only)';
 	@override String get maskedKeywordsEmpty => 'No masked keywords';
@@ -588,6 +590,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get singlePageRtl => 'Single page (RTL)';
 	@override String get doublePage => 'Double page';
 	@override String get doublePageSubtitle => 'Enable double-page spread in current reading mode';
+	@override String get doublePageLeadingBlank => 'Leading blank';
+	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
 	@override String get themeMode => 'Theme mode';
 	@override String get autoRead => 'Auto read';
 	@override String get autoReadSubtitle => 'Auto-scroll and show play/pause button';
@@ -889,7 +893,7 @@ class _Translations$webdavSync$en_US extends Translations$webdavSync$zh_CN {
 	// Translations
 	@override String get title => 'Cloud Sync Config';
 	@override String serviceTitle({required Object service}) => '${service} Sync Config';
-	@override String get noneTip => 'Please select a sync service in global settings first, then return here to fill in the configuration.';
+	@override String get noneTip => 'Please select a sync service in Settings first, then return here to fill in the configuration.';
 	@override String get deleteConfig => 'Delete Config';
 	@override String get testAndSave => 'Test & Save';
 	@override String get faq => 'FAQ';
@@ -916,7 +920,7 @@ class _Translations$webdavSync$en_US extends Translations$webdavSync$zh_CN {
 	@override String get close => 'Close';
 	@override String get success => 'Success';
 	@override String get error => 'Error';
-	@override String get faqMarkdown => '### What can be synced?\n- Currently syncs Bika history, JM favorites, and JM history.\n\n### How to configure WebDAV?\n- Fill in WebDAV URL, username, password, then tap Test & Save.\n\n### How to configure S3?\n- Endpoint examples: `s3.amazonaws.com`, `s3.filebase.com`, `play.min.io`.\n- For self-hosted MinIO, fill in a custom port and disable SSL if necessary.\n\n### How often does auto-sync run?\n- Every 5 minutes.\n\n### How to trigger a manual sync?\n- Tap Test & Save on the sync config page.\n- Or toggle the auto-sync switch in global settings.';
+	@override String get faqMarkdown => '### What can be synced?\n- Currently syncs Bika history, JM favorites, and JM history.\n\n### How to configure WebDAV?\n- Fill in WebDAV URL, username, password, then tap Test & Save.\n\n### How to configure S3?\n- Endpoint examples: `s3.amazonaws.com`, `s3.filebase.com`, `play.min.io`.\n- For self-hosted MinIO, fill in a custom port and disable SSL if necessary.\n\n### How often does auto-sync run?\n- Every 5 minutes.\n\n### How to trigger a manual sync?\n- Tap Test & Save on the sync config page.\n- Or toggle the auto-sync switch in Settings.';
 }
 
 // Path: realSr
@@ -929,6 +933,7 @@ class _Translations$realSr$en_US extends Translations$realSr$zh_CN {
 	@override String get title => 'Image Super-Resolution (Experimental)';
 	@override String get unlimited => 'Unlimited';
 	@override String get modelDownloadFailed => 'Model download failed';
+	@override String get generalSection => 'General';
 	@override String get autoUpscaleSection => 'Auto Upscale';
 	@override String get autoUpscale => 'Auto Upscale';
 	@override String get autoUpscaleSubtitleUnavailable => 'Model not downloaded; auto upscale will not work';
@@ -959,6 +964,10 @@ class _Translations$realSr$en_US extends Translations$realSr$zh_CN {
 	@override String get downloadingModel => 'Downloading model';
 	@override String get modelReady => 'Model ready';
 	@override String get redownload => 'Redownload';
+	@override String get deleteModel => 'Delete Model';
+	@override String get deleteModelConfirm => 'Delete the downloaded super-resolution model? You will need to download it again before use.';
+	@override String get modelDeleted => 'Model deleted';
+	@override String get modelDeleteFailed => 'Failed to delete model';
 	@override String get modelNotDownloaded => 'Model not downloaded';
 	@override String get modelNotDownloadedSubtitle => 'Download model before using super-resolution';
 	@override String get downloadModel => 'Download Model';
@@ -1532,7 +1541,7 @@ extension on TranslationsEnUs {
 			'navigation.syncFailedMessage' => ({required Object error}) => 'Please check your network connection or try again later.\n${error}',
 			'navigation.loginExpired' => 'Login expired, please log in again',
 			'settings.title' => 'Settings',
-			'settings.globalTitle' => 'Global Settings',
+			'settings.globalTitle' => 'Settings',
 			'settings.appearance' => 'Appearance',
 			'settings.theme' => 'Theme mode',
 			'settings.themeSubtitle' => 'Choose strategy to switch light/dark theme',
@@ -1553,6 +1562,8 @@ extension on TranslationsEnUs {
 			'settings.notchAdaptation' => 'Notch adaptation',
 			'settings.notchAdaptationSubtitle' => 'Reserve safe area to avoid content being obscured',
 			'settings.contentAndNetwork' => 'Content & Network',
+			'settings.content' => 'Content',
+			'settings.network' => 'Network',
 			'settings.maskedKeywords' => 'Masked keywords',
 			'settings.maskedKeywordsSubtitle' => 'Add keywords to filter unwanted content (search only)',
 			'settings.maskedKeywordsEmpty' => 'No masked keywords',
@@ -1890,6 +1901,8 @@ extension on TranslationsEnUs {
 			'reader.singlePageRtl' => 'Single page (RTL)',
 			'reader.doublePage' => 'Double page',
 			'reader.doublePageSubtitle' => 'Enable double-page spread in current reading mode',
+			'reader.doublePageLeadingBlank' => 'Leading blank',
+			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.themeMode' => 'Theme mode',
 			'reader.autoRead' => 'Auto read',
 			'reader.autoReadSubtitle' => 'Auto-scroll and show play/pause button',
@@ -1947,12 +1960,12 @@ extension on TranslationsEnUs {
 			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\nLoad failed',
 			'reader.chapterOrder' => ({required Object order}) => 'Chapter ${order}',
 			'reader.doubleTapAction' => 'Double-tap action',
+			_ => null,
+		} ?? switch (path) {
 			'reader.doubleTapZoom' => 'Double-tap zoom',
 			'reader.doubleTapZoomSubtitle' => 'Double-tap image to toggle zoom',
 			'reader.doubleTapOpenMenu' => 'Double-tap to open menu',
 			'reader.doubleTapOpenMenuSubtitle' => 'Double-tap page to open menu (exclusive with zoom)',
-			_ => null,
-		} ?? switch (path) {
 			'reader.volumeKeyPageTurn' => 'Volume key page turn',
 			'reader.enableVolumeKeyPageTurn' => 'Enable volume key page turn',
 			'reader.volumeKeyPageTurnSubtitle' => 'Use volume keys to turn pages/scroll',
@@ -2130,7 +2143,7 @@ extension on TranslationsEnUs {
 			'dataBackup.restartPrompt' => 'Data imported successfully. Please restart the app to apply.',
 			'webdavSync.title' => 'Cloud Sync Config',
 			'webdavSync.serviceTitle' => ({required Object service}) => '${service} Sync Config',
-			'webdavSync.noneTip' => 'Please select a sync service in global settings first, then return here to fill in the configuration.',
+			'webdavSync.noneTip' => 'Please select a sync service in Settings first, then return here to fill in the configuration.',
 			'webdavSync.deleteConfig' => 'Delete Config',
 			'webdavSync.testAndSave' => 'Test & Save',
 			'webdavSync.faq' => 'FAQ',
@@ -2157,10 +2170,11 @@ extension on TranslationsEnUs {
 			'webdavSync.close' => 'Close',
 			'webdavSync.success' => 'Success',
 			'webdavSync.error' => 'Error',
-			'webdavSync.faqMarkdown' => '### What can be synced?\n- Currently syncs Bika history, JM favorites, and JM history.\n\n### How to configure WebDAV?\n- Fill in WebDAV URL, username, password, then tap Test & Save.\n\n### How to configure S3?\n- Endpoint examples: `s3.amazonaws.com`, `s3.filebase.com`, `play.min.io`.\n- For self-hosted MinIO, fill in a custom port and disable SSL if necessary.\n\n### How often does auto-sync run?\n- Every 5 minutes.\n\n### How to trigger a manual sync?\n- Tap Test & Save on the sync config page.\n- Or toggle the auto-sync switch in global settings.',
+			'webdavSync.faqMarkdown' => '### What can be synced?\n- Currently syncs Bika history, JM favorites, and JM history.\n\n### How to configure WebDAV?\n- Fill in WebDAV URL, username, password, then tap Test & Save.\n\n### How to configure S3?\n- Endpoint examples: `s3.amazonaws.com`, `s3.filebase.com`, `play.min.io`.\n- For self-hosted MinIO, fill in a custom port and disable SSL if necessary.\n\n### How often does auto-sync run?\n- Every 5 minutes.\n\n### How to trigger a manual sync?\n- Tap Test & Save on the sync config page.\n- Or toggle the auto-sync switch in Settings.',
 			'realSr.title' => 'Image Super-Resolution (Experimental)',
 			'realSr.unlimited' => 'Unlimited',
 			'realSr.modelDownloadFailed' => 'Model download failed',
+			'realSr.generalSection' => 'General',
 			'realSr.autoUpscaleSection' => 'Auto Upscale',
 			'realSr.autoUpscale' => 'Auto Upscale',
 			'realSr.autoUpscaleSubtitleUnavailable' => 'Model not downloaded; auto upscale will not work',
@@ -2191,6 +2205,10 @@ extension on TranslationsEnUs {
 			'realSr.downloadingModel' => 'Downloading model',
 			'realSr.modelReady' => 'Model ready',
 			'realSr.redownload' => 'Redownload',
+			'realSr.deleteModel' => 'Delete Model',
+			'realSr.deleteModelConfirm' => 'Delete the downloaded super-resolution model? You will need to download it again before use.',
+			'realSr.modelDeleted' => 'Model deleted',
+			'realSr.modelDeleteFailed' => 'Failed to delete model',
 			'realSr.modelNotDownloaded' => 'Model not downloaded',
 			'realSr.modelNotDownloadedSubtitle' => 'Download model before using super-resolution',
 			'realSr.downloadModel' => 'Download Model',
@@ -2456,6 +2474,8 @@ extension on TranslationsEnUs {
 			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => 'Fetching chapter info... (${completed}/${total}, ${percent}%)',
 			'download.statusDownloadProgress' => ({required Object percent}) => 'Comic download progress: ${percent}%',
 			'download.statusDownloadProgressComplete' => 'Comic download progress: 100%',
+			_ => null,
+		} ?? switch (path) {
 			'download.statusStartDownload' => 'Start downloading...',
 			'download.statusWaiting' => 'Waiting',
 			'download.statusCancelling' => 'Cancelling...',
@@ -2465,8 +2485,6 @@ extension on TranslationsEnUs {
 			'download.notificationCompleteTitle' => 'Download complete',
 			'download.notificationFailedTitle' => 'Download failed',
 			'foregroundTask.channelName' => 'Foreground download task',
-			_ => null,
-		} ?? switch (path) {
 			'foregroundTask.channelDescription' => 'Keeps download tasks running in the background',
 			'foregroundTask.waitingForTask' => 'Waiting for download tasks...',
 			'foregroundTask.cancel' => 'Cancel',

@@ -21,7 +21,7 @@ class SliderWidget extends StatefulWidget {
   final int Function(int localSlot)? mapLocalToGlobalSlot;
   final bool Function(int globalSlot)? isTransitionSlot;
   final String transitionLabel;
-  final double Function(int globalSlot)? estimateColumnOffset;
+  final double Function(BuildContext context, int globalSlot)? estimateColumnOffset;
 
   const SliderWidget({
     super.key,
@@ -281,7 +281,7 @@ class _SliderWidgetState extends State<SliderWidget> {
         final double roughOffset;
         final estimate = widget.estimateColumnOffset;
         if (estimate != null) {
-          roughOffset = estimate(targetGlobalSlot);
+          roughOffset = estimate(context, targetGlobalSlot);
         } else {
           final viewportWidth = MediaQuery.sizeOf(context).width;
           final contentWidth = getConstrainedImageWidth(

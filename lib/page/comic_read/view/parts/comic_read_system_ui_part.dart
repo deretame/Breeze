@@ -17,15 +17,6 @@ extension _ComicReadSystemUiPart on _ComicReadPageState {
     _volumeController.sync(globalSettingState.readSetting, isMenuVisible);
   }
 
-  void _scheduleSystemUiSync({
-    Duration delay = const Duration(milliseconds: 24),
-  }) {
-    _systemUiController.scheduleSync(() {
-      if (!mounted) return;
-      _syncSystemUi(force: true);
-    }, delay: delay);
-  }
-
   void _syncSystemUi({bool force = false}) {
     final isMenuVisible = context.read<ReaderCubit>().state.isMenuVisible;
     _applySystemUiVisibility(isMenuVisible, force: force);

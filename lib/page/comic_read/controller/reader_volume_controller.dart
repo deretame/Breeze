@@ -6,11 +6,15 @@ import 'package:zephyr/page/comic_read/controller/reader_action_controller.dart'
 import 'package:zephyr/util/volume_key_handler.dart';
 
 class ReaderVolumeController {
-  final ReaderActionController actionController;
+  late ReaderActionController actionController;
   StreamSubscription<String>? _subscription;
   bool _isInterceptionEnabled = false;
 
-  ReaderVolumeController({required this.actionController});
+  ReaderVolumeController();
+
+  void setActionController(ReaderActionController controller) {
+    actionController = controller;
+  }
 
   void listen() {
     if (!Platform.isAndroid) return;

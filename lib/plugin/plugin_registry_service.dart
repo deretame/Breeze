@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/network/utils/direct_dio.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -577,8 +576,8 @@ class PluginRegistryService {
   Future<String> _resolveBundleJs(PluginRuntimeState plugin) async {
     if (plugin.debug && (plugin.debugUrl?.trim().isNotEmpty ?? false)) {
       try {
-        final response = await directDio.get(plugin.debugUrl!.trim());
-        final debugBundle = response.data?.toString() ?? '';
+        final response = await fetchDirect(plugin.debugUrl!.trim());
+        final debugBundle = response.text;
         if (debugBundle.trim().isNotEmpty) {
           logger.d('[plugin-bundle] source=debugUrl plugin=${plugin.uuid}');
           return debugBundle;

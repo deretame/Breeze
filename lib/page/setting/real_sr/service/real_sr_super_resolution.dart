@@ -250,7 +250,7 @@ class RealSrSuperResolution {
         await File(archivePath).delete();
       }
 
-      await dio.download(
+      await WindHttp().download(
         url,
         archivePath,
         onReceiveProgress: (received, total) {

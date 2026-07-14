@@ -93,10 +93,7 @@ class _StorageSettingPageState extends State<StorageSettingPage> {
     }
   }
 
-  Widget _customExportPath(
-    GlobalSettingState state,
-    GlobalSettingCubit cubit,
-  ) {
+  Widget _customExportPath(GlobalSettingState state, GlobalSettingCubit cubit) {
     final exportPath = state.customExportPath.trim();
     return ListTile(
       leading: const Icon(Icons.folder_outlined),

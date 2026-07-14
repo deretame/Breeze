@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:open_file/open_file.dart';
@@ -25,8 +24,7 @@ Future<String> getAppVersion() async {
 
   try {
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-    version = packageInfo.version; // 获取版本号
+    version = packageInfo.version;
   } catch (e, stackTrace) {
     logger.e(e, stackTrace: stackTrace);
   }
@@ -39,10 +37,11 @@ Future<GithubReleaseJson> getCloudVersion() async {
       "https://api.github.com/repos/deretame/Breeze/releases/latest";
 
   try {
-    var temp = await dio.get<Map<String, dynamic>>(
+    final temp = await fetch(
       "https://breeze-version.s3.bitiful.net/breeze-version.json",
     );
-    var version = temp.data?['version'] ?? 'latest';
+    final tempJson = temp.json;
+    var version = (tempJson is Map ? tempJson['version'] : null) ?? 'latest';
 
     const ghCdnMirrors = [
       'https://cdn.jsdmirror.com/',
@@ -56,15 +55,12 @@ Future<GithubReleaseJson> getCloudVersion() async {
           '${mirror}gh/deretame/Breeze@$version/update-tag-version/latest-release.json';
       logger.d('尝试使用 GitHub CDN 镜像: $url');
       try {
-        final response = await dio.get<String>(
+        final response = await fetch(
           url,
-          options: Options(
-            responseType: ResponseType.plain,
-            headers: {'Accept': 'application/json, text/plain, */*'},
-          ),
+          headers: {'Accept': 'application/json, text/plain, */*'},
         );
-        final body = response.data?.trim() ?? '';
-        if ((response.statusCode ?? 0) == 200 && body.isNotEmpty) {
+        final body = response.text.trim();
+        if (response.ok && body.isNotEmpty) {
           return GithubReleaseJson.fromJson(jsonDecode(body));
         }
       } catch (e, stackTrace) {
@@ -77,11 +73,9 @@ Future<GithubReleaseJson> getCloudVersion() async {
 
   while (true) {
     try {
-      final response = await fetchReleaseData(
+      return await fetchReleaseData(
         releasesApi,
       ).let(GithubReleaseJson.fromJson);
-
-      return response;
     } catch (e) {
       logger.e(e);
       await Future.delayed(const Duration(minutes: 5));
@@ -114,23 +108,16 @@ bool isUpdateAvailable(String cloudVersion, String localVersion) {
 Future<void> installApk(String apkUrl) async {
   if (await _requestInstallPackagesPermission()) {
     try {
-      // 获取应用的文档目录，存储 APK 文件
       String tempDir = await getCachePath();
       String apkFilePath = p.join(tempDir, 'app.apk');
 
       if (_isGithubReleaseDownloadUrl(apkUrl)) {
         await smartDownload(apkUrl, apkFilePath);
       } else {
-        // 非发行文件链接走原始下载逻辑
-        Response response = await dio.get(
-          apkUrl,
-          options: Options(responseType: ResponseType.bytes),
-        );
-        File apkFile = File(apkFilePath);
-        await apkFile.writeAsBytes(response.data);
+        final response = await fetch(apkUrl);
+        await File(apkFilePath).writeAsBytes(response.body);
       }
 
-      // 打开 APK 文件以启动安装
       OpenFile.open(apkFilePath);
     } catch (e) {
       showErrorToast(t.update.apkDownloadFailed);
@@ -150,7 +137,7 @@ Future<bool> _requestInstallPackagesPermission() async {
       return requestResult.isGranted;
     }
   }
-  return false; // 仅考虑 Android 平台
+  return false;
 }
 
 bool _isGithubReleaseDownloadUrl(String url) {
@@ -229,8 +216,7 @@ Future<void> checkUpdate(BuildContext context) async {
                   for (var apkUrl in temp.assets) {
                     if (apkUrl.browserDownloadUrl.contains(arch) &&
                         !apkUrl.browserDownloadUrl.contains("skia")) {
-                      var androidDownloadUrl = apkUrl.browserDownloadUrl;
-                      await installApk(androidDownloadUrl);
+                      await installApk(apkUrl.browserDownloadUrl);
                     }
                   }
                 },

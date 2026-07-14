@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/main.dart';
@@ -46,11 +45,11 @@ class CoreMLModelLoader {
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       // 没有压缩包（或上一次下载不完整）就重新下载
       if (!archiveFile.existsSync() || attempt > 0) {
-        final dio = Dio();
+        final client = WindHttp();
         final url =
             '${CoreMLModelConfig.binaryRepoBaseUrl}/${CoreMLModelConfig.archiveName}';
         logger.i('下载 CoreML 模型压缩包: $url');
-        await dio.download(
+        await client.download(
           url,
           archiveFile.path,
           onReceiveProgress: (received, total) {

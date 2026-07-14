@@ -5,10 +5,8 @@ import 'dart:io';
 
 import 'package:desktop_webview_linux/desktop_webview_linux.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:extended_image/extended_image.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +28,7 @@ import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
+import 'package:zephyr/network/http/wind_http.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -50,12 +49,13 @@ import 'package:zephyr/widgets/desktop/custom_title_bar.dart';
 import 'package:zephyr/service/reader/reader_desktop_fullscreen_service.dart';
 import 'package:zephyr/widgets/desktop/intent.dart';
 
+export 'package:zephyr/network/http/wind_http.dart'
+    show WindHttp, FetchResponse, fetch, fetchDirect;
+
 ObjectBox? _objectbox;
 ObjectBox get objectbox => _objectbox!;
 set objectbox(ObjectBox value) => _objectbox = value;
 
-// 定义全局Dio实例
-final dio = Dio();
 final appRouter = AppRouter();
 
 // 全局事件总线实例
@@ -95,10 +95,12 @@ class RemoteOutput extends LogOutput {
 
   Future<void> _sendToServer(String message, Level level) async {
     try {
-      await http.post(
-        Uri.parse(url),
+      await fetch(
+        url,
+        method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'level': level.name, 'message': '\n$message'}),
+        body: {'level': level.name, 'message': '\n$message'},
+        timeout: const Duration(seconds: 5),
       );
     } catch (e) {
       debugPrint(e.toString());
@@ -372,23 +374,16 @@ Future<String?> _readProxyFromEnvAsset() async {
 }
 
 Future<bool> _probeProxyWithTimeout(String proxyUrl) async {
-  HttpClient? client;
   try {
-    client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 3)
-      ..findProxy = (_) => 'PROXY ${Uri.parse(proxyUrl).authority}';
-
-    final request = await client
-        .getUrl(Uri.parse('http://www.gstatic.com/generate_204'))
-        .timeout(const Duration(seconds: 3));
-    request.followRedirects = false;
-    final response = await request.close().timeout(const Duration(seconds: 3));
-    await response.drain();
-    return response.statusCode >= 200 && response.statusCode < 500;
+    final response = await WindHttp(
+      httpProxy: proxyUrl,
+      connectTimeout: const Duration(seconds: 3),
+      receiveTimeout: const Duration(seconds: 3),
+      followRedirects: false,
+    ).fetch('http://www.gstatic.com/generate_204');
+    return response.status >= 200 && response.status < 500;
   } catch (_) {
     return false;
-  } finally {
-    client?.close(force: true);
   }
 }
 

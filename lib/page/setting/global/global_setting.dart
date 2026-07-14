@@ -75,8 +75,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           settingCategoryTile(
             icon: Icons.tune_outlined,
             title: t.settings.contentAndNetwork,
-            subtitle:
-                '${t.settings.maskedKeywords} · ${t.settings.proxy}',
+            subtitle: '${t.settings.maskedKeywords} · ${t.settings.proxy}',
             onTap: () => _openSubPage(const ContentNetworkSettingRoute()),
           ),
           const Divider(height: 1, thickness: 0.3),

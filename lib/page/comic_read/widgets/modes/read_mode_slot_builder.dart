@@ -254,7 +254,10 @@ Widget _buildColumnDoublePageImage({
                 comicId: comicId,
                 from: from,
                 slotIndex: left.entry.chapterPageIndex ?? left.entryIndex,
-                cacheIndex: _resolveImageCacheIndex(left.entry, left.entryIndex),
+                cacheIndex: _resolveImageCacheIndex(
+                  left.entry,
+                  left.entryIndex,
+                ),
                 isColumn: true,
               )
             : const SizedBox.shrink(),

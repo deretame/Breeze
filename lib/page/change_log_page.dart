@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,10 +7,10 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/network/http/wind_http.dart';
 import 'package:zephyr/service/update/json/github_release_json.dart';
 import 'package:zephyr/util/error_filter.dart';
 
-final dio = Dio();
 const _releasesApiUrl = 'https://api.github.com/repos/deretame/Breeze/releases';
 
 @RoutePage()
@@ -56,18 +55,15 @@ class _ChangelogPageState extends State<ChangelogPage> {
     try {
       final requestPage = refresh ? 1 : _page;
 
-      final response = await dio.get<String>(
+      final response = await fetch(
         _releasesApiUrl,
-        queryParameters: {'page': requestPage, 'per_page': _perPage},
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {'Accept': 'application/vnd.github.v3+json'},
-        ),
+        query: {'page': requestPage, 'per_page': _perPage},
+        headers: {'Accept': 'application/vnd.github.v3+json'},
       );
 
-      if (response.statusCode == 200) {
+      if (response.ok) {
         final List<GithubReleaseJson> newData = githubReleaseJsonFromJson(
-          response.data as String,
+          response.text,
         );
 
         if (mounted) {
@@ -99,7 +95,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
           );
         }
       } else {
-        throw Exception('Status: ${response.statusCode}');
+        throw Exception('Status: ${response.status}');
       }
     } catch (e) {
       if (mounted) {

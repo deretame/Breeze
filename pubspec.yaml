@@ -47,10 +47,6 @@ dependencies:
   scrollview_observer: ^1.26.3 # UI: 滚动监听
 
   # 网络通信与内容解析
-  dio: ^5.8.0 # 网络: HTTP 客户端
-  dio_http2_adapter: ^2.6.0 # 网络: Dio HTTP/2 适配
-  dio_cookie_manager: ^3.0.1 # 网络: Dio Cookie 同步
-  cookie_jar: ^4.0.8 # 网络: Cookie 持久化
   flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
   desktop_webview_linux: ^0.1.4 # 网络: Linux专用的webview
   url_launcher: ^6.3.1 # 网络: 调起系统链接

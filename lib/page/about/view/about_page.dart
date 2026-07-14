@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -30,8 +29,6 @@ class _AboutPageState extends State<AboutPage> {
   bool _contributorsLoading = true;
   String? _contributorsError;
 
-  final Dio _dio = Dio(BaseOptions(validateStatus: (status) => true));
-
   @override
   void initState() {
     super.initState();
@@ -51,14 +48,17 @@ class _AboutPageState extends State<AboutPage> {
 
   Future<void> _fetchContributors() async {
     try {
-      final response = await _dio.get(
+      final response = await fetch(
         'https://api.github.com/repos/deretame/Breeze/contributors',
-        queryParameters: {'per_page': 20},
+        query: {'per_page': 20},
       );
 
-      if (response.statusCode == 200 && mounted) {
+      if (response.ok && mounted) {
+        final data = response.json;
         setState(() {
-          _contributors = List<Map<String, dynamic>>.from(response.data);
+          _contributors = List<Map<String, dynamic>>.from(
+            data is List ? data : const [],
+          );
           _contributorsLoading = false;
         });
       } else if (mounted) {

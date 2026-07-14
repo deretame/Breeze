@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
 
 List<String> mirrorBaseUrls = [
@@ -11,8 +10,6 @@ List<String> mirrorBaseUrls = [
 /// 传入标准的 GitHub API URL，函数自动处理降级和代理
 /// 示例输入: https://api.github.com/repos/deretame/Breeze/releases/latest
 Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
-  final dio = Dio();
-
   String repoPath = fullUrl;
   if (fullUrl.contains("api.github.com")) {
     repoPath = "/${fullUrl.split("api.github.com/")[1]}";
@@ -20,25 +17,31 @@ Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
 
   final List<String> urls = [
     ...mirrorBaseUrls.map((base) => "${base}https://api.github.com$repoPath"),
-    "https://api.github.com$repoPath", // 官方直连
+    "https://api.github.com$repoPath",
   ];
 
   dynamic lastError;
 
   for (String url in urls) {
     try {
-      final response = await dio.get(
+      final response = await fetch(
         url,
-        options: Options(headers: {'Accept': 'application/json'}),
+        headers: {'Accept': 'application/json'},
       );
 
-      if (response.statusCode == 200 && response.data is Map) {
-        return response.data as Map<String, dynamic>;
+      if (response.ok) {
+        final data = response.json;
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+        if (data is Map) {
+          return Map<String, dynamic>.from(data);
+        }
       }
     } catch (e) {
       logger.e(e);
       lastError = e;
-      continue; // 失败则尝试列表中的下一个
+      continue;
     }
   }
 
@@ -46,29 +49,24 @@ Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
 }
 
 /// 自动加速下载函数
-/// [url] 原始 GitHub 下载链接
-/// [savePath] 本地保存路径
 Future<void> smartDownload(String url, String savePath) async {
-  final dio = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 15),
-      followRedirects: true,
-    ),
+  final client = WindHttp(
+    connectTimeout: const Duration(seconds: 15),
+    followRedirects: true,
   );
 
-  // 正则匹配：GitHub Release 下载直链
   final githubRegex = RegExp(
     r'^https://github\.com/[\w.-]+/[\w.-]+/releases/download/[\w.-]+/.*$',
     caseSensitive: false,
   );
 
-  List<String> downloadUrls = [];
+  final List<String> downloadUrls = githubRegex.hasMatch(url)
+      ? [...mirrorBaseUrls.map((base) => "$base$url"), url]
+      : [url];
 
   if (githubRegex.hasMatch(url)) {
-    downloadUrls = [...mirrorBaseUrls.map((base) => "$base$url"), url];
     logger.d("检测到 GitHub Release 链接，已规划加速路径");
   } else {
-    downloadUrls = [url];
     logger.d("非标准下载链接，跳过代理直接请求");
   }
 
@@ -77,15 +75,7 @@ Future<void> smartDownload(String url, String savePath) async {
   for (String downloadUrl in downloadUrls) {
     try {
       logger.d("正在尝试下载通道: $downloadUrl");
-
-      await dio.download(
-        downloadUrl,
-        savePath,
-        onReceiveProgress: (received, total) {
-          if (total != -1) {}
-        },
-      );
-
+      await client.download(downloadUrl, savePath);
       logger.d("✅ 下载成功，保存至: $savePath");
       return;
     } catch (e) {

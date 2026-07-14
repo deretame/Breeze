@@ -58,9 +58,9 @@ pub use self::bridge::{
     register_bridge_route_sync_handler, unregister_bridge_route_handler,
 };
 pub use self::http::{
-    HttpClientConfig, configure_http_client, current_http_client_config, http_request_cancel,
-    http_request_drop, http_request_promise, http_request_start, http_request_try_take,
-    set_worker_http_config,
+    BuildHttpClientOptions, HttpClientConfig, build_http_client, build_http_client_ex,
+    configure_http_client, current_http_client_config, http_request_cancel, http_request_drop,
+    http_request_promise, http_request_start, http_request_try_take, set_worker_http_config,
 };
 pub use self::native_buffer::{
     native_buffer_free, native_buffer_put, native_buffer_put_raw, native_buffer_take,

@@ -294,9 +294,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
         trailing: FluentDropdown<AndroidNcnnMode>(
           value: _desktopNcnnMode,
           displayValue: _desktopNcnnMode.label,
-          items: {
-            for (final mode in AndroidNcnnMode.values) mode: mode.label,
-          },
+          items: {for (final mode in AndroidNcnnMode.values) mode: mode.label},
           onChanged: _setDesktopNcnnMode,
         ),
       ),
@@ -418,8 +416,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
                 settingSectionTitle(context, t.realSr.performanceSection),
                 Builder(
                   builder: (context) {
-                    final effective =
-                        _concurrencyOptions.contains(_concurrency)
+                    final effective = _concurrencyOptions.contains(_concurrency)
                         ? _concurrency
                         : RealSrSettings.defaultConcurrency;
                     return ListTile(

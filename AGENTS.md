@@ -56,7 +56,7 @@
 ### 2.4 数据持久化与网络
 
 - **本地数据库**：`objectbox` + `objectbox_flutter_libs`
-- **HTTP 客户端**：`dio` + `dio_http2_adapter` + `dio_cookie_manager`
+- **HTTP 客户端**：Rust `reqwest`（经 FRB 暴露为 `HttpClient` / Dart `WindHttp`）
 - **图片加载/缓存**：`extended_image`、`photo_view`
 - **后台下载**：`background_downloader`
 - **WebDAV / S3 同步**：Rust 侧 `reqwest_dav`、Dart 侧 `minio`

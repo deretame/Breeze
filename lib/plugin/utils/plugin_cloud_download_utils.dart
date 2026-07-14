@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -30,21 +29,19 @@ const _ghCdnMirrors = [
 ];
 
 Future<String> fetchCloudPluginListWithCdnFallback() async {
-  final client = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 8),
-      receiveTimeout: const Duration(seconds: 15),
-    ),
+  final client = WindHttp(
+    connectTimeout: const Duration(seconds: 8),
+    receiveTimeout: const Duration(seconds: 15),
   );
 
   var version = 'latest';
 
   try {
-    final temp = await client.get<Map<String, dynamic>>(
+    final temp = await client.fetch(
       'https://breeze-version.s3.bitiful.net/plugin-list-version.json',
     );
-
-    version = temp.data?['version'] ?? 'latest';
+    final data = temp.json;
+    version = (data is Map ? data['version'] : null) ?? 'latest';
   } catch (e) {
     logger.e(e);
     return fetchCloudPluginListPayload(_cloudPluginListDirectUrl);
@@ -55,15 +52,12 @@ Future<String> fetchCloudPluginListWithCdnFallback() async {
         '${mirror}gh/deretame/Breeze-plugin-list@$version/plugins_data.json';
     logger.d('尝试使用 GitHub CDN 镜像: $url');
     try {
-      final response = await client.get<String>(
+      final response = await client.fetch(
         url,
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {'Accept': 'application/json, text/plain, */*'},
-        ),
+        headers: {'Accept': 'application/json, text/plain, */*'},
       );
-      final body = response.data?.trim() ?? '';
-      if ((response.statusCode ?? 0) == 200 && body.isNotEmpty) {
+      final body = response.text.trim();
+      if (response.ok && body.isNotEmpty) {
         return body;
       }
     } catch (e, stackTrace) {
@@ -76,25 +70,20 @@ Future<String> fetchCloudPluginListWithCdnFallback() async {
 
 Future<String> fetchCloudPluginListPayload(String sourceUrl) async {
   final requestUrls = buildCloudRequestCandidates(sourceUrl);
-  final client = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 12),
-      receiveTimeout: const Duration(seconds: 20),
-    ),
+  final client = WindHttp(
+    connectTimeout: const Duration(seconds: 12),
+    receiveTimeout: const Duration(seconds: 20),
   );
 
   Object? lastError;
   for (final requestUrl in requestUrls) {
     try {
-      final response = await client.get<String>(
+      final response = await client.fetch(
         requestUrl,
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {'Accept': 'application/json, text/plain, */*'},
-        ),
+        headers: {'Accept': 'application/json, text/plain, */*'},
       );
-      final body = response.data?.trim() ?? '';
-      if ((response.statusCode ?? 0) == 200 && body.isNotEmpty) {
+      final body = response.text.trim();
+      if (response.ok && body.isNotEmpty) {
         return body;
       }
     } catch (e, stackTrace) {
@@ -181,30 +170,22 @@ Future<String> downloadFromJsdelivrOrGitHub({
   return trimmed;
 }
 
-Future<Response<List<int>>> downloadPluginAssetWithFallback(
-  String sourceUrl,
-) async {
+Future<FetchResponse> downloadPluginAssetWithFallback(String sourceUrl) async {
   final requestUrls = buildCloudRequestCandidates(sourceUrl);
-  final client = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 12),
-      receiveTimeout: const Duration(seconds: 30),
-      followRedirects: true,
-    ),
+  final client = WindHttp(
+    connectTimeout: const Duration(seconds: 12),
+    receiveTimeout: const Duration(seconds: 30),
+    followRedirects: true,
   );
 
   Object? lastError;
   for (final requestUrl in requestUrls) {
     try {
-      final response = await client.get<List<int>>(
+      final response = await client.fetch(
         requestUrl,
-        options: Options(
-          responseType: ResponseType.bytes,
-          headers: {'Accept': '*/*'},
-        ),
+        headers: {'Accept': '*/*'},
       );
-      final body = response.data ?? const <int>[];
-      if (body.isNotEmpty) {
+      if (response.body.isNotEmpty) {
         return response;
       }
       lastError = StateError('空响应: $requestUrl');
@@ -218,16 +199,16 @@ Future<Response<List<int>>> downloadPluginAssetWithFallback(
 }
 
 Future<String> decodeDownloadedPluginScript({
-  required Response<List<int>> response,
+  required FetchResponse response,
   required String resolvedUrl,
 }) async {
-  final body = response.data ?? const <int>[];
+  final body = response.body;
   if (body.isEmpty) {
     return '';
   }
 
   final lowerUrl = resolvedUrl.toLowerCase();
-  final contentEncoding = (response.headers.value('content-encoding') ?? '')
+  final contentEncoding = (response.header('content-encoding') ?? '')
       .toLowerCase();
   final shouldUseBrotli =
       lowerUrl.endsWith('.br') || contentEncoding.contains('br');
@@ -319,28 +300,13 @@ bool isNetworkRetryableError(Object error) {
       error is HandshakeException) {
     return true;
   }
-  if (error is DioException) {
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-      case DioExceptionType.connectionError:
-      case DioExceptionType.transformTimeout:
-        return true;
-      case DioExceptionType.badResponse:
-        final status = error.response?.statusCode ?? 0;
-        return status >= 500 || status == 429 || status == 408;
-      case DioExceptionType.cancel:
-      case DioExceptionType.badCertificate:
-      case DioExceptionType.unknown:
-        return false;
-    }
-  }
   final text = error.toString().toLowerCase();
   return text.contains('socketexception') ||
       text.contains('timed out') ||
       text.contains('timeout') ||
       text.contains('connection reset') ||
       text.contains('connection refused') ||
-      text.contains('network');
+      text.contains('network') ||
+      text.contains('fetch failed') ||
+      text.contains('download failed');
 }

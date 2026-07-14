@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
@@ -16,7 +15,6 @@ import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';
 import '../../../util/get_path.dart';
 
-final pictureDio = Dio();
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
 const _kJmPluginUuid = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
@@ -500,9 +498,8 @@ Future<Uint8List> downloadImageWithRetry(
         throw const DownloadTaskCancelledException();
       }
       logger.w('fetchImageBytes failed source=$source url=$url error=$e');
-      final isNotFound =
-          (e is DioException && e.toString().contains('422')) ||
-          e.toString().contains('404');
+      final errText = e.toString();
+      final isNotFound = errText.contains('422') || errText.contains('404');
       if (isNotFound) {
         logger.w('下载图片资源不存在，跳过: $url');
         rethrow;

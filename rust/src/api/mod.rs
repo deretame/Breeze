@@ -1,4 +1,5 @@
 pub mod data_backup;
+pub mod http;
 pub mod image;
 pub mod localization;
 pub mod logger;

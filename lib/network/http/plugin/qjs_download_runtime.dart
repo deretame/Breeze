@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -11,7 +10,6 @@ import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
-import 'package:zephyr/network/utils/direct_dio.dart';
 
 class _TrackedQjsTaskRef extends Equatable {
   const _TrackedQjsTaskRef({required this.runtimeName, required this.taskId});
@@ -449,17 +447,11 @@ Future<String> loadQjsBundleJs(String pluginId) async {
 
   try {
     if (bundleUrl.split(".").last == "br") {
-      final response = await directDio.get<List<int>>(
-        bundleUrl,
-        options: Options(
-          responseType: ResponseType.bytes,
-          followRedirects: true,
-        ),
-      );
-      return await decompressExtreme(data: response.data!).let(utf8.decode);
+      final response = await fetchDirect(bundleUrl);
+      return await decompressExtreme(data: response.body).let(utf8.decode);
     } else {
-      final response = await directDio.get(bundleUrl);
-      final body = response.data?.toString() ?? '';
+      final response = await fetchDirect(bundleUrl);
+      final body = response.text;
       if (body.trim().isNotEmpty) {
         return body;
       }

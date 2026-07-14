@@ -10,11 +10,7 @@ const WidgetStateProperty<Icon> kSettingSwitchThumbIcon =
 
 /// 设置页统一外壳：AppBar + 居中限宽内容区。
 class SettingPageShell extends StatelessWidget {
-  const SettingPageShell({
-    super.key,
-    required this.title,
-    required this.child,
-  });
+  const SettingPageShell({super.key, required this.title, required this.child});
 
   final String title;
   final Widget child;

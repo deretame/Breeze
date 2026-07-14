@@ -339,10 +339,37 @@ fn normalize_socks5_proxy_url(raw: &str) -> String {
     format!("socks5h://{value}")
 }
 
-fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
-    let mut builder = Client::builder().timeout(Duration::from_secs(30));
+/// 创建 `reqwest::Client` 时的额外选项（超时 / 直连 / 重定向 / UA）。
+#[derive(Debug, Clone, Default)]
+pub struct BuildHttpClientOptions {
+    pub no_proxy: bool,
+    pub timeout: Option<Duration>,
+    pub connect_timeout: Option<Duration>,
+    pub follow_redirects: Option<bool>,
+    pub user_agent: Option<String>,
+}
 
-    if config.use_http_proxy {
+/// 按当前/指定全局配置创建 `reqwest::Client`。
+pub fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
+    build_http_client_ex(config, BuildHttpClientOptions::default())
+}
+
+/// 创建 HTTP 客户端（可覆盖直连、超时、重定向、UA）。
+pub fn build_http_client_ex(
+    config: &HttpClientConfig,
+    options: BuildHttpClientOptions,
+) -> AnyResult<Client> {
+    let mut builder = Client::builder().timeout(options.timeout.unwrap_or(Duration::from_secs(30)));
+    if let Some(connect_timeout) = options.connect_timeout {
+        builder = builder.connect_timeout(connect_timeout);
+    }
+    if !options.follow_redirects.unwrap_or(true) {
+        builder = builder.redirect(reqwest::redirect::Policy::none());
+    }
+
+    if options.no_proxy {
+        builder = builder.no_proxy();
+    } else if config.use_http_proxy {
         if let Some(proxy_raw) = config.http_proxy.as_deref() {
             let proxy_url = normalize_http_proxy_url(proxy_raw);
             let proxy = Proxy::all(&proxy_url).with_context(|| {
@@ -376,6 +403,9 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
 
     if config.disable_tls_verify {
         builder = builder.danger_accept_invalid_certs(true);
+    }
+    if let Some(ua) = options.user_agent.as_ref().filter(|s| !s.is_empty()) {
+        builder = builder.user_agent(ua);
     }
 
     let client = builder

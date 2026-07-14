@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:minio/minio.dart';
 import 'package:zephyr/config/global/global.dart';
 
@@ -11,58 +10,43 @@ Future<void> testWebDavServer(
   String username,
   String password,
 ) async {
-  final dio = Dio(
-    BaseOptions(
-      baseUrl: host,
-      headers: {
-        'Authorization':
-            'Basic ${base64Encode(utf8.encode('$username:$password'))}',
-      },
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-    ),
+  final client = WindHttp(
+    baseUrl: host,
+    headers: {
+      'Authorization':
+          'Basic ${base64Encode(utf8.encode('$username:$password'))}',
+    },
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
   );
 
   try {
-    logger.d('请求 URL: ${dio.options.baseUrl}\n请求头: ${dio.options.headers}');
+    logger.d('请求 URL: ${client.baseUrl}\n请求头: ${client.defaultHeaders}');
 
-    final response = await dio.request(
-      '/',
-      options: Options(method: 'OPTIONS'),
-    );
+    final response = await client.fetch('/', method: 'OPTIONS');
 
-    final code = response.statusCode ?? 0;
+    final code = response.status;
     if (code < 200 || code >= 300) {
-      throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
+      throw Exception('WebDAV 服务返回异常状态码: ${response.status}');
     }
 
-    final propfindResponse = await dio.request(
+    final propfindResponse = await client.fetch(
       '/${appName}_$syncVersion/',
-      options: Options(
-        method: 'PROPFIND',
-        headers: {'Depth': '0'},
-        validateStatus: (status) => status != null && status < 500,
-      ),
+      method: 'PROPFIND',
+      headers: {'Depth': '0'},
     );
 
-    final propfindCode = propfindResponse.statusCode ?? 0;
+    final propfindCode = propfindResponse.status;
     if (propfindCode == 207 || propfindCode == 404) {
-      logger.d('WebDAV 服务可用\n支持的 HTTP 方法: ${response.headers['allow']}');
+      logger.d(
+        'WebDAV 服务可用\n支持的 HTTP 方法: ${response.header('allow') ?? response.headers['allow']}',
+      );
       return;
     }
 
     throw Exception('WebDAV PROPFIND 检查失败，状态码: $propfindCode');
-  } on DioException catch (e) {
-    if (e.response != null) {
-      logger.e(
-        '响应状态码: ${e.response?.statusCode}\n响应头: ${e.response?.headers}\n响应体: ${e.response?.data}\n',
-      );
-      throw Exception('WebDAV 服务返回错误: ${e.response?.statusCode}');
-    } else {
-      throw Exception('连接失败: ${e.message}');
-    }
   } catch (e) {
-    throw Exception('未知错误: $e');
+    throw Exception('连接失败: $e');
   }
 }
 

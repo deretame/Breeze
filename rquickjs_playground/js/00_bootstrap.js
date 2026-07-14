@@ -344,6 +344,8 @@
     };
   }
 
+  __web.byteViewToBinaryText = byteViewToBinaryText;
+
   __web.parseBodyInit = function parseBodyInit(body) {
     if (body === undefined || body === null) {
       return {

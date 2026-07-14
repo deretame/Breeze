@@ -60,3 +60,4 @@ subtle = "2.6"
 
 [dev-dependencies]
 tiny_http = "0.12.0"
+regex = "1.12.4"

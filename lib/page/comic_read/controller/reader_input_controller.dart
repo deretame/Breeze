@@ -52,8 +52,6 @@ class ReaderInputController {
   TapDownDetails? _doubleTapDownDetails;
   bool _isCtrlPressed = false;
 
-  static const double _scaleLockThreshold = 1.01;
-
   bool get _isDesktopPlatform =>
       !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
@@ -95,15 +93,15 @@ class ReaderInputController {
           child: InteractiveViewer(
             transformationController: transformationController,
             boundaryMargin: EdgeInsets.zero,
-            minScale: 1,
-            maxScale: 4,
+            minScale: kMinReaderScale,
+            maxScale: kMaxReaderScale,
             scaleEnabled:
                 !_isDesktopPlatform ||
                 _isCtrlPressed ||
                 _activeTouchPointers.length >= 2 ||
                 transformationController.value.getMaxScaleOnAxis() >
-                    _scaleLockThreshold,
-            interactionEndFrictionCoefficient: 0.00001,
+                    kScaleLockThreshold,
+            interactionEndFrictionCoefficient: kReaderPanFriction,
             onInteractionUpdate: (_) => _updateMultiTouchScrollLock(),
             onInteractionEnd: (_) => _updateMultiTouchScrollLock(),
             child: isColumnReadMode(readSetting.readMode)
@@ -183,7 +181,7 @@ class ReaderInputController {
 
     // 以双击点为锚点放大，手感更自然。
     final localPosition = renderObject.globalToLocal(details.globalPosition);
-    const targetScale = 2.5;
+    const targetScale = kDoubleTapZoomScale;
     final matrix = Matrix4.identity()
       ..translateByDouble(
         renderObject.size.width / 2 - localPosition.dx * targetScale,
@@ -254,7 +252,7 @@ class ReaderInputController {
   void _updateMultiTouchScrollLock() {
     final currentScale = transformationController.value.getMaxScaleOnAxis();
     final shouldLock =
-        _activeTouchPointers.length >= 2 || currentScale > _scaleLockThreshold;
+        _activeTouchPointers.length >= 2 || currentScale > kScaleLockThreshold;
     if (isScrollLockedByMultiTouch() == shouldLock || !context.mounted) return;
     onUpdateScrollLock(shouldLock);
   }
@@ -265,7 +263,7 @@ class ReaderInputController {
     final scale = matrix.getMaxScaleOnAxis();
     final tx = matrix.storage[12].abs();
     final ty = matrix.storage[13].abs();
-    final shouldReset = scale > _scaleLockThreshold || tx > 0.5 || ty > 0.5;
+    final shouldReset = scale > kScaleLockThreshold || tx > 0.5 || ty > 0.5;
     if (!shouldReset) return false;
 
     transformationController.value = Matrix4.identity();

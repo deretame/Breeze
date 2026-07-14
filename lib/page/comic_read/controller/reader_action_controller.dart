@@ -151,7 +151,7 @@ class ReaderActionController {
       } else {
         observerController.animateTo(
           index: targetPage,
-          duration: const Duration(milliseconds: 300),
+          duration: kReaderAnimationDuration,
           curve: Curves.easeInOut,
           offset: (offset) => getReaderTopOffset(_activeContext),
         );
@@ -195,7 +195,7 @@ class ReaderActionController {
     } else {
       scrollController.animateTo(
         clamped,
-        duration: const Duration(milliseconds: 260),
+        duration: kReaderSmoothScrollDuration,
         curve: Curves.easeOutCubic,
       );
     }
@@ -220,7 +220,7 @@ class ReaderActionController {
     } else {
       scrollController.animateTo(
         clamped,
-        duration: const Duration(milliseconds: 260),
+        duration: kReaderSmoothScrollDuration,
         curve: Curves.easeOutCubic,
       );
     }
@@ -248,12 +248,12 @@ class ReaderActionController {
 
     if (shouldGoForward) {
       pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: kReaderAnimationDuration,
         curve: Curves.easeInOut,
       );
     } else {
       pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
+        duration: kReaderAnimationDuration,
         curve: Curves.easeInOut,
       );
     }

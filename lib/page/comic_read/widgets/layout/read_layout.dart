@@ -9,6 +9,27 @@ const int kReadModeRowRtl = 2;
 /// 双页模式下左右页之间的间距。
 const double kDoublePageGap = 6.0;
 
+/// 阅读器通用动画时长。
+const Duration kReaderAnimationDuration = Duration(milliseconds: 300);
+
+/// 阅读器平滑滚动/翻页动画时长。
+const Duration kReaderSmoothScrollDuration = Duration(milliseconds: 260);
+
+/// 阅读器最小缩放比例。
+const double kMinReaderScale = 1.0;
+
+/// 阅读器最大缩放比例。
+const double kMaxReaderScale = 4.0;
+
+/// 双击缩放目标比例。
+const double kDoubleTapZoomScale = 2.5;
+
+/// 阅读器平移结束摩擦系数。
+const double kReaderPanFriction = 0.00001;
+
+/// 缩放锁定阈值：超过此比例认为处于放大状态，需要锁定滚动。
+const double kScaleLockThreshold = 1.01;
+
 bool isColumnReadMode(int readMode) => readMode == kReadModeColumn;
 
 bool isReverseRowReadMode(int readMode) => readMode == kReadModeRowRtl;

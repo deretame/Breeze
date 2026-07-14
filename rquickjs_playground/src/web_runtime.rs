@@ -1148,7 +1148,9 @@ pub fn fs_task_promise(
 
         match result {
             Ok(payload) => payload,
-            Err(error) => json!({ "ok": false, "code": "EIO", "error": error.to_string() }).to_string(),
+            Err(error) => {
+                json!({ "ok": false, "code": "EIO", "error": error.to_string() }).to_string()
+            }
         }
     };
 

@@ -733,4 +733,3 @@ fn fetch_post_binary_body_via_native_buffer_channel() {
     let _ = tx.send(());
     let _ = handle.join();
 }
-

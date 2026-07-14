@@ -8,79 +8,12 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart';
-import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
 import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
-import 'package:zephyr/page/comic_read/widgets/transition/chapter_transition_card.dart';
+import 'package:zephyr/page/comic_read/widgets/modes/read_mode_utils.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
-
-enum ColumnModeEntryType { image, transition }
-
-class ColumnModeEntry {
-  const ColumnModeEntry._({
-    required this.type,
-    required this.doc,
-    required this.chapterId,
-    required this.chapterOrder,
-    required this.chapterTitle,
-    required this.chapterLocalPageIndex,
-    required this.chapterTotalPages,
-    required this.transitionStatus,
-    this.previousChapterOrder,
-    this.previousChapterTitle,
-  });
-
-  const ColumnModeEntry.image({
-    required Doc doc,
-    required String chapterId,
-    required int chapterOrder,
-    required String chapterTitle,
-    required int chapterLocalPageIndex,
-    required int chapterTotalPages,
-  }) : this._(
-         type: ColumnModeEntryType.image,
-         doc: doc,
-         chapterId: chapterId,
-         chapterOrder: chapterOrder,
-         chapterTitle: chapterTitle,
-         chapterLocalPageIndex: chapterLocalPageIndex,
-         chapterTotalPages: chapterTotalPages,
-         transitionStatus: SeamlessTransitionStatus.ready,
-       );
-
-  const ColumnModeEntry.transition({
-    required int chapterOrder,
-    required String chapterTitle,
-    required int previousChapterOrder,
-    required String previousChapterTitle,
-    required SeamlessTransitionStatus transitionStatus,
-  }) : this._(
-         type: ColumnModeEntryType.transition,
-         doc: null,
-         chapterId: null,
-         chapterOrder: chapterOrder,
-         chapterTitle: chapterTitle,
-         chapterLocalPageIndex: null,
-         chapterTotalPages: null,
-         previousChapterOrder: previousChapterOrder,
-         previousChapterTitle: previousChapterTitle,
-         transitionStatus: transitionStatus,
-       );
-
-  final ColumnModeEntryType type;
-  final Doc? doc;
-  final String? chapterId;
-  final int chapterOrder;
-  final String chapterTitle;
-  final int? chapterLocalPageIndex;
-  final int? chapterTotalPages;
-  final int? previousChapterOrder;
-  final String? previousChapterTitle;
-  final SeamlessTransitionStatus transitionStatus;
-}
 
 class ColumnModeWidget extends StatefulWidget {
   final List<ColumnModeEntry> entries;
@@ -165,7 +98,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
         final doublePageSlots = _isDoublePage
             ? _buildDoublePageSlots(widget.entries)
-            : const <_ColumnDoublePageSlot>[];
+            : const <ReadModeDoublePageSlot>[];
         final slotCount = _isDoublePage
             ? doublePageSlots.length
             : widget.entries.length;
@@ -222,7 +155,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     double imageWidth,
     double shortEdge,
     Color backgroundColor, {
-    List<_ColumnDoublePageSlot>? doublePageSlots,
+    List<ReadModeDoublePageSlot>? doublePageSlots,
   }) {
     if (_isDoublePage) {
       final slot = doublePageSlots![index];
@@ -237,28 +170,17 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     }
 
     final entry = widget.entries[index];
-    if (entry.type == ColumnModeEntryType.transition) {
-      return Container(
-        color: backgroundColor,
-        width: containerWidth,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        child: SizedBox(
-          width: shortEdge,
-          height: shortEdge,
-          child: ChapterTransitionCard(
-            previousChapterOrder: entry.previousChapterOrder,
-            previousChapterTitle: entry.previousChapterTitle,
-            nextChapterOrder: entry.chapterOrder,
-            nextChapterTitle: entry.chapterTitle,
-            transitionStatus: entry.transitionStatus,
-            backgroundColor: backgroundColor,
-            minHeight: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            lineSpacing: 24,
-            onTap: () => widget.onTransitionAction?.call(entry.chapterOrder),
-          ),
-        ),
+    if (entry.type == ReadModeEntryType.transition) {
+      return buildReadModeTransitionItem(
+        entry: entry,
+        backgroundColor: backgroundColor,
+        onTap: () => widget.onTransitionAction?.call(entry.chapterOrder),
+        containerWidth: containerWidth,
+        fixedCardSize: Size(shortEdge, shortEdge),
+        outerPadding: const EdgeInsets.symmetric(vertical: 18),
+        cardPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        minHeight: 0,
+        lineSpacing: 24,
       );
     }
 
@@ -289,7 +211,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
   Widget _buildDoublePageItem(
     BuildContext context, {
-    required _ColumnDoublePageSlot slot,
+    required ReadModeDoublePageSlot slot,
     required double containerWidth,
     required double contentWidth,
     required double shortEdge,
@@ -297,27 +219,16 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
   }) {
     if (slot.transition != null) {
       final entry = slot.transition!.entry;
-      return Container(
-        color: backgroundColor,
-        width: containerWidth,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        child: SizedBox(
-          width: shortEdge,
-          height: shortEdge,
-          child: ChapterTransitionCard(
-            previousChapterOrder: entry.previousChapterOrder,
-            previousChapterTitle: entry.previousChapterTitle,
-            nextChapterOrder: entry.chapterOrder,
-            nextChapterTitle: entry.chapterTitle,
-            transitionStatus: entry.transitionStatus,
-            backgroundColor: backgroundColor,
-            minHeight: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            lineSpacing: 24,
-            onTap: () => widget.onTransitionAction?.call(entry.chapterOrder),
-          ),
-        ),
+      return buildReadModeTransitionItem(
+        entry: entry,
+        backgroundColor: backgroundColor,
+        onTap: () => widget.onTransitionAction?.call(entry.chapterOrder),
+        containerWidth: containerWidth,
+        fixedCardSize: Size(shortEdge, shortEdge),
+        outerPadding: const EdgeInsets.symmetric(vertical: 18),
+        cardPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        minHeight: 0,
+        lineSpacing: 24,
       );
     }
 
@@ -398,40 +309,17 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     );
   }
 
-  List<_ColumnDoublePageSlot> _buildDoublePageSlots(
+  List<ReadModeDoublePageSlot> _buildDoublePageSlots(
     List<ColumnModeEntry> entries,
   ) {
-    final slots = <_ColumnDoublePageSlot>[];
-    var i = 0;
-    while (i < entries.length) {
-      final current = entries[i];
-      if (current.type == ColumnModeEntryType.transition) {
-        slots.add(
-          _ColumnDoublePageSlot.transition(
-            _ColumnSlotItem(entryIndex: i, entry: current),
-          ),
-        );
-        i++;
-        continue;
-      }
-
-      final left = _ColumnSlotItem(entryIndex: i, entry: current);
-      i++;
-      _ColumnSlotItem? right;
-      if (i < entries.length && entries[i].type == ColumnModeEntryType.image) {
-        right = _ColumnSlotItem(entryIndex: i, entry: entries[i]);
-        i++;
-      }
-      slots.add(_ColumnDoublePageSlot.images(left: left, right: right));
-    }
-    return slots;
+    return buildReadModeDoublePageSlots(entries);
   }
 
   Widget _buildColumnImage({
     required int index,
     required ColumnModeEntry entry,
   }) {
-    if (entry.type != ColumnModeEntryType.image ||
+    if (entry.type != ReadModeEntryType.image ||
         entry.doc == null ||
         entry.chapterId == null) {
       return const SizedBox.shrink();
@@ -464,7 +352,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     required int fallbackIndex,
   }) {
     final localPageIndex = entry.chapterLocalPageIndex;
-    if (entry.type != ColumnModeEntryType.image || localPageIndex == null) {
+    if (entry.type != ReadModeEntryType.image || localPageIndex == null) {
       return fallbackIndex;
     }
     return resolveStableSizeCacheIndex(
@@ -488,31 +376,4 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     final aspectRatio = cachedSize.height / cachedSize.width;
     return (targetWidth * aspectRatio).clamp(1.0, double.infinity);
   }
-}
-
-class _ColumnSlotItem {
-  const _ColumnSlotItem({required this.entryIndex, required this.entry});
-
-  final int entryIndex;
-  final ColumnModeEntry entry;
-}
-
-class _ColumnDoublePageSlot {
-  const _ColumnDoublePageSlot._({
-    required this.transition,
-    required this.left,
-    required this.right,
-  });
-
-  const _ColumnDoublePageSlot.transition(_ColumnSlotItem transition)
-    : this._(transition: transition, left: null, right: null);
-
-  const _ColumnDoublePageSlot.images({
-    required _ColumnSlotItem left,
-    _ColumnSlotItem? right,
-  }) : this._(transition: null, left: left, right: right);
-
-  final _ColumnSlotItem? transition;
-  final _ColumnSlotItem? left;
-  final _ColumnSlotItem? right;
 }

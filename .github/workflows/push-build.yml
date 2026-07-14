@@ -70,16 +70,6 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
-      - name: 设置 Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-
       - name: 安装 Rust (Android 目标)
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -202,16 +192,6 @@ jobs:
           export PATH="$PATH:$HOME/.pub-cache/bin"
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
-
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
-      - name: 设置 Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
@@ -437,16 +417,6 @@ jobs:
           workspaces: |
             rust
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
-      - name: 设置 Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-
       - name: 拉取依赖 & 修复 Podfile
         run: |
           fvm flutter pub get
@@ -567,16 +537,6 @@ jobs:
         with:
           workspaces: |
             rust
-
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
-      - name: 设置 Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
 
       - name: 编译 iOS (无签)
         run: |

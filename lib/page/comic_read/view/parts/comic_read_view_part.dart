@@ -18,38 +18,60 @@ extension _ComicReadViewPart on _ComicReadPageState {
 
   Widget _pageCountWidget() {
     final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
-    final seamlessEnabled = _isSeamlessEnabled(readSetting);
+    final seamlessCubit = context.read<ReaderSeamlessCubit>();
+    final seamlessEnabled = seamlessCubit.isSeamlessEnabled();
     return PageCountWidget(
       epPages: epInfo.epPages,
       getCurrentChapterStartSlot: seamlessEnabled
-          ? () => _currentChapterStartSlot
+          ? () => seamlessCubit.currentChapterStartSlot
           : null,
       getCurrentChapterSlotCount: seamlessEnabled
-          ? _effectiveCurrentChapterSlotCount
+          ? () => seamlessCubit.effectiveCurrentChapterSlotCount()
           : null,
       isTransitionSlot: seamlessEnabled
-          ? (globalSlot) => _isTransitionGlobalSlot(globalSlot, readSetting)
+          ? (globalSlot) =>
+                seamlessCubit.isTransitionSlot(globalSlot, readSetting)
           : null,
     );
   }
 
   Widget _bottomWidget() {
     final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
-    final seamlessEnabled = _isSeamlessEnabled(readSetting);
+    final seamlessCubit = context.read<ReaderSeamlessCubit>();
+    final seamlessEnabled = seamlessCubit.isSeamlessEnabled();
     final slider = SliderWidget(
       observerController: observerController,
       pageController: _pageController,
       getCurrentChapterSlotCount: seamlessEnabled
-          ? _effectiveCurrentChapterSlotCount
+          ? () => seamlessCubit.effectiveCurrentChapterSlotCount()
           : null,
       mapGlobalToLocalSlot: seamlessEnabled
-          ? _mapGlobalToCurrentChapterLocalSlot
+          ? seamlessCubit.mapGlobalToLocalSlot
           : null,
       mapLocalToGlobalSlot: seamlessEnabled
-          ? _mapCurrentChapterLocalToGlobalSlot
+          ? seamlessCubit.mapLocalToGlobalSlot
           : null,
       isTransitionSlot: seamlessEnabled
-          ? (globalSlot) => _isTransitionGlobalSlot(globalSlot, readSetting)
+          ? (globalSlot) =>
+                seamlessCubit.isTransitionSlot(globalSlot, readSetting)
+          : null,
+      estimateColumnOffset: seamlessEnabled
+          ? (globalSlot) {
+              final imageSizeCubit = context.read<ImageSizeCubit>();
+              final viewportWidth = MediaQuery.sizeOf(context).width;
+              final contentWidth = getConstrainedImageWidth(
+                containerWidth: viewportWidth,
+                enableSidePadding: readSetting.sidePaddingEnabled,
+                sidePaddingPercent: readSetting.sidePaddingPercent,
+              );
+              final height = seamlessCubit.estimateColumnHeightBeforeGlobalSlot(
+                globalSlot,
+                readSetting,
+                imageSizeCubit,
+                contentWidth,
+              );
+              return height + MediaQuery.of(context).padding.top + 5.0;
+            }
           : null,
     );
 
@@ -75,16 +97,17 @@ extension _ComicReadViewPart on _ComicReadPageState {
     if (!shouldScroll) {
       if (_isHistory || isSkipped) return;
       final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
-      if (!_isSeamlessEnabled(readSetting)) {
+      final seamlessCubit = context.read<ReaderSeamlessCubit>();
+      if (!seamlessCubit.isSeamlessEnabled()) {
         isSkipped = true;
         return;
       }
 
       final totalSlots = context.read<ReaderCubit>().state.totalSlots;
       if (totalSlots <= 0) return;
-      final targetIndex = _resolveEntryDefaultGlobalSlot(
-        readSetting,
-      ).clamp(0, totalSlots - 1);
+      final targetIndex = seamlessCubit
+          .resolveEntryDefaultGlobalSlot(readSetting)
+          .clamp(0, totalSlots - 1);
       if (targetIndex == 0) {
         isSkipped = true;
         return;
@@ -93,18 +116,7 @@ extension _ComicReadViewPart on _ComicReadPageState {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(Duration.zero);
         if (!mounted) return;
-        final cubit = context.read<ReaderCubit>();
-        cubit.updatePageIndex(targetIndex);
-        cubit.updateSliderChanged(targetIndex.toDouble());
-
-        if (isColumnReadMode(readSetting.readMode)) {
-          observerController.jumpTo(
-            index: targetIndex,
-            offset: (offset) => MediaQuery.of(context).padding.top + 5.0,
-          );
-        } else {
-          _pageController.jumpToPage(targetIndex);
-        }
+        await _jumpToGlobalSlot(targetIndex);
         isSkipped = true;
       });
       return;
@@ -115,8 +127,8 @@ extension _ComicReadViewPart on _ComicReadPageState {
       await Future.delayed(Duration.zero);
       if (!mounted) return;
 
-      final cubit = context.read<ReaderCubit>();
       final globalSettingState = context.read<GlobalSettingCubit>().state;
+      final cubit = context.read<ReaderCubit>();
       final totalSlots = cubit.state.totalSlots;
       if (totalSlots <= 0) return;
 
@@ -125,23 +137,15 @@ extension _ComicReadViewPart on _ComicReadPageState {
         storedHistoryPage: historyIndex,
         enableDoublePage: enableDoublePage,
       );
-      if (_isSeamlessEnabled(globalSettingState.readSetting)) {
-        targetIndex = _resolveHistoryGlobalSlotWithTransitions(
-          baseGlobalSlot: targetIndex,
-          readSetting: globalSettingState.readSetting,
+      final seamlessCubit = context.read<ReaderSeamlessCubit>();
+      if (seamlessCubit.isSeamlessEnabled()) {
+        targetIndex = seamlessCubit.resolveHistoryGlobalSlot(
+          targetIndex,
+          globalSettingState.readSetting,
         );
       }
       targetIndex = targetIndex.clamp(0, totalSlots - 1);
-      cubit.updatePageIndex(targetIndex);
-
-      if (isColumnReadMode(globalSettingState.readSetting.readMode)) {
-        observerController.jumpTo(
-          index: targetIndex,
-          offset: (offset) => MediaQuery.of(context).padding.top + 5.0,
-        );
-      } else {
-        _pageController.jumpToPage(targetIndex);
-      }
+      await _jumpToGlobalSlot(targetIndex);
       isSkipped = true;
     });
   }

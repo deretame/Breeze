@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/controller/reader_action_controller.dart';
 import 'package:zephyr/util/volume_key_handler.dart';
 
@@ -21,6 +22,17 @@ class ReaderVolumeController {
     if (!Platform.isAndroid) return;
     disableInterception();
     _subscription?.cancel();
+  }
+
+  /// 根据设置和菜单状态同步是否拦截音量键。
+  void sync(ReadSettingState readSetting, bool isMenuVisible) {
+    if (!Platform.isAndroid) return;
+    final shouldEnable = readSetting.volumeKeyPageTurn && !isMenuVisible;
+    if (shouldEnable) {
+      enableInterception();
+    } else {
+      disableInterception();
+    }
   }
 
   void enableInterception() {

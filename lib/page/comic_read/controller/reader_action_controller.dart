@@ -160,15 +160,20 @@ class ReaderActionController {
 
       final double currentOffset = scrollController.offset;
       final double targetOffset = currentOffset + offset;
-
-      scrollController.animateTo(
-        targetOffset.clamp(
-          scrollController.position.minScrollExtent,
-          scrollController.position.maxScrollExtent,
-        ),
-        duration: Duration(milliseconds: durationMs),
-        curve: Curves.easeOutQuad,
+      final clampedOffset = targetOffset.clamp(
+        scrollController.position.minScrollExtent,
+        scrollController.position.maxScrollExtent,
       );
+
+      if (_noAnimation) {
+        scrollController.jumpTo(clampedOffset);
+      } else {
+        scrollController.animateTo(
+          clampedOffset,
+          duration: Duration(milliseconds: durationMs),
+          curve: Curves.easeOutQuad,
+        );
+      }
     }
   }
 

@@ -25,6 +25,16 @@ extension _ComicReadInitPart on _ComicReadPageState {
     );
   }
 
+  // 初始化自动阅读控制器。
+  void _initAutoReadController() {
+    _autoReadController = ReaderAutoReadController();
+  }
+
+  // 初始化系统 UI 控制器。
+  void _initSystemUiController() {
+    _systemUiController = ReaderSystemUiController();
+  }
+
   // 初始化音量键翻页控制，并监听设置项热更新。
   void _initVolumeController() {
     _volumeController = ReaderVolumeController(
@@ -56,8 +66,9 @@ extension _ComicReadInitPart on _ComicReadPageState {
       getPageIndex: () {
         final setting = context.read<GlobalSettingCubit>().state.readSetting;
         final globalSlotIndex = context.read<ReaderCubit>().state.pageIndex;
-        final slotIndex = _isSeamlessEnabled(setting)
-            ? _mapGlobalToCurrentChapterLocalSlot(globalSlotIndex)
+        final seamlessCubit = context.read<ReaderSeamlessCubit>();
+        final slotIndex = seamlessCubit.isSeamlessEnabled()
+            ? seamlessCubit.mapGlobalToLocalSlot(globalSlotIndex)
             : globalSlotIndex;
         final enableDoublePage = setting.doublePageMode;
         return getStoredHistoryPageIndex(
@@ -90,6 +101,28 @@ extension _ComicReadInitPart on _ComicReadPageState {
     });
   }
 
+  // 根据当前章节 order 同步 JumpChapter 和 epInfo，供章节选择器/上下章跳转使用。
+  void _syncJumpChapterState({required int order}) {
+    final seamlessCubit = context.read<ReaderSeamlessCubit>();
+    final ref = seamlessCubit.chapterRefByOrder(order);
+    final chapter = seamlessCubit.state.loadedChapters.firstWhere(
+      (item) => item.order == order,
+      orElse: () => seamlessCubit.state.loadedChapters.first,
+    );
+    if (ref != null) {
+      _jumpChapter.order = order;
+      _jumpChapter.chapterId = ref.id;
+      _jumpChapter.requestId = ref.requestId;
+      _jumpChapter.storageChapterId = ref.storageChapterId;
+      _jumpChapter.logicalKey = ref.logicalKey;
+      _jumpChapter.chapterExtern = Map<String, dynamic>.from(ref.extern);
+      final index = seamlessCubit.catalogIndexByOrder(order);
+      _jumpChapter.havePrev = index > 0;
+      _jumpChapter.haveNext = index < seamlessCubit.catalogLength - 1;
+    }
+    epInfo = chapter.epInfo;
+  }
+
   // 章节跳转器集中初始化，后续查找和替换更快。
   void _initJumpChapter(bool isMenuVisible) {
     _jumpChapter = JumpChapter.create(
@@ -106,36 +139,15 @@ extension _ComicReadInitPart on _ComicReadPageState {
       comicId,
       widget.from,
     );
-    if (_chapterRefs.isEmpty && _jumpChapter.chapters.isNotEmpty) {
-      _chapterRefs = List<UnifiedComicChapterRef>.from(_jumpChapter.chapters);
-      _chapterOrderToCatalogIndex
-        ..clear()
-        ..addEntries(
-          _chapterRefs.asMap().entries.map(
-            (entry) => MapEntry(entry.value.order, entry.key),
-          ),
-        );
-    }
   }
 
   // 集中释放资源，避免退出后残留订阅和计时器。
   Future<void> _disposeReaderResources() async {
-    _cleanTimer?.cancel();
-    _autoReadTimer?.cancel();
     _menuVisibleSubscription?.cancel();
     _volumeKeyPageTurnSubscription?.cancel();
-    _systemUiSyncTimer?.cancel();
-
-    if (_isAndroid) {
-      await const MethodChannel(
-        'system_ui_control',
-      ).invokeMethod('showSystemBars');
-    } else {
-      await SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      );
-    }
+    _autoReadController.dispose();
+    _systemUiController.dispose();
+    await _systemUiController.restoreSystemBars();
     if (_isDesktopPlatform) {
       unawaited(_restoreDesktopFullscreen());
     }

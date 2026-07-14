@@ -6,74 +6,33 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
     required ReadSettingState readSetting,
     required int readMode,
   }) {
-    final enabled = readSetting.autoScroll;
-    final intervalMs =
-        (readMode == 0
-                ? readSetting.autoScrollColumnIntervalMs
-                : readSetting.autoScrollPageIntervalMs)
-            .clamp(300, 10000);
-    final wasEnabled = _lastAutoScrollEnabled;
-    final configChanged =
-        _lastAutoScrollEnabled != enabled ||
-        _lastAutoReadIntervalMs != intervalMs ||
-        _lastAutoReadMode != readMode;
-
-    _lastAutoScrollEnabled = enabled;
-    _lastAutoReadIntervalMs = intervalMs;
-    _lastAutoReadMode = readMode;
-
-    if (!enabled) {
-      _autoReadTimer?.cancel();
-      return;
-    }
-
-    if (!wasEnabled) {
-      _isAutoReadPaused = false;
-    }
-
-    if (_isAutoReadPaused) {
-      _autoReadTimer?.cancel();
-      return;
-    }
-
-    if (configChanged || _autoReadTimer == null || !_autoReadTimer!.isActive) {
-      _startAutoReadTimer(intervalMs);
-    }
-  }
-
-  // 自动阅读 tick 仅在页面静止且菜单隐藏时推进。
-  void _startAutoReadTimer(int intervalMs) {
-    _autoReadTimer?.cancel();
-    _autoReadTimer = Timer.periodic(Duration(milliseconds: intervalMs), (_) {
-      if (!mounted) return;
-      final readerState = context.read<ReaderCubit>().state;
-      if (readerState.isMenuVisible ||
-          readerState.isSliderRolling ||
-          readerState.isComicRolling) {
-        return;
-      }
-      _actionController.onAutoReadTick();
-    });
+    _autoReadController.sync(
+      readSetting: readSetting,
+      readMode: readMode,
+      canTick: () {
+        final readerState = context.read<ReaderCubit>().state;
+        return !readerState.isMenuVisible &&
+            !readerState.isSliderRolling &&
+            !readerState.isComicRolling;
+      },
+      onTick: _actionController.onAutoReadTick,
+    );
   }
 
   // 仅暂停计时，不改动用户设置项本身。
   void _toggleAutoReadPaused() {
-    _refreshState(() {
-      _isAutoReadPaused = !_isAutoReadPaused;
-    });
-
-    if (_isAutoReadPaused) {
-      _autoReadTimer?.cancel();
-      return;
-    }
-
-    final globalSettingState = context.read<GlobalSettingCubit>().state;
-    final intervalMs =
-        (globalSettingState.readSetting.readMode == 0
-                ? globalSettingState.readSetting.autoScrollColumnIntervalMs
-                : globalSettingState.readSetting.autoScrollPageIntervalMs)
-            .clamp(300, 10000);
-    _startAutoReadTimer(intervalMs);
+    _refreshState(() {});
+    _autoReadController.togglePaused(
+      readSetting: context.read<GlobalSettingCubit>().state.readSetting,
+      readMode: context.read<GlobalSettingCubit>().state.readSetting.readMode,
+      canTick: () {
+        final readerState = context.read<ReaderCubit>().state;
+        return !readerState.isMenuVisible &&
+            !readerState.isSliderRolling &&
+            !readerState.isComicRolling;
+      },
+      onTick: _actionController.onAutoReadTick,
+    );
   }
 
   // 自动阅读悬浮控制按钮。
@@ -99,7 +58,7 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
               bottom: (isMenuVisible ? 122.0 : 14.0) + bottomSafe,
               child: FloatingActionButton.small(
                 heroTag: 'comic_auto_read_toggle',
-                tooltip: _isAutoReadPaused
+                tooltip: _autoReadController.isPaused
                     ? t.reader.resumeAutoRead
                     : t.reader.pauseAutoRead,
                 onPressed: _toggleAutoReadPaused,
@@ -109,10 +68,10 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
                     return ScaleTransition(scale: animation, child: child);
                   },
                   child: Icon(
-                    _isAutoReadPaused
+                    _autoReadController.isPaused
                         ? Icons.play_arrow_rounded
                         : Icons.pause_rounded,
-                    key: ValueKey(_isAutoReadPaused),
+                    key: ValueKey(_autoReadController.isPaused),
                   ),
                 ),
               ),

@@ -3,8 +3,6 @@ part of '../comic_read.dart';
 extension _ComicReadSystemUiPart on _ComicReadPageState {
   bool get _isAndroid => !kIsWeb && Platform.isAndroid;
 
-  static const _systemUiChannel = MethodChannel('system_ui_control');
-
   void _toggleVisibility() {
     final cubit = context.read<ReaderCubit>();
     cubit.updateMenuVisible();
@@ -16,24 +14,16 @@ extension _ComicReadSystemUiPart on _ComicReadPageState {
     if (!_isAndroid) return;
     final globalSettingState = context.read<GlobalSettingCubit>().state;
     final isMenuVisible = context.read<ReaderCubit>().state.isMenuVisible;
-    final shouldEnable =
-        globalSettingState.readSetting.volumeKeyPageTurn && !isMenuVisible;
-
-    if (shouldEnable) {
-      _volumeController.enableInterception();
-    } else {
-      _volumeController.disableInterception();
-    }
+    _volumeController.sync(globalSettingState.readSetting, isMenuVisible);
   }
 
   void _scheduleSystemUiSync({
     Duration delay = const Duration(milliseconds: 24),
   }) {
-    _systemUiSyncTimer?.cancel();
-    _systemUiSyncTimer = Timer(delay, () {
+    _systemUiController.scheduleSync(() {
       if (!mounted) return;
       _syncSystemUi(force: true);
-    });
+    }, delay: delay);
   }
 
   void _syncSystemUi({bool force = false}) {
@@ -45,24 +35,6 @@ extension _ComicReadSystemUiPart on _ComicReadPageState {
     bool isMenuVisible, {
     bool force = false,
   }) async {
-    if (!force && _lastMenuVisible == isMenuVisible) return;
-    _lastMenuVisible = isMenuVisible;
-
-    if (isMenuVisible) {
-      if (_isAndroid) {
-        await _systemUiChannel.invokeMethod('showSystemBars');
-      } else {
-        await SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-        );
-      }
-    } else {
-      if (_isAndroid) {
-        await _systemUiChannel.invokeMethod('hideSystemBars');
-      } else {
-        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-      }
-    }
+    await _systemUiController.applyVisibility(isMenuVisible, force: force);
   }
 }

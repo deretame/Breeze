@@ -21,6 +21,7 @@ class SliderWidget extends StatefulWidget {
   final int Function(int localSlot)? mapLocalToGlobalSlot;
   final bool Function(int globalSlot)? isTransitionSlot;
   final String transitionLabel;
+  final double Function(int globalSlot)? estimateColumnOffset;
 
   const SliderWidget({
     super.key,
@@ -31,6 +32,7 @@ class SliderWidget extends StatefulWidget {
     this.mapLocalToGlobalSlot,
     this.isTransitionSlot,
     this.transitionLabel = '',
+    this.estimateColumnOffset,
   });
 
   @override
@@ -276,17 +278,23 @@ class _SliderWidgetState extends State<SliderWidget> {
     final scrollController = widget.observerController.controller;
     if (scrollController != null && scrollController.hasClients) {
       try {
-        final viewportWidth = MediaQuery.sizeOf(context).width;
-        final contentWidth = getConstrainedImageWidth(
-          containerWidth: viewportWidth,
-          enableSidePadding: readSetting.sidePaddingEnabled,
-          sidePaddingPercent: readSetting.sidePaddingPercent,
-        );
-        final roughOffset = getOffset(
-          context,
-          targetGlobalSlot,
-          imageWidth: contentWidth,
-        );
+        final double roughOffset;
+        final estimate = widget.estimateColumnOffset;
+        if (estimate != null) {
+          roughOffset = estimate(targetGlobalSlot);
+        } else {
+          final viewportWidth = MediaQuery.sizeOf(context).width;
+          final contentWidth = getConstrainedImageWidth(
+            containerWidth: viewportWidth,
+            enableSidePadding: readSetting.sidePaddingEnabled,
+            sidePaddingPercent: readSetting.sidePaddingPercent,
+          );
+          roughOffset = getOffset(
+            context,
+            targetGlobalSlot,
+            imageWidth: contentWidth,
+          );
+        }
         final maxScrollExtent = scrollController.position.maxScrollExtent;
         scrollController.jumpTo(roughOffset.clamp(0.0, maxScrollExtent));
         jumpedByOffset = true;

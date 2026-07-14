@@ -14,13 +14,11 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_seamless_cubit.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_seamless_state.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/method/key.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
-import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
-import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
-import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/desktop/desktop_fullscreen_controller.dart';
 import 'package:zephyr/type/enum.dart';
@@ -36,8 +34,6 @@ part 'parts/comic_read_interaction_part.dart';
 part 'parts/comic_read_system_ui_part.dart';
 // 页面拼装与历史定位相关。
 part 'parts/comic_read_view_part.dart';
-// 竖向章节半无缝拼接与章节范围映射。
-part 'parts/comic_read_seamless_part.dart';
 
 @RoutePage()
 class ComicReadPage extends StatelessWidget {
@@ -93,6 +89,15 @@ class ComicReadPage extends StatelessWidget {
         ),
         BlocProvider.value(value: stringSelectCubit),
         BlocProvider(create: (_) => ReaderCubit()),
+        BlocProvider(
+          create: (_) => ReaderSeamlessCubit(
+            comicId: comicId,
+            from: from,
+            type: type,
+            comicInfo: comicInfo,
+            initialOrder: order,
+          ),
+        ),
       ],
       child: _ComicReadPage(
         comicId: comicId,
@@ -152,12 +157,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
   final _pageController = PageController(initialPage: 0); // 横版阅读器
   TapDownDetails? _tapDownDetails; // 保存点击信息
   TapDownDetails? _doubleTapDownDetails;
-  Timer? _cleanTimer; // 用来清理图片缓存的定时器
-  Timer? _autoReadTimer;
   late JumpChapter _jumpChapter; // 用来跳转章节的通用类
   late final ReaderActionController _actionController; // 统一动作控制器
   late final ReaderVolumeController _volumeController; // 音量键翻页控制器
   late final ReaderHistoryManager _historyManager; // 历史记录管理器
+  late final ReaderAutoReadController _autoReadController; // 自动阅读控制器
+  late final ReaderSystemUiController _systemUiController; // 系统 UI 控制器
   NormalComicEpInfo epInfo = NormalComicEpInfo(); // 通用漫画章节信息
   NormalComicEpInfo _initialEpInfo = NormalComicEpInfo();
   late final ListObserverController observerController; // 列表观察控制器
@@ -167,26 +172,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
   final FocusNode _readerFocusNode = FocusNode(); // 阅读器焦点节点
   StreamSubscription<bool>? _menuVisibleSubscription;
   StreamSubscription<bool>? _volumeKeyPageTurnSubscription;
-  Timer? _systemUiSyncTimer;
-  bool? _lastMenuVisible;
-  bool _isAutoReadPaused = false;
-  bool _lastAutoScrollEnabled = false;
-  int _lastAutoReadIntervalMs = 0;
-  int _lastAutoReadMode = -1;
   bool _hasBootstrappedReadState = false;
   bool _isDesktopFullscreen = false;
-  late List<UnifiedComicChapterRef> _chapterRefs;
-  late Map<int, int> _chapterOrderToCatalogIndex;
-  final List<_LoadedChapterData> _loadedChapters = <_LoadedChapterData>[];
-  final Set<int> _loadingChapterOrders = <int>{};
-  final Set<int> _prefetchingChapterOrders = <int>{};
-  final Map<int, NormalComicEpInfo> _prefetchedChapterInfoByOrder =
-      <int, NormalComicEpInfo>{};
-  final Set<int> _visibleTransitionNextOrders = <int>{};
-  final Map<int, SeamlessTransitionStatus> _transitionStatusByNextOrder =
-      <int, SeamlessTransitionStatus>{};
-  int _currentChapterStartSlot = 0;
-  int _currentChapterSlotCount = 0;
   final TransformationController _transformationController =
       TransformationController();
   final Set<int> _activeTouchPointers = <int>{};
@@ -206,11 +193,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _transformationController.addListener(_onTransformationChanged);
     observerController = ListObserverController(controller: scrollController);
     _type = widget.type;
-    _initChapterCatalog();
     final cubit = context.read<ReaderCubit>();
 
     _initMenuVisibilitySubscription(cubit);
     _initActionController();
+    _initAutoReadController();
+    _initSystemUiController();
     _initVolumeController();
     _initHistoryManager();
     _postFrameBootstrap(cubit);
@@ -226,53 +214,73 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: BlocBuilder<PageBloc, PageState>(
-      builder: (context, state) {
-        switch (state.status) {
-          case PageStatus.initial:
-            return const Center(child: CircularProgressIndicator());
-          case PageStatus.failure:
-            return ComicErrorWidget(
-              state: state,
-              event: PageEvent(
-                comicId,
-                widget.order,
-                widget.chapterId,
-                widget.requestId,
-                widget.storageChapterId,
-                widget.logicalKey,
-                widget.chapterExtern,
-                widget.from,
-                widget.type,
-                comicInfo: comicInfo,
-              ),
-            );
-          case PageStatus.success:
-            if (!_hasBootstrappedReadState) {
-              _hasBootstrappedReadState = true;
-              epInfo = state.epInfo!;
-              _initialEpInfo = state.epInfo!;
-              _bootstrapInitialChapterFeed(epInfo);
-            }
-            return ComicReadSuccessWidget(
-              comicId: comicId,
-              from: widget.from,
-              epInfo: _initialEpInfo,
-              resolveTotalSlots: _resolveTotalSlots,
-              buildInteractiveViewer: (_) => _buildInteractiveViewer(),
-              buildPageCount: (_) => _pageCountWidget(),
-              buildAppBar: (_) => _comicReadAppBar(),
-              buildBottom: (_) => _bottomWidget(),
-              buildAutoReadControl: (_) => _autoReadControlWidget(),
-              onReady: (innerContext, readSetting, readMode) {
-                _syncAutoRead(readSetting: readSetting, readMode: readMode);
-                _imageSizeContext = innerContext;
-                _historyManager.markLoaded();
-                _handleHistoryScroll();
-              },
-            );
+    body: BlocListener<ReaderSeamlessCubit, ReaderSeamlessState>(
+      listener: (context, seamlessState) {
+        final order = seamlessState.currentChapterOrder;
+        if (order != null && order != _jumpChapter.order) {
+          _syncJumpChapterState(order: order);
         }
+        // 章节加载/卸载会改变总槽位和条目，触发重建以同步 ReaderCubit.totalSlots。
+        setState(() {});
       },
+      child: BlocBuilder<PageBloc, PageState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case PageStatus.initial:
+              return const Center(child: CircularProgressIndicator());
+            case PageStatus.failure:
+              return ComicErrorWidget(
+                state: state,
+                event: PageEvent(
+                  comicId,
+                  widget.order,
+                  widget.chapterId,
+                  widget.requestId,
+                  widget.storageChapterId,
+                  widget.logicalKey,
+                  widget.chapterExtern,
+                  widget.from,
+                  widget.type,
+                  comicInfo: comicInfo,
+                ),
+              );
+            case PageStatus.success:
+              if (!_hasBootstrappedReadState) {
+                _hasBootstrappedReadState = true;
+                epInfo = state.epInfo!;
+                _initialEpInfo = state.epInfo!;
+                final readSetting = context
+                    .read<GlobalSettingCubit>()
+                    .state
+                    .readSetting;
+                context.read<ReaderSeamlessCubit>().bootstrap(
+                  epInfo,
+                  widget.order,
+                  readSetting,
+                );
+              }
+              return ComicReadSuccessWidget(
+                comicId: comicId,
+                from: widget.from,
+                epInfo: _initialEpInfo,
+                resolveTotalSlots: (readSetting) => context
+                    .read<ReaderSeamlessCubit>()
+                    .resolveTotalSlots(readSetting),
+                buildInteractiveViewer: (_) => _buildInteractiveViewer(),
+                buildPageCount: (_) => _pageCountWidget(),
+                buildAppBar: (_) => _comicReadAppBar(),
+                buildBottom: (_) => _bottomWidget(),
+                buildAutoReadControl: (_) => _autoReadControlWidget(),
+                onReady: (innerContext, readSetting, readMode) {
+                  _syncAutoRead(readSetting: readSetting, readMode: readMode);
+                  _imageSizeContext = innerContext;
+                  _historyManager.markLoaded();
+                  _handleHistoryScroll();
+                },
+              );
+          }
+        },
+      ),
     ),
   );
   @override
@@ -305,5 +313,73 @@ class _ComicReadPageState extends State<_ComicReadPage>
     // 统一走这里触发刷新，避免在异步回调中误调用 setState。
     if (!mounted) return;
     setState(fn);
+  }
+
+  Future<void> _jumpToGlobalSlot(
+    int targetGlobalSlot, {
+    int prependedSlotCount = 0,
+  }) async {
+    if (!mounted) return;
+    final cubit = context.read<ReaderCubit>();
+    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final seamlessCubit = context.read<ReaderSeamlessCubit>();
+    final totalSlots = seamlessCubit.resolveTotalSlots(readSetting);
+    final maxSlot = (totalSlots - 1).clamp(0, 999999999);
+    final safeTarget = targetGlobalSlot.clamp(0, maxSlot);
+    cubit.updatePageIndex(safeTarget);
+    cubit.updateSliderChanged(safeTarget.toDouble());
+    seamlessCubit.applyCurrentChapterByGlobalSlot(safeTarget, readSetting);
+
+    final readMode = readSetting.readMode;
+    if (isColumnReadMode(readMode)) {
+      if (!scrollController.hasClients) return;
+
+      // 列模式：先根据已缓存/默认尺寸做粗略同步偏移，
+      // 再由 observerController.jumpTo 在 postFrame 做精确修正，
+      // 减弱历史恢复、滑动条跳转、章节拼接等场景的视觉跳变。
+      final imageContext = _imageSizeContext;
+      if (imageContext != null && imageContext.mounted) {
+        final imageSizeCubit = imageContext.read<ImageSizeCubit>();
+        final containerWidth = MediaQuery.of(context).size.width;
+        final contentWidth = getConstrainedImageWidth(
+          containerWidth: containerWidth,
+          enableSidePadding: readSetting.sidePaddingEnabled,
+          sidePaddingPercent: readSetting.sidePaddingPercent,
+        );
+        final estimatedHeight = seamlessCubit
+            .estimateColumnHeightBeforeGlobalSlot(
+              safeTarget,
+              readSetting,
+              imageSizeCubit,
+              contentWidth,
+            );
+        if (estimatedHeight > 0) {
+          final paddingTop = MediaQuery.of(context).padding.top + 5.0;
+          final newOffset = estimatedHeight + paddingTop;
+          scrollController.jumpTo(
+            newOffset.clamp(
+              scrollController.position.minScrollExtent,
+              scrollController.position.maxScrollExtent,
+            ),
+          );
+        }
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !scrollController.hasClients) return;
+        observerController.jumpTo(
+          index: safeTarget,
+          offset: (offset) => MediaQuery.of(context).padding.top + 5.0,
+        );
+      });
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(safeTarget);
+      }
+    });
   }
 }

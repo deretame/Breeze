@@ -28,6 +28,103 @@
 - `Buffer`
 - `TextEncoder`
 - `TextDecoder`
+- `Temporal`
+- `Intl`（时间向子集，见下方）
+
+## `Temporal`
+
+基于 [temporal-polyfill](https://github.com/fullcalendar/temporal-polyfill)（full 构建）提供的 Stage 4 Temporal API。
+
+常用类型：
+
+- `Temporal.Now`
+- `Temporal.Instant`
+- `Temporal.ZonedDateTime`
+- `Temporal.PlainDate`
+- `Temporal.PlainTime`
+- `Temporal.PlainDateTime`
+- `Temporal.PlainYearMonth`
+- `Temporal.PlainMonthDay`
+- `Temporal.Duration`
+
+```js
+const d = Temporal.PlainDate.from("2024-03-15");
+const zdt = Temporal.Now.zonedDateTimeISO("Asia/Shanghai");
+const later = d.add({ days: 7 });
+```
+
+### 备注
+
+- 依赖宿主侧时间向 `Intl.DateTimeFormat`（见下方 `Intl`）
+- 同时安装 `Date.prototype.toTemporalInstant`
+- 推荐日历：`iso8601` / `gregory`。非公历（农历、伊斯兰历等）**不保证**正确
+- Test262 built-ins：`cargo test --test test262_temporal -- --nocapture`（需先 clone `test262/`，见测试文件头注释）
+
+## `Intl`
+
+QuickJS 无内建 ECMA-402。宿主提供**时间向** Intl 子集，用于日期/时区格式化与 Temporal 支撑。
+
+### 已实现
+
+| API | 说明 |
+|-----|------|
+| `Intl.DateTimeFormat` | locale 日期时间格式化（`format` / `formatToParts` / `resolvedOptions`） |
+| `Intl.DateTimeFormat.supportedLocalesOf` | 最小实现（原样返回请求列表） |
+| `Intl.supportedValuesOf("timeZone")` | IANA 时区列表（含 primary 去重） |
+| `Intl.supportedValuesOf("calendar")` | 日历 id 列表（声明支持，非公历语义有限） |
+| `Intl.getCanonicalLocales` | 最小实现 |
+| `Date.prototype.toLocaleString` | 接到 `Intl.DateTimeFormat` |
+| `Date.prototype.toLocaleDateString` | 同上（默认日期字段） |
+| `Date.prototype.toLocaleTimeString` | 同上（默认时间字段） |
+
+### 实现要点
+
+- **时区**：`jiff`（IANA + 固定 offset 如 `+00:00`；常见 link 会 canonicalize，如 `Asia/Calcutta` → `Asia/Kolkata`，`Etc/GMT` → `UTC`）
+- **locale 格式**：ICU4X（`en-US` / `en-GB` / `zh-CN` / `ja-JP` 等习惯不同）
+- **选项**：支持 `dateStyle` / `timeStyle`、字段级选项、`hourCycle`（含 `h24` 午夜为 24）、lone option（如仅 `{ year: "numeric" }`）
+- **冲突**：`dateStyle`/`timeStyle` 与字段或 `timeZoneName` 同时出现时抛 `TypeError`
+
+```js
+const epoch = Date.UTC(2024, 8, 10, 15, 37, 20);
+
+new Intl.DateTimeFormat("zh-CN", {
+  dateStyle: "long",
+  timeZone: "Asia/Shanghai",
+}).format(epoch);
+
+new Intl.DateTimeFormat("en-GB", {
+  dateStyle: "short",
+  timeZone: "UTC",
+}).format(epoch);
+
+// 仅年份
+new Intl.DateTimeFormat("en", { year: "numeric", timeZone: "UTC" }).format(epoch);
+// => "2024"
+```
+
+### 明确不支持
+
+- `Intl.Collator`（排序）
+- `Intl.NumberFormat` / 货币 / 单位
+- `Intl.PluralRules` / `RelativeTimeFormat` / `ListFormat` 等
+- 完整非公历日历运算（chinese / dangi / islamic-umalqura 等）
+
+插件若只需「按地区习惯显示时间、做时区换算」，用本子集即可；不要依赖排序/货币类 Intl。
+
+### 测试
+
+```bash
+# 时间向 Intl smoke（locale / 别名 / h24 / offset / 选项冲突）
+cargo test --test intl_datetime_smoke
+
+# Temporal built-ins（默认不含 intl402）
+cargo test --test test262_temporal -- --nocapture
+
+# 可选：intl402 Temporal（非公历大量 expected 失败属已知范围）
+# TEST262_INCLUDE_INTL402=1 cargo test --test test262_temporal -- --nocapture
+```
+
+更多实现说明见 `docs/intl.md`。
 
 ## `fetch`
 

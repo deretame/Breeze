@@ -47,6 +47,7 @@ mod bridge_crypto;
 mod crypto_ops;
 mod fs_ops;
 mod http;
+mod intl;
 mod native_buffer;
 mod state;
 mod url_headers;
@@ -93,6 +94,8 @@ const WEB_POLYFILL_CORE: &str = concat!(
     "\n",
     include_str!("../js/06_url.js"),
     "\n",
+    include_str!("../js/07_intl.js"),
+    "\n",
     include_str!("../js/10_headers.js"),
     "\n",
     include_str!("../js/20_abort.js"),
@@ -106,6 +109,8 @@ const WEB_POLYFILL_CORE: &str = concat!(
     include_str!("../js/63_stack_hook.js"),
     "\n",
     include_str!("../js/65_console.js"),
+    "\n",
+    include_str!("../js/70_temporal.js"),
     "\n"
 );
 
@@ -121,6 +126,8 @@ pub const WEB_POLYFILL: &str = concat!(
     "\n",
     include_str!("../js/06_url.js"),
     "\n",
+    include_str!("../js/07_intl.js"),
+    "\n",
     include_str!("../js/10_headers.js"),
     "\n",
     include_str!("../js/20_abort.js"),
@@ -134,6 +141,8 @@ pub const WEB_POLYFILL: &str = concat!(
     include_str!("../js/63_stack_hook.js"),
     "\n",
     include_str!("../js/65_console.js"),
+    "\n",
+    include_str!("../js/70_temporal.js"),
     "\n",
     include_str!("../js/99_exports.js"),
     "\n"
@@ -225,6 +234,30 @@ pub fn install_host_bindings(
     globals.set("__native_buffer_free", Func::from(native_buffer_free))?;
     globals.set("__native_exec", Func::from(native_exec))?;
     globals.set("__native_exec_chain", Func::from(native_exec_chain))?;
+    globals.set(
+        "__intl_system_time_zone",
+        Func::from(intl::intl_system_time_zone),
+    )?;
+    globals.set(
+        "__intl_canonicalize_time_zone",
+        Func::from(intl::intl_canonicalize_time_zone),
+    )?;
+    globals.set(
+        "__intl_dtf_format_to_parts",
+        Func::from(intl::intl_dtf_format_to_parts),
+    )?;
+    globals.set(
+        "__intl_dtf_format",
+        Func::from(intl::intl_dtf_format),
+    )?;
+    globals.set(
+        "__intl_dtf_resolved_options",
+        Func::from(intl::intl_dtf_resolved_options),
+    )?;
+    globals.set(
+        "__intl_supported_values_of",
+        Func::from(intl::intl_supported_values_of),
+    )?;
     let runtime_name_for_host_call = runtime_name.clone();
     globals.set(
         "__host_call",

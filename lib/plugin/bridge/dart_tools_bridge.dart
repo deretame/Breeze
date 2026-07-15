@@ -16,7 +16,7 @@ void _register(
   registerFunction(functionName: functionName, dartCallback: dartCallback);
 }
 
-Future<void> registerDartTools() async {
+void registerDartTools() {
   _register("dart.getAppVersion", (_) async {
     return jsonEncode(await getAppVersion());
   });

@@ -1,0 +1,25 @@
+# Known expected failures for temporal-polyfill@1.0.1 under QuickJS.
+# Paths are relative to test262/test/ and use forward slashes.
+# Aligns with upstream temporal-polyfill expected-failure lists where applicable.
+
+# Polyfill iterates arrays when computing possible epoch nanoseconds / calendar ops.
+# Upstream: shim-builtin-calls.txt
+built-ins/Temporal/PlainDate/prototype/toZonedDateTime/no-observable-array-iteration.js
+built-ins/Temporal/PlainDateTime/prototype/toZonedDateTime/no-observable-array-iteration.js
+built-ins/Temporal/Instant/prototype/toZonedDateTimeISO/no-observable-array-iteration.js
+built-ins/Temporal/PlainYearMonth/prototype/since/builtin-calendar-no-array-iteration.js
+built-ins/Temporal/PlainYearMonth/prototype/subtract/builtin-calendar-no-array-iteration.js
+
+# Polyfill calls Number.isFinite / Math.sign internals.
+# Upstream: shim-builtin-calls.txt
+built-ins/Temporal/Duration/call-builtin.js
+
+# Upstream documents less-than-spec floating-point precision for Duration.total.
+# Upstream: shim.txt / native.txt
+built-ins/Temporal/Duration/prototype/total/precision-exact-mathematical-values-5.js
+built-ins/Temporal/Duration/prototype/total/precision-exact-mathematical-values-6.js
+
+# Extreme range edge cases near Temporal minimum ISO date with rounding.
+built-ins/Temporal/PlainDateTime/prototype/since/rounding-near-minimum-date.js
+built-ins/Temporal/PlainDateTime/prototype/until/rounding-near-minimum-date.js
+built-ins/Temporal/Duration/prototype/round/relativeto-rounding-near-minimum-date.js

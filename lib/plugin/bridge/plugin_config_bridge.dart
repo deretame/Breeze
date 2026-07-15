@@ -87,7 +87,7 @@ void _register(
   registerFunction(functionName: functionName, dartCallback: dartCallback);
 }
 
-Future<void> registerPersistentCallbacks() async {
+void registerPersistentCallbacks() {
   _register('save_plugin_config', (String data) async {
     final args = jsonDecode(data) as List<dynamic>;
     final runtime = args[0] as String;

@@ -24,6 +24,11 @@
     structuredClone,
   } = globalThis.__web;
 
+  // Temporal is installed by 70_temporal.js onto globalThis directly.
+  if (typeof globalThis.Temporal !== "undefined") {
+    globalThis.__web.Temporal = globalThis.Temporal;
+  }
+
   globalThis.Headers = Headers;
   globalThis.AbortController = AbortController;
   globalThis.AbortSignal = AbortSignal;

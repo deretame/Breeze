@@ -311,7 +311,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     await clearCache(await getCachePath());
   }
 
-  if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
+  if (globalSettingCubit.state.socks5ProxyEnabled &&
+      globalSettingCubit.state.socks5Proxy.isNotEmpty) {
     final proxy = globalSettingCubit.state.socks5Proxy;
     SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
     await setSocks5Proxy(proxy: proxy);

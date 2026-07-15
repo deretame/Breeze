@@ -134,6 +134,8 @@
     "chineseConvertTraditional": "繁体中文",
     "proxy": "SOCKS5 代理",
     "proxySubtitle": "配置 SOCKS5 代理",
+    "proxyEnabledSubtitle": "关闭后将不使用 SOCKS5 代理",
+    "proxyAddress": "代理地址",
     "proxyHint": "请输入 SOCKS5 代理地址",
     "proxyCurrent": "当前代理：$currentProxy",
     "updateAccelerate": "更新下载加速",

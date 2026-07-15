@@ -237,6 +237,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get chineseConvertTraditional => 'Traditional Chinese';
 	@override String get proxy => 'SOCKS5 Proxy';
 	@override String get proxySubtitle => 'Configure SOCKS5 proxy';
+	@override String get proxyEnabledSubtitle => 'Disable to stop using SOCKS5 proxy';
+	@override String get proxyAddress => 'Proxy address';
 	@override String get proxyHint => 'Enter SOCKS5 proxy address';
 	@override String proxyCurrent({required Object currentProxy}) => 'Current proxy: ${currentProxy}';
 	@override String get updateAccelerate => 'Update acceleration';
@@ -1575,6 +1577,8 @@ extension on TranslationsEnUs {
 			'settings.chineseConvertTraditional' => 'Traditional Chinese',
 			'settings.proxy' => 'SOCKS5 Proxy',
 			'settings.proxySubtitle' => 'Configure SOCKS5 proxy',
+			'settings.proxyEnabledSubtitle' => 'Disable to stop using SOCKS5 proxy',
+			'settings.proxyAddress' => 'Proxy address',
 			'settings.proxyHint' => 'Enter SOCKS5 proxy address',
 			'settings.proxyCurrent' => ({required Object currentProxy}) => 'Current proxy: ${currentProxy}',
 			'settings.updateAccelerate' => 'Update acceleration',
@@ -1958,10 +1962,10 @@ extension on TranslationsEnUs {
 			'reader.releaseToLoadNextChapter' => 'Release to load next chapter',
 			'reader.chapterNotDownloaded' => 'Chapter not downloaded',
 			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\nLoad failed',
-			'reader.chapterOrder' => ({required Object order}) => 'Chapter ${order}',
-			'reader.doubleTapAction' => 'Double-tap action',
 			_ => null,
 		} ?? switch (path) {
+			'reader.chapterOrder' => ({required Object order}) => 'Chapter ${order}',
+			'reader.doubleTapAction' => 'Double-tap action',
 			'reader.doubleTapZoom' => 'Double-tap zoom',
 			'reader.doubleTapZoomSubtitle' => 'Double-tap image to toggle zoom',
 			'reader.doubleTapOpenMenu' => 'Double-tap to open menu',
@@ -2472,10 +2476,10 @@ extension on TranslationsEnUs {
 			'download.statusDownloadingCover' => 'Downloading cover...',
 			'download.statusFetchingChapterInfo' => 'Fetching chapter info...',
 			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => 'Fetching chapter info... (${completed}/${total}, ${percent}%)',
-			'download.statusDownloadProgress' => ({required Object percent}) => 'Comic download progress: ${percent}%',
-			'download.statusDownloadProgressComplete' => 'Comic download progress: 100%',
 			_ => null,
 		} ?? switch (path) {
+			'download.statusDownloadProgress' => ({required Object percent}) => 'Comic download progress: ${percent}%',
+			'download.statusDownloadProgressComplete' => 'Comic download progress: 100%',
 			'download.statusStartDownload' => 'Start downloading...',
 			'download.statusWaiting' => 'Waiting',
 			'download.statusCancelling' => 'Cancelling...',

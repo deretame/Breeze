@@ -1852,15 +1852,18 @@ pub fn set_http_proxy(proxy: String) -> Result<()> {
 }
 
 pub fn set_socks5_proxy(proxy: String) -> Result<()> {
-    configure_http_client(HttpClientConfig {
-        use_http_proxy: false,
-        use_socks5_proxy: true,
-        http_proxy: None,
-        socks5_proxy: Some(proxy),
-        disable_tls_verify: false,
-        allow_private_network: false,
-    })
-    .map_err(|err| anyhow!("设置 socks5 代理失败: {err}"))
+    let mut config = current_http_client_config();
+    let proxy = proxy.trim();
+    if proxy.is_empty() {
+        config.use_socks5_proxy = false;
+        config.socks5_proxy = None;
+    } else {
+        config.use_http_proxy = false;
+        config.http_proxy = None;
+        config.use_socks5_proxy = true;
+        config.socks5_proxy = Some(proxy.to_string());
+    }
+    configure_http_client(config).map_err(|err| anyhow!("设置 socks5 代理失败: {err}"))
 }
 
 pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {

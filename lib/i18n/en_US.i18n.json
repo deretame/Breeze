@@ -134,6 +134,8 @@
     "chineseConvertTraditional": "Traditional Chinese",
     "proxy": "SOCKS5 Proxy",
     "proxySubtitle": "Configure SOCKS5 proxy",
+    "proxyEnabledSubtitle": "Disable to stop using SOCKS5 proxy",
+    "proxyAddress": "Proxy address",
     "proxyHint": "Enter SOCKS5 proxy address",
     "proxyCurrent": "Current proxy: $currentProxy",
     "updateAccelerate": "Update acceleration",

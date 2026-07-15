@@ -508,7 +508,7 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
 /// 备份中的通用偏好设置会被采用，但跟平台强相关或不应跨设备同步的字段
 /// 会被 [current] 的值覆盖：
 /// - 自定义导出目录（[customExportPath]）
-/// - SOCKS5 代理（[socks5Proxy]）
+/// - SOCKS5 代理（[socks5Proxy] / [socks5ProxyEnabled]）
 /// - 应用锁（[appLockSetting]，含手势密码哈希与 PIN 重置哈希）
 /// - 语言（[locale]）
 /// - 桌面端窗口位置与大小（[windowWidth]/[windowHeight]/[windowX]/[windowY]）
@@ -521,6 +521,7 @@ GlobalSettingState _mergeGlobalSettingForImport(
   return backup.copyWith(
     customExportPath: current.customExportPath,
     socks5Proxy: current.socks5Proxy,
+    socks5ProxyEnabled: current.socks5ProxyEnabled,
     appLockSetting: current.appLockSetting,
     locale: current.locale,
     windowWidth: current.windowWidth,

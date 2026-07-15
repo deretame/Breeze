@@ -35,8 +35,12 @@ class ContentNetworkSettingPage extends StatelessWidget {
             t.settings.network,
             icon: Icons.wifi_outlined,
           ),
-          socks5ProxyEdit(context, state.socks5Proxy),
-          _updateAccelerate(state, cubit),
+          socks5ProxyToggle(
+            context,
+            enabled: state.socks5ProxyEnabled,
+            currentProxy: state.socks5Proxy,
+          ),
+          // _updateAccelerate(state, cubit),
           const SizedBox(height: 32),
         ],
       ),
@@ -71,18 +75,18 @@ class ContentNetworkSettingPage extends StatelessWidget {
     );
   }
 
-  Widget _updateAccelerate(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return SwitchListTile(
-      secondary: const Icon(Icons.rocket_launch_outlined),
-      title: Text(t.settings.updateAccelerate),
-      subtitle: Text(t.settings.updateAccelerateSubtitle),
-      thumbIcon: kSettingSwitchThumbIcon,
-      value: state.updateAccelerate,
-      onChanged: (bool value) {
-        cubit.updateState(
-          (current) => current.copyWith(updateAccelerate: value),
-        );
-      },
-    );
-  }
+  // Widget _updateAccelerate(GlobalSettingState state, GlobalSettingCubit cubit) {
+  //   return SwitchListTile(
+  //     secondary: const Icon(Icons.rocket_launch_outlined),
+  //     title: Text(t.settings.updateAccelerate),
+  //     subtitle: Text(t.settings.updateAccelerateSubtitle),
+  //     thumbIcon: kSettingSwitchThumbIcon,
+  //     value: state.updateAccelerate,
+  //     onChanged: (bool value) {
+  //       cubit.updateState(
+  //         (current) => current.copyWith(updateAccelerate: value),
+  //       );
+  //     },
+  //   );
+  // }
 }

@@ -10,9 +10,10 @@ import 'migration_v3_to_v4.dart';
 import 'migration_v4_to_v5.dart';
 import 'migration_v5_to_v6.dart';
 import 'migration_v6_to_v7.dart';
+import 'migration_v7_to_v8.dart';
 
 const _defaultCompatibleVersion = 'v1';
-const _latestCompatibleVersion = 'v7';
+const _latestCompatibleVersion = 'v8';
 
 Future<void> ensureCompatibleMigration(BuildContext context) async {
   try {
@@ -61,8 +62,6 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
       version = 'v6';
     }
 
-    // 当前正在开发 folder/link 同步重构，旧脏数据不保留，
-    // v6 直接标记为最新即可。
     if (version == 'v6') {
       await migrateV6ToV7();
       await setCompatibleVersion('v7');
@@ -71,6 +70,13 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
     }
 
     if (version == 'v7') {
+      await migrateV7ToV8();
+      await setCompatibleVersion('v8');
+      migrated = true;
+      version = 'v8';
+    }
+
+    if (version == 'v8') {
       await setCompatibleVersion(_latestCompatibleVersion);
       migrated = true;
     }

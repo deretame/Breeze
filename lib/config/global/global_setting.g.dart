@@ -31,6 +31,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  socks5ProxyEnabled: json['socks5ProxyEnabled'] as bool? ?? true,
   socks5Proxy: json['socks5Proxy'] as String? ?? '',
   needCleanCache: json['needCleanCache'] as bool? ?? false,
   comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
@@ -84,6 +85,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'welcomePageNum': instance.welcomePageNum,
       'syncSetting': instance.syncSetting.toJson(),
       'maskedKeywords': instance.maskedKeywords,
+      'socks5ProxyEnabled': instance.socks5ProxyEnabled,
       'socks5Proxy': instance.socks5Proxy,
       'needCleanCache': instance.needCleanCache,
       'comicChoice': instance.comicChoice,

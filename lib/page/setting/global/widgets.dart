@@ -1,11 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/widgets/toast.dart';
-
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/page/setting/common/setting_ui.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 Widget changeThemeColor(BuildContext context) {
   return ListTile(
@@ -19,10 +21,45 @@ Widget changeThemeColor(BuildContext context) {
   );
 }
 
+Widget socks5ProxyToggle(
+  BuildContext context, {
+  required bool enabled,
+  required String currentProxy,
+}) {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      SwitchListTile(
+        secondary: const Icon(Icons.router_outlined),
+        title: Text(t.settings.proxy),
+        subtitle: Text(t.settings.proxyEnabledSubtitle),
+        thumbIcon: kSettingSwitchThumbIcon,
+        value: enabled,
+        onChanged: (value) async {
+          final globalSettingCubit = context.read<GlobalSettingCubit>();
+          globalSettingCubit.updateState(
+            (current) => current.copyWith(socks5ProxyEnabled: value),
+          );
+
+          if (!value) {
+            try {
+              await setSocks5Proxy(proxy: '');
+            } catch (_) {}
+            SocksProxy.setProxy('DIRECT');
+          }
+
+          showSuccessToast(t.common.restartToTakeEffect);
+        },
+      ),
+      if (enabled) socks5ProxyEdit(context, currentProxy),
+    ],
+  );
+}
+
 Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
   return ListTile(
-    leading: const Icon(Icons.router_outlined),
-    title: Text(t.settings.proxy),
+    leading: const Icon(Icons.link_outlined),
+    title: Text(t.settings.proxyAddress),
     subtitle: Text(
       currentProxy.isEmpty
           ? t.settings.proxySubtitle
@@ -38,7 +75,7 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
       final result = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(t.settings.proxy),
+          title: Text(t.settings.proxyAddress),
           content: TextFormField(
             initialValue: currentProxy,
             autofocus: true,

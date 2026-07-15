@@ -494,6 +494,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '配置 SOCKS5 代理'
 	String get proxySubtitle => '配置 SOCKS5 代理';
 
+	/// zh-CN: '关闭后将不使用 SOCKS5 代理'
+	String get proxyEnabledSubtitle => '关闭后将不使用 SOCKS5 代理';
+
+	/// zh-CN: '代理地址'
+	String get proxyAddress => '代理地址';
+
 	/// zh-CN: '请输入 SOCKS5 代理地址'
 	String get proxyHint => '请输入 SOCKS5 代理地址';
 
@@ -3678,6 +3684,8 @@ extension on Translations {
 			'settings.chineseConvertTraditional' => '繁体中文',
 			'settings.proxy' => 'SOCKS5 代理',
 			'settings.proxySubtitle' => '配置 SOCKS5 代理',
+			'settings.proxyEnabledSubtitle' => '关闭后将不使用 SOCKS5 代理',
+			'settings.proxyAddress' => '代理地址',
 			'settings.proxyHint' => '请输入 SOCKS5 代理地址',
 			'settings.proxyCurrent' => ({required Object currentProxy}) => '当前代理：${currentProxy}',
 			'settings.updateAccelerate' => '更新下载加速',
@@ -4061,10 +4069,10 @@ extension on Translations {
 			'reader.releaseToJumpNextChapter' => '松手跳转到下一章',
 			'reader.releaseToLoadNextChapter' => '松手加载到下一章',
 			'reader.chapterNotDownloaded' => '章节未下载',
-			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\n加载失败',
-			'reader.chapterOrder' => ({required Object order}) => '章节 ${order}',
 			_ => null,
 		} ?? switch (path) {
+			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\n加载失败',
+			'reader.chapterOrder' => ({required Object order}) => '章节 ${order}',
 			'reader.doubleTapAction' => '双击操作',
 			'reader.doubleTapZoom' => '双击缩放',
 			'reader.doubleTapZoomSubtitle' => '双击图片可在缩放和还原之间切换',
@@ -4575,10 +4583,10 @@ extension on Translations {
 			'download.statusFetchingComicInfo' => '获取漫画信息中...',
 			'download.statusDownloadingCover' => '下载封面中...',
 			'download.statusFetchingChapterInfo' => '获取章节信息中...',
-			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => '获取章节信息中... (${completed}/${total}, ${percent}%)',
-			'download.statusDownloadProgress' => ({required Object percent}) => '漫画下载进度: ${percent}%',
 			_ => null,
 		} ?? switch (path) {
+			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => '获取章节信息中... (${completed}/${total}, ${percent}%)',
+			'download.statusDownloadProgress' => ({required Object percent}) => '漫画下载进度: ${percent}%',
 			'download.statusDownloadProgressComplete' => '漫画下载进度: 100%',
 			'download.statusStartDownload' => '开始下载...',
 			'download.statusWaiting' => '等待中',

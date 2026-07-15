@@ -37,6 +37,24 @@ Future<GithubReleaseJson> getCloudVersion() async {
       "https://api.github.com/repos/deretame/Breeze/releases/latest";
 
   try {
+    logger.d('尝试使用自建 API: $breezeLatestReleaseApi');
+    final response = await fetch(
+      breezeLatestReleaseApi,
+      headers: {'Accept': 'application/json, text/plain, */*'},
+    );
+    final body = response.text.trim();
+    if (response.ok && body.isNotEmpty) {
+      return GithubReleaseJson.fromJson(jsonDecode(body));
+    }
+  } catch (e, stackTrace) {
+    logger.w(
+      '自建 API 通道失败: $breezeLatestReleaseApi',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+
+  try {
     final temp = await fetch(
       "https://breeze-version.s3.bitiful.net/breeze-version.json",
     );

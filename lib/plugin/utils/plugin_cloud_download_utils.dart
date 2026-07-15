@@ -12,6 +12,8 @@ import 'package:zephyr/util/json/json_value.dart';
 const _cloudPluginListDirectUrl =
     'https://raw.githubusercontent.com/deretame/Breeze-plugin-list/main/plugins_data.json';
 
+const cloudPluginListApi = 'https://api.windy-78.site/plugin-list';
+
 const _cdnMirrors = [
   'https://jsdelivr.topthink.com/',
   'https://cdn.jsdmirror.com/',
@@ -33,6 +35,24 @@ Future<String> fetchCloudPluginListWithCdnFallback() async {
     connectTimeout: const Duration(seconds: 8),
     receiveTimeout: const Duration(seconds: 15),
   );
+
+  try {
+    logger.d('尝试使用自建 API: $cloudPluginListApi');
+    final response = await client.fetch(
+      cloudPluginListApi,
+      headers: {'Accept': 'application/json, text/plain, */*'},
+    );
+    final body = response.text.trim();
+    if (response.ok && body.isNotEmpty) {
+      return body;
+    }
+  } catch (e, stackTrace) {
+    logger.w(
+      '自建 API 通道失败: $cloudPluginListApi',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
 
   var version = 'latest';
 
@@ -104,6 +124,9 @@ List<String> buildCloudRequestCandidates(String sourceUrl) {
   ];
   final uri = Uri.tryParse(sourceUrl);
   final result = <String>[];
+  if (sourceUrl == _cloudPluginListDirectUrl) {
+    result.add(cloudPluginListApi);
+  }
   if (uri != null) {
     final isGithubHost =
         uri.host == 'raw.githubusercontent.com' ||

@@ -72,7 +72,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$webview$zh_CN webview = Translations$webview$zh_CN.internal(_root);
 	late final Translations$oldRanking$zh_CN oldRanking = Translations$oldRanking$zh_CN.internal(_root);
 	late final Translations$login$zh_CN login = Translations$login$zh_CN.internal(_root);
-	late final Translations$imageCrop$zh_CN imageCrop = Translations$imageCrop$zh_CN.internal(_root);
 	late final Translations$fontSetting$zh_CN fontSetting = Translations$fontSetting$zh_CN.internal(_root);
 	late final Translations$download$zh_CN download = Translations$download$zh_CN.internal(_root);
 	late final Translations$foregroundTask$zh_CN foregroundTask = Translations$foregroundTask$zh_CN.internal(_root);
@@ -3291,33 +3290,6 @@ class Translations$login$zh_CN {
 	String get retry => '重试';
 }
 
-// Path: imageCrop
-class Translations$imageCrop$zh_CN {
-	Translations$imageCrop$zh_CN.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// zh-CN: '裁剪图片'
-	String get title => '裁剪图片';
-
-	/// zh-CN: '正在加载图片'
-	String get loadingImage => '正在加载图片';
-
-	/// zh-CN: '裁剪失败 $error'
-	String cropFailed({required Object error}) => '裁剪失败 ${error}';
-
-	/// zh-CN: '没有图片数据'
-	String get noImageData => '没有图片数据';
-
-	/// zh-CN: '图片加载成功'
-	String get imageReady => '图片加载成功';
-
-	/// zh-CN: '正在裁剪'
-	String get cropping => '正在裁剪';
-}
-
 // Path: fontSetting
 class Translations$fontSetting$zh_CN {
 	Translations$fontSetting$zh_CN.internal(this._root);
@@ -4546,12 +4518,6 @@ extension on Translations {
 			'login.loginFailed' => '登录失败',
 			'login.loginButton' => '登录',
 			'login.retry' => '重试',
-			'imageCrop.title' => '裁剪图片',
-			'imageCrop.loadingImage' => '正在加载图片',
-			'imageCrop.cropFailed' => ({required Object error}) => '裁剪失败 ${error}',
-			'imageCrop.noImageData' => '没有图片数据',
-			'imageCrop.imageReady' => '图片加载成功',
-			'imageCrop.cropping' => '正在裁剪',
 			'fontSetting.title' => '字体设置',
 			'fontSetting.clear' => '清空',
 			'fontSetting.hint' => '按字重分别选择字体文件。',
@@ -4583,14 +4549,14 @@ extension on Translations {
 			'download.statusFetchingComicInfo' => '获取漫画信息中...',
 			'download.statusDownloadingCover' => '下载封面中...',
 			'download.statusFetchingChapterInfo' => '获取章节信息中...',
-			_ => null,
-		} ?? switch (path) {
 			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => '获取章节信息中... (${completed}/${total}, ${percent}%)',
 			'download.statusDownloadProgress' => ({required Object percent}) => '漫画下载进度: ${percent}%',
 			'download.statusDownloadProgressComplete' => '漫画下载进度: 100%',
 			'download.statusStartDownload' => '开始下载...',
 			'download.statusWaiting' => '等待中',
 			'download.statusCancelling' => '取消中...',
+			_ => null,
+		} ?? switch (path) {
 			'download.toastDownloadComplete' => ({required Object comicName}) => '${comicName} 下载完成',
 			'download.toastDownloadFailed' => ({required Object comicName, required Object error}) => '${comicName} 下载失败 ${error}',
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} 任务已存在',

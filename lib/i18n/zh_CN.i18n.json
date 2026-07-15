@@ -1043,14 +1043,6 @@
     "loginButton": "登录",
     "retry": "重试"
   },
-  "imageCrop": {
-    "title": "裁剪图片",
-    "loadingImage": "正在加载图片",
-    "cropFailed": "裁剪失败 $error",
-    "noImageData": "没有图片数据",
-    "imageReady": "图片加载成功",
-    "cropping": "正在裁剪"
-  },
   "fontSetting": {
     "title": "字体设置",
     "clear": "清空",

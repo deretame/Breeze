@@ -68,7 +68,6 @@ class TranslationsEnUs extends Translations with BaseTranslations<AppLocale, Tra
 	@override late final _Translations$webview$en_US webview = _Translations$webview$en_US._(_root);
 	@override late final _Translations$oldRanking$en_US oldRanking = _Translations$oldRanking$en_US._(_root);
 	@override late final _Translations$login$en_US login = _Translations$login$en_US._(_root);
-	@override late final _Translations$imageCrop$en_US imageCrop = _Translations$imageCrop$en_US._(_root);
 	@override late final _Translations$fontSetting$en_US fontSetting = _Translations$fontSetting$en_US._(_root);
 	@override late final _Translations$download$en_US download = _Translations$download$en_US._(_root);
 	@override late final _Translations$foregroundTask$en_US foregroundTask = _Translations$foregroundTask$en_US._(_root);
@@ -1314,21 +1313,6 @@ class _Translations$login$en_US extends Translations$login$zh_CN {
 	@override String get retry => 'Retry';
 }
 
-// Path: imageCrop
-class _Translations$imageCrop$en_US extends Translations$imageCrop$zh_CN {
-	_Translations$imageCrop$en_US._(TranslationsEnUs root) : this._root = root, super.internal(root);
-
-	final TranslationsEnUs _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Crop Image';
-	@override String get loadingImage => 'Loading image';
-	@override String cropFailed({required Object error}) => 'Crop failed: ${error}';
-	@override String get noImageData => 'No image data';
-	@override String get imageReady => 'Image loaded';
-	@override String get cropping => 'Cropping';
-}
-
 // Path: fontSetting
 class _Translations$fontSetting$en_US extends Translations$fontSetting$zh_CN {
 	_Translations$fontSetting$en_US._(TranslationsEnUs root) : this._root = root, super.internal(root);
@@ -2438,12 +2422,6 @@ extension on TranslationsEnUs {
 			'login.loginFailed' => 'Login failed',
 			'login.loginButton' => 'Login',
 			'login.retry' => 'Retry',
-			'imageCrop.title' => 'Crop Image',
-			'imageCrop.loadingImage' => 'Loading image',
-			'imageCrop.cropFailed' => ({required Object error}) => 'Crop failed: ${error}',
-			'imageCrop.noImageData' => 'No image data',
-			'imageCrop.imageReady' => 'Image loaded',
-			'imageCrop.cropping' => 'Cropping',
 			'fontSetting.title' => 'Font Settings',
 			'fontSetting.clear' => 'Clear',
 			'fontSetting.hint' => 'Select font files for each weight.',
@@ -2476,14 +2454,14 @@ extension on TranslationsEnUs {
 			'download.statusDownloadingCover' => 'Downloading cover...',
 			'download.statusFetchingChapterInfo' => 'Fetching chapter info...',
 			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => 'Fetching chapter info... (${completed}/${total}, ${percent}%)',
-			_ => null,
-		} ?? switch (path) {
 			'download.statusDownloadProgress' => ({required Object percent}) => 'Comic download progress: ${percent}%',
 			'download.statusDownloadProgressComplete' => 'Comic download progress: 100%',
 			'download.statusStartDownload' => 'Start downloading...',
 			'download.statusWaiting' => 'Waiting',
 			'download.statusCancelling' => 'Cancelling...',
 			'download.toastDownloadComplete' => ({required Object comicName}) => '${comicName} download complete',
+			_ => null,
+		} ?? switch (path) {
 			'download.toastDownloadFailed' => ({required Object comicName, required Object error}) => '${comicName} download failed ${error}',
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} task already exists',
 			'download.notificationCompleteTitle' => 'Download complete',

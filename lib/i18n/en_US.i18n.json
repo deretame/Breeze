@@ -1042,14 +1042,6 @@
     "loginButton": "Login",
     "retry": "Retry"
   },
-  "imageCrop": {
-    "title": "Crop Image",
-    "loadingImage": "Loading image",
-    "cropFailed": "Crop failed: $error",
-    "noImageData": "No image data",
-    "imageReady": "Image loaded",
-    "cropping": "Cropping"
-  },
   "fontSetting": {
     "title": "Font Settings",
     "clear": "Clear",

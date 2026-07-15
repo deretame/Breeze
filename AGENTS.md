@@ -57,8 +57,8 @@
 
 - **本地数据库**：`objectbox` + `objectbox_flutter_libs`
 - **HTTP 客户端**：Rust `reqwest`（经 FRB 暴露为 `HttpClient` / Dart `WindHttp`）
-- **图片加载/缓存**：`extended_image`、`photo_view`
-- **后台下载**：`background_downloader`
+- **图片加载/缓存**：`photo_view`
+- **后台下载**：自研下载队列（`lib/service/download/`）
 - **WebDAV / S3 同步**：Rust 侧 `reqwest_dav`、Dart 侧 `minio`
 
 ### 2.5 监控与异常上报

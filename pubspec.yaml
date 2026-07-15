@@ -25,23 +25,14 @@ dependencies:
   event_bus: ^2.0.1 # 事件: 全局事件总线
 
   # UI 组件与交互
-  cupertino_icons: ^1.0.8 # UI: iOS 风格图标
   dynamic_color: ^1.7.0 # UI: 动态取色
   loading_animation_widget: ^1.2.1 # UI: 加载动画合集
-  toggle_switch: ^2.3.0 # UI: 多段开关
-  animated_search_bar: ^2.7.2 # UI: 动画搜索栏
   photo_view: ^0.15.0 # UI: 图片缩放预览
-  extended_image: ^10.0.1 # UI: 图片缓存与手势
   persistent_bottom_nav_bar: ^6.2.1 # UI: 持久底部导航
   markdown_widget: ^2.3.2+8 # UI: Markdown 渲染
-  dropdown_button2: ^3.0.0 # UI: 增强下拉框
   toastification: ^3.0.1 # UI: 通知提示
   flutter_animate: ^4.5.2 # UI: 链式动画
   flutter_colorpicker: ^1.1.0 # UI: 颜色选择器
-  custom_sliding_segmented_control: ^1.8.5 # UI: 分段滑动控件
-  material_pagination: ^1.0.3 # UI: 分页控件
-  dynamic_tabbar: ^1.0.9 # UI: 动态标签栏
-  flutter_expandable_fab: ^2.5.1 # UI: 展开式 FAB
   flutter_speed_dial: ^7.0.0 # UI: 速拨 FAB
   easy_refresh: ^3.4.0 # UI: 下拉刷新
   scrollview_observer: ^1.26.3 # UI: 滚动监听
@@ -67,8 +58,6 @@ dependencies:
   path_provider: ^2.1.5 # 文件: 常用目录路径
   path: ^1.9.0 # 文件: 路径处理
   open_file: ^4.0.0 # 文件: 系统打开文件
-  image_picker: ^1.1.2 # 媒体: 图片与相机选择
-  crop_your_image: ^2.0.0 # 媒体: 图片裁剪
   gal: ^2.3.2 # 媒体: 保存到系统相册
   pool: ^1.5.2 # 工具: 并发资源池
   window_manager: ^0.5.1 # 桌面: 窗口控制
@@ -82,7 +71,6 @@ dependencies:
 
   # 后台任务与通知
   flutter_foreground_task: ^9.1.0 # 后台: 前台任务
-  background_downloader: ^9.5.4 # 后台: 下载任务
   flutter_local_notifications: ^22.0.0 # 通知: 本地通知
 
   # 安全、工具与运行时
@@ -94,7 +82,6 @@ dependencies:
   collection: ^1.18.0 # 工具: 集合扩展
   equatable: ^2.0.3 # 工具: 值相等比较
   stream_transform: ^2.1.1 # 工具: Stream 变换
-  xml: ^6.5.0 # 解析: XML 解析
   intl: ^0.20.2 # 国际化: 文案与格式化
   code_assets: ^1.0.0 # FFI: hooks/build.dart 使用的目标平台配置类型
   native_toolchain_rust: ^1.0.4 # FFI: Rust 构建工具

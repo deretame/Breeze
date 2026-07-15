@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:minio/minio.dart';
 import 'package:zephyr/config/global/global.dart';
 
-import '../../../main.dart';
+import 'package:zephyr/main.dart';
 
 Future<void> testWebDavServer(
   String host,

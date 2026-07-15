@@ -2,9 +2,16 @@ include:
   - package:flutter_lints/flutter.yaml
 
 linter:
+  rules:
+    always_use_package_imports: true
 
 analyzer:
   exclude:
     - "DART_T~1/**"
+    # FRB / ObjectBox / freezed / json_serializable 生成代码，请勿手改
+    - "lib/src/rust/**"
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/util/router/router.gr.dart"
   errors:
     invalid_annotation_target: ignore

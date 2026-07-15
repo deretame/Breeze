@@ -1,1 +1,1 @@
-export './comment_item.dart';
+export 'package:zephyr/page/comments/model/comment_item.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 
-import 'search_scheme_renderer.dart';
+import 'package:zephyr/page/search/view/search_scheme_renderer.dart';
 
 @RoutePage()
 class SearchPage extends StatelessWidget {

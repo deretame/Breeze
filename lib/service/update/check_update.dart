@@ -16,8 +16,8 @@ import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../main.dart';
-import 'json/github_release_json.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/service/update/json/github_release_json.dart';
 
 Future<String> getAppVersion() async {
   String version = 'Unknown';

@@ -6,8 +6,8 @@ import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
 import 'package:zephyr/util/debouncer.dart';
 
-import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
-import '../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
   @override

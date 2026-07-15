@@ -14,7 +14,7 @@ import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../comments/widgets/title.dart';
+import 'package:zephyr/page/comments/widgets/title.dart';
 
 @RoutePage()
 class DownloadPage extends StatefulWidget {

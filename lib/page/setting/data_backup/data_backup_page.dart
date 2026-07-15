@@ -10,7 +10,7 @@ import 'package:zephyr/service/update/check_update.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import 'method.dart';
+import 'package:zephyr/page/setting/data_backup/method.dart';
 
 @RoutePage()
 class DataBackupPage extends StatefulWidget {

@@ -1,1 +1,1 @@
-export './download_comic.dart';
+export 'package:zephyr/page/download/method/download_comic.dart';

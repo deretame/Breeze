@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 
-import '../../widgets/memory_monitor_widget.dart';
-import 'memory_monitor.dart';
+import 'package:zephyr/widgets/memory_monitor_widget.dart';
+import 'package:zephyr/debug/memory/memory_monitor.dart';
 
 // 使用示例：如何在你的应用中集成内存监控
 

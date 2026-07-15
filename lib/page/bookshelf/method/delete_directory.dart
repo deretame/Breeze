@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../../../main.dart';
+import 'package:zephyr/main.dart';
 
 Future<void> deleteDirectory(String path) async {
   final directory = Directory(path);

@@ -6,9 +6,9 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
 
-import '../../../main.dart';
-import '../../../../widgets/dialog.dart';
-import '../../../util/event/event.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/widgets/dialog.dart';
+import 'package:zephyr/util/event/event.dart';
 
 @RoutePage()
 class WebDavSyncPage extends StatefulWidget {

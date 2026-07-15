@@ -1,1 +1,1 @@
-export './download.dart';
+export 'package:zephyr/page/download/view/download.dart';

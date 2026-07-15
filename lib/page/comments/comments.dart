@@ -1,4 +1,4 @@
-export './cubit/cubit.dart';
-export './model/model.dart';
-export './view/view.dart';
-export './widgets/title.dart';
+export 'package:zephyr/page/comments/cubit/cubit.dart';
+export 'package:zephyr/page/comments/model/model.dart';
+export 'package:zephyr/page/comments/view/view.dart';
+export 'package:zephyr/page/comments/widgets/title.dart';

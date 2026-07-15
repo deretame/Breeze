@@ -13,7 +13,7 @@ import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/config/router/router.gr.dart' show ComicReadRoute;
 
-import 'read_launch_adapter.dart';
+import 'package:zephyr/page/comic_info/models/read_launch_adapter.dart';
 
 void goToComicRead(
   BuildContext context,

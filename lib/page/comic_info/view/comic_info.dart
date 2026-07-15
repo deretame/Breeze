@@ -24,9 +24,9 @@ import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
-import '../../../widgets/error_view.dart';
-import '../../../widgets/fluent_dropdown.dart';
-import '../../../widgets/toast.dart';
+import 'package:zephyr/widgets/error_view.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 enum MenuOption { export, cloudCollect, follow }
 

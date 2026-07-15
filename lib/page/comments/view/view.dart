@@ -1,2 +1,2 @@
-export './comments.dart';
-export './plugin_comments_scaffold.dart';
+export 'package:zephyr/page/comments/view/comments.dart';
+export 'package:zephyr/page/comments/view/plugin_comments_scaffold.dart';

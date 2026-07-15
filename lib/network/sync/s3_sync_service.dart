@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:minio/minio.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 
-import 'comic_sync_core.dart';
+import 'package:zephyr/network/sync/comic_sync_core.dart';
 
 class S3SyncService implements ComicSyncRemoteAdapter {
   S3SyncService(this._settings) : _minio = _createMinio(_settings) {

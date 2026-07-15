@@ -3,7 +3,7 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/enum.dart';
 
 import 'package:zephyr/i18n/strings.g.dart';
-import 'download_progress_reporter.dart';
+import 'package:zephyr/service/download/download_progress_reporter.dart';
 
 class DownloadImageJob {
   const DownloadImageJob({

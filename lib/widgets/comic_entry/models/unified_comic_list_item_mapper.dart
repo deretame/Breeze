@@ -4,7 +4,7 @@ import 'package:zephyr/util/json/json_sanitize.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/path_util.dart';
 
-import 'unified_comic_list_item.dart';
+import 'package:zephyr/widgets/comic_entry/models/unified_comic_list_item.dart';
 
 UnifiedComicListItem unifiedComicFromPluginSearchItem(
   UnifiedPluginSearchItem item,

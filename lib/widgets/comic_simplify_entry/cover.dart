@@ -5,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
+import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 import 'package:zephyr/type/enum.dart';
-import 'comic_simplify_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 
 class CoverWidget extends StatelessWidget {
   final String fileServer;

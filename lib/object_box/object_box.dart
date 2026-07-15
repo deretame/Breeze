@@ -2,8 +2,8 @@ import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
 
-import 'model.dart';
-import 'objectbox.g.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 
 class ObjectBox {
   late final Store store;

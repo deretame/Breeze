@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../main.dart';
+import 'package:zephyr/main.dart';
 
 @RoutePage()
 class ImageCropPage extends StatefulWidget {

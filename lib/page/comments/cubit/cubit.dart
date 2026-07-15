@@ -1,1 +1,1 @@
-export './comments_cubit.dart';
+export 'package:zephyr/page/comments/cubit/comments_cubit.dart';

@@ -6,7 +6,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/widgets/picture_bloc/models/models.dart';
 
-import '../../../network/http/picture/picture.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 
 part 'picture_event.dart';
 part 'picture_state.dart';

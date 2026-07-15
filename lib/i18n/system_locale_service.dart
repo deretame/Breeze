@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:zephyr/src/rust/api/localization.dart' as rust_localization;
 
-import 'i18n_helper.dart';
+import 'package:zephyr/i18n/i18n_helper.dart';
 
 /// 系统语言、地区、时区统一信息。
 class SystemLocaleInfo {

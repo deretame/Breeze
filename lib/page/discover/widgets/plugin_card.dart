@@ -7,7 +7,7 @@ import 'package:zephyr/util/text/chinese_convert.dart';
 
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 
-import '../cubit/discover_cubit.dart';
+import 'package:zephyr/page/discover/cubit/discover_cubit.dart';
 
 class PluginCard extends StatelessWidget {
   const PluginCard({

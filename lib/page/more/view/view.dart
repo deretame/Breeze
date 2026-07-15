@@ -1,1 +1,1 @@
-export './more.dart';
+export 'package:zephyr/page/more/view/more.dart';

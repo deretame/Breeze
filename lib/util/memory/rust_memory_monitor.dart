@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 
-import '../../src/rust/api/memory.dart' as rust;
+import 'package:zephyr/src/rust/api/memory.dart' as rust;
 
 /// Rust 端内存监控器
 class RustMemoryMonitor {

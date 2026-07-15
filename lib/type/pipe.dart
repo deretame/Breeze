@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../main.dart';
+import 'package:zephyr/main.dart';
 
 extension KotlinScopeFunctions<T> on T {
   R let<R>(R Function(T value) block) => block(this);

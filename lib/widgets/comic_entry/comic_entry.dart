@@ -4,9 +4,9 @@ import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../main.dart';
-import '../../network/http/picture/picture.dart';
-import '../../object_box/objectbox.g.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/type/enum.dart';

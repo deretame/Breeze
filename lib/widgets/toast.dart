@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:toastification/toastification.dart';
 
-import '../main.dart';
+import 'package:zephyr/main.dart';
 
 enum ToastType { info, success, warning, error }
 

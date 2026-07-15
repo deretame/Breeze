@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:zephyr/src/rust/api/qjs.dart';
 
-import 'strings.g.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 
 /// i18n 辅助函数：locale 映射、时区格式化、Rust 错误语言联动。
 class I18nHelper {

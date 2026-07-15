@@ -5,7 +5,7 @@ import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/page/search/widget/history.dart';
 import 'package:zephyr/page/search/widget/search_bar.dart';
 
-import 'search_scheme_json.dart';
+import 'package:zephyr/page/search/view/search_scheme_json.dart';
 
 class SearchSchemeRenderer {
   SearchSchemeRenderer({required this.aggregateMode})

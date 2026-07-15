@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/util/debouncer.dart';
 
-import 'comic_simplify_entry.dart';
-import 'comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/type/enum.dart';
 
 SliverGridDelegate buildComicSimplifyEntryGridDelegate({

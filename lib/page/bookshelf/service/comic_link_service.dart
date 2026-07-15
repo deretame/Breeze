@@ -7,7 +7,7 @@ import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 
-import 'comic_folder_service.dart';
+import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 
 class ComicLinkService {
   static String get _deviceId => syncDeviceId;

@@ -1,1 +1,1 @@
-export './theme_color_page.dart';
+export 'package:zephyr/page/theme_color/view/theme_color_page.dart';

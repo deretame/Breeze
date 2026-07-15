@@ -12,7 +12,7 @@ import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
-import '../models/models.dart';
+import 'package:zephyr/page/search_result/models/models.dart';
 
 part 'search_bloc.freezed.dart';
 part 'search_bloc.g.dart';

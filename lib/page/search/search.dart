@@ -1,2 +1,2 @@
-export './view/search_page.dart';
-export 'widget/widget.dart';
+export 'package:zephyr/page/search/view/search_page.dart';
+export 'package:zephyr/page/search/widget/widget.dart';

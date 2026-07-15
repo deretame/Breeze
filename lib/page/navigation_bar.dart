@@ -21,16 +21,16 @@ import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/widgets/memory/memory_overlay_widget.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../main.dart';
-import '../network/sync/sync_service.dart';
-import '../util/debouncer.dart';
-import '../util/event/event.dart';
-import '../widgets/dialog.dart';
-import 'bookshelf/bookshelf.dart';
-import 'discover/view/discover_page.dart';
-import 'more/view/more.dart';
-import 'old_page/old_home/old_home_page.dart';
-import 'old_page/old_ranking/old_ranking_page.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/network/sync/sync_service.dart';
+import 'package:zephyr/util/debouncer.dart';
+import 'package:zephyr/util/event/event.dart';
+import 'package:zephyr/widgets/dialog.dart';
+import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/discover/view/discover_page.dart';
+import 'package:zephyr/page/more/view/more.dart';
+import 'package:zephyr/page/old_page/old_home/old_home_page.dart';
+import 'package:zephyr/page/old_page/old_ranking/old_ranking_page.dart';
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {

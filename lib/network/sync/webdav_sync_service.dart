@@ -1,7 +1,7 @@
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/src/rust/api/webdav.dart' as rust_webdav;
 
-import 'comic_sync_core.dart';
+import 'package:zephyr/network/sync/comic_sync_core.dart';
 
 class WebDavSyncService implements ComicSyncRemoteAdapter {
   WebDavSyncService(this._settings) {

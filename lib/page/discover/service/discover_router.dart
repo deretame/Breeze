@@ -8,7 +8,7 @@ import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../view/plugin_function_dialog.dart';
+import 'package:zephyr/page/discover/view/plugin_function_dialog.dart';
 
 /// Discover 页插件动作路由。
 ///

@@ -11,9 +11,9 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 
-import '../../../src/rust/api/simple.dart';
-import '../../../src/rust/decode/decode.dart';
-import '../../../util/get_path.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/src/rust/decode/decode.dart';
+import 'package:zephyr/util/get_path.dart';
 
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';

@@ -10,7 +10,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../common/setting_ui.dart';
+import 'package:zephyr/page/setting/common/setting_ui.dart';
 
 const Map<int, String> _cacheLimitLabels = {
   536870912: '512 MB',

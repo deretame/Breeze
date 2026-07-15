@@ -12,7 +12,7 @@ import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../main.dart';
+import 'package:zephyr/main.dart';
 
 @RoutePage()
 class FullScreenImagePage extends StatelessWidget {

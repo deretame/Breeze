@@ -4,7 +4,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../main.dart';
+import 'package:zephyr/main.dart';
 
 enum DeleteType { download, history }
 

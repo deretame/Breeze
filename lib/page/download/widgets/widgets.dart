@@ -1,1 +1,1 @@
-export './eps.dart';
+export 'package:zephyr/page/download/widgets/eps.dart';

@@ -8,8 +8,8 @@ import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 
-import '../../../../widgets/dialog.dart';
-import '../../../widgets/toast.dart';
+import 'package:zephyr/widgets/dialog.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 class ComicOperationWidget extends StatefulWidget {
   final NormalComicAllInfo normalInfo;

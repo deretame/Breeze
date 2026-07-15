@@ -1,1 +1,1 @@
-export './about_page.dart';
+export 'package:zephyr/page/about/view/about_page.dart';

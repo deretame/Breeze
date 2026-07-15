@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 
-import '../../src/rust/compressed/compressed.dart';
+import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/util/memory/combined_memory_monitor.dart';
 import 'package:zephyr/util/memory/rust_memory_monitor.dart';
 

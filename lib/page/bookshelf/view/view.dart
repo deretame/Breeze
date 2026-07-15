@@ -1,1 +1,1 @@
-export './bookshelf_page.dart';
+export 'package:zephyr/page/bookshelf/view/bookshelf_page.dart';

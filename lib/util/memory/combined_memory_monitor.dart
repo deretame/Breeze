@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 
-import 'rust_memory_monitor.dart';
-import 'simple_memory_monitor.dart';
+import 'package:zephyr/util/memory/rust_memory_monitor.dart';
+import 'package:zephyr/util/memory/simple_memory_monitor.dart';
 
 /// 组合的内存监控器，同时监控 Dart 和 Rust
 class CombinedMemoryMonitor {

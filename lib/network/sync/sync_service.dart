@@ -7,9 +7,9 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 
-import 'comic_sync_core.dart';
-import 's3_sync_service.dart';
-import 'webdav_sync_service.dart';
+import 'package:zephyr/network/sync/comic_sync_core.dart';
+import 'package:zephyr/network/sync/s3_sync_service.dart';
+import 'package:zephyr/network/sync/webdav_sync_service.dart';
 
 const String _settingsSyncSchemaVersion = 'v2';
 const String _settingsBlockMetaPrefsKey = 'sync.settings.block.meta.v3';

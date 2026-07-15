@@ -7,9 +7,9 @@ import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../cubit/discover_cubit.dart';
-import '../service/discover_router.dart';
-import '../widgets/plugin_card.dart';
+import 'package:zephyr/page/discover/cubit/discover_cubit.dart';
+import 'package:zephyr/page/discover/service/discover_router.dart';
+import 'package:zephyr/page/discover/widgets/plugin_card.dart';
 
 @RoutePage()
 class DiscoverPage extends StatelessWidget {

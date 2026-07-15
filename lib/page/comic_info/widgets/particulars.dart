@@ -18,7 +18,7 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
 class ComicParticularsWidget extends StatelessWidget {
   final ComicInfo comicInfo;

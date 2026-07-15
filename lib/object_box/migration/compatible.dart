@@ -4,13 +4,13 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 
-import 'migration_v1_to_v2.dart';
-import 'migration_v2_to_v3.dart';
-import 'migration_v3_to_v4.dart';
-import 'migration_v4_to_v5.dart';
-import 'migration_v5_to_v6.dart';
-import 'migration_v6_to_v7.dart';
-import 'migration_v7_to_v8.dart';
+import 'package:zephyr/object_box/migration/migration_v1_to_v2.dart';
+import 'package:zephyr/object_box/migration/migration_v2_to_v3.dart';
+import 'package:zephyr/object_box/migration/migration_v3_to_v4.dart';
+import 'package:zephyr/object_box/migration/migration_v4_to_v5.dart';
+import 'package:zephyr/object_box/migration/migration_v5_to_v6.dart';
+import 'package:zephyr/object_box/migration/migration_v6_to_v7.dart';
+import 'package:zephyr/object_box/migration/migration_v7_to_v8.dart';
 
 const _defaultCompatibleVersion = 'v1';
 const _latestCompatibleVersion = 'v8';

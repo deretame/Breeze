@@ -15,7 +15,7 @@ import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.
 import 'package:zephyr/widgets/section_header.dart';
 
 import 'package:zephyr/i18n/strings.g.dart';
-import '../cubit/search_aggregate_cubit.dart';
+import 'package:zephyr/page/search_aggregate/cubit/search_aggregate_cubit.dart';
 
 @RoutePage()
 class SearchAggregateResultPage extends StatelessWidget

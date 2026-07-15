@@ -1,7 +1,7 @@
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import 'comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 List<ComicSimplifyEntryInfo> mapToUnifiedComicSimplifyEntryInfoList(
   Iterable<dynamic> items,

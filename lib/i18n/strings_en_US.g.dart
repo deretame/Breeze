@@ -749,15 +749,14 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get syncing => 'Syncing plugin...';
 	@override String get syncSuccess => 'Sync successful';
 	@override String syncFailed({required Object error}) => 'Sync failed: ${error}';
-	@override String get updateSubtitle => 'Reinstall this plugin from cloud or local file';
-	@override String get updateFromCloud => 'Install from cloud';
+	@override String get updateSubtitle => 'Manually reinstall this plugin from a network URL or local file';
+	@override String get updateFromNetwork => 'Install from network';
 	@override String get updateFromLocal => 'Install from local';
-	@override String get updateChooseSource => 'Choose update source';
+	@override String get updateChooseSource => 'Choose install method';
 	@override String get updating => 'Updating plugin...';
 	@override String get updateSuccess => 'Update successful';
 	@override String updateFailed({required Object error}) => 'Update failed: ${error}';
 	@override String get uuidMismatch => 'Plugin id mismatch, install rejected';
-	@override String get notInCloudList => 'Plugin not found in cloud list';
 	@override String currentVersion({required Object version}) => 'Current version ${version}';
 	@override String get alreadyLatest => 'Already up to date';
 }
@@ -2056,15 +2055,14 @@ extension on TranslationsEnUs {
 			'plugin.syncing' => 'Syncing plugin...',
 			'plugin.syncSuccess' => 'Sync successful',
 			'plugin.syncFailed' => ({required Object error}) => 'Sync failed: ${error}',
-			'plugin.updateSubtitle' => 'Reinstall this plugin from cloud or local file',
-			'plugin.updateFromCloud' => 'Install from cloud',
+			'plugin.updateSubtitle' => 'Manually reinstall this plugin from a network URL or local file',
+			'plugin.updateFromNetwork' => 'Install from network',
 			'plugin.updateFromLocal' => 'Install from local',
-			'plugin.updateChooseSource' => 'Choose update source',
+			'plugin.updateChooseSource' => 'Choose install method',
 			'plugin.updating' => 'Updating plugin...',
 			'plugin.updateSuccess' => 'Update successful',
 			'plugin.updateFailed' => ({required Object error}) => 'Update failed: ${error}',
 			'plugin.uuidMismatch' => 'Plugin id mismatch, install rejected',
-			'plugin.notInCloudList' => 'Plugin not found in cloud list',
 			'plugin.currentVersion' => ({required Object version}) => 'Current version ${version}',
 			'plugin.alreadyLatest' => 'Already up to date',
 			'gestureLock.gestureTitle' => 'Gesture unlock',
@@ -2476,9 +2474,9 @@ extension on TranslationsEnUs {
 			'download.taskDeleted' => 'Task deleted',
 			'download.cancelTask' => 'Cancel Task',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
+			'download.paused' => 'Paused',
 			_ => null,
 		} ?? switch (path) {
-			'download.paused' => 'Paused',
 			'download.completed' => 'Completed',
 			'download.failed' => 'Failed',
 			'download.startAll' => 'Start all',

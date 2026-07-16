@@ -73,7 +73,11 @@ class PluginInstallService {
   }
 
   /// Installs a plugin from an arbitrary network URL.
-  Future<String> installFromNetworkUrl(String rawUrl) async {
+  Future<String> installFromNetworkUrl(
+    String rawUrl, {
+    String? expectedUuid,
+    bool allowReplaceExisting = false,
+  }) async {
     final resolvedUrl = rawUrl.trim();
     if (resolvedUrl.isEmpty) {
       throw StateError('URL 不能为空');
@@ -84,7 +88,12 @@ class PluginInstallService {
       response: response,
       resolvedUrl: resolvedUrl,
     );
-    return savePluginByScript(script, sourceLabel: '网络地址: $resolvedUrl');
+    return savePluginByScript(
+      script,
+      sourceLabel: '网络地址: $resolvedUrl',
+      allowReplaceExisting: allowReplaceExisting,
+      expectedUuid: expectedUuid,
+    );
   }
 
   /// Parses [script], extracts uuid/version, upserts the plugin and enables it.

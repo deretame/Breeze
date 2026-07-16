@@ -1963,17 +1963,17 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '同步失败: $error'
 	String syncFailed({required Object error}) => '同步失败: ${error}';
 
-	/// zh-CN: '从云端或本地重新安装当前插件'
-	String get updateSubtitle => '从云端或本地重新安装当前插件';
+	/// zh-CN: '通过网络 URL 或本地文件手动重装当前插件'
+	String get updateSubtitle => '通过网络 URL 或本地文件手动重装当前插件';
 
-	/// zh-CN: '从云端安装'
-	String get updateFromCloud => '从云端安装';
+	/// zh-CN: '从网络安装'
+	String get updateFromNetwork => '从网络安装';
 
 	/// zh-CN: '从本地安装'
 	String get updateFromLocal => '从本地安装';
 
-	/// zh-CN: '选择更新来源'
-	String get updateChooseSource => '选择更新来源';
+	/// zh-CN: '选择安装方式'
+	String get updateChooseSource => '选择安装方式';
 
 	/// zh-CN: '正在更新插件...'
 	String get updating => '正在更新插件...';
@@ -1986,9 +1986,6 @@ class Translations$plugin$zh_CN {
 
 	/// zh-CN: '插件 id 不一致，无法安装'
 	String get uuidMismatch => '插件 id 不一致，无法安装';
-
-	/// zh-CN: '云端列表中未找到该插件'
-	String get notInCloudList => '云端列表中未找到该插件';
 
 	/// zh-CN: '当前版本 $version'
 	String currentVersion({required Object version}) => '当前版本 ${version}';
@@ -4184,15 +4181,14 @@ extension on Translations {
 			'plugin.syncing' => '正在同步插件...',
 			'plugin.syncSuccess' => '同步成功',
 			'plugin.syncFailed' => ({required Object error}) => '同步失败: ${error}',
-			'plugin.updateSubtitle' => '从云端或本地重新安装当前插件',
-			'plugin.updateFromCloud' => '从云端安装',
+			'plugin.updateSubtitle' => '通过网络 URL 或本地文件手动重装当前插件',
+			'plugin.updateFromNetwork' => '从网络安装',
 			'plugin.updateFromLocal' => '从本地安装',
-			'plugin.updateChooseSource' => '选择更新来源',
+			'plugin.updateChooseSource' => '选择安装方式',
 			'plugin.updating' => '正在更新插件...',
 			'plugin.updateSuccess' => '更新成功',
 			'plugin.updateFailed' => ({required Object error}) => '更新失败: ${error}',
 			'plugin.uuidMismatch' => '插件 id 不一致，无法安装',
-			'plugin.notInCloudList' => '云端列表中未找到该插件',
 			'plugin.currentVersion' => ({required Object version}) => '当前版本 ${version}',
 			'plugin.alreadyLatest' => '已是最新版本',
 			'gestureLock.gestureTitle' => '手势解锁',
@@ -4603,9 +4599,9 @@ extension on Translations {
 			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			'download.taskDeleted' => '已删除任务',
 			'download.cancelTask' => '取消任务',
+			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			_ => null,
 		} ?? switch (path) {
-			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			'download.paused' => '已暂停',
 			'download.completed' => '已完成',
 			'download.failed' => '失败',

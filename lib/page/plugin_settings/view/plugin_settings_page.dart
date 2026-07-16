@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -13,11 +12,9 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/plugin_settings/cubit/plugin_settings_cubit.dart';
 import 'package:zephyr/page/plugin_settings/method/plugin_settings_web_login.dart';
 import 'package:zephyr/page/plugin_settings/widgets/plugin_settings_content.dart';
-import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_cloud_update_service.dart';
 import 'package:zephyr/plugin/plugin_install_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
-import 'package:zephyr/plugin/utils/plugin_cloud_download_utils.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/event/webview_observe_bus.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -519,8 +516,8 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
             child: Text(t.plugin.updateFromLocal),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop('cloud'),
-            child: Text(t.plugin.updateFromCloud),
+            onPressed: () => Navigator.of(context).pop('network'),
+            child: Text(t.plugin.updateFromNetwork),
           ),
         ],
       ),
@@ -528,8 +525,8 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     if (choice == null || !mounted) {
       return;
     }
-    if (choice == 'cloud') {
-      await _updatePluginFromCloud();
+    if (choice == 'network') {
+      await _updatePluginFromNetwork();
       return;
     }
     if (choice == 'local') {
@@ -537,23 +534,26 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     }
   }
 
-  Future<void> _updatePluginFromCloud() async {
+  Future<void> _updatePluginFromNetwork() async {
+    final url = await _showUrlInputDialog(
+      title: t.plugin.updateFromNetwork,
+      hintText: t.plugin.networkInstallHint,
+    );
+    if (url == null || !mounted) {
+      return;
+    }
+    final resolvedUrl = url.trim();
+    if (resolvedUrl.isEmpty) {
+      showErrorToast(t.plugin.urlCannotBeEmpty);
+      return;
+    }
+
     showInfoToast(t.plugin.updating);
     try {
-      final payload = await fetchCloudPluginListWithCdnFallback();
-      final entries = asJsonList(jsonDecode(payload))
-          .map((item) => CloudPluginItem.fromJson(asJsonMap(item)))
-          .where((item) => item.manifest.uuid.trim().isNotEmpty)
-          .toList();
-      final matched = entries
-          .where((item) => item.manifest.uuid.trim() == widget.pluginUuid)
-          .toList();
-      if (matched.isEmpty) {
-        throw StateError(t.plugin.notInCloudList);
-      }
-      final message = await PluginInstallService.I.installFromCloud(
-        matched.first,
+      final message = await PluginInstallService.I.installFromNetworkUrl(
+        resolvedUrl,
         expectedUuid: widget.pluginUuid,
+        allowReplaceExisting: true,
       );
       if (!mounted) {
         return;
@@ -562,6 +562,34 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     } catch (e) {
       showErrorToast(t.plugin.updateFailed(error: e.toString()));
     }
+  }
+
+  Future<String?> _showUrlInputDialog({
+    required String title,
+    required String hintText,
+  }) {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(hintText: hintText),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t.common.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text(t.plugin.startInstall),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _updatePluginFromLocal() async {

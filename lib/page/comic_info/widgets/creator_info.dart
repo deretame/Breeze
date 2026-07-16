@@ -29,7 +29,8 @@ class CreatorInfoWidget extends StatelessWidget {
       imageKey: imageKey,
       from: from,
       infoChildren: infoChildren,
-      onTap: creator.onTap.isNotEmpty
+      onTap: creator.onTap.isNotEmpty &&
+              creator.onTap['type']?.toString() != 'openWeb'
           ? () => handleComicInfoAction(
               context,
               creator.onTap,

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,7 +13,11 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/plugin_settings/cubit/plugin_settings_cubit.dart';
 import 'package:zephyr/page/plugin_settings/method/plugin_settings_web_login.dart';
 import 'package:zephyr/page/plugin_settings/widgets/plugin_settings_content.dart';
+import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
+import 'package:zephyr/plugin/plugin_cloud_update_service.dart';
+import 'package:zephyr/plugin/plugin_install_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/plugin/utils/plugin_cloud_download_utils.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/event/webview_observe_bus.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -441,6 +447,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     final debugEnabled = pluginState?.debug ?? false;
     final debugUrl = pluginState?.debugUrl ?? '';
     final deleted = pluginState?.isDeleted == true;
+    final pluginVersion = pluginState?.version ?? '';
     final state = context.watch<PluginSettingsCubit>().state;
 
     return Scaffold(
@@ -451,6 +458,14 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         centerTitle: false,
         elevation: 0,
         backgroundColor: Colors.transparent,
+        actions: [
+          if (!deleted)
+            IconButton(
+              tooltip: t.plugin.sync,
+              onPressed: _syncPlugin,
+              icon: const Icon(Icons.sync),
+            ),
+        ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -462,15 +477,122 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
             debugEnabled: debugEnabled,
             debugUrl: debugUrl,
             deleted: deleted,
+            pluginVersion: pluginVersion,
             colorScheme: colorScheme,
             onUpdateDebugConfig: _updateDebugConfig,
             onConfirmDeletePlugin: _confirmDeletePlugin,
+            onUpdatePlugin: _updatePlugin,
             onCommitField: _commitField,
             onRunAction: (action) => _runAction(context, action),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _syncPlugin() async {
+    showInfoToast(t.plugin.syncing);
+    try {
+      final updated = await PluginCloudUpdateService.I
+          .syncPluginFromSelfChannel(widget.pluginUuid);
+      if (!mounted) {
+        return;
+      }
+      showSuccessToast(updated ? t.plugin.syncSuccess : t.plugin.alreadyLatest);
+    } catch (e) {
+      showErrorToast(t.plugin.syncFailed(error: e.toString()));
+    }
+  }
+
+  Future<void> _updatePlugin() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.plugin.updateChooseSource),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(t.common.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('local'),
+            child: Text(t.plugin.updateFromLocal),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('cloud'),
+            child: Text(t.plugin.updateFromCloud),
+          ),
+        ],
+      ),
+    );
+    if (choice == null || !mounted) {
+      return;
+    }
+    if (choice == 'cloud') {
+      await _updatePluginFromCloud();
+      return;
+    }
+    if (choice == 'local') {
+      await _updatePluginFromLocal();
+    }
+  }
+
+  Future<void> _updatePluginFromCloud() async {
+    showInfoToast(t.plugin.updating);
+    try {
+      final payload = await fetchCloudPluginListWithCdnFallback();
+      final entries = asJsonList(jsonDecode(payload))
+          .map((item) => CloudPluginItem.fromJson(asJsonMap(item)))
+          .where((item) => item.manifest.uuid.trim().isNotEmpty)
+          .toList();
+      final matched = entries
+          .where((item) => item.manifest.uuid.trim() == widget.pluginUuid)
+          .toList();
+      if (matched.isEmpty) {
+        throw StateError(t.plugin.notInCloudList);
+      }
+      final message = await PluginInstallService.I.installFromCloud(
+        matched.first,
+        expectedUuid: widget.pluginUuid,
+      );
+      if (!mounted) {
+        return;
+      }
+      showSuccessToast(message.isNotEmpty ? message : t.plugin.updateSuccess);
+    } catch (e) {
+      showErrorToast(t.plugin.updateFailed(error: e.toString()));
+    }
+  }
+
+  Future<void> _updatePluginFromLocal() async {
+    try {
+      final file = await openFile(
+        acceptedTypeGroups: const [
+          XTypeGroup(
+            label: 'plugin script',
+            extensions: ['js', 'cjs', 'br'],
+            uniformTypeIdentifiers: ['public.javascript'],
+          ),
+        ],
+      );
+      if (file == null) {
+        return;
+      }
+      showInfoToast(t.plugin.updating);
+      final bytes = await file.readAsBytes();
+      final message = await PluginInstallService.I.installFromLocalBytes(
+        bytes,
+        fileName: file.name,
+        expectedUuid: widget.pluginUuid,
+        allowReplaceExisting: true,
+      );
+      if (!mounted) {
+        return;
+      }
+      showSuccessToast(message.isNotEmpty ? message : t.plugin.updateSuccess);
+    } catch (e) {
+      showErrorToast(t.plugin.updateFailed(error: e.toString()));
+    }
   }
 
   Future<void> _updateDebugConfig({

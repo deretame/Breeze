@@ -660,6 +660,7 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
           lastLoadError: parsed.lastLoadError,
           debug: parsed.debug,
           debugUrl: parsed.debugUrl,
+          getInfoJson: parsed.getInfoJson,
         ),
       );
     } catch (e) {
@@ -694,6 +695,9 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
       lastLoadError: incoming.lastLoadError,
       debug: incoming.debug,
       debugUrl: incoming.debugUrl,
+      getInfoJson: incoming.getInfoJson.isNotEmpty
+          ? incoming.getInfoJson
+          : (existing?.getInfoJson ?? ''),
     );
     infoUpserts.add(upsert);
     localPluginByUuid[uuid] = upsert;

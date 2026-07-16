@@ -18,9 +18,11 @@ class PluginSettingsContent extends StatelessWidget {
     required this.debugEnabled,
     required this.debugUrl,
     required this.deleted,
+    required this.pluginVersion,
     required this.colorScheme,
     required this.onUpdateDebugConfig,
     required this.onConfirmDeletePlugin,
+    required this.onUpdatePlugin,
     required this.onCommitField,
     required this.onRunAction,
   });
@@ -31,10 +33,12 @@ class PluginSettingsContent extends StatelessWidget {
   final bool debugEnabled;
   final String debugUrl;
   final bool deleted;
+  final String pluginVersion;
   final ColorScheme colorScheme;
   final Future<void> Function({required bool enabled, required String url})
   onUpdateDebugConfig;
   final Future<void> Function() onConfirmDeletePlugin;
+  final Future<void> Function() onUpdatePlugin;
   final Future<void> Function(Map<String, dynamic> field, dynamic value)
   onCommitField;
   final Future<void> Function(Map<String, dynamic> action) onRunAction;
@@ -44,15 +48,16 @@ class PluginSettingsContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       children: [
-        _buildManagementSection(context),
+        // 插件自身设置优先，宿主管理项沉底
         ..._buildBodySections(context),
+        _buildManagementSection(context),
       ],
     );
   }
 
   Widget _buildManagementSection(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(top: 12, bottom: 12),
       child: PluginSettingsSectionCard(
         title: t.plugin.management,
         colorScheme: colorScheme,
@@ -62,12 +67,32 @@ class PluginSettingsContent extends StatelessWidget {
   }
 
   List<Widget> _buildManagementRows(BuildContext context) {
-    final rows = <Widget>[
+    return [
+      _buildVersionRow(),
+      _buildUpdatePluginRow(),
       _buildDebugModeRow(),
       if (debugEnabled) _buildDebugUrlRow(context),
       _buildDeletePluginRow(),
     ];
-    return rows;
+  }
+
+  Widget _buildVersionRow() {
+    final version = pluginVersion.trim().isEmpty ? '-' : pluginVersion.trim();
+    return PluginSettingsFieldRow(
+      title: t.plugin.version,
+      subtitle: t.plugin.currentVersion(version: version),
+      trailing: const Icon(Icons.info_outline, size: 18),
+      onTap: null,
+    );
+  }
+
+  Widget _buildUpdatePluginRow() {
+    return PluginSettingsFieldRow(
+      title: t.plugin.update,
+      subtitle: t.plugin.updateSubtitle,
+      trailing: const Icon(Icons.system_update_alt, size: 18),
+      onTap: deleted ? null : onUpdatePlugin,
+    );
   }
 
   Widget _buildDebugModeRow() {

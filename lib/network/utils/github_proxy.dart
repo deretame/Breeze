@@ -12,23 +12,43 @@ const breezeLatestReleaseApi = 'https://api.windy-78.site/breeze';
 const _breezeLatestReleaseUrl =
     'https://api.github.com/repos/deretame/Breeze/releases/latest';
 
-/// 传入标准的 GitHub API URL，函数自动处理降级和代理
+bool isGithubApiUrl(String fullUrl) {
+  final uri = Uri.tryParse(fullUrl.trim());
+  if (uri == null) {
+    return false;
+  }
+  return uri.host == 'api.github.com' ||
+      uri.host == 'www.api.github.com';
+}
+
+/// 传入 release 信息 URL。
+///
+/// - GitHub API（`api.github.com`）：自动走 gh-proxy 加速并回退直连
+/// - 其它 URL：不走加速，直接请求（要求返回结构类似 GitHub Release API）
+///
 /// 示例输入: https://api.github.com/repos/deretame/Breeze/releases/latest
 Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
-  String repoPath = fullUrl;
-  if (fullUrl.contains("api.github.com")) {
-    repoPath = "/${fullUrl.split("api.github.com/")[1]}";
+  final resolvedUrl = fullUrl.trim();
+  if (resolvedUrl.isEmpty) {
+    throw ArgumentError('release URL 不能为空');
   }
 
-  final isBreezeLatest =
-      fullUrl == _breezeLatestReleaseUrl ||
-      repoPath == '/repos/deretame/Breeze/releases/latest';
+  final List<String> urls;
+  if (isGithubApiUrl(resolvedUrl)) {
+    final repoPath = "/${resolvedUrl.split("api.github.com/")[1]}";
+    final isBreezeLatest =
+        resolvedUrl == _breezeLatestReleaseUrl ||
+        repoPath == '/repos/deretame/Breeze/releases/latest';
 
-  final List<String> urls = [
-    if (isBreezeLatest) breezeLatestReleaseApi,
-    ...mirrorBaseUrls.map((base) => "${base}https://api.github.com$repoPath"),
-    "https://api.github.com$repoPath",
-  ];
+    urls = [
+      if (isBreezeLatest) breezeLatestReleaseApi,
+      ...mirrorBaseUrls.map((base) => "${base}https://api.github.com$repoPath"),
+      "https://api.github.com$repoPath",
+    ];
+  } else {
+    // 非 GitHub API：禁止套代理，避免错误拼接加速路径
+    urls = [resolvedUrl];
+  }
 
   dynamic lastError;
 

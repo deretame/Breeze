@@ -684,6 +684,7 @@ PluginInfo _$PluginInfoFromJson(Map<String, dynamic> json) => PluginInfo(
   lastLoadError: json['lastLoadError'] as String?,
   debug: json['debug'] as bool,
   debugUrl: json['debugUrl'] as String?,
+  getInfoJson: json['getInfoJson'] as String? ?? '',
 );
 
 Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
@@ -701,6 +702,7 @@ Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'debug': instance.debug,
       'debugUrl': instance.debugUrl,
+      'getInfoJson': instance.getInfoJson,
     };
 
 ComicFollow _$ComicFollowFromJson(Map<String, dynamic> json) => ComicFollow(

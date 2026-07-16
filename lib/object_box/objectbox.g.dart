@@ -1140,7 +1140,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(12, 5269818584842768822),
     name: 'PluginInfo',
-    lastPropertyId: const obx_int.IdUid(18, 4398518863020863280),
+    lastPropertyId: const obx_int.IdUid(19, 7926002288333683068),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1219,6 +1219,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(18, 4398518863020863280),
         name: 'originScript',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 7926002288333683068),
+        name: 'getInfoJson',
         type: 9,
         flags: 0,
       ),
@@ -3641,7 +3647,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ? null
             : fbb.writeString(object.debugUrl!);
         final originScriptOffset = fbb.writeString(object.originScript);
-        fbb.startTable(19);
+        final getInfoJsonOffset = fbb.writeString(object.getInfoJson);
+        fbb.startTable(20);
         fbb.addInt64(0, object.id);
         fbb.addOffset(4, versionOffset);
         fbb.addInt64(7, object.insertedAt.millisecondsSinceEpoch);
@@ -3655,6 +3662,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(15, object.debug);
         fbb.addOffset(16, debugUrlOffset);
         fbb.addOffset(17, originScriptOffset);
+        fbb.addOffset(18, getInfoJsonOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -3720,6 +3728,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final debugUrlParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 36);
+        final getInfoJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 40, '');
         final object = PluginInfo(
           id: idParam,
           uuid: uuidParam,
@@ -3734,6 +3745,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           lastLoadError: lastLoadErrorParam,
           debug: debugParam,
           debugUrl: debugUrlParam,
+          getInfoJson: getInfoJsonParam,
         );
 
         return object;
@@ -5727,6 +5739,11 @@ class PluginInfo_ {
   /// See [PluginInfo.originScript].
   static final originScript = obx.QueryStringProperty<PluginInfo>(
     _entities[8].properties[12],
+  );
+
+  /// See [PluginInfo.getInfoJson].
+  static final getInfoJson = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[13],
   );
 }
 

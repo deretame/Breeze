@@ -1947,6 +1947,54 @@ class Translations$plugin$zh_CN {
 
 	/// zh-CN: '关闭'
 	String get close => '关闭';
+
+	/// zh-CN: '同步'
+	String get sync => '同步';
+
+	/// zh-CN: '通过 npm / updateUrl 检查并更新插件'
+	String get syncSubtitle => '通过 npm / updateUrl 检查并更新插件';
+
+	/// zh-CN: '正在同步插件...'
+	String get syncing => '正在同步插件...';
+
+	/// zh-CN: '同步成功'
+	String get syncSuccess => '同步成功';
+
+	/// zh-CN: '同步失败: $error'
+	String syncFailed({required Object error}) => '同步失败: ${error}';
+
+	/// zh-CN: '从云端或本地重新安装当前插件'
+	String get updateSubtitle => '从云端或本地重新安装当前插件';
+
+	/// zh-CN: '从云端安装'
+	String get updateFromCloud => '从云端安装';
+
+	/// zh-CN: '从本地安装'
+	String get updateFromLocal => '从本地安装';
+
+	/// zh-CN: '选择更新来源'
+	String get updateChooseSource => '选择更新来源';
+
+	/// zh-CN: '正在更新插件...'
+	String get updating => '正在更新插件...';
+
+	/// zh-CN: '更新成功'
+	String get updateSuccess => '更新成功';
+
+	/// zh-CN: '更新失败: $error'
+	String updateFailed({required Object error}) => '更新失败: ${error}';
+
+	/// zh-CN: '插件 id 不一致，无法安装'
+	String get uuidMismatch => '插件 id 不一致，无法安装';
+
+	/// zh-CN: '云端列表中未找到该插件'
+	String get notInCloudList => '云端列表中未找到该插件';
+
+	/// zh-CN: '当前版本 $version'
+	String currentVersion({required Object version}) => '当前版本 ${version}';
+
+	/// zh-CN: '已是最新版本'
+	String get alreadyLatest => '已是最新版本';
 }
 
 // Path: gestureLock
@@ -4131,6 +4179,22 @@ extension on Translations {
 			'plugin.actionNotExecutable' => '动作不可执行: 缺少 fnPath',
 			'plugin.saved' => '已保存',
 			'plugin.close' => '关闭',
+			'plugin.sync' => '同步',
+			'plugin.syncSubtitle' => '通过 npm / updateUrl 检查并更新插件',
+			'plugin.syncing' => '正在同步插件...',
+			'plugin.syncSuccess' => '同步成功',
+			'plugin.syncFailed' => ({required Object error}) => '同步失败: ${error}',
+			'plugin.updateSubtitle' => '从云端或本地重新安装当前插件',
+			'plugin.updateFromCloud' => '从云端安装',
+			'plugin.updateFromLocal' => '从本地安装',
+			'plugin.updateChooseSource' => '选择更新来源',
+			'plugin.updating' => '正在更新插件...',
+			'plugin.updateSuccess' => '更新成功',
+			'plugin.updateFailed' => ({required Object error}) => '更新失败: ${error}',
+			'plugin.uuidMismatch' => '插件 id 不一致，无法安装',
+			'plugin.notInCloudList' => '云端列表中未找到该插件',
+			'plugin.currentVersion' => ({required Object version}) => '当前版本 ${version}',
+			'plugin.alreadyLatest' => '已是最新版本',
 			'gestureLock.gestureTitle' => '手势解锁',
 			'gestureLock.gestureHint' => '请绘制手势密码',
 			'gestureLock.pinTitle' => '输入 PIN',
@@ -4539,6 +4603,8 @@ extension on Translations {
 			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			'download.taskDeleted' => '已删除任务',
 			'download.cancelTask' => '取消任务',
+			_ => null,
+		} ?? switch (path) {
 			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			'download.paused' => '已暂停',
 			'download.completed' => '已完成',
@@ -4555,8 +4621,6 @@ extension on Translations {
 			'download.statusStartDownload' => '开始下载...',
 			'download.statusWaiting' => '等待中',
 			'download.statusCancelling' => '取消中...',
-			_ => null,
-		} ?? switch (path) {
 			'download.toastDownloadComplete' => ({required Object comicName}) => '${comicName} 下载完成',
 			'download.toastDownloadFailed' => ({required Object comicName, required Object error}) => '${comicName} 下载失败 ${error}',
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} 任务已存在',

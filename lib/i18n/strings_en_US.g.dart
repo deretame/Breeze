@@ -744,6 +744,22 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get actionNotExecutable => 'Action not executable: missing fnPath';
 	@override String get saved => 'Saved';
 	@override String get close => 'Close';
+	@override String get sync => 'Sync';
+	@override String get syncSubtitle => 'Check and update via npm / updateUrl';
+	@override String get syncing => 'Syncing plugin...';
+	@override String get syncSuccess => 'Sync successful';
+	@override String syncFailed({required Object error}) => 'Sync failed: ${error}';
+	@override String get updateSubtitle => 'Reinstall this plugin from cloud or local file';
+	@override String get updateFromCloud => 'Install from cloud';
+	@override String get updateFromLocal => 'Install from local';
+	@override String get updateChooseSource => 'Choose update source';
+	@override String get updating => 'Updating plugin...';
+	@override String get updateSuccess => 'Update successful';
+	@override String updateFailed({required Object error}) => 'Update failed: ${error}';
+	@override String get uuidMismatch => 'Plugin id mismatch, install rejected';
+	@override String get notInCloudList => 'Plugin not found in cloud list';
+	@override String currentVersion({required Object version}) => 'Current version ${version}';
+	@override String get alreadyLatest => 'Already up to date';
 }
 
 // Path: gestureLock
@@ -2035,6 +2051,22 @@ extension on TranslationsEnUs {
 			'plugin.actionNotExecutable' => 'Action not executable: missing fnPath',
 			'plugin.saved' => 'Saved',
 			'plugin.close' => 'Close',
+			'plugin.sync' => 'Sync',
+			'plugin.syncSubtitle' => 'Check and update via npm / updateUrl',
+			'plugin.syncing' => 'Syncing plugin...',
+			'plugin.syncSuccess' => 'Sync successful',
+			'plugin.syncFailed' => ({required Object error}) => 'Sync failed: ${error}',
+			'plugin.updateSubtitle' => 'Reinstall this plugin from cloud or local file',
+			'plugin.updateFromCloud' => 'Install from cloud',
+			'plugin.updateFromLocal' => 'Install from local',
+			'plugin.updateChooseSource' => 'Choose update source',
+			'plugin.updating' => 'Updating plugin...',
+			'plugin.updateSuccess' => 'Update successful',
+			'plugin.updateFailed' => ({required Object error}) => 'Update failed: ${error}',
+			'plugin.uuidMismatch' => 'Plugin id mismatch, install rejected',
+			'plugin.notInCloudList' => 'Plugin not found in cloud list',
+			'plugin.currentVersion' => ({required Object version}) => 'Current version ${version}',
+			'plugin.alreadyLatest' => 'Already up to date',
 			'gestureLock.gestureTitle' => 'Gesture unlock',
 			'gestureLock.gestureHint' => 'Draw gesture password',
 			'gestureLock.pinTitle' => 'Enter PIN',
@@ -2444,6 +2476,8 @@ extension on TranslationsEnUs {
 			'download.taskDeleted' => 'Task deleted',
 			'download.cancelTask' => 'Cancel Task',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
+			_ => null,
+		} ?? switch (path) {
 			'download.paused' => 'Paused',
 			'download.completed' => 'Completed',
 			'download.failed' => 'Failed',
@@ -2460,8 +2494,6 @@ extension on TranslationsEnUs {
 			'download.statusWaiting' => 'Waiting',
 			'download.statusCancelling' => 'Cancelling...',
 			'download.toastDownloadComplete' => ({required Object comicName}) => '${comicName} download complete',
-			_ => null,
-		} ?? switch (path) {
 			'download.toastDownloadFailed' => ({required Object comicName, required Object error}) => '${comicName} download failed ${error}',
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} task already exists',
 			'download.notificationCompleteTitle' => 'Download complete',

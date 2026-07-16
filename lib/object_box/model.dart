@@ -991,6 +991,9 @@ class PluginInfo {
 
   String? debugUrl;
 
+  /// getInfo 返回的完整 JSON 字符串缓存（用于更新通道 npmName / updateUrl 等）。
+  String getInfoJson;
+
   PluginInfo({
     this.id = 0,
     required this.uuid,
@@ -1005,6 +1008,7 @@ class PluginInfo {
     this.lastLoadError,
     required this.debug,
     this.debugUrl,
+    this.getInfoJson = '',
   });
 
   Map<String, dynamic> toJson() => _$PluginInfoToJson(this);

@@ -201,7 +201,43 @@ class PluginRegistryService {
     final decoded = requireJsonMap(jsonDecode(raw));
     _pluginInfoCache[uuid] = decoded;
     await updateLoadResult(uuid, success: true, error: null);
+    await persistGetInfoJson(uuid, jsonEncode(decoded));
     return decoded;
+  }
+
+  /// 持久化 getInfo JSON 字符串到 ObjectBox（不清理 runtime / 内存 cache）。
+  Future<void> persistGetInfoJson(String uuid, String getInfoJson) async {
+    final objectbox = _objectbox;
+    if (objectbox == null) {
+      return;
+    }
+    final found = objectbox.pluginInfoBox
+        .query(PluginInfo_.uuid.equals(uuid))
+        .build()
+        .findFirst();
+    if (found == null) {
+      return;
+    }
+    final normalized = getInfoJson.trim();
+    if (found.getInfoJson == normalized) {
+      return;
+    }
+    found.getInfoJson = normalized;
+    // 仅缓存元数据，不改 updatedAt，避免触发无意义的同步冲突。
+    objectbox.pluginInfoBox.put(found);
+  }
+
+  /// 读取已持久化的 getInfo JSON 字符串。
+  String readPersistedGetInfoJson(String uuid) {
+    final objectbox = _objectbox;
+    if (objectbox == null) {
+      return '';
+    }
+    final found = objectbox.pluginInfoBox
+        .query(PluginInfo_.uuid.equals(uuid))
+        .build()
+        .findFirst();
+    return found?.getInfoJson.trim() ?? '';
   }
 
   List<PluginRuntimeState> activePlugins() {

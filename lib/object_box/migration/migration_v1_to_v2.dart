@@ -338,6 +338,7 @@ PluginInfo _buildBuiltinPluginInfo(
     lastLoadError: existing?.lastLoadError,
     debug: existing?.debug ?? false,
     debugUrl: existing?.debugUrl,
+    getInfoJson: existing?.getInfoJson ?? '',
   );
 }
 

@@ -5,6 +5,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/plugin/utils/plugin_cloud_download_utils.dart';
+import 'package:zephyr/plugin/utils/plugin_update_channel_utils.dart';
 
 const _blockedPluginUuid = kDebugMode
     ? ''
@@ -18,10 +19,20 @@ class PluginInstallService {
   ///
   /// Returns a message like '安装成功' or '更新成功' on success, and throws
   /// on failure. The caller is responsible for showing UI feedback.
-  Future<String> installFromCloud(CloudPluginItem item) async {
+  Future<String> installFromCloud(
+    CloudPluginItem item, {
+    String? expectedUuid,
+  }) async {
     final pluginUuid = item.manifest.uuid.trim();
     if (pluginUuid == _blockedPluginUuid) {
       throw StateError('请更换插件id');
+    }
+    if (expectedUuid != null &&
+        expectedUuid.trim().isNotEmpty &&
+        pluginUuid != expectedUuid.trim()) {
+      throw StateError(
+        '插件 id 不一致，期望=${expectedUuid.trim()}, 实际=$pluginUuid',
+      );
     }
     final updateUrl = item.manifest.updateUrl.trim();
     final npmName = item.manifest.npmName.trim();
@@ -38,6 +49,7 @@ class PluginInstallService {
       script,
       sourceLabel: '云端组件: ${item.repo}',
       allowReplaceExisting: true,
+      expectedUuid: expectedUuid,
     );
   }
 
@@ -45,12 +57,19 @@ class PluginInstallService {
   Future<String> installFromLocalBytes(
     List<int> bytes, {
     required String fileName,
+    String? expectedUuid,
+    bool allowReplaceExisting = false,
   }) async {
     final script = await decodePluginScriptFromBytes(
       bytes: bytes,
       shouldUseBrotli: fileName.toLowerCase().endsWith('.br'),
     );
-    return savePluginByScript(script, sourceLabel: '本地文件: $fileName');
+    return savePluginByScript(
+      script,
+      sourceLabel: '本地文件: $fileName',
+      allowReplaceExisting: allowReplaceExisting,
+      expectedUuid: expectedUuid,
+    );
   }
 
   /// Installs a plugin from an arbitrary network URL.
@@ -72,10 +91,13 @@ class PluginInstallService {
   ///
   /// When [allowReplaceExisting] is false and the plugin already exists and is
   /// not deleted, a [StateError] is thrown.
+  ///
+  /// When [expectedUuid] is set, the script's uuid must match or install fails.
   Future<String> savePluginByScript(
     String script, {
     required String sourceLabel,
     bool allowReplaceExisting = false,
+    String? expectedUuid,
   }) async {
     final normalizedScript = script.trim();
     if (normalizedScript.isEmpty) {
@@ -90,7 +112,12 @@ class PluginInstallService {
     if (resolvedUuid == _blockedPluginUuid) {
       throw StateError('请更换插件id');
     }
+    final expected = expectedUuid?.trim() ?? '';
+    if (expected.isNotEmpty && resolvedUuid != expected) {
+      throw StateError('插件 id 不一致，期望=$expected, 实际=$resolvedUuid');
+    }
     final version = readVersionFromInfo(info);
+    final getInfoJson = encodeGetInfoJson(info);
 
     final existing = PluginRegistryService.I.getByUuid(resolvedUuid);
     if (!allowReplaceExisting) {
@@ -113,10 +140,24 @@ class PluginInstallService {
       lastLoadError: null,
       debug: existing?.debug ?? false,
       debugUrl: existing?.debugUrl,
+      getInfoJson: getInfoJson,
     );
 
     await PluginRegistryService.I.upsert(infoToSave);
     await PluginRegistryService.I.setEnabled(resolvedUuid, true);
+
+    // 安装/更新后再次刷新 getInfo（内存 + 持久化）。
+    try {
+      final runtimeName = PluginRegistryService.I.resolveRuntimeName(
+        resolvedUuid,
+      );
+      await PluginRegistryService.I.fetchPluginInfo(
+        uuid: resolvedUuid,
+        runtimeName: runtimeName,
+      );
+    } catch (e, st) {
+      logger.w('安装后刷新 getInfo 失败: $resolvedUuid', error: e, stackTrace: st);
+    }
 
     return existing == null ? '安装成功' : '更新成功';
   }

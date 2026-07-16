@@ -43,9 +43,9 @@ fn err(message: impl Into<String>) -> String {
 fn primary_time_zone_id(id: &str) -> &str {
     match id {
         // UTC family
-        "Etc/UTC" | "Etc/GMT" | "Etc/GMT+0" | "Etc/GMT-0" | "Etc/GMT0" | "GMT"
-        | "GMT+0" | "GMT-0" | "GMT0" | "UCT" | "Etc/UCT" | "Universal" | "Zulu"
-        | "Etc/Universal" | "Etc/Zulu" => "UTC",
+        "Etc/UTC" | "Etc/GMT" | "Etc/GMT+0" | "Etc/GMT-0" | "Etc/GMT0" | "GMT" | "GMT+0"
+        | "GMT-0" | "GMT0" | "UCT" | "Etc/UCT" | "Universal" | "Zulu" | "Etc/Universal"
+        | "Etc/Zulu" => "UTC",
 
         // Common links exercised by Test262 Temporal intl402
         "Asia/Calcutta" => "Asia/Kolkata",
@@ -156,7 +156,9 @@ fn parse_offset_time_zone(raw: &str) -> Option<TimeZone> {
             let m = hh[2..4].parse::<i32>().ok()?;
             (h, m, 0)
         }
-        [hh, mm] if hh.chars().all(|c| c.is_ascii_digit()) && mm.chars().all(|c| c.is_ascii_digit()) => {
+        [hh, mm]
+            if hh.chars().all(|c| c.is_ascii_digit()) && mm.chars().all(|c| c.is_ascii_digit()) =>
+        {
             (hh.parse::<i32>().ok()?, mm.parse::<i32>().ok()?, 0)
         }
         [hh, mm, ss]
@@ -370,9 +372,7 @@ fn pick_time_precision(options: &Value, has_time_style: bool) -> Option<TimePrec
     if has_time_style {
         return Some(TimePrecision::Second);
     }
-    if options.get("second").is_some()
-        || options.get("fractionalSecondDigits").is_some()
-    {
+    if options.get("second").is_some() || options.get("fractionalSecondDigits").is_some() {
         Some(TimePrecision::Second)
     } else if options.get("minute").is_some() {
         Some(TimePrecision::Minute)
@@ -486,8 +486,8 @@ fn zoned_from_epoch(epoch_milli: f64, tz: TimeZone) -> Result<jiff::Zoned, Strin
     let epoch_ms_i64 = epoch_milli.round() as i64;
     // P1: clamp into jiff range so extreme Temporal samples don't hard-fail.
     let clamped = epoch_ms_i64.clamp(JIFF_MS_MIN, JIFF_MS_MAX);
-    let ts = Timestamp::from_millisecond(clamped)
-        .map_err(|e| format!("Invalid time value: {e}"))?;
+    let ts =
+        Timestamp::from_millisecond(clamped).map_err(|e| format!("Invalid time value: {e}"))?;
     Ok(ts.to_zoned(tz))
 }
 
@@ -556,8 +556,7 @@ fn parts_from_formatted(
         .write_to_parts(&mut sink)
         .map_err(|e| format!("format failed: {e}"))?;
 
-    sink.ranges
-        .sort_by_key(|(s, e, _)| (*s, usize::MAX - *e));
+    sink.ranges.sort_by_key(|(s, e, _)| (*s, usize::MAX - *e));
     let mut kept: Vec<(usize, usize, &str)> = Vec::new();
     for (s, e, ty) in sink.ranges {
         if kept.iter().any(|(ks, ke, _)| *ks <= s && e <= *ke) {
@@ -590,7 +589,10 @@ fn parts_from_formatted(
         parts.push(json!({ "type": ty, "value": value }));
         rebuilt.push_str(&parts.last().unwrap()["value"].as_str().unwrap_or(""));
         if ty == "year" {
-            let y = parts.last().unwrap()["value"].as_str().unwrap_or("").to_string();
+            let y = parts.last().unwrap()["value"]
+                .as_str()
+                .unwrap_or("")
+                .to_string();
             parts.push(json!({ "type": "relatedYear", "value": y }));
             // relatedYear is not rendered in format string by browsers; keep text as-is.
         }

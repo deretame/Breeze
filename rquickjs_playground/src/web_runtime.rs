@@ -246,10 +246,7 @@ pub fn install_host_bindings(
         "__intl_dtf_format_to_parts",
         Func::from(intl::intl_dtf_format_to_parts),
     )?;
-    globals.set(
-        "__intl_dtf_format",
-        Func::from(intl::intl_dtf_format),
-    )?;
+    globals.set("__intl_dtf_format", Func::from(intl::intl_dtf_format))?;
     globals.set(
         "__intl_dtf_resolved_options",
         Func::from(intl::intl_dtf_resolved_options),

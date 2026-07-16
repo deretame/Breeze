@@ -195,6 +195,26 @@ class _OldHomePageState extends State<OldHomePage> {
       );
       return;
     }
+
+    if (type == 'openComicInfo') {
+      final comicId = payload['comicId']?.toString().trim() ?? '';
+      if (comicId.isEmpty) {
+        return;
+      }
+      final source = _sourceFromString(payload['source']?.toString());
+      if (source.isEmpty) {
+        return;
+      }
+      context.pushRoute(
+        ComicInfoRoute(
+          comicId: comicId,
+          from: source,
+          pluginId: source,
+          type: ComicEntryType.normal,
+        ),
+      );
+      return;
+    }
   }
 
   String _sourceFromString(String? source) {
@@ -649,7 +669,8 @@ class _FunctionSectionState extends State<_FunctionSection>
     if (type != 'openPluginFunction' &&
         type != 'openCloudFavorite' &&
         type != 'openSearch' &&
-        type != 'openComicList') {
+        type != 'openComicList' &&
+        type != 'openComicInfo') {
       return action;
     }
 

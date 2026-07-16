@@ -30,9 +30,7 @@ class PluginInstallService {
     if (expectedUuid != null &&
         expectedUuid.trim().isNotEmpty &&
         pluginUuid != expectedUuid.trim()) {
-      throw StateError(
-        '插件 id 不一致，期望=${expectedUuid.trim()}, 实际=$pluginUuid',
-      );
+      throw StateError('插件 id 不一致，期望=${expectedUuid.trim()}, 实际=$pluginUuid');
     }
     final updateUrl = item.manifest.updateUrl.trim();
     final npmName = item.manifest.npmName.trim();

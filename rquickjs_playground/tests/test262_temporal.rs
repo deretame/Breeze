@@ -194,12 +194,7 @@ fn build_payload(_test_path: &Path, source: &str, fm: &Frontmatter) -> String {
     let cache = harness_cache();
     // Required harness files.
     for req in ["assert.js", "sta.js"] {
-        parts.push(
-            cache
-                .get(req)
-                .cloned()
-                .unwrap_or_else(|| read_harness(req)),
-        );
+        parts.push(cache.get(req).cloned().unwrap_or_else(|| read_harness(req)));
     }
     // Includes from frontmatter.
     let mut seen = HashSet::new();
@@ -219,7 +214,10 @@ fn build_payload(_test_path: &Path, source: &str, fm: &Frontmatter) -> String {
     let is_async = fm.flags.iter().any(|f| f == "async");
     let only_strict = fm.flags.iter().any(|f| f == "onlyStrict");
     let negative = fm.negative_type.clone();
-    let negative_phase = fm.negative_phase.clone().unwrap_or_else(|| "runtime".into());
+    let negative_phase = fm
+        .negative_phase
+        .clone()
+        .unwrap_or_else(|| "runtime".into());
 
     // Result harness.
     parts.push(
@@ -377,10 +375,7 @@ fn run_one(test_path: &Path) -> FileResult {
         Err(mpsc::RecvTimeoutError::Timeout) => FileResult {
             path: rel,
             status: "fail".into(),
-            message: Some(format!(
-                "case timed out after {}ms",
-                timeout.as_millis()
-            )),
+            message: Some(format!("case timed out after {}ms", timeout.as_millis())),
         },
         Err(mpsc::RecvTimeoutError::Disconnected) => FileResult {
             path: rel,
@@ -479,12 +474,17 @@ fn run_one_inner(test_path: &Path) -> FileResult {
     FileResult {
         path: rel,
         status: "fail".into(),
-        message: Some(format!("unparseable result: {}", &raw[..raw.len().min(300)])),
+        message: Some(format!(
+            "unparseable result: {}",
+            &raw[..raw.len().min(300)]
+        )),
     }
 }
 
 fn env_filter() -> Option<String> {
-    std::env::var("TEST262_FILTER").ok().filter(|s| !s.is_empty())
+    std::env::var("TEST262_FILTER")
+        .ok()
+        .filter(|s| !s.is_empty())
 }
 
 fn env_limit() -> Option<usize> {
@@ -523,9 +523,7 @@ fn normalize_test_rel(path: &Path) -> String {
         .unwrap_or(path)
         .to_string_lossy()
         .replace('\\', "/");
-    rel.strip_prefix("test/")
-        .unwrap_or(&rel)
-        .to_string()
+    rel.strip_prefix("test/").unwrap_or(&rel).to_string()
 }
 
 #[test]
@@ -534,15 +532,9 @@ fn test262_temporal_built_ins() {
     rquickjs_playground::host_runtime::configure_js_error_stack(true);
 
     let mut files: Vec<PathBuf> = Vec::new();
-    collect_test_files(
-        &test262_root().join("test/built-ins/Temporal"),
-        &mut files,
-    );
+    collect_test_files(&test262_root().join("test/built-ins/Temporal"), &mut files);
     if include_intl402() {
-        collect_test_files(
-            &test262_root().join("test/intl402/Temporal"),
-            &mut files,
-        );
+        collect_test_files(&test262_root().join("test/intl402/Temporal"), &mut files);
     }
     files.sort();
 
@@ -642,11 +634,7 @@ fn test262_temporal_built_ins() {
     if !unexpected_failures.is_empty() {
         println!("\nUnexpected failures:");
         for f in unexpected_failures.iter().take(40) {
-            println!(
-                "  {} :: {}",
-                f.path,
-                f.message.as_deref().unwrap_or("")
-            );
+            println!("  {} :: {}", f.path, f.message.as_deref().unwrap_or(""));
         }
     }
     if !unexpected_passes.is_empty() {
@@ -667,7 +655,8 @@ fn test262_temporal_built_ins() {
         "unexpected_failures": unexpected_failures,
         "unexpected_passes": unexpected_passes,
     });
-    let out = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target/test262_temporal_results.json");
+    let out =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target/test262_temporal_results.json");
     let _ = fs::create_dir_all(out.parent().unwrap());
     let _ = fs::write(&out, serde_json::to_string_pretty(&summary).unwrap());
 

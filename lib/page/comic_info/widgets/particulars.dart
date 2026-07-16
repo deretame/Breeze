@@ -16,9 +16,8 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
-import 'package:zephyr/widgets/toast.dart';
-
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 class ComicParticularsWidget extends StatelessWidget {
   final ComicInfo comicInfo;
@@ -242,16 +241,8 @@ class _InfoColumnState extends State<_InfoColumn> {
           runSpacing: 8,
           children: widget.comicInfo.titleMeta
               .map(
-                (item) => _MetaPill(
-                  label: item.name.let(convertChineseForDisplay),
-                  onTap: item.onTap.isEmpty
-                      ? null
-                      : () => handleComicInfoAction(
-                          context,
-                          item.onTap,
-                          fallbackPluginId: widget.from,
-                        ),
-                ),
+                (item) =>
+                    _MetaPill(label: item.name.let(convertChineseForDisplay)),
               )
               .toList(),
         ),
@@ -369,10 +360,9 @@ class _InfoColumnState extends State<_InfoColumn> {
 }
 
 class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.label, this.onTap});
+  const _MetaPill({required this.label});
 
   final String label;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +388,6 @@ class _MetaPill extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: onTap,
       onLongPress: () async {
         await Clipboard.setData(ClipboardData(text: label));
         showSuccessToast(t.comicInfo.copied(label: label));

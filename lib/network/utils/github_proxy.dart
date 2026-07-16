@@ -17,8 +17,7 @@ bool isGithubApiUrl(String fullUrl) {
   if (uri == null) {
     return false;
   }
-  return uri.host == 'api.github.com' ||
-      uri.host == 'www.api.github.com';
+  return uri.host == 'api.github.com' || uri.host == 'www.api.github.com';
 }
 
 /// 传入 release 信息 URL。

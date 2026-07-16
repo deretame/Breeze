@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/discover/view/discover_scheme_renderer.dart';
 import 'package:zephyr/page/plugin_function/cubit/plugin_function_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/util/json/json_value.dart';
 
 @RoutePage()
 class PluginFunctionPage extends StatelessWidget {
@@ -80,41 +79,12 @@ class _PluginFunctionView extends StatelessWidget {
                 scheme: state.scheme,
                 data: state.data,
                 onReachBottom: () async {},
-                onAction: (action) => _onAction(action, from: from),
+                onAction: onAction,
                 isLoadingMore: false,
                 showLoadMoreRetry: false,
                 onRetryLoadMore: () {},
               ),
       ),
     );
-  }
-
-  Future<void> _onAction(
-    Map<String, dynamic> action, {
-    required String from,
-  }) async {
-    final type = action['type']?.toString().trim() ?? '';
-    if (type.isEmpty) {
-      await onAction(action);
-      return;
-    }
-
-    if (type == 'openPluginFunction' ||
-        type == 'openCloudFavorite' ||
-        type == 'openSearch' ||
-        type == 'openComicList') {
-      final payload = Map<String, dynamic>.from(asJsonMap(action['payload']));
-      payload['source'] = from;
-      if (type == 'openComicList') {
-        final scene = Map<String, dynamic>.from(asJsonMap(payload['scene']));
-        scene['source'] = from;
-        payload['scene'] = scene;
-      }
-      final next = Map<String, dynamic>.from(action)..['payload'] = payload;
-      await onAction(next);
-      return;
-    }
-
-    await onAction(action);
   }
 }

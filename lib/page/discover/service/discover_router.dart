@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -47,6 +48,8 @@ class DiscoverRouter {
         );
       case 'openComicList':
         await _openComicList(context, asJsonMap(action['payload']));
+      case 'openComicInfo':
+        await _openComicInfo(context, asJsonMap(action['payload']));
     }
   }
 
@@ -59,7 +62,8 @@ class DiscoverRouter {
     if (type != 'openPluginFunction' &&
         type != 'openCloudFavorite' &&
         type != 'openSearch' &&
-        type != 'openComicList') {
+        type != 'openComicList' &&
+        type != 'openComicInfo') {
       return action;
     }
 
@@ -215,6 +219,33 @@ class DiscoverRouter {
       return;
     }
     context.pushRoute(ComicListRoute(scene: scene, title: scene.title));
+  }
+
+  static Future<void> _openComicInfo(
+    BuildContext context,
+    Map<String, dynamic> payload,
+  ) async {
+    final comicId = payload['comicId']?.toString().trim() ?? '';
+    if (comicId.isEmpty) {
+      return;
+    }
+
+    final source = _sourceFromString(payload['source']?.toString());
+    if (source.isEmpty) {
+      return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+    context.pushRoute(
+      ComicInfoRoute(
+        comicId: comicId,
+        from: source,
+        pluginId: source,
+        type: ComicEntryType.normal,
+      ),
+    );
   }
 
   static Map<String, dynamic> _normalizeOpenSearchExtern(

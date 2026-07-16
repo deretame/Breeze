@@ -132,8 +132,14 @@ fn intl_datetime_locale_conventions() {
 
     // Locale conventions should differ (US m/d/y vs GB d/m/y etc.).
     assert_ne!(en_us, en_gb, "en-US and en-GB short dates should differ");
-    assert!(zh_cn.contains("2024"), "zh-CN long should include year: {zh_cn}");
-    assert!(ja_jp.contains("2024") || ja_jp.contains("24"), "ja-JP: {ja_jp}");
+    assert!(
+        zh_cn.contains("2024"),
+        "zh-CN long should include year: {zh_cn}"
+    );
+    assert!(
+        ja_jp.contains("2024") || ja_jp.contains("24"),
+        "ja-JP: {ja_jp}"
+    );
     assert!(de_de.contains('.'), "de-DE short uses dots: {de_de}");
 
     assert_eq!(v["year"].as_str().unwrap(), "2024");

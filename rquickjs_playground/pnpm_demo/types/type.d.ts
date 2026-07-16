@@ -227,45 +227,79 @@ export type CommentMutationContract = {
   };
 };
 
-export type SearchAction = {
-  type: "openSearch";
-  payload: {
-    source: string;
-    keyword: string;
-    extern: StringMap;
-  };
-};
+/**
+ * 插件 UI 动作协议（Discover / 功能页 / 漫画详情 chip 共用）。
+ * source 在多数场景可由宿主自动补全，插件侧可省略。
+ */
+export type PluginAction =
+  | {
+      type: "openSearch";
+      payload: {
+        source?: string;
+        keyword?: string;
+        extern?: StringMap;
+      };
+    }
+  | {
+      type: "openWeb";
+      payload: {
+        title?: string;
+        url: string;
+      };
+    }
+  | {
+      type: "openComicList";
+      payload: {
+        scene: {
+          title: string;
+          source?: string;
+          body: {
+            type: "pluginPagedComicList" | "pluginPagedCreatorList";
+            request: ComicListRequest;
+          };
+          filter?: ComicListRequest;
+        };
+      };
+    }
+  | {
+      type: "openPluginFunction";
+      payload: {
+        id: string;
+        title?: string;
+        presentation?: "page" | "dialog";
+        source?: string;
+      };
+    }
+  | {
+      type: "openCloudFavorite";
+      payload: {
+        title: string;
+        source?: string;
+      };
+    }
+  | {
+      type: "openComicInfo";
+      payload: {
+        comicId: string;
+        source?: string;
+      };
+    };
+
+/** @deprecated 使用 PluginAction */
+export type SearchAction = PluginAction;
+
+/** 漫画详情页 handleComicInfoAction 实际支持的动作子集 */
+export type ComicInfoPageAction = Extract<
+  PluginAction,
+  {
+    type: "openSearch" | "openWeb" | "openComicList" | "openComicInfo";
+  }
+>;
 
 export type PluginFunctionItem = {
   id: string;
   title: string;
-  action:
-    | { type: "openSearch"; payload: { source: string; keyword?: string } }
-    | { type: "openComicDetail"; payload: { comicId: string } }
-    | { type: "openWeb"; payload: { title?: string; url: string } }
-    | {
-        type: "openComicList";
-        payload: {
-          scene: {
-            title: string;
-            source: string;
-            body: {
-              type: "pluginPagedComicList" | "pluginPagedCreatorList";
-              request: ComicListRequest;
-            };
-            filter?: ComicListRequest;
-          };
-        };
-      }
-    | {
-        type: "openPluginFunction";
-        payload: {
-          id: string;
-          title?: string;
-          presentation?: "page" | "dialog";
-        };
-      }
-    | { type: "openCloudFavorite"; payload: { title: string } };
+  action: PluginAction;
 };
 
 export type ComicListRequest = {

@@ -170,6 +170,8 @@
     "appLockSubtitle": "开启后进入应用需要验证",
     "oldPageRollback": "旧版首页",
     "oldPageRollbackSubtitle": "开启后使用旧版首页布局",
+    "androidKeepAlive": "后台保活",
+    "androidKeepAliveSubtitle": "开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知",
     "customExportPath": "自定义导出路径",
     "storage": "存储",
     "cache": "缓存",
@@ -1105,12 +1107,13 @@
     "notificationFailedTitle": "下载失败"
   },
   "foregroundTask": {
-    "channelName": "前台下载任务",
-    "channelDescription": "这个是用来保证下载任务在后台也能继续执行的",
+    "channelName": "前台任务",
+    "channelDescription": "用于下载保活与后台保活，保持应用在后台继续运行",
     "waitingForTask": "等待下载任务中...",
+    "keepAliveRunning": "正在保持后台运行",
     "cancel": "取消",
-    "notificationPermissionRequired": "下载需要通知权限来启动前台任务，请在系统弹窗中允许通知权限",
-    "cannotStartWithoutPermission": "无法开始下载：请先在系统设置中开启通知权限",
+    "notificationPermissionRequired": "需要通知权限来启动前台任务，请在系统弹窗中允许通知权限",
+    "cannotStartWithoutPermission": "无法启动前台任务：请先在系统设置中开启通知权限",
     "startFailed": "前台服务启动失败: $error"
   },
   "notification": {

@@ -170,6 +170,8 @@
     "appLockSubtitle": "Require verification when entering the app",
     "oldPageRollback": "Old home page",
     "oldPageRollbackSubtitle": "Use old home page layout",
+    "androidKeepAlive": "Keep alive",
+    "androidKeepAliveSubtitle": "Use a foreground service to keep the app running in the background; shows a persistent notification",
     "customExportPath": "Custom export path",
     "storage": "Storage",
     "cache": "Cache",
@@ -1104,12 +1106,13 @@
     "notificationFailedTitle": "Download failed"
   },
   "foregroundTask": {
-    "channelName": "Foreground download task",
-    "channelDescription": "Keeps download tasks running in the background",
+    "channelName": "Foreground task",
+    "channelDescription": "Keeps downloads and the app running in the background",
     "waitingForTask": "Waiting for download tasks...",
+    "keepAliveRunning": "Keeping the app running in the background",
     "cancel": "Cancel",
-    "notificationPermissionRequired": "Downloads need notification permission to start foreground task, please allow in the system dialog",
-    "cannotStartWithoutPermission": "Cannot start download: please enable notification permission in system settings",
+    "notificationPermissionRequired": "Notification permission is required to start the foreground task, please allow in the system dialog",
+    "cannotStartWithoutPermission": "Cannot start foreground task: please enable notification permission in system settings",
     "startFailed": "Foreground service start failed: $error"
   },
   "notification": {

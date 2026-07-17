@@ -272,6 +272,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get appLockSubtitle => 'Require verification when entering the app';
 	@override String get oldPageRollback => 'Old home page';
 	@override String get oldPageRollbackSubtitle => 'Use old home page layout';
+	@override String get androidKeepAlive => 'Keep alive';
+	@override String get androidKeepAliveSubtitle => 'Use a foreground service to keep the app running in the background; shows a persistent notification';
 	@override String get customExportPath => 'Custom export path';
 	@override String get storage => 'Storage';
 	@override String get cache => 'Cache';
@@ -1395,12 +1397,13 @@ class _Translations$foregroundTask$en_US extends Translations$foregroundTask$zh_
 	final TranslationsEnUs _root; // ignore: unused_field
 
 	// Translations
-	@override String get channelName => 'Foreground download task';
-	@override String get channelDescription => 'Keeps download tasks running in the background';
+	@override String get channelName => 'Foreground task';
+	@override String get channelDescription => 'Keeps downloads and the app running in the background';
 	@override String get waitingForTask => 'Waiting for download tasks...';
+	@override String get keepAliveRunning => 'Keeping the app running in the background';
 	@override String get cancel => 'Cancel';
-	@override String get notificationPermissionRequired => 'Downloads need notification permission to start foreground task, please allow in the system dialog';
-	@override String get cannotStartWithoutPermission => 'Cannot start download: please enable notification permission in system settings';
+	@override String get notificationPermissionRequired => 'Notification permission is required to start the foreground task, please allow in the system dialog';
+	@override String get cannotStartWithoutPermission => 'Cannot start foreground task: please enable notification permission in system settings';
 	@override String startFailed({required Object error}) => 'Foreground service start failed: ${error}';
 }
 
@@ -1612,6 +1615,8 @@ extension on TranslationsEnUs {
 			'settings.appLockSubtitle' => 'Require verification when entering the app',
 			'settings.oldPageRollback' => 'Old home page',
 			'settings.oldPageRollbackSubtitle' => 'Use old home page layout',
+			'settings.androidKeepAlive' => 'Keep alive',
+			'settings.androidKeepAliveSubtitle' => 'Use a foreground service to keep the app running in the background; shows a persistent notification',
 			'settings.customExportPath' => 'Custom export path',
 			'settings.storage' => 'Storage',
 			'settings.cache' => 'Cache',
@@ -1959,10 +1964,10 @@ extension on TranslationsEnUs {
 			'reader.pullUpToNextChapter' => 'Pull up to next chapter',
 			'reader.releaseToJumpNextChapter' => 'Release to jump to next chapter',
 			'reader.releaseToLoadNextChapter' => 'Release to load next chapter',
-			'reader.chapterNotDownloaded' => 'Chapter not downloaded',
-			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\nLoad failed',
 			_ => null,
 		} ?? switch (path) {
+			'reader.chapterNotDownloaded' => 'Chapter not downloaded',
+			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\nLoad failed',
 			'reader.chapterOrder' => ({required Object order}) => 'Chapter ${order}',
 			'reader.doubleTapAction' => 'Double-tap action',
 			'reader.doubleTapZoom' => 'Double-tap zoom',
@@ -2473,10 +2478,10 @@ extension on TranslationsEnUs {
 			'download.pending' => ({required Object count}) => 'Pending (${count})',
 			'download.taskDeleted' => 'Task deleted',
 			'download.cancelTask' => 'Cancel Task',
-			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
-			'download.paused' => 'Paused',
 			_ => null,
 		} ?? switch (path) {
+			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
+			'download.paused' => 'Paused',
 			'download.completed' => 'Completed',
 			'download.failed' => 'Failed',
 			'download.startAll' => 'Start all',
@@ -2496,12 +2501,13 @@ extension on TranslationsEnUs {
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} task already exists',
 			'download.notificationCompleteTitle' => 'Download complete',
 			'download.notificationFailedTitle' => 'Download failed',
-			'foregroundTask.channelName' => 'Foreground download task',
-			'foregroundTask.channelDescription' => 'Keeps download tasks running in the background',
+			'foregroundTask.channelName' => 'Foreground task',
+			'foregroundTask.channelDescription' => 'Keeps downloads and the app running in the background',
 			'foregroundTask.waitingForTask' => 'Waiting for download tasks...',
+			'foregroundTask.keepAliveRunning' => 'Keeping the app running in the background',
 			'foregroundTask.cancel' => 'Cancel',
-			'foregroundTask.notificationPermissionRequired' => 'Downloads need notification permission to start foreground task, please allow in the system dialog',
-			'foregroundTask.cannotStartWithoutPermission' => 'Cannot start download: please enable notification permission in system settings',
+			'foregroundTask.notificationPermissionRequired' => 'Notification permission is required to start the foreground task, please allow in the system dialog',
+			'foregroundTask.cannotStartWithoutPermission' => 'Cannot start foreground task: please enable notification permission in system settings',
 			'foregroundTask.startFailed' => ({required Object error}) => 'Foreground service start failed: ${error}',
 			'notification.permissionRequired' => 'Please enable notification permission',
 			'notification.macPermissionRequired' => 'Please enable notification permission in system settings',

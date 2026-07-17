@@ -39,6 +39,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   enableMemoryDebug: json['enableMemoryDebug'] as bool? ?? false,
   logAddress: json['logAddress'] as String? ?? '',
   forceEnableImpeller: json['forceEnableImpeller'] as bool? ?? false,
+  androidKeepAliveEnabled: json['androidKeepAliveEnabled'] as bool? ?? false,
   updateAccelerate: json['updateAccelerate'] as bool? ?? true,
   oldPageRollbackEnabled: json['oldPageRollbackEnabled'] as bool? ?? false,
   searchHistory:
@@ -93,6 +94,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'enableMemoryDebug': instance.enableMemoryDebug,
       'logAddress': instance.logAddress,
       'forceEnableImpeller': instance.forceEnableImpeller,
+      'androidKeepAliveEnabled': instance.androidKeepAliveEnabled,
       'updateAccelerate': instance.updateAccelerate,
       'oldPageRollbackEnabled': instance.oldPageRollbackEnabled,
       'searchHistory': instance.searchHistory,

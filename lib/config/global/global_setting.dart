@@ -116,6 +116,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool enableMemoryDebug,
     @Default('') String logAddress,
     @Default(false) bool forceEnableImpeller,
+    @Default(false) bool androidKeepAliveEnabled,
     @Default(true) bool updateAccelerate,
     @Default(false) bool oldPageRollbackEnabled,
     @Default([]) List<String> searchHistory,

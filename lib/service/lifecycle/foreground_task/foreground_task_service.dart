@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_handler.dart';
@@ -14,14 +15,22 @@ import 'package:zephyr/widgets/toast.dart';
 /// Android 前台服务封装。
 ///
 /// 该模块只负责前台服务的生命周期和通知栏展示，不涉及任何下载业务逻辑。
-/// 下载进度、任务取消等事件由 [DownloadQueueManager] 处理，本模块仅在需要时
-/// 把进度转发给前台服务以更新通知，并把通知栏上的取消操作转发给下载管理器。
+/// 下载与保活共用同一前台服务：
+/// - 有下载任务时展示下载进度（可取消）
+/// - 仅保活开启时展示保活文案（无取消按钮）
+/// - 仅当两者都不需要时才真正停止服务
 class ForegroundTaskService {
   ForegroundTaskService._();
 
   static final ForegroundTaskService instance = ForegroundTaskService._();
 
   bool _initialized = false;
+
+  bool get _keepAliveEnabled =>
+      Platform.isAndroid && globalSetting.androidKeepAliveEnabled;
+
+  bool get _hasPendingDownloads =>
+      DownloadQueueManager.instance.queueLength > 0;
 
   /// 初始化前台任务配置。应用启动时调用一次即可。
   void init() {
@@ -48,49 +57,71 @@ class ForegroundTaskService {
     _initialized = true;
   }
 
-  /// 启动前台服务（Android）。
+  /// 应用冷启动后根据保活开关与下载队列同步前台服务。
+  Future<void> syncOnAppStart() async {
+    if (!Platform.isAndroid) return;
+    if (!_keepAliveEnabled && !_hasPendingDownloads) return;
+    await _ensureRunning(forDownload: _hasPendingDownloads);
+  }
+
+  /// 开启保活（设置开关打开时调用）。
   ///
-  /// 由主 Isolate 在确认有下载任务需要保活时调用。
+  /// 若前台服务已在运行（例如已有下载任务），则不重复启动。
+  Future<void> enableKeepAlive() async {
+    if (!Platform.isAndroid) return;
+    if (await FlutterForegroundTask.isRunningService) {
+      if (!_hasPendingDownloads) {
+        await _applyKeepAliveNotification();
+      }
+      return;
+    }
+    await _ensureRunning(forDownload: _hasPendingDownloads);
+  }
+
+  /// 关闭保活（设置开关关闭时调用）。
+  ///
+  /// 若仍有下载/排队任务，则不停止前台服务，仅切回下载通知样式。
+  Future<void> disableKeepAlive() async {
+    if (!Platform.isAndroid) return;
+    if (_hasPendingDownloads) {
+      if (await FlutterForegroundTask.isRunningService) {
+        await _applyDownloadNotification();
+      }
+      return;
+    }
+    await _stopService();
+  }
+
+  /// 启动前台服务（下载需要保活时调用）。
+  ///
+  /// 若服务已因保活运行，则跳过启动，仅更新为下载通知样式。
   Future<void> start() async {
     if (!Platform.isAndroid) return;
-    if (await FlutterForegroundTask.isRunningService) return;
-
-    await _ensureNotificationPermission();
-
-    final ServiceRequestResult result =
-        await FlutterForegroundTask.startService(
-          serviceTypes: [ForegroundServiceTypes.dataSync],
-          serviceId: Random().nextInt(1000),
-          notificationTitle: appName,
-          notificationText: t.foregroundTask.waitingForTask,
-          callback: startCallback,
-          notificationButtons: [
-            NotificationButton(id: 'cancel', text: t.foregroundTask.cancel),
-          ],
-        );
-
-    if (result is ServiceRequestSuccess) {
-      logger.i('前台服务启动成功');
-    } else {
-      String errorDetail = t.common.unknown;
-      if (result is ServiceRequestFailure) {
-        errorDetail = result.error.toString();
-      }
-      throw Exception(t.foregroundTask.startFailed(error: errorDetail));
+    if (await FlutterForegroundTask.isRunningService) {
+      await _applyDownloadNotification();
+      return;
     }
+    await _ensureRunning(forDownload: true);
   }
 
-  /// 停止前台服务（Android）。
+  /// 停止前台服务（下载队列为空时调用）。
   ///
-  /// 由主 Isolate 在确认没有下载任务需要保活时调用。
+  /// 若保活开关仍开启，则不停止服务，仅更新为保活通知样式。
   Future<void> stop() async {
     if (!Platform.isAndroid) return;
-    await FlutterForegroundTask.stopService();
+    if (_keepAliveEnabled) {
+      if (await FlutterForegroundTask.isRunningService) {
+        await _applyKeepAliveNotification();
+      }
+      return;
+    }
+    await _stopService();
   }
 
-  /// 更新前台服务通知栏内容。
+  /// 更新前台服务通知栏内容（下载进度等）。
   Future<void> updateNotification(String title, String message) async {
     if (!Platform.isAndroid) return;
+    if (!await FlutterForegroundTask.isRunningService) return;
     await FlutterForegroundTask.updateService(
       notificationTitle: title,
       notificationText: message,
@@ -111,6 +142,69 @@ class ForegroundTaskService {
         jsonEncode({'title': progress.comicName, 'message': progress.message}),
       );
     });
+  }
+
+  Future<void> _ensureRunning({required bool forDownload}) async {
+    if (await FlutterForegroundTask.isRunningService) {
+      if (forDownload) {
+        await _applyDownloadNotification();
+      } else {
+        await _applyKeepAliveNotification();
+      }
+      return;
+    }
+
+    await _ensureNotificationPermission();
+
+    final notificationText = forDownload
+        ? t.foregroundTask.waitingForTask
+        : t.foregroundTask.keepAliveRunning;
+    final notificationButtons = forDownload
+        ? [NotificationButton(id: 'cancel', text: t.foregroundTask.cancel)]
+        : <NotificationButton>[];
+
+    final ServiceRequestResult result =
+        await FlutterForegroundTask.startService(
+          serviceTypes: [ForegroundServiceTypes.dataSync],
+          serviceId: Random().nextInt(1000),
+          notificationTitle: appName,
+          notificationText: notificationText,
+          callback: startCallback,
+          notificationButtons: notificationButtons,
+        );
+
+    if (result is ServiceRequestSuccess) {
+      logger.i('前台服务启动成功 (download=$forDownload)');
+    } else {
+      String errorDetail = t.common.unknown;
+      if (result is ServiceRequestFailure) {
+        errorDetail = result.error.toString();
+      }
+      throw Exception(t.foregroundTask.startFailed(error: errorDetail));
+    }
+  }
+
+  Future<void> _stopService() async {
+    if (!await FlutterForegroundTask.isRunningService) return;
+    await FlutterForegroundTask.stopService();
+  }
+
+  Future<void> _applyDownloadNotification() async {
+    await FlutterForegroundTask.updateService(
+      notificationTitle: appName,
+      notificationText: t.foregroundTask.waitingForTask,
+      notificationButtons: [
+        NotificationButton(id: 'cancel', text: t.foregroundTask.cancel),
+      ],
+    );
+  }
+
+  Future<void> _applyKeepAliveNotification() async {
+    await FlutterForegroundTask.updateService(
+      notificationTitle: appName,
+      notificationText: t.foregroundTask.keepAliveRunning,
+      notificationButtons: const <NotificationButton>[],
+    );
   }
 
   Future<void> _ensureNotificationPermission() async {

@@ -601,6 +601,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后使用旧版首页布局'
 	String get oldPageRollbackSubtitle => '开启后使用旧版首页布局';
 
+	/// zh-CN: '后台保活'
+	String get androidKeepAlive => '后台保活';
+
+	/// zh-CN: '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知'
+	String get androidKeepAliveSubtitle => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知';
+
 	/// zh-CN: '自定义导出路径'
 	String get customExportPath => '自定义导出路径';
 
@@ -3487,23 +3493,26 @@ class Translations$foregroundTask$zh_CN {
 
 	// Translations
 
-	/// zh-CN: '前台下载任务'
-	String get channelName => '前台下载任务';
+	/// zh-CN: '前台任务'
+	String get channelName => '前台任务';
 
-	/// zh-CN: '这个是用来保证下载任务在后台也能继续执行的'
-	String get channelDescription => '这个是用来保证下载任务在后台也能继续执行的';
+	/// zh-CN: '用于下载保活与后台保活，保持应用在后台继续运行'
+	String get channelDescription => '用于下载保活与后台保活，保持应用在后台继续运行';
 
 	/// zh-CN: '等待下载任务中...'
 	String get waitingForTask => '等待下载任务中...';
 
+	/// zh-CN: '正在保持后台运行'
+	String get keepAliveRunning => '正在保持后台运行';
+
 	/// zh-CN: '取消'
 	String get cancel => '取消';
 
-	/// zh-CN: '下载需要通知权限来启动前台任务，请在系统弹窗中允许通知权限'
-	String get notificationPermissionRequired => '下载需要通知权限来启动前台任务，请在系统弹窗中允许通知权限';
+	/// zh-CN: '需要通知权限来启动前台任务，请在系统弹窗中允许通知权限'
+	String get notificationPermissionRequired => '需要通知权限来启动前台任务，请在系统弹窗中允许通知权限';
 
-	/// zh-CN: '无法开始下载：请先在系统设置中开启通知权限'
-	String get cannotStartWithoutPermission => '无法开始下载：请先在系统设置中开启通知权限';
+	/// zh-CN: '无法启动前台任务：请先在系统设置中开启通知权限'
+	String get cannotStartWithoutPermission => '无法启动前台任务：请先在系统设置中开启通知权限';
 
 	/// zh-CN: '前台服务启动失败: $error'
 	String startFailed({required Object error}) => '前台服务启动失败: ${error}';
@@ -3737,6 +3746,8 @@ extension on Translations {
 			'settings.appLockSubtitle' => '开启后进入应用需要验证',
 			'settings.oldPageRollback' => '旧版首页',
 			'settings.oldPageRollbackSubtitle' => '开启后使用旧版首页布局',
+			'settings.androidKeepAlive' => '后台保活',
+			'settings.androidKeepAliveSubtitle' => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知',
 			'settings.customExportPath' => '自定义导出路径',
 			'settings.storage' => '存储',
 			'settings.cache' => '缓存',
@@ -4084,10 +4095,10 @@ extension on Translations {
 			'reader.releaseToLoadPrevChapter' => '松手加载到上一章',
 			'reader.pullUpToNextChapter' => '继续上拉到下一章',
 			'reader.releaseToJumpNextChapter' => '松手跳转到下一章',
-			'reader.releaseToLoadNextChapter' => '松手加载到下一章',
-			'reader.chapterNotDownloaded' => '章节未下载',
 			_ => null,
 		} ?? switch (path) {
+			'reader.releaseToLoadNextChapter' => '松手加载到下一章',
+			'reader.chapterNotDownloaded' => '章节未下载',
 			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\n加载失败',
 			'reader.chapterOrder' => ({required Object order}) => '章节 ${order}',
 			'reader.doubleTapAction' => '双击操作',
@@ -4598,10 +4609,10 @@ extension on Translations {
 			'download.downloading' => '正在下载',
 			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			'download.taskDeleted' => '已删除任务',
-			'download.cancelTask' => '取消任务',
-			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			_ => null,
 		} ?? switch (path) {
+			'download.cancelTask' => '取消任务',
+			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			'download.paused' => '已暂停',
 			'download.completed' => '已完成',
 			'download.failed' => '失败',
@@ -4622,12 +4633,13 @@ extension on Translations {
 			'download.toastTaskAlreadyExists' => ({required Object comicName}) => '${comicName} 任务已存在',
 			'download.notificationCompleteTitle' => '下载完成',
 			'download.notificationFailedTitle' => '下载失败',
-			'foregroundTask.channelName' => '前台下载任务',
-			'foregroundTask.channelDescription' => '这个是用来保证下载任务在后台也能继续执行的',
+			'foregroundTask.channelName' => '前台任务',
+			'foregroundTask.channelDescription' => '用于下载保活与后台保活，保持应用在后台继续运行',
 			'foregroundTask.waitingForTask' => '等待下载任务中...',
+			'foregroundTask.keepAliveRunning' => '正在保持后台运行',
 			'foregroundTask.cancel' => '取消',
-			'foregroundTask.notificationPermissionRequired' => '下载需要通知权限来启动前台任务，请在系统弹窗中允许通知权限',
-			'foregroundTask.cannotStartWithoutPermission' => '无法开始下载：请先在系统设置中开启通知权限',
+			'foregroundTask.notificationPermissionRequired' => '需要通知权限来启动前台任务，请在系统弹窗中允许通知权限',
+			'foregroundTask.cannotStartWithoutPermission' => '无法启动前台任务：请先在系统设置中开启通知权限',
 			'foregroundTask.startFailed' => ({required Object error}) => '前台服务启动失败: ${error}',
 			'notification.permissionRequired' => '请开启通知权限',
 			'notification.macPermissionRequired' => '请在系统设置中开启通知权限',

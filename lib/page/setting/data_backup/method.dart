@@ -514,6 +514,7 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
 /// - 桌面端窗口位置与大小（[windowWidth]/[windowHeight]/[windowX]/[windowY]）
 /// - 日志保存地址（[logAddress]）
 /// - iOS Impeller 强制启用标志（[forceEnableImpeller]）
+/// - Android 后台保活（[androidKeepAliveEnabled]）
 GlobalSettingState _mergeGlobalSettingForImport(
   GlobalSettingState backup,
   GlobalSettingState current,
@@ -530,6 +531,7 @@ GlobalSettingState _mergeGlobalSettingForImport(
     windowY: current.windowY,
     logAddress: current.logAddress,
     forceEnableImpeller: current.forceEnableImpeller,
+    androidKeepAliveEnabled: current.androidKeepAliveEnabled,
   );
 }
 

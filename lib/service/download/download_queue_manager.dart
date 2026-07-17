@@ -37,7 +37,7 @@ class DownloadProgress {
 /// 跨平台下载队列管理器（单例）
 ///
 /// 在所有平台的主 Isolate 中运行，负责统一下载调度。
-/// Android 端配合前台服务使用，前台服务仅用于保活和通知栏展示。
+/// Android 端配合前台服务使用；前台服务与「后台保活」共用，仅用于提权与通知展示。
 class DownloadQueueManager {
   static final DownloadQueueManager instance = DownloadQueueManager._();
 
@@ -471,7 +471,7 @@ bool _isTaskGoneOrCompleted(String comicId) {
 /// 启动一个下载任务。
 ///
 /// 所有平台都会把任务写入数据库，由 [DownloadQueueManager] 统一调度。
-/// Android 端会额外启动前台服务以保活，但前台服务本身不管理下载逻辑。
+/// Android 端会确保前台服务在跑（若保活已开启则复用），前台服务本身不管理下载逻辑。
 Future<void> startDownloadTask(DownloadTaskJson task) async {
   logger.d(
     'startDownloadTask: comicId=${task.comicId}, comicName=${task.comicName}',

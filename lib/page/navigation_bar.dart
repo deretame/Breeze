@@ -65,8 +65,8 @@ class _NavigationBarState extends State<NavigationBar> {
       manageCacheSize(context);
       DownloadQueueManager.instance.resetStuckTasks();
       DownloadQueueManager.instance.watchTasks();
-      if (Platform.isAndroid && DownloadQueueManager.instance.queueLength > 0) {
-        ForegroundTaskService.instance.start();
+      if (Platform.isAndroid) {
+        await ForegroundTaskService.instance.syncOnAppStart();
       }
     });
     final globalSetting = objectbox.userSettingBox.get(1)!.globalSetting;

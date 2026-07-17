@@ -1,9 +1,6 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/i18n/strings.g.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -16,14 +13,11 @@ void startCallback() {
 /// 前台服务仅用于：
 /// 1. 提升应用进程优先级，防止系统杀后台
 /// 2. 接收主 Isolate 发送的进度/状态更新并刷新通知栏
-/// 3. 接收通知栏取消/关闭事件并转发给主 Isolate
+/// 3. 接收通知栏取消事件并转发给主 Isolate
 class MyTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    FlutterForegroundTask.updateService(
-      notificationTitle: appName,
-      notificationText: t.foregroundTask.waitingForTask,
-    );
+    // 初始通知文案由主 Isolate startService 指定
   }
 
   @override
@@ -68,6 +62,8 @@ class MyTaskHandler extends TaskHandler {
 
   @override
   void onNotificationDismissed() {
+    // 前台服务通知一般为 ongoing，正常无法划掉；
+    // 若系统边界情况下触发，仅在有下载时取消下载（主 Isolate 侧无任务则空操作）
     _sendCancelToMain();
   }
 

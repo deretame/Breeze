@@ -884,6 +884,7 @@ class _Translations$dataBackup$en_US extends Translations$dataBackup$zh_CN {
 	@override String get exporting => 'Exporting, please wait…';
 	@override String get exportSuccess => 'Export successful';
 	@override String savedTo({required Object path}) => 'Saved to: ${path}';
+	@override String get exportShareHint => 'Use the share sheet and choose "Save to Files" to keep the backup.';
 	@override String get exportFailed => 'Export failed';
 	@override String get processingBackup => 'Processing backup file…';
 	@override String get selectBackupFailed => 'Failed to select backup file';
@@ -2148,6 +2149,7 @@ extension on TranslationsEnUs {
 			'dataBackup.exporting' => 'Exporting, please wait…',
 			'dataBackup.exportSuccess' => 'Export successful',
 			'dataBackup.savedTo' => ({required Object path}) => 'Saved to: ${path}',
+			'dataBackup.exportShareHint' => 'Use the share sheet and choose "Save to Files" to keep the backup.',
 			'dataBackup.exportFailed' => 'Export failed',
 			'dataBackup.processingBackup' => 'Processing backup file…',
 			'dataBackup.selectBackupFailed' => 'Failed to select backup file',
@@ -2477,9 +2479,9 @@ extension on TranslationsEnUs {
 			'download.downloading' => 'Downloading',
 			'download.pending' => ({required Object count}) => 'Pending (${count})',
 			'download.taskDeleted' => 'Task deleted',
-			'download.cancelTask' => 'Cancel Task',
 			_ => null,
 		} ?? switch (path) {
+			'download.cancelTask' => 'Cancel Task',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
 			'download.paused' => 'Paused',
 			'download.completed' => 'Completed',

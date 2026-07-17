@@ -18,6 +18,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:open_file/open_file.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/permission.dart';
@@ -491,8 +492,9 @@ class _ComicInfoState extends State<_ComicInfo>
   Future<String?> _pickExportDirectory() async => getDirectoryPath();
 
   Future<String?> _resolveExportDirectory() async {
+    // iOS 无目录选择器，导出到缓存后通过系统分享面板保存
     if (Platform.isIOS) {
-      return _pickExportDirectory();
+      return getCachePath();
     }
     final customPath = globalSetting.customExportPath.trim();
     if (customPath.isNotEmpty) {
@@ -568,28 +570,25 @@ class _ComicInfoState extends State<_ComicInfo>
       final targetZipPath = p.join(exportDir, zipFileName);
 
       if (Platform.isIOS) {
-        final cachePath = await getCachePath();
-        cacheZipPath = p.join(cachePath, zipFileName);
-
-        final cacheZipFile = File(cacheZipPath);
-        if (await cacheZipFile.exists()) {
-          await cacheZipFile.delete();
+        // 不写入 cacheZipPath：open_file 在分享面板弹出后即返回，
+        // finally 里删除会导致用户还没保存文件就被删掉。
+        final iosZipPath = targetZipPath;
+        final iosZipFile = File(iosZipPath);
+        if (await iosZipFile.exists()) {
+          await iosZipFile.delete();
         }
 
         await exportComic(
           widget.comicId,
           ExportType.zip,
           widget.from,
-          path: cacheZipPath,
+          path: iosZipPath,
         );
 
-        final saveFile = File(targetZipPath);
-        if (await saveFile.exists()) {
-          await saveFile.delete();
-        }
-        await cacheZipFile.copy(targetZipPath);
+        // 弹出系统分享面板，用户可「存储到文件」
+        await OpenFile.open(iosZipPath);
         showSuccessToast(t.comicInfo.exportSuccess);
-        _logExportPath(targetZipPath);
+        _logExportPath(iosZipPath);
         return;
       }
 

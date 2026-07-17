@@ -78,8 +78,9 @@ Future<ExportType?> _pickBatchExportType(BuildContext context) async {
 }
 
 Future<String?> _resolveBatchExportDirectory() async {
+  // iOS 无目录选择器，导出到应用 Documents（可在「文件」App 中访问）
   if (Platform.isIOS) {
-    return getDirectoryPath();
+    return createDownloadDir();
   }
   final customPath = globalSetting.customExportPath.trim();
   if (customPath.isNotEmpty) {

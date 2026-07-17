@@ -720,6 +720,7 @@
     "exporting": "正在导出，请耐心等待…",
     "exportSuccess": "导出成功",
     "savedTo": "已保存到：$path",
+    "exportShareHint": "请在弹出的分享面板中选择「存储到文件」以保存备份。",
     "exportFailed": "导出失败",
     "processingBackup": "正在处理备份文件…",
     "selectBackupFailed": "选择备份文件失败",

@@ -719,6 +719,7 @@
     "exporting": "Exporting, please wait…",
     "exportSuccess": "Export successful",
     "savedTo": "Saved to: $path",
+    "exportShareHint": "Use the share sheet and choose \"Save to Files\" to keep the backup.",
     "exportFailed": "Export failed",
     "processingBackup": "Processing backup file…",
     "selectBackupFailed": "Failed to select backup file",

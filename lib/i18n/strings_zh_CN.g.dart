@@ -2278,6 +2278,9 @@ class Translations$dataBackup$zh_CN {
 	/// zh-CN: '已保存到：$path'
 	String savedTo({required Object path}) => '已保存到：${path}';
 
+	/// zh-CN: '请在弹出的分享面板中选择「存储到文件」以保存备份。'
+	String get exportShareHint => '请在弹出的分享面板中选择「存储到文件」以保存备份。';
+
 	/// zh-CN: '导出失败'
 	String get exportFailed => '导出失败';
 
@@ -4280,6 +4283,7 @@ extension on Translations {
 			'dataBackup.exporting' => '正在导出，请耐心等待…',
 			'dataBackup.exportSuccess' => '导出成功',
 			'dataBackup.savedTo' => ({required Object path}) => '已保存到：${path}',
+			'dataBackup.exportShareHint' => '请在弹出的分享面板中选择「存储到文件」以保存备份。',
 			'dataBackup.exportFailed' => '导出失败',
 			'dataBackup.processingBackup' => '正在处理备份文件…',
 			'dataBackup.selectBackupFailed' => '选择备份文件失败',
@@ -4608,9 +4612,9 @@ extension on Translations {
 			'download.noTasks' => '暂无下载任务',
 			'download.downloading' => '正在下载',
 			'download.pending' => ({required Object count}) => '等待中 (${count})',
-			'download.taskDeleted' => '已删除任务',
 			_ => null,
 		} ?? switch (path) {
+			'download.taskDeleted' => '已删除任务',
 			'download.cancelTask' => '取消任务',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			'download.paused' => '已暂停',

@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/service/update/check_update.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -95,19 +97,27 @@ class _DataBackupPageState extends State<DataBackupPage> {
       return;
     }
 
-    String? selectedDir;
-    try {
-      selectedDir = await getDirectoryPath();
-    } catch (e, s) {
-      logger.e('选择导出目录失败', error: e, stackTrace: s);
-      showErrorToast('${t.dataBackup.selectExportDirFailed}：$e');
-      return;
-    }
-
-    if (selectedDir == null || selectedDir.trim().isEmpty) return;
-
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final zipPath = p.join(selectedDir, 'Breeze-export-$timestamp.zip');
+    final fileName = 'Breeze-export-$timestamp.zip';
+    late final String zipPath;
+
+    // iOS 的 file_selector 未实现 getDirectoryPath，先写到缓存再走系统分享面板
+    if (Platform.isIOS) {
+      final cachePath = await getCachePath();
+      zipPath = p.join(cachePath, fileName);
+    } else {
+      String? selectedDir;
+      try {
+        selectedDir = await getDirectoryPath();
+      } catch (e, s) {
+        logger.e('选择导出目录失败', error: e, stackTrace: s);
+        showErrorToast('${t.dataBackup.selectExportDirFailed}：$e');
+        return;
+      }
+
+      if (selectedDir == null || selectedDir.trim().isEmpty) return;
+      zipPath = p.join(selectedDir, fileName);
+    }
 
     if (!mounted) return;
     _setBusy(true);
@@ -120,10 +130,17 @@ class _DataBackupPageState extends State<DataBackupPage> {
       );
       if (!mounted) return;
       Navigator.of(context).pop();
-      await _showResultDialog(
-        t.dataBackup.exportSuccess,
-        t.dataBackup.savedTo(path: zipPath),
-      );
+
+      if (Platform.isIOS) {
+        // 先提示再弹系统分享面板，避免对话框盖住分享 UI
+        showSuccessToast(t.dataBackup.exportShareHint);
+        await OpenFile.open(zipPath);
+      } else {
+        await _showResultDialog(
+          t.dataBackup.exportSuccess,
+          t.dataBackup.savedTo(path: zipPath),
+        );
+      }
     } catch (e, s) {
       if (mounted) Navigator.of(context).pop();
       logger.e('导出数据失败', error: e, stackTrace: s);

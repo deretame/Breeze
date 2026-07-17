@@ -475,6 +475,8 @@
     "themeMode": "Theme mode",
     "autoRead": "Auto read",
     "autoReadSubtitle": "Auto-scroll and show play/pause button",
+    "autoReadSmooth": "Smooth scroll",
+    "autoReadSmoothSubtitle": "Continuous scroll in webtoon mode; off uses interval jumps",
     "webtoonScrollDistance": "Webtoon scroll distance",
     "webtoonScrollInterval": "Webtoon scroll interval",
     "singlePageScrollInterval": "Single page scroll interval",

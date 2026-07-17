@@ -476,6 +476,8 @@
     "themeMode": "系统模式",
     "autoRead": "自动阅读",
     "autoReadSubtitle": "开启后自动滚动，并在右下角显示暂停/播放按钮",
+    "autoReadSmooth": "平滑滚动",
+    "autoReadSmoothSubtitle": "条漫模式下连续匀速滚动，关闭则按间隔分段跳转",
     "webtoonScrollDistance": "条漫滚动距离",
     "webtoonScrollInterval": "条漫滚动间隔",
     "singlePageScrollInterval": "单页式滚动间隔",

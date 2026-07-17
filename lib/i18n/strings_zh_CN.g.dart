@@ -1528,6 +1528,12 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '开启后自动滚动，并在右下角显示暂停/播放按钮'
 	String get autoReadSubtitle => '开启后自动滚动，并在右下角显示暂停/播放按钮';
 
+	/// zh-CN: '平滑滚动'
+	String get autoReadSmooth => '平滑滚动';
+
+	/// zh-CN: '条漫模式下连续匀速滚动，关闭则按间隔分段跳转'
+	String get autoReadSmoothSubtitle => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转';
+
 	/// zh-CN: '条漫滚动距离'
 	String get webtoonScrollDistance => '条漫滚动距离';
 
@@ -4049,6 +4055,8 @@ extension on Translations {
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
 			'reader.autoReadSubtitle' => '开启后自动滚动，并在右下角显示暂停/播放按钮',
+			'reader.autoReadSmooth' => '平滑滚动',
+			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
 			'reader.webtoonScrollDistance' => '条漫滚动距离',
 			'reader.webtoonScrollInterval' => '条漫滚动间隔',
 			'reader.singlePageScrollInterval' => '单页式滚动间隔',
@@ -4096,10 +4104,10 @@ extension on Translations {
 			'reader.pullDownToPrevChapter' => '继续下拉到上一章',
 			'reader.releaseToJumpPrevChapter' => '松手跳转到上一章',
 			'reader.releaseToLoadPrevChapter' => '松手加载到上一章',
-			'reader.pullUpToNextChapter' => '继续上拉到下一章',
-			'reader.releaseToJumpNextChapter' => '松手跳转到下一章',
 			_ => null,
 		} ?? switch (path) {
+			'reader.pullUpToNextChapter' => '继续上拉到下一章',
+			'reader.releaseToJumpNextChapter' => '松手跳转到下一章',
 			'reader.releaseToLoadNextChapter' => '松手加载到下一章',
 			'reader.chapterNotDownloaded' => '章节未下载',
 			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\n加载失败',
@@ -4610,10 +4618,10 @@ extension on Translations {
 			'download.taskStarted' => '下载任务已启动',
 			'download.taskStartFailed' => ({required Object error}) => '下载任务启动失败，${error}',
 			'download.noTasks' => '暂无下载任务',
-			'download.downloading' => '正在下载',
-			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			_ => null,
 		} ?? switch (path) {
+			'download.downloading' => '正在下载',
+			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			'download.taskDeleted' => '已删除任务',
 			'download.cancelTask' => '取消任务',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',

@@ -34,6 +34,7 @@ extension _ComicReadInitPart on _ComicReadPageState {
       observerController: observerController,
       pageController: _pageController,
       onBeforeTurnPage: _inputController.restoreScaleBeforeTurnPage,
+      isUserScrolling: () => _isUserScrollActive,
     );
   }
 

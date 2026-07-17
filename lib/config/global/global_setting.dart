@@ -228,6 +228,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(false) bool einkOptimization,
     @Default(120) int einkDelayMs,
     @Default(false) bool autoScroll,
+    @Default(false) bool autoScrollSmooth,
     @Default(1600) int autoScrollColumnIntervalMs,
     @Default(3000) int autoScrollPageIntervalMs,
     @Default(72) int autoScrollColumnDistancePercent,

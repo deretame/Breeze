@@ -168,6 +168,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       TransformationController();
   StreamSubscription<bool>? _volumeKeyPageTurnSubscription;
   bool _isScrollLockedByMultiTouch = false;
+  bool _isUserScrollActive = false; // 用户是否正在拖拽/惯性滚动列表
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -259,6 +260,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 comicId: comicId,
                 from: widget.from,
                 epInfo: _initialEpInfo,
+                chapterOrder: widget.order,
                 resolveTotalSlots: (readSetting) => context
                     .read<ReaderSeamlessCubit>()
                     .resolveTotalSlots(readSetting),

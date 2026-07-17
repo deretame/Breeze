@@ -252,6 +252,7 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
       einkOptimization: json['einkOptimization'] as bool? ?? false,
       einkDelayMs: (json['einkDelayMs'] as num?)?.toInt() ?? 120,
       autoScroll: json['autoScroll'] as bool? ?? false,
+      autoScrollSmooth: json['autoScrollSmooth'] as bool? ?? false,
       autoScrollColumnIntervalMs:
           (json['autoScrollColumnIntervalMs'] as num?)?.toInt() ?? 1600,
       autoScrollPageIntervalMs:
@@ -304,6 +305,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'einkOptimization': instance.einkOptimization,
   'einkDelayMs': instance.einkDelayMs,
   'autoScroll': instance.autoScroll,
+  'autoScrollSmooth': instance.autoScrollSmooth,
   'autoScrollColumnIntervalMs': instance.autoScrollColumnIntervalMs,
   'autoScrollPageIntervalMs': instance.autoScrollPageIntervalMs,
   'autoScrollColumnDistancePercent': instance.autoScrollColumnDistancePercent,

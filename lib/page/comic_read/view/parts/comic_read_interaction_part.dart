@@ -63,6 +63,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
           parentPhysics: physics,
           disableScroll: _isScrollLockedByMultiTouch,
           volumeController: _volumeController,
+          onUserScrollActiveChanged: (active) => _isUserScrollActive = active,
           onGlobalSlotChanged: seamlessEnabled
               ? (globalSlot) async {
                   final result = await seamlessCubit.onGlobalSlotObserved(

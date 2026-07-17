@@ -263,6 +263,17 @@ class _AutoReadSection extends StatelessWidget {
           },
         ),
         if (readSetting.autoScroll)
+          _SettingsSwitchTile(
+            title: t.reader.autoReadSmooth,
+            subtitle: t.reader.autoReadSmoothSubtitle,
+            value: readSetting.autoScrollSmooth,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(autoScrollSmooth: value),
+              );
+            },
+          ),
+        if (readSetting.autoScroll)
           _SettingsSliderCard(
             title: t.reader.webtoonScrollDistance,
             value: readSetting.autoScrollColumnDistancePercent.clamp(10, 100),

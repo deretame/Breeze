@@ -13,12 +13,16 @@ class ReaderActionController {
   final PageController pageController;
   final bool Function(bool isNext)? onBeforeTurnPage;
 
+  /// 用户是否正在触摸拖拽/惯性滚动列表（由列表侧的滚动通知维护）。
+  final bool Function()? isUserScrolling;
+
   ReaderActionController({
     required this.context,
     required this.scrollController,
     required this.observerController,
     required this.pageController,
     this.onBeforeTurnPage,
+    this.isUserScrolling,
   });
 
   ReadSettingState get _readSetting =>
@@ -34,6 +38,11 @@ class ReaderActionController {
 
   int get _autoScrollColumnDistancePercent =>
       _readSetting.autoScrollColumnDistancePercent;
+
+  bool get _autoScrollSmooth => _readSetting.autoScrollSmooth;
+
+  int get _autoScrollColumnIntervalMs =>
+      _readSetting.autoScrollColumnIntervalMs;
 
   bool get _volumeKeyPageTurnEnabled => _readSetting.volumeKeyPageTurn;
 
@@ -114,10 +123,10 @@ class ReaderActionController {
     }
   }
 
-  void onAutoReadTick() {
+  void onAutoReadTick({double? deltaMs}) {
     final mode = _readMode;
     if (mode == 0) {
-      _scrollVerticalAuto();
+      _scrollVerticalAuto(deltaMs: deltaMs);
     } else {
       _turnPage(isNext: true);
     }
@@ -178,13 +187,31 @@ class ReaderActionController {
     }
   }
 
-  void _scrollVerticalAuto() {
+  void _scrollVerticalAuto({double? deltaMs}) {
     if (!scrollController.hasClients) return;
+
+    // 用户触摸拖拽/惯性滚动期间让位，避免自动滚动与手势打架。
+    if (isUserScrolling?.call() ?? false) return;
 
     final viewportHeight = MediaQuery.of(_activeContext).size.height;
     final distancePercent = _autoScrollColumnDistancePercent.clamp(10, 100);
-    final targetOffset =
-        scrollController.offset + viewportHeight * (distancePercent / 100);
+    final stepDistance = viewportHeight * (distancePercent / 100);
+
+    // 平滑模式：速度 = 步距/间隔，按真实帧间隔位移（与 vsync 对齐）。
+    if (_autoScrollSmooth && deltaMs != null && deltaMs > 0) {
+      final intervalMs = _autoScrollColumnIntervalMs.clamp(300, 5000);
+      final delta = stepDistance * (deltaMs / intervalMs);
+      final position = scrollController.position;
+      final clamped = (position.pixels + delta).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      );
+      if (clamped == position.pixels) return;
+      position.jumpTo(clamped);
+      return;
+    }
+
+    final targetOffset = scrollController.offset + stepDistance;
     final clamped = targetOffset.clamp(
       scrollController.position.minScrollExtent,
       scrollController.position.maxScrollExtent,

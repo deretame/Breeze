@@ -24,6 +24,7 @@ class ColumnModeWidget extends StatefulWidget {
   final ScrollPhysics? parentPhysics;
   final bool disableScroll;
   final ReaderVolumeController volumeController;
+  final ValueChanged<bool> onUserScrollActiveChanged;
   final ValueChanged<int> onGlobalSlotChanged;
   final ValueChanged<int> onTransitionAction;
 
@@ -39,6 +40,7 @@ class ColumnModeWidget extends StatefulWidget {
     this.parentPhysics,
     this.disableScroll = false,
     required this.volumeController,
+    required this.onUserScrollActiveChanged,
     required this.onGlobalSlotChanged,
     required this.onTransitionAction,
   });
@@ -136,29 +138,42 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           controller: widget.scrollController,
         );
 
-        return ListViewObserver(
-          controller: widget.observerController,
-          onObserve: (resultMap) {
-            final all = resultMap.displayingChildIndexList;
-            if (all.isEmpty) return;
-
-            final int middleValue = all[all.length ~/ 2];
-            if (slotCount <= 0) return;
-
-            final clampedPageIndex = middleValue.clamp(0, slotCount - 1);
-            widget.onGlobalSlotChanged(clampedPageIndex);
-
-            final cubit = context.read<ReaderCubit>();
-            if (cubit.state.currentSlot != clampedPageIndex) {
-              cubit.updateCurrentSlot(clampedPageIndex);
+        // 维护"用户正在滚动"标记：仅由真实拖拽（dragDetails 非空）开始，
+        // 直到松手后的惯性/回弹完全结束（ScrollEnd）才复位，供自动滚动让位。
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollStartNotification &&
+                notification.dragDetails != null) {
+              widget.onUserScrollActiveChanged(true);
+            } else if (notification is ScrollEndNotification) {
+              widget.onUserScrollActiveChanged(false);
             }
-
-            if (cubit.state.isMenuVisible) {
-              cubit.updateMenuVisible(visible: false);
-              widget.volumeController.enableInterception();
-            }
+            return false;
           },
-          child: listView,
+          child: ListViewObserver(
+            controller: widget.observerController,
+            onObserve: (resultMap) {
+              final all = resultMap.displayingChildIndexList;
+              if (all.isEmpty) return;
+
+              final int middleValue = all[all.length ~/ 2];
+              if (slotCount <= 0) return;
+
+              final clampedPageIndex = middleValue.clamp(0, slotCount - 1);
+              widget.onGlobalSlotChanged(clampedPageIndex);
+
+              final cubit = context.read<ReaderCubit>();
+              if (cubit.state.currentSlot != clampedPageIndex) {
+                cubit.updateCurrentSlot(clampedPageIndex);
+              }
+
+              if (cubit.state.isMenuVisible) {
+                cubit.updateMenuVisible(visible: false);
+                widget.volumeController.enableInterception();
+              }
+            },
+            child: listView,
+          ),
         );
       },
     );

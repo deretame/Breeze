@@ -55,64 +55,13 @@ Future<String> getCachePicture({
     return '404';
   }
 
-  final cachePath = await getCachePath();
-  final downloadPath = await getDownloadPath();
-
-  final encodePicturePath = path.trim().let((path) => encodePath(path: path));
-  final encodeCartoonId = cartoonId.trim().let(
-    (path) => encodePath(path: path),
+  final existingFilePath = await findCachedPicturePath(
+    from: resolvedFrom,
+    path: path,
+    cartoonId: cartoonId,
+    chapterId: chapterId,
+    pictureType: pictureType,
   );
-  final encodeChapterId = chapterId.trim().let(
-    (path) => encodePath(path: path),
-  );
-
-  final newCacheFilePath = _buildStoredFilePath(
-    cachePath,
-    resolvedFrom,
-    encodePicturePath,
-    encodeCartoonId,
-    pictureType == PictureType.cover ? '' : encodeChapterId,
-  );
-
-  final newDownloadFilePath = _buildStoredFilePath(
-    downloadPath,
-    resolvedFrom,
-    encodePicturePath,
-    encodeCartoonId,
-    pictureType == PictureType.cover ? '' : encodeChapterId,
-    rootFolder: 'original',
-  );
-
-  final oldCacheFilePath = _buildStoredFilePath(
-    cachePath,
-    resolvedFrom,
-    path,
-    cartoonId,
-    pictureType == PictureType.cover ? '' : chapterId,
-  );
-
-  final oldDownloadFilePath = _buildStoredFilePath(
-    downloadPath,
-    resolvedFrom,
-    path,
-    cartoonId,
-    pictureType == PictureType.cover ? '' : chapterId,
-    rootFolder: 'original',
-  );
-
-  // 优先使用新（编码后）路径查找
-  String existingFilePath = await checkFileExists(
-    newCacheFilePath,
-    newDownloadFilePath,
-  );
-
-  if (existingFilePath.isEmpty) {
-    // 未找到，回退到旧（未编码）路径
-    existingFilePath = await checkFileExists(
-      oldCacheFilePath,
-      oldDownloadFilePath,
-    );
-  }
 
   if (existingFilePath.isNotEmpty) {
     // 双重检查文件确实存在且可读
@@ -148,6 +97,15 @@ Future<String> getCachePicture({
   if (url.isEmpty) {
     throw Exception('404');
   }
+
+  // 下载落盘路径，与 findCachedPicturePath 中"新（编码）缓存路径"保持一致。
+  final newCacheFilePath = _buildStoredFilePath(
+    await getCachePath(),
+    resolvedFrom,
+    encodePath(path: directPath),
+    encodePath(path: cartoonId.trim()),
+    pictureType == PictureType.cover ? '' : encodePath(path: chapterId.trim()),
+  );
 
   extern = {...?extern};
   extern['priority'] ??= 0;
@@ -189,6 +147,93 @@ Future<String> getCachePicture({
   } else {
     throw Exception('图片保存失败');
   }
+}
+
+/// 在不触发下载的前提下，解析图片已存在的本地路径。
+///
+/// 查找顺序与 [getCachePicture] 的缓存命中分支一致：
+/// 绝对路径直查 → 新（编码）缓存/下载路径 → 旧（未编码）缓存/下载路径。
+/// 找不到时返回空字符串。用于阅读器预解析图片尺寸等只需要本地文件的场景。
+Future<String> findCachedPicturePath({
+  required String from,
+  String path = '',
+  String cartoonId = '1',
+  String chapterId = '',
+  PictureType pictureType = PictureType.page,
+}) async {
+  final resolvedFrom = normalizePluginId(from);
+  if (resolvedFrom.isEmpty) {
+    return '';
+  }
+
+  final directPath = path.trim();
+  if (directPath.isEmpty) {
+    return '';
+  }
+  if (file_path.isAbsolute(directPath)) {
+    return await File(directPath).exists() ? directPath : '';
+  }
+
+  final cachePath = await getCachePath();
+  final downloadPath = await getDownloadPath();
+
+  final encodePicturePath = directPath.let((path) => encodePath(path: path));
+  final encodeCartoonId = cartoonId.trim().let(
+    (path) => encodePath(path: path),
+  );
+  final encodeChapterId = chapterId.trim().let(
+    (path) => encodePath(path: path),
+  );
+
+  final newCacheFilePath = _buildStoredFilePath(
+    cachePath,
+    resolvedFrom,
+    encodePicturePath,
+    encodeCartoonId,
+    pictureType == PictureType.cover ? '' : encodeChapterId,
+  );
+
+  final newDownloadFilePath = _buildStoredFilePath(
+    downloadPath,
+    resolvedFrom,
+    encodePicturePath,
+    encodeCartoonId,
+    pictureType == PictureType.cover ? '' : encodeChapterId,
+    rootFolder: 'original',
+  );
+
+  final oldCacheFilePath = _buildStoredFilePath(
+    cachePath,
+    resolvedFrom,
+    directPath,
+    cartoonId,
+    pictureType == PictureType.cover ? '' : chapterId,
+  );
+
+  final oldDownloadFilePath = _buildStoredFilePath(
+    downloadPath,
+    resolvedFrom,
+    directPath,
+    cartoonId,
+    pictureType == PictureType.cover ? '' : chapterId,
+    rootFolder: 'original',
+  );
+
+  // 优先使用新（编码后）路径查找
+  String existingFilePath = await checkFileExists(
+    newCacheFilePath,
+    newDownloadFilePath,
+  );
+
+  if (existingFilePath.isEmpty) {
+    // 未找到，回退到旧（未编码）路径
+    existingFilePath = await checkFileExists(
+      oldCacheFilePath,
+      oldDownloadFilePath,
+    );
+  }
+
+  return existingFilePath;
 }
 
 Future<String> downloadPicture({

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_read/method/image_size_cache_store.dart';
+import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class ImageSizeState {
   final Map<int, Size> sizeCache;
@@ -30,6 +31,7 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
   final double defaultHeight;
   final String sourceTag;
   final List<String> pageKeys;
+  final int _chapterOrder;
   final ImageSizeCacheStore _cacheStore;
 
   Timer? _saveTimer;
@@ -43,10 +45,12 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
     required this.defaultHeight,
     required this.sourceTag,
     required this.pageKeys,
+    required int chapterOrder,
     required bool hydrateOnInit,
     required Map<int, Size> initialCache,
     required Set<int> initialResolved,
-  }) : _cacheStore = ImageSizeCacheStore(
+  }) : _chapterOrder = chapterOrder,
+       _cacheStore = ImageSizeCacheStore(
          sourceTag: sourceTag,
          pageKeys: pageKeys,
        ),
@@ -68,6 +72,7 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
     required int count,
     required String sourceTag,
     required List<String> pageKeys,
+    required int chapterOrder,
     Map<int, Size>? persistedCache,
   }) {
     final double defaultHeight = defaultWidth * 1.2;
@@ -84,8 +89,13 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
     if (persistedCache != null && persistedCache.isNotEmpty) {
       for (final entry in persistedCache.entries) {
         if (entry.key < 0 || entry.key >= count) continue;
-        initialCache[entry.key] = entry.value;
-        initialResolved.add(entry.key);
+        // 持久化以本地页索引为键，运行时以章节哈希索引为键，这里做映射。
+        final cacheIndex = resolveStableSizeCacheIndex(
+          chapterOrder: chapterOrder,
+          localPageIndex: entry.key,
+        );
+        initialCache[cacheIndex] = entry.value;
+        initialResolved.add(cacheIndex);
       }
     }
 
@@ -95,6 +105,7 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
       defaultHeight: defaultHeight,
       sourceTag: sourceTag,
       pageKeys: pageKeys,
+      chapterOrder: chapterOrder,
       hydrateOnInit: persistedCache == null,
       initialCache: initialCache,
       initialResolved: initialResolved,
@@ -142,8 +153,13 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
       var changed = false;
 
       for (final entry in persisted.entries) {
-        newCache[entry.key] = entry.value;
-        newResolved.add(entry.key);
+        // 与 create 一致：本地页索引 → 运行时章节哈希索引。
+        final cacheIndex = resolveStableSizeCacheIndex(
+          chapterOrder: _chapterOrder,
+          localPageIndex: entry.key,
+        );
+        newCache[cacheIndex] = entry.value;
+        newResolved.add(cacheIndex);
         changed = true;
       }
 
@@ -175,10 +191,25 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
     _isFlushing = true;
     _hasPendingSave = false;
     try {
+      // 运行时索引（章节哈希）→ 本地页索引，持久化层只认本地页索引。
+      final localSizes = <int, Size>{};
+      final localResolved = <int>{};
+      final max = count < pageKeys.length ? count : pageKeys.length;
+      for (var i = 0; i < max; i++) {
+        final runtimeIndex = resolveStableSizeCacheIndex(
+          chapterOrder: _chapterOrder,
+          localPageIndex: i,
+        );
+        if (!state.resolvedIndices.contains(runtimeIndex)) continue;
+        final size = state.sizeCache[runtimeIndex];
+        if (size == null) continue;
+        localSizes[i] = size;
+        localResolved.add(i);
+      }
       await _cacheStore.write(
         pageKeys: pageKeys,
-        sizeCache: state.sizeCache,
-        resolvedIndices: state.resolvedIndices,
+        sizeCache: localSizes,
+        resolvedIndices: localResolved,
         count: count,
       );
     } catch (_) {

@@ -598,6 +598,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get themeMode => 'Theme mode';
 	@override String get autoRead => 'Auto read';
 	@override String get autoReadSubtitle => 'Auto-scroll and show play/pause button';
+	@override String get autoReadSmooth => 'Smooth scroll';
+	@override String get autoReadSmoothSubtitle => 'Continuous scroll in webtoon mode; off uses interval jumps';
 	@override String get webtoonScrollDistance => 'Webtoon scroll distance';
 	@override String get webtoonScrollInterval => 'Webtoon scroll interval';
 	@override String get singlePageScrollInterval => 'Single page scroll interval';
@@ -1915,6 +1917,8 @@ extension on TranslationsEnUs {
 			'reader.themeMode' => 'Theme mode',
 			'reader.autoRead' => 'Auto read',
 			'reader.autoReadSubtitle' => 'Auto-scroll and show play/pause button',
+			'reader.autoReadSmooth' => 'Smooth scroll',
+			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
 			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
 			'reader.singlePageScrollInterval' => 'Single page scroll interval',
@@ -1963,10 +1967,10 @@ extension on TranslationsEnUs {
 			'reader.releaseToJumpPrevChapter' => 'Release to jump to previous chapter',
 			'reader.releaseToLoadPrevChapter' => 'Release to load previous chapter',
 			'reader.pullUpToNextChapter' => 'Pull up to next chapter',
-			'reader.releaseToJumpNextChapter' => 'Release to jump to next chapter',
-			'reader.releaseToLoadNextChapter' => 'Release to load next chapter',
 			_ => null,
 		} ?? switch (path) {
+			'reader.releaseToJumpNextChapter' => 'Release to jump to next chapter',
+			'reader.releaseToLoadNextChapter' => 'Release to load next chapter',
 			'reader.chapterNotDownloaded' => 'Chapter not downloaded',
 			'reader.loadFailedWithResult' => ({required Object result}) => '${result}\nLoad failed',
 			'reader.chapterOrder' => ({required Object order}) => 'Chapter ${order}',
@@ -2477,10 +2481,10 @@ extension on TranslationsEnUs {
 			'download.taskStartFailed' => ({required Object error}) => 'Failed to start download task: ${error}',
 			'download.noTasks' => 'No download tasks',
 			'download.downloading' => 'Downloading',
-			'download.pending' => ({required Object count}) => 'Pending (${count})',
-			'download.taskDeleted' => 'Task deleted',
 			_ => null,
 		} ?? switch (path) {
+			'download.pending' => ({required Object count}) => 'Pending (${count})',
+			'download.taskDeleted' => 'Task deleted',
 			'download.cancelTask' => 'Cancel Task',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
 			'download.paused' => 'Paused',

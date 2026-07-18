@@ -601,6 +601,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后使用旧版首页布局'
 	String get oldPageRollbackSubtitle => '开启后使用旧版首页布局';
 
+	/// zh-CN: '优先云端收藏'
+	String get cloudFavoritePreferred => '优先云端收藏';
+
+	/// zh-CN: '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏'
+	String get cloudFavoritePreferredSubtitle => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏';
+
 	/// zh-CN: '后台保活'
 	String get androidKeepAlive => '后台保活';
 
@@ -1203,6 +1209,12 @@ class Translations$comicInfo$zh_CN {
 
 	/// zh-CN: '取消云端收藏'
 	String get removeCloudCollection => '取消云端收藏';
+
+	/// zh-CN: '收藏到本地'
+	String get collectToLocal => '收藏到本地';
+
+	/// zh-CN: '取消本地收藏'
+	String get removeLocalCollection => '取消本地收藏';
 
 	/// zh-CN: '云端收藏已关闭'
 	String get cloudCollectDisabled => '云端收藏已关闭';
@@ -3755,6 +3767,8 @@ extension on Translations {
 			'settings.appLockSubtitle' => '开启后进入应用需要验证',
 			'settings.oldPageRollback' => '旧版首页',
 			'settings.oldPageRollbackSubtitle' => '开启后使用旧版首页布局',
+			'settings.cloudFavoritePreferred' => '优先云端收藏',
+			'settings.cloudFavoritePreferredSubtitle' => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏',
 			'settings.androidKeepAlive' => '后台保活',
 			'settings.androidKeepAliveSubtitle' => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知',
 			'settings.customExportPath' => '自定义导出路径',
@@ -3950,6 +3964,8 @@ extension on Translations {
 			'comicInfo.exportComic' => '导出漫画',
 			'comicInfo.collectToCloud' => '收藏到云端',
 			'comicInfo.removeCloudCollection' => '取消云端收藏',
+			'comicInfo.collectToLocal' => '收藏到本地',
+			'comicInfo.removeLocalCollection' => '取消本地收藏',
 			'comicInfo.cloudCollectDisabled' => '云端收藏已关闭',
 			'comicInfo.collectingToCloud' => '收藏到云端中...',
 			'comicInfo.removingCloudCollection' => '取消云端收藏中...',
@@ -4100,12 +4116,12 @@ extension on Translations {
 			'reader.chapterTransition' => '章节过渡中',
 			'reader.transitionSwipeToLoad' => '继续翻页加载',
 			'reader.transitionLoaded' => '加载完成',
+			_ => null,
+		} ?? switch (path) {
 			'reader.transitionLoadFailedRetry' => '加载失败，点击重试',
 			'reader.pullDownToPrevChapter' => '继续下拉到上一章',
 			'reader.releaseToJumpPrevChapter' => '松手跳转到上一章',
 			'reader.releaseToLoadPrevChapter' => '松手加载到上一章',
-			_ => null,
-		} ?? switch (path) {
 			'reader.pullUpToNextChapter' => '继续上拉到下一章',
 			'reader.releaseToJumpNextChapter' => '松手跳转到下一章',
 			'reader.releaseToLoadNextChapter' => '松手加载到下一章',
@@ -4614,12 +4630,12 @@ extension on Translations {
 			'fontSetting.sampleText' => 'Innovation in China 中国智造，慧及全球 0123456789',
 			'download.title' => '下载任务',
 			'download.startDownload' => '开始下载',
+			_ => null,
+		} ?? switch (path) {
 			'download.selectChaptersPrompt' => '请选择要下载的章节',
 			'download.taskStarted' => '下载任务已启动',
 			'download.taskStartFailed' => ({required Object error}) => '下载任务启动失败，${error}',
 			'download.noTasks' => '暂无下载任务',
-			_ => null,
-		} ?? switch (path) {
 			'download.downloading' => '正在下载',
 			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			'download.taskDeleted' => '已删除任务',

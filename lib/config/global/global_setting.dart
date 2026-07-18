@@ -119,6 +119,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool androidKeepAliveEnabled,
     @Default(true) bool updateAccelerate,
     @Default(false) bool oldPageRollbackEnabled,
+    @Default(false) bool cloudFavoritePreferred,
     @Default([]) List<String> searchHistory,
     @Default(1280.0) double windowWidth,
     @Default(720.0) double windowHeight,

@@ -272,6 +272,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get appLockSubtitle => 'Require verification when entering the app';
 	@override String get oldPageRollback => 'Old home page';
 	@override String get oldPageRollbackSubtitle => 'Use old home page layout';
+	@override String get cloudFavoritePreferred => 'Prefer cloud favorites';
+	@override String get cloudFavoritePreferredSubtitle => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection';
 	@override String get androidKeepAlive => 'Keep alive';
 	@override String get androidKeepAliveSubtitle => 'Use a foreground service to keep the app running in the background; shows a persistent notification';
 	@override String get customExportPath => 'Custom export path';
@@ -484,6 +486,8 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get exportComic => 'Export comic';
 	@override String get collectToCloud => 'Collect to cloud';
 	@override String get removeCloudCollection => 'Remove cloud collection';
+	@override String get collectToLocal => 'Collect locally';
+	@override String get removeLocalCollection => 'Remove local collection';
 	@override String get cloudCollectDisabled => 'Cloud collection disabled';
 	@override String get collectingToCloud => 'Adding to cloud collection...';
 	@override String get removingCloudCollection => 'Removing cloud collection...';
@@ -1618,6 +1622,8 @@ extension on TranslationsEnUs {
 			'settings.appLockSubtitle' => 'Require verification when entering the app',
 			'settings.oldPageRollback' => 'Old home page',
 			'settings.oldPageRollbackSubtitle' => 'Use old home page layout',
+			'settings.cloudFavoritePreferred' => 'Prefer cloud favorites',
+			'settings.cloudFavoritePreferredSubtitle' => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection',
 			'settings.androidKeepAlive' => 'Keep alive',
 			'settings.androidKeepAliveSubtitle' => 'Use a foreground service to keep the app running in the background; shows a persistent notification',
 			'settings.customExportPath' => 'Custom export path',
@@ -1812,6 +1818,8 @@ extension on TranslationsEnUs {
 			'comicInfo.exportComic' => 'Export comic',
 			'comicInfo.collectToCloud' => 'Collect to cloud',
 			'comicInfo.removeCloudCollection' => 'Remove cloud collection',
+			'comicInfo.collectToLocal' => 'Collect locally',
+			'comicInfo.removeLocalCollection' => 'Remove local collection',
 			'comicInfo.cloudCollectDisabled' => 'Cloud collection disabled',
 			'comicInfo.collectingToCloud' => 'Adding to cloud collection...',
 			'comicInfo.removingCloudCollection' => 'Removing cloud collection...',
@@ -1963,12 +1971,12 @@ extension on TranslationsEnUs {
 			'reader.transitionSwipeToLoad' => 'Swipe to load',
 			'reader.transitionLoaded' => 'Load complete',
 			'reader.transitionLoadFailedRetry' => 'Load failed, tap to retry',
+			_ => null,
+		} ?? switch (path) {
 			'reader.pullDownToPrevChapter' => 'Pull down to previous chapter',
 			'reader.releaseToJumpPrevChapter' => 'Release to jump to previous chapter',
 			'reader.releaseToLoadPrevChapter' => 'Release to load previous chapter',
 			'reader.pullUpToNextChapter' => 'Pull up to next chapter',
-			_ => null,
-		} ?? switch (path) {
 			'reader.releaseToJumpNextChapter' => 'Release to jump to next chapter',
 			'reader.releaseToLoadNextChapter' => 'Release to load next chapter',
 			'reader.chapterNotDownloaded' => 'Chapter not downloaded',
@@ -2477,12 +2485,12 @@ extension on TranslationsEnUs {
 			'download.title' => 'Download tasks',
 			'download.startDownload' => 'Start Download',
 			'download.selectChaptersPrompt' => 'Please select chapters to download',
+			_ => null,
+		} ?? switch (path) {
 			'download.taskStarted' => 'Download task started',
 			'download.taskStartFailed' => ({required Object error}) => 'Failed to start download task: ${error}',
 			'download.noTasks' => 'No download tasks',
 			'download.downloading' => 'Downloading',
-			_ => null,
-		} ?? switch (path) {
 			'download.pending' => ({required Object count}) => 'Pending (${count})',
 			'download.taskDeleted' => 'Task deleted',
 			'download.cancelTask' => 'Cancel Task',

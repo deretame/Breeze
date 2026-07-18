@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
@@ -18,13 +19,11 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/error_filter.dart';
-import 'package:open_file/open_file.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
-
 import 'package:zephyr/widgets/error_view.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -106,6 +105,8 @@ class _ComicInfoState extends State<_ComicInfo>
   String _title = "";
   NormalComicAllInfo? _currentInfo;
   bool _isCloudCollected = false;
+  bool _isLocalCollected = false;
+  String _localCollectSyncedFor = '';
   bool _followSyncedForCurrentInfo = false;
 
   @override
@@ -122,6 +123,11 @@ class _ComicInfoState extends State<_ComicInfo>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // 开启「优先云端收藏」后，页面收藏按钮与菜单项的本地/云端收藏行为互换
+    final cloudFavoritePreferred = context
+        .watch<GlobalSettingCubit>()
+        .state
+        .cloudFavoritePreferred;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -160,7 +166,11 @@ class _ComicInfoState extends State<_ComicInfo>
                   _handleExport();
                   break;
                 case MenuOption.cloudCollect:
-                  _toggleCloudCollectFromMenu();
+                  if (cloudFavoritePreferred) {
+                    _toggleLocalCollectFromMenu();
+                  } else {
+                    _toggleCloudCollectFromMenu();
+                  }
                   break;
                 case MenuOption.follow:
                   _toggleFollowFromMenu();
@@ -200,14 +210,20 @@ class _ComicInfoState extends State<_ComicInfo>
                 FluentPopupMenuItem<MenuOption>(
                   value: MenuOption.cloudCollect,
                   leading: Icon(
-                    _isCloudCollected ? Icons.star : Icons.star_border,
+                    cloudFavoritePreferred
+                        ? (_isLocalCollected ? Icons.star : Icons.star_border)
+                        : (_isCloudCollected ? Icons.star : Icons.star_border),
                   ),
                   title: Text(
-                    (_currentInfo?.allowCollected ?? false)
-                        ? (_isCloudCollected
-                              ? t.comicInfo.removeCloudCollection
-                              : t.comicInfo.collectToCloud)
-                        : t.comicInfo.cloudCollectDisabled,
+                    cloudFavoritePreferred
+                        ? (_isLocalCollected
+                              ? t.comicInfo.removeLocalCollection
+                              : t.comicInfo.collectToLocal)
+                        : ((_currentInfo?.allowCollected ?? false)
+                              ? (_isCloudCollected
+                                    ? t.comicInfo.removeCloudCollection
+                                    : t.comicInfo.collectToCloud)
+                              : t.comicInfo.cloudCollectDisabled),
                   ),
                 ),
               );
@@ -261,6 +277,7 @@ class _ComicInfoState extends State<_ComicInfo>
               comicInfoDyn = state.comicInfo;
               _currentInfo = state.allInfo;
               _isCloudCollected = state.allInfo?.isFavourite ?? false;
+              _syncLocalCollectStatus(state.allInfo!);
               initHistory(
                 context,
                 widget.comicId,
@@ -555,8 +572,6 @@ class _ComicInfoState extends State<_ComicInfo>
 
   // 导出逻辑
   Future<void> _handleExport() async {
-    String? cacheZipPath;
-
     try {
       if (!mounted) return;
 
@@ -611,13 +626,6 @@ class _ComicInfoState extends State<_ComicInfo>
               error: normalizeSearchErrorMessage(e),
             );
       showErrorToast(errorMessage, duration: const Duration(seconds: 5));
-    } finally {
-      if (cacheZipPath != null) {
-        final cacheZipFile = File(cacheZipPath);
-        if (await cacheZipFile.exists()) {
-          await cacheZipFile.delete();
-        }
-      }
     }
   }
 
@@ -725,6 +733,87 @@ class _ComicInfoState extends State<_ComicInfo>
         .where((json) => json.isNotEmpty)
         .map(UnifiedComicListItem.fromJson)
         .toList();
+  }
+
+  Future<void> _syncLocalCollectStatus(NormalComicAllInfo info) async {
+    // 同一部漫画只同步一次本地收藏状态，避免每次重建都查询数据库
+    final comicId = info.comicInfo.id;
+    if (_localCollectSyncedFor == comicId) {
+      return;
+    }
+    _localCollectSyncedFor = comicId;
+    final collected = await isLocalComicCollected(
+      from: widget.from,
+      comicId: comicId,
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isLocalCollected = collected;
+    });
+  }
+
+  Future<void> _toggleLocalCollectFromMenu() async {
+    final info = _currentInfo;
+    if (info == null) {
+      showErrorToast(t.comicInfo.detailsNotLoaded);
+      return;
+    }
+    try {
+      // 取消收藏需要确认，因为会删除所有文件夹中的记录
+      if (_isLocalCollected) {
+        final confirmed = await _showLocalUncollectConfirmDialog();
+        if (!confirmed) {
+          return;
+        }
+      }
+
+      final next = await toggleLocalComicFavorite(
+        from: widget.from,
+        normalInfo: info,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLocalCollected = next;
+      });
+      showSuccessToast(
+        next ? t.comicInfo.addedToCollection : t.comicInfo.removedFromCollection,
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      showErrorToast(
+        t.comicInfo.localCollectFailed(error: normalizeSearchErrorMessage(e)),
+        duration: const Duration(seconds: 5),
+      );
+    }
+  }
+
+  Future<bool> _showLocalUncollectConfirmDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(t.comicInfo.confirmUncollectTitle),
+          content: Text(t.comicInfo.confirmUncollectContent),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(t.common.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(t.common.confirm),
+            ),
+          ],
+        );
+      },
+    );
+    return result == true;
   }
 
   Future<void> _toggleCloudCollectFromMenu() async {

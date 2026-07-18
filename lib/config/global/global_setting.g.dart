@@ -42,6 +42,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   androidKeepAliveEnabled: json['androidKeepAliveEnabled'] as bool? ?? false,
   updateAccelerate: json['updateAccelerate'] as bool? ?? true,
   oldPageRollbackEnabled: json['oldPageRollbackEnabled'] as bool? ?? false,
+  cloudFavoritePreferred: json['cloudFavoritePreferred'] as bool? ?? false,
   searchHistory:
       (json['searchHistory'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -97,6 +98,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'androidKeepAliveEnabled': instance.androidKeepAliveEnabled,
       'updateAccelerate': instance.updateAccelerate,
       'oldPageRollbackEnabled': instance.oldPageRollbackEnabled,
+      'cloudFavoritePreferred': instance.cloudFavoritePreferred,
       'searchHistory': instance.searchHistory,
       'windowWidth': instance.windowWidth,
       'windowHeight': instance.windowHeight,

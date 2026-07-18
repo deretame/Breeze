@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
@@ -33,12 +35,14 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   ComicInfo get comicInfoView => normalInfo.comicInfo;
   bool isCollected = false;
   bool isLiked = false;
+  bool isCloudCollected = false;
 
   @override
   void initState() {
     super.initState();
     _syncLocalCollectStatus();
     isLiked = normalInfo.isLiked;
+    isCloudCollected = normalInfo.isFavourite;
   }
 
   Future<void> _syncLocalCollectStatus() async {
@@ -56,6 +60,32 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // 开启「优先云端收藏」后，收藏按钮执行云端收藏，原逻辑与菜单项互换
+    final cloudFavoritePreferred = context
+        .watch<GlobalSettingCubit>()
+        .state
+        .cloudFavoritePreferred;
+    final collectItem = cloudFavoritePreferred
+        ? _OperationItemData(
+            icon: isCloudCollected
+                ? Icons.cloud_done_outlined
+                : Icons.cloud_outlined,
+            text: isCloudCollected
+                ? t.comicInfo.collected
+                : t.comicInfo.collectToCloud,
+            highlighted: isCloudCollected,
+            accentColor: const Color(0xFFE6A700),
+            enabled: normalInfo.allowCollected,
+            onTap: _toggleCloudFavorite,
+          )
+        : _OperationItemData(
+            icon: isCollected ? Icons.star : Icons.star_border,
+            text: isCollected ? t.comicInfo.collected : t.comicInfo.collect,
+            highlighted: isCollected,
+            accentColor: const Color(0xFFE6A700),
+            enabled: true,
+            onTap: _toggleLocalFavorite,
+          );
     final actions = [
       _OperationItemData(
         icon: isLiked ? Icons.favorite : Icons.favorite_border,
@@ -71,14 +101,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         enabled: normalInfo.allowComments,
         onTap: _openComments,
       ),
-      _OperationItemData(
-        icon: isCollected ? Icons.star : Icons.star_border,
-        text: isCollected ? t.comicInfo.collected : t.comicInfo.collect,
-        highlighted: isCollected,
-        accentColor: const Color(0xFFE6A700),
-        enabled: true,
-        onTap: _toggleLocalFavorite,
-      ),
+      collectItem,
       _OperationItemData(
         icon: Icons.cloud_download_outlined,
         text: normalInfo.allowDownload
@@ -184,8 +207,44 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     }
   }
 
-  Future<bool> _showUncollectConfirmDialog() async {
-    final result = await showDialog<bool>(
+  Future<void> _toggleCloudFavorite() async {
+    // 云端收藏被图源关闭时，沿用菜单的禁用提示
+    if (!normalInfo.allowCollected) {
+      showInfoToast(t.comicInfo.cloudCollectDisabled);
+      return;
+    }
+    try {
+      showInfoToast(
+        isCloudCollected
+            ? t.comicInfo.removingCloudCollection
+            : t.comicInfo.collectingToCloud,
+      );
+      final next = await toggleCloudComicFavorite(
+        context: context,
+        from: widget.from,
+        comicId: comicInfoView.id,
+        currentStatus: isCloudCollected,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        isCloudCollected = next;
+      });
+      showSuccessToast(
+        next
+            ? t.comicInfo.cloudCollectSuccess
+            : t.comicInfo.cloudUncollectSuccess,
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showErrorToast(t.error.operationFailed);
+    }
+  }
+
+  Future<bool> _showUncollectConfirmDialog() async {    final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(

@@ -1,11 +1,11 @@
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
-import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
-import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/comic_read/model/comic_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 
 Future<NormalComicEpInfo> getPluginReadSnapshot(
   String comicId,
@@ -44,11 +44,6 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   };
 
   final candidates = <String>[];
-  final preferComicIdFirst =
-      resolvedChapterId == order.toString() && resolvedChapterId != comicId;
-  if (preferComicIdFirst) {
-    candidates.add(comicId);
-  }
   candidates.add(resolvedChapterId);
   if (comicId != resolvedChapterId) {
     candidates.add(comicId);

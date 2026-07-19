@@ -32,42 +32,44 @@ class _AllChipWidgetState extends State<AllChipWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final runSpacings = isDesktop ? 5.0 : 0.0;
+    final runSpacings = isDesktop ? 5.0 : 8.0;
+    final processedTitle = processText(title).let(convertChineseForDisplay);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: runSpacings),
-        Wrap(
-          spacing: 10,
-          runSpacing: runSpacings,
-          children: List.generate(items.length + 1, (index) {
-            if (index == 0) {
-              return Chip(
-                backgroundColor: context.backgroundColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                side: BorderSide(color: context.textColor),
-                label: Text(
-                  processText(title).let(convertChineseForDisplay),
-                  style: TextStyle(fontSize: 12, color: context.textColor),
-                ),
-              );
-            }
-            final item = items[index - 1];
-            return _ClickableChip(
-              label: processText(item.name).let(convertChineseForDisplay),
-              onTap: () => _onTap(item),
-              onLongPress: () {
-                Clipboard.setData(ClipboardData(text: processText(item.name)));
-                showSuccessToast(
-                  t.comicInfo.copiedToClipboard(
-                    name: item.name.let(convertChineseForDisplay),
-                  ),
-                );
-              },
-            );
-          }),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _LabelChip(label: processedTitle),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Wrap(
+                spacing: 10,
+                runSpacing: runSpacings,
+                children: items
+                    .map(
+                      (item) => _ClickableChip(
+                        label: processText(item.name).let(
+                          convertChineseForDisplay,
+                        ),
+                        onTap: () => _onTap(item),
+                        onLongPress: () {
+                          Clipboard.setData(
+                            ClipboardData(text: processText(item.name)),
+                          );
+                          showSuccessToast(
+                            t.comicInfo.copiedToClipboard(
+                              name: item.name.let(convertChineseForDisplay),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -89,6 +91,30 @@ class _AllChipWidgetState extends State<AllChipWidget> {
     if (item.onTap.isNotEmpty) {
       handleComicInfoAction(context, item.onTap, fallbackPluginId: widget.from);
     }
+  }
+}
+
+class _LabelChip extends StatelessWidget {
+  final String label;
+
+  const _LabelChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = context.textColor;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: context.backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: textColor),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 12, color: textColor),
+      ),
+    );
   }
 }
 

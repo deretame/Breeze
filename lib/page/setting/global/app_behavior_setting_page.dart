@@ -86,6 +86,7 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           _appLockSetting(state, cubit),
           _oldPageRollback(state, cubit),
           _cloudFavoritePreferred(state, cubit),
+          _autoFollowOnCollect(state, cubit),
           const SizedBox(height: 32),
         ],
       ),
@@ -155,7 +156,27 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
     );
   }
 
-  Widget _androidKeepAlive(GlobalSettingState state, GlobalSettingCubit cubit) {    return SwitchListTile(
+  Widget _autoFollowOnCollect(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.notifications_active_outlined),
+      title: Text(t.settings.autoFollowOnCollect),
+      subtitle: Text(t.settings.autoFollowOnCollectSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.autoFollowOnCollect,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(autoFollowOnCollect: value),
+        );
+        showSuccessToast(t.common.settingSaved);
+      },
+    );
+  }
+
+  Widget _androidKeepAlive(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
       secondary: const Icon(Icons.battery_charging_full_outlined),
       title: Text(t.settings.androidKeepAlive),
       subtitle: Text(t.settings.androidKeepAliveSubtitle),

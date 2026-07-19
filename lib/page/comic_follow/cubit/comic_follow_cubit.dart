@@ -111,7 +111,8 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
     final comicInfo = info.comicInfo;
     final detected = lastChapterCount ?? info.eps.length;
 
-    final existing = getFollow(source, comicId);
+    // 直接从数据库查询，避免仅依赖内存状态导致重复插入违反唯一约束
+    final existing = ComicFollowService.instance.getFollowByUniqueKey(key);
     ComicFollow follow;
     if (existing != null) {
       follow = existing.copyWith(

@@ -2,96 +2,22 @@
   const TOKEN_RE = /^[!#$%&'*+\-.^_`|~A-Za-z0-9]+$/;
   const HTTP_WS = /[\t\n\r ]/;
 
-  const FORBIDDEN_REQUEST_HEADERS = new Set([
-    "accept-charset",
-    "accept-encoding",
-    "access-control-request-headers",
-    "access-control-request-method",
-    "connection",
-    "content-length",
-    "cookie",
-    "cookie2",
-    "date",
-    "dnt",
-    "expect",
-    "host",
-    "keep-alive",
-    "origin",
-    "referer",
-    "set-cookie",
-    "te",
-    "trailer",
-    "transfer-encoding",
-    "upgrade",
-    "via",
-  ]);
+  // Breeze plugins are trusted runtime code, not untrusted web page scripts.
+  // All standard request/response headers are allowed (Referer, Origin, Cookie,
+  // Set-Cookie, Accept-Encoding, etc.) so plugins can talk to APIs/CDNs that
+  // require them. Transport-level headers (Host, Content-Length, Transfer-Encoding)
+  // are still managed by the underlying HTTP client as needed.
 
-  const FORBIDDEN_METHODS = new Set(["trace", "track", "connect"]);
-  const METHOD_OVERRIDE_HEADERS = new Set([
-    "x-http-method",
-    "x-http-method-override",
-    "x-method-override",
-  ]);
-
-  const NO_CORS_SAFELISTED_NAMES = new Set([
-    "accept",
-    "accept-language",
-    "content-language",
-    "content-type",
-  ]);
-  const PRIVILEGED_NO_CORS_REQUEST_HEADERS = new Set([
-    "cache-control",
-    "content-language",
-    "content-type",
-    "expires",
-    "last-modified",
-    "pragma",
-  ]);
-  const NO_CORS_CONTENT_TYPES = new Set([
-    "application/x-www-form-urlencoded",
-    "multipart/form-data",
-    "text/plain",
-  ]);
-
-  function isForbiddenRequestHeader(name, value) {
-    const lower = name.toLowerCase();
-    if (FORBIDDEN_REQUEST_HEADERS.has(lower)) return true;
-    if (lower.startsWith("proxy-") || lower.startsWith("sec-")) return true;
-    if (METHOD_OVERRIDE_HEADERS.has(lower)) {
-      const tokens = value.split(",");
-      for (let i = 0; i < tokens.length; i += 1) {
-        const token = tokens[i]
-          .replace(/^[\t\n\r ]+/, "")
-          .replace(/[\t\n\r ]+$/, "")
-          .toLowerCase();
-        if (FORBIDDEN_METHODS.has(token)) return true;
-      }
-    }
+  function isForbiddenRequestHeader(_name, _value) {
     return false;
   }
 
-  function isForbiddenResponseHeaderName(name) {
-    const lower = name.toLowerCase();
-    return lower === "set-cookie" || lower === "set-cookie2";
+  function isForbiddenResponseHeaderName(_name) {
+    return false;
   }
 
-  function isNoCorsContentType(value) {
-    const match = String(value).match(/^([^;]+)/);
-    if (!match) return false;
-    const mime = match[1].replace(/[\t\n\r ]+/g, "").toLowerCase();
-    return NO_CORS_CONTENT_TYPES.has(mime);
-  }
-
-  function isNoCorsSafelistedRequestHeader(name, value) {
-    const lower = name.toLowerCase();
-    if (!NO_CORS_SAFELISTED_NAMES.has(lower)) return false;
-    if (["accept", "accept-language", "content-language"].includes(lower)) {
-      if (value.length > 128) return false;
-      return true;
-    }
-    // content-type
-    if (value.length > 128) return false;
-    return isNoCorsContentType(value);
+  function isNoCorsSafelistedRequestHeader(_name, _value) {
+    return true;
   }
 
   function validateHeaderName(name) {
@@ -172,11 +98,15 @@
     return out;
   }
 
-  const iteratorPrototype = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()));
+  const iteratorPrototype = Object.getPrototypeOf(
+    Object.getPrototypeOf([][Symbol.iterator]()),
+  );
   const headersIteratorPrototype = Object.create(iteratorPrototype);
   headersIteratorPrototype.next = function next() {
     if (!this || typeof this._index !== "number") {
-      throw new TypeError("next called on an object that is not a Headers iterator");
+      throw new TypeError(
+        "next called on an object that is not a Headers iterator",
+      );
     }
     const list = sortAndCombine(this._headers._list);
     if (this._index >= list.length) {
@@ -223,7 +153,9 @@
         // Sequence path.
         for (const pair of init) {
           if (!Array.isArray(pair) || pair.length !== 2) {
-            throw new TypeError("Headers sequence entry must be a [name, value] pair");
+            throw new TypeError(
+              "Headers sequence entry must be a [name, value] pair",
+            );
           }
           this.append(pair[0], pair[1]);
         }
@@ -245,38 +177,6 @@
     _checkGuard(name, value, forDelete) {
       if (this._guard === "immutable") {
         throw new TypeError("Headers guard is immutable");
-      }
-      if (this._guard === "response" && isForbiddenResponseHeaderName(name)) {
-        return false;
-      }
-      if (this._guard === "request" && isForbiddenRequestHeader(name, value)) {
-        return false;
-      }
-      if (this._guard === "request-no-cors") {
-        if (forDelete) {
-          if (!isNoCorsSafelistedRequestHeader(name, "") && !PRIVILEGED_NO_CORS_REQUEST_HEADERS.has(name.toLowerCase())) {
-            return false;
-          }
-        } else {
-          if (!isNoCorsSafelistedRequestHeader(name, value)) {
-            return false;
-          }
-          const lower = name.toLowerCase();
-          if (["accept", "accept-language", "content-language", "content-type"].includes(lower)) {
-            if (value === "") {
-              const existing = this._rawValues(lower);
-              if (existing.length > 0) return false;
-            }
-            const existing = this._rawValues(lower);
-            let combined;
-            if (existing.length === 0) {
-              combined = value;
-            } else {
-              combined = existing.join(", ") + ", " + value;
-            }
-            if (combined.length > 128) return false;
-          }
-        }
       }
       return true;
     }
@@ -304,9 +204,6 @@
         if (this._list[i][0] !== key) next.push(this._list[i]);
       }
       this._list = next;
-      if (this._guard === "request-no-cors") {
-        this._removePrivilegedNoCorsHeaders();
-      }
     }
 
     get(name) {
@@ -374,34 +271,6 @@
 
     _applyGuard(guard) {
       this._guard = guard;
-      if (guard === "none" || guard === "immutable") return;
-      const filtered = [];
-      for (let i = 0; i < this._list.length; i += 1) {
-        const [name, value] = this._list[i];
-        if (guard === "response" && isForbiddenResponseHeaderName(name)) continue;
-        if (guard === "request" && isForbiddenRequestHeader(name, value)) continue;
-        if (guard === "request-no-cors") {
-          if (!isNoCorsSafelistedRequestHeader(name, value)) continue;
-        }
-        filtered.push([name, value]);
-      }
-      this._list = filtered;
-    }
-
-    _removePrivilegedNoCorsHeaders() {
-      const privileged = new Set([
-        "cache-control",
-        "content-language",
-        "content-type",
-        "expires",
-        "last-modified",
-        "pragma",
-      ]);
-      const next = [];
-      for (let i = 0; i < this._list.length; i += 1) {
-        if (!privileged.has(this._list[i][0])) next.push(this._list[i]);
-      }
-      this._list = next;
     }
   }
 

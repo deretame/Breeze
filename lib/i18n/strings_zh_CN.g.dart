@@ -607,6 +607,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏'
 	String get cloudFavoritePreferredSubtitle => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏';
 
+	/// zh-CN: '收藏自动追更'
+	String get autoFollowOnCollect => '收藏自动追更';
+
+	/// zh-CN: '开启后收藏漫画时将自动加入追更列表'
+	String get autoFollowOnCollectSubtitle => '开启后收藏漫画时将自动加入追更列表';
+
 	/// zh-CN: '后台保活'
 	String get androidKeepAlive => '后台保活';
 
@@ -3769,6 +3775,8 @@ extension on Translations {
 			'settings.oldPageRollbackSubtitle' => '开启后使用旧版首页布局',
 			'settings.cloudFavoritePreferred' => '优先云端收藏',
 			'settings.cloudFavoritePreferredSubtitle' => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏',
+			'settings.autoFollowOnCollect' => '收藏自动追更',
+			'settings.autoFollowOnCollectSubtitle' => '开启后收藏漫画时将自动加入追更列表',
 			'settings.androidKeepAlive' => '后台保活',
 			'settings.androidKeepAliveSubtitle' => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知',
 			'settings.customExportPath' => '自定义导出路径',
@@ -4114,10 +4122,10 @@ extension on Translations {
 			'reader.enterFullscreen' => '全屏（f11）',
 			'reader.exitFullscreen' => '退出全屏',
 			'reader.chapterTransition' => '章节过渡中',
-			'reader.transitionSwipeToLoad' => '继续翻页加载',
-			'reader.transitionLoaded' => '加载完成',
 			_ => null,
 		} ?? switch (path) {
+			'reader.transitionSwipeToLoad' => '继续翻页加载',
+			'reader.transitionLoaded' => '加载完成',
 			'reader.transitionLoadFailedRetry' => '加载失败，点击重试',
 			'reader.pullDownToPrevChapter' => '继续下拉到上一章',
 			'reader.releaseToJumpPrevChapter' => '松手跳转到上一章',
@@ -4628,10 +4636,10 @@ extension on Translations {
 			'fontSetting.clearFile' => '清除',
 			'fontSetting.selectFile' => '选择文件',
 			'fontSetting.sampleText' => 'Innovation in China 中国智造，慧及全球 0123456789',
-			'download.title' => '下载任务',
-			'download.startDownload' => '开始下载',
 			_ => null,
 		} ?? switch (path) {
+			'download.title' => '下载任务',
+			'download.startDownload' => '开始下载',
 			'download.selectChaptersPrompt' => '请选择要下载的章节',
 			'download.taskStarted' => '下载任务已启动',
 			'download.taskStartFailed' => ({required Object error}) => '下载任务启动失败，${error}',

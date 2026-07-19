@@ -374,6 +374,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     ComicOperationWidget(
                       normalInfo: normalComicAllInfo,
                       from: widget.from,
+                      pluginId: widget.pluginId,
                       comicInfo: comicInfoDyn,
                     ),
                     if (comicInfo.metadata.isNotEmpty ||
@@ -686,6 +687,26 @@ class _ComicInfoState extends State<_ComicInfo>
     await _toggleFollow(isFollowing);
   }
 
+  Future<void> _autoFollowIfEnabled() async {
+    if (!context.read<GlobalSettingCubit>().state.autoFollowOnCollect) {
+      return;
+    }
+    final info = _currentInfo;
+    if (info == null) {
+      return;
+    }
+    final followCubit = context.read<ComicFollowCubit>();
+    if (followCubit.isFollowing(widget.pluginId, widget.comicId)) {
+      return;
+    }
+    await followCubit.addOrUpdateFollow(
+      source: widget.pluginId,
+      comicId: widget.comicId,
+      info: info,
+      lastChapterCount: info.eps.length,
+    );
+  }
+
   Future<void> _confirmAndRemoveFollow(String title) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -779,8 +800,13 @@ class _ComicInfoState extends State<_ComicInfo>
       setState(() {
         _isLocalCollected = next;
       });
+      if (next) {
+        await _autoFollowIfEnabled();
+      }
       showSuccessToast(
-        next ? t.comicInfo.addedToCollection : t.comicInfo.removedFromCollection,
+        next
+            ? t.comicInfo.addedToCollection
+            : t.comicInfo.removedFromCollection,
       );
     } catch (e) {
       if (!mounted) {
@@ -844,6 +870,9 @@ class _ComicInfoState extends State<_ComicInfo>
       setState(() {
         _isCloudCollected = next;
       });
+      if (next) {
+        await _autoFollowIfEnabled();
+      }
       showSuccessToast(
         next
             ? t.comicInfo.cloudCollectSuccess

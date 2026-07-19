@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/error_filter.dart';
@@ -16,12 +17,14 @@ import 'package:zephyr/widgets/toast.dart';
 class ComicOperationWidget extends StatefulWidget {
   final NormalComicAllInfo normalInfo;
   final String from;
+  final String pluginId;
   final dynamic comicInfo;
 
   const ComicOperationWidget({
     super.key,
     required this.normalInfo,
     required this.from,
+    required this.pluginId,
     required this.comicInfo,
   });
 
@@ -56,6 +59,23 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     setState(() {
       isCollected = localCollected;
     });
+  }
+
+  Future<void> _autoFollowIfEnabled() async {
+    if (!context.read<GlobalSettingCubit>().state.autoFollowOnCollect) {
+      return;
+    }
+    final followCubit = context.read<ComicFollowCubit>();
+    final comicId = comicInfoView.id;
+    if (followCubit.isFollowing(widget.pluginId, comicId)) {
+      return;
+    }
+    await followCubit.addOrUpdateFollow(
+      source: widget.pluginId,
+      comicId: comicId,
+      info: normalInfo,
+      lastChapterCount: normalInfo.eps.length,
+    );
   }
 
   @override
@@ -190,6 +210,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         isCollected = next;
       });
       if (next) {
+        await _autoFollowIfEnabled();
+      }
+      if (next) {
         showSuccessToast(t.comicInfo.addedToCollection);
       } else {
         showSuccessToast(t.comicInfo.removedFromCollection);
@@ -231,6 +254,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       setState(() {
         isCloudCollected = next;
       });
+      if (next) {
+        await _autoFollowIfEnabled();
+      }
       showSuccessToast(
         next
             ? t.comicInfo.cloudCollectSuccess
@@ -244,7 +270,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     }
   }
 
-  Future<bool> _showUncollectConfirmDialog() async {    final result = await showDialog<bool>(
+  Future<bool> _showUncollectConfirmDialog() async {
+    final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(

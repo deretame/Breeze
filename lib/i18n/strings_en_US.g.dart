@@ -274,6 +274,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get oldPageRollbackSubtitle => 'Use old home page layout';
 	@override String get cloudFavoritePreferred => 'Prefer cloud favorites';
 	@override String get cloudFavoritePreferredSubtitle => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection';
+	@override String get autoFollowOnCollect => 'Auto-follow on collect';
+	@override String get autoFollowOnCollectSubtitle => 'Automatically add comics to the follow list when favorited';
 	@override String get androidKeepAlive => 'Keep alive';
 	@override String get androidKeepAliveSubtitle => 'Use a foreground service to keep the app running in the background; shows a persistent notification';
 	@override String get customExportPath => 'Custom export path';
@@ -1624,6 +1626,8 @@ extension on TranslationsEnUs {
 			'settings.oldPageRollbackSubtitle' => 'Use old home page layout',
 			'settings.cloudFavoritePreferred' => 'Prefer cloud favorites',
 			'settings.cloudFavoritePreferredSubtitle' => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection',
+			'settings.autoFollowOnCollect' => 'Auto-follow on collect',
+			'settings.autoFollowOnCollectSubtitle' => 'Automatically add comics to the follow list when favorited',
 			'settings.androidKeepAlive' => 'Keep alive',
 			'settings.androidKeepAliveSubtitle' => 'Use a foreground service to keep the app running in the background; shows a persistent notification',
 			'settings.customExportPath' => 'Custom export path',
@@ -1969,10 +1973,10 @@ extension on TranslationsEnUs {
 			'reader.exitFullscreen' => 'Exit fullscreen',
 			'reader.chapterTransition' => 'Chapter transition',
 			'reader.transitionSwipeToLoad' => 'Swipe to load',
-			'reader.transitionLoaded' => 'Load complete',
-			'reader.transitionLoadFailedRetry' => 'Load failed, tap to retry',
 			_ => null,
 		} ?? switch (path) {
+			'reader.transitionLoaded' => 'Load complete',
+			'reader.transitionLoadFailedRetry' => 'Load failed, tap to retry',
 			'reader.pullDownToPrevChapter' => 'Pull down to previous chapter',
 			'reader.releaseToJumpPrevChapter' => 'Release to jump to previous chapter',
 			'reader.releaseToLoadPrevChapter' => 'Release to load previous chapter',
@@ -2483,10 +2487,10 @@ extension on TranslationsEnUs {
 			'fontSetting.selectFile' => 'Select File',
 			'fontSetting.sampleText' => 'Innovation in China 中国智造，慧及全球 0123456789',
 			'download.title' => 'Download tasks',
-			'download.startDownload' => 'Start Download',
-			'download.selectChaptersPrompt' => 'Please select chapters to download',
 			_ => null,
 		} ?? switch (path) {
+			'download.startDownload' => 'Start Download',
+			'download.selectChaptersPrompt' => 'Please select chapters to download',
 			'download.taskStarted' => 'Download task started',
 			'download.taskStartFailed' => ({required Object error}) => 'Failed to start download task: ${error}',
 			'download.noTasks' => 'No download tasks',

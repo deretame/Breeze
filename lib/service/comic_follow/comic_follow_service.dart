@@ -39,6 +39,18 @@ class ComicFollowService {
     }
   }
 
+  /// 按 uniqueKey 查询追更记录（包含已删除的），用于更新或复活旧记录
+  ComicFollow? getFollowByUniqueKey(String uniqueKey) {
+    final query = objectbox.comicFollowBox
+        .query(ComicFollow_.uniqueKey.equals(uniqueKey))
+        .build();
+    try {
+      return query.findFirst();
+    } finally {
+      query.close();
+    }
+  }
+
   /// 检测单部漫画的当前章节数，失败时返回 null，最多重试 3 次
   Future<int?> detectChapterCount(ComicFollow follow) async {
     for (var attempt = 0; attempt < _kMaxRetryCount; attempt++) {

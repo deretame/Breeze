@@ -172,6 +172,8 @@
     "oldPageRollbackSubtitle": "Use old home page layout",
     "cloudFavoritePreferred": "Prefer cloud favorites",
     "cloudFavoritePreferredSubtitle": "When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection",
+    "autoFollowOnCollect": "Auto-follow on collect",
+    "autoFollowOnCollectSubtitle": "Automatically add comics to the follow list when favorited",
     "androidKeepAlive": "Keep alive",
     "androidKeepAliveSubtitle": "Use a foreground service to keep the app running in the background; shows a persistent notification",
     "customExportPath": "Custom export path",

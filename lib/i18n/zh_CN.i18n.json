@@ -172,6 +172,8 @@
     "oldPageRollbackSubtitle": "开启后使用旧版首页布局",
     "cloudFavoritePreferred": "优先云端收藏",
     "cloudFavoritePreferredSubtitle": "开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏",
+    "autoFollowOnCollect": "收藏自动追更",
+    "autoFollowOnCollectSubtitle": "开启后收藏漫画时将自动加入追更列表",
     "androidKeepAlive": "后台保活",
     "androidKeepAliveSubtitle": "开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知",
     "customExportPath": "自定义导出路径",

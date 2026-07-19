@@ -43,6 +43,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   updateAccelerate: json['updateAccelerate'] as bool? ?? true,
   oldPageRollbackEnabled: json['oldPageRollbackEnabled'] as bool? ?? false,
   cloudFavoritePreferred: json['cloudFavoritePreferred'] as bool? ?? false,
+  autoFollowOnCollect: json['autoFollowOnCollect'] as bool? ?? false,
   searchHistory:
       (json['searchHistory'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -99,6 +100,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'updateAccelerate': instance.updateAccelerate,
       'oldPageRollbackEnabled': instance.oldPageRollbackEnabled,
       'cloudFavoritePreferred': instance.cloudFavoritePreferred,
+      'autoFollowOnCollect': instance.autoFollowOnCollect,
       'searchHistory': instance.searchHistory,
       'windowWidth': instance.windowWidth,
       'windowHeight': instance.windowHeight,

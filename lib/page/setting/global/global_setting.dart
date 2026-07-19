@@ -89,9 +89,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           settingCategoryTile(
             icon: Icons.settings_outlined,
             title: t.settings.appBehavior,
-            subtitle: state.appLockSetting.enabled
-                ? t.settings.appLock
-                : t.settings.splashPage,
+            subtitle: '${t.settings.splashPage} · ${t.settings.appLock}',
             onTap: () => _openSubPage(const AppBehaviorSettingRoute()),
           ),
           const Divider(height: 1, thickness: 0.3),

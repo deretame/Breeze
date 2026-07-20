@@ -850,15 +850,12 @@ fn forward_log_event_if_needed(event: &LogEvent) {
             }
         });
         if let Ok(client) = log_http_direct_client() {
-            if let Err(e) = client
+            let _ = client
                 .post(url)
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .json(&payload)
                 .send()
-                .await
-            {
-                tracing::debug!("{}", crate::tr!("qjs-log-http-forwarding-failed", e = e));
-            }
+                .await;
         } else {
             tracing::debug!(
                 "{}",

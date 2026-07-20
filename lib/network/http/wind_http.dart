@@ -127,16 +127,17 @@ class WindHttp {
     }
 
     final sink = RustStreamSink<rust.HttpProgress>();
+    final future = _client.download(
+      url: url,
+      savePath: savePath,
+      init: init,
+      progress: sink,
+    );
     final sub = sink.stream.listen((event) {
       onReceiveProgress(event.received.toInt(), event.total?.toInt() ?? -1);
     });
     try {
-      await _client.download(
-        url: url,
-        savePath: savePath,
-        init: init,
-        progress: sink,
-      );
+      await future;
     } finally {
       await sub.cancel();
     }

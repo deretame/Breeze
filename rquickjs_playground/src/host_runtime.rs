@@ -1586,7 +1586,12 @@ fn build_bundle_call_once_script(
               else if (value instanceof ArrayBuffer) bytes = new Uint8Array(value);
               else bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
               let id;
-              if (typeof globalThis.__native_buffer_put_raw === "function") {{
+              if (typeof globalThis.__native_buffer_put_binary === "function") {{
+                try {{
+                  id = globalThis.__native_buffer_put_binary(bytes);
+                }} catch (_err) {{}}
+              }}
+              if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put_raw === "function") {{
                 try {{
                   id = globalThis.__native_buffer_put_raw(Array.from(bytes));
                 }} catch (_err) {{}}
@@ -1744,7 +1749,12 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
               else if (value instanceof ArrayBuffer) bytes = new Uint8Array(value);
               else bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
               let id;
-              if (typeof globalThis.__native_buffer_put_raw === "function") {{
+              if (typeof globalThis.__native_buffer_put_binary === "function") {{
+                try {{
+                  id = globalThis.__native_buffer_put_binary(bytes);
+                }} catch (_err) {{}}
+              }}
+              if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put_raw === "function") {{
                 try {{
                   id = globalThis.__native_buffer_put_raw(Array.from(bytes));
                 }} catch (_err) {{}}

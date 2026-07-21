@@ -624,6 +624,89 @@ fn bridge_route_allowlist_denies_non_allowed_routes() {
 }
 
 #[test]
+fn native_buffer_put_binary_accepts_typed_array() {
+    let script = r#"
+      (async () => {
+        const input = new Uint8Array([1, 2, 3, 255]);
+        const id = __native_buffer_put_binary(input);
+        const out = __native_buffer_take_raw(id);
+        return JSON.stringify({
+          idType: typeof id,
+          len: out.length,
+          v0: out[0],
+          v1: out[1],
+          v2: out[2],
+          v3: out[3]
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
+    assert_eq!(parsed["idType"], "number");
+    assert_eq!(parsed["len"], 4);
+    assert_eq!(parsed["v0"], 1);
+    assert_eq!(parsed["v1"], 2);
+    assert_eq!(parsed["v2"], 3);
+    assert_eq!(parsed["v3"], 255);
+}
+
+#[test]
+fn native_buffer_put_binary_accepts_array_buffer() {
+    let script = r#"
+      (async () => {
+        const input = new Uint8Array([4, 5, 6, 255]).buffer;
+        const id = __native_buffer_put_binary(input);
+        const out = __native_buffer_take_raw(id);
+        return JSON.stringify({
+          idType: typeof id,
+          len: out.length,
+          v0: out[0],
+          v1: out[1],
+          v2: out[2],
+          v3: out[3]
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
+    assert_eq!(parsed["idType"], "number");
+    assert_eq!(parsed["len"], 4);
+    assert_eq!(parsed["v0"], 4);
+    assert_eq!(parsed["v1"], 5);
+    assert_eq!(parsed["v2"], 6);
+    assert_eq!(parsed["v3"], 255);
+}
+
+#[test]
+fn native_buffer_put_binary_accepts_byte_array() {
+    let script = r#"
+      (async () => {
+        const id = __native_buffer_put_binary([7, 8, 9, 255]);
+        const out = __native_buffer_take_raw(id);
+        return JSON.stringify({
+          idType: typeof id,
+          len: out.length,
+          v0: out[0],
+          v1: out[1],
+          v2: out[2],
+          v3: out[3]
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
+    assert_eq!(parsed["idType"], "number");
+    assert_eq!(parsed["len"], 4);
+    assert_eq!(parsed["v0"], 7);
+    assert_eq!(parsed["v1"], 8);
+    assert_eq!(parsed["v2"], 9);
+    assert_eq!(parsed["v3"], 255);
+}
+
+#[test]
 fn bridge_args_size_limit_returns_structured_error() {
     let script = r#"
       (async () => {

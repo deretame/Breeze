@@ -82,6 +82,24 @@ fn parse_u8_json_array(data_json: &str) -> AnyResult<Vec<u8>> {
     Ok(out)
 }
 
+pub fn native_buffer_put_binary(value: QjsValue) -> rquickjs::Result<u64> {
+    let bytes: Vec<u8> = if let Ok(ta) = rquickjs::TypedArray::<u8>::from_value(value.clone()) {
+        ta.as_bytes().map(|b| b.to_vec()).unwrap_or_default()
+    } else if let Some(ab) = rquickjs::ArrayBuffer::from_value(value.clone()) {
+        ab.as_bytes().map(|b| b.to_vec()).unwrap_or_default()
+    } else if let Some(arr) = rquickjs::Object::from_value(value)?.into_array() {
+        arr.iter::<u8>().collect::<rquickjs::Result<Vec<u8>>>()?
+    } else {
+        return Err(rquickjs::Error::new_from_js_message(
+            "binary object",
+            "Vec<u8>",
+            "expected ArrayBuffer, TypedArray, or byte array",
+        ));
+    };
+
+    Ok(native_buffer_put_raw(bytes))
+}
+
 pub fn native_buffer_put(data_json: String) -> String {
     let bytes = match parse_u8_json_array(&data_json) {
         Ok(bytes) => bytes,

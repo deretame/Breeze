@@ -64,8 +64,8 @@ pub use self::http::{
     http_request_promise, http_request_start, http_request_try_take, set_worker_http_config,
 };
 pub use self::native_buffer::{
-    native_buffer_free, native_buffer_put, native_buffer_put_raw, native_buffer_take,
-    native_buffer_take_raw, native_exec, native_exec_chain,
+    native_buffer_free, native_buffer_put, native_buffer_put_binary, native_buffer_put_raw,
+    native_buffer_take, native_buffer_take_raw, native_exec, native_exec_chain,
 };
 pub use self::state::{
     body_state_is_consumed, body_state_register, body_state_try_consume, fetch_state_can_clone,
@@ -226,6 +226,10 @@ pub fn install_host_bindings(
     )?;
     globals.set("__native_buffer_put", Func::from(native_buffer_put))?;
     globals.set("__native_buffer_put_raw", Func::from(native_buffer_put_raw))?;
+    globals.set(
+        "__native_buffer_put_binary",
+        Func::from(native_buffer_put_binary),
+    )?;
     globals.set("__native_buffer_take", Func::from(native_buffer_take))?;
     globals.set(
         "__native_buffer_take_raw",

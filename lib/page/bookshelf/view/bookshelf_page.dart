@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
@@ -16,19 +17,43 @@ class BookshelfPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bookshelfSetting = context
+        .read<GlobalSettingCubit>()
+        .state
+        .bookshelfSetting;
     return MultiBlocProvider(
       providers: [
         BlocProvider<BookshelfSearchCubit>(
-          create: (context) => BookshelfSearchCubit(),
+          create: (context) => BookshelfSearchCubit(
+            favorite: SearchStatusState(
+              sort: bookshelfSetting.rememberFavoriteSort
+                  ? bookshelfSetting.favoriteSort
+                  : 'dd',
+            ),
+            history: SearchStatusState(
+              sort: bookshelfSetting.rememberHistorySort
+                  ? bookshelfSetting.historySort
+                  : 'dd',
+            ),
+            download: SearchStatusState(
+              sort: bookshelfSetting.rememberDownloadSort
+                  ? bookshelfSetting.downloadSort
+                  : 'dd',
+            ),
+          ),
         ),
       ],
-      child: const _BookshelfPageContent(),
+      child: _BookshelfPageContent(
+        initialIndex: bookshelfSetting.homePageIndex,
+      ),
     );
   }
 }
 
 class _BookshelfPageContent extends StatefulWidget {
-  const _BookshelfPageContent();
+  const _BookshelfPageContent({required this.initialIndex});
+
+  final int initialIndex;
 
   @override
   State<_BookshelfPageContent> createState() => _BookshelfPageContentState();
@@ -42,7 +67,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     t.bookshelf.download,
   ];
 
-  int _currentIndex = 0;
+  late int _currentIndex;
   late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final List<int> _refreshSignals = [0, 0, 0];
@@ -52,8 +77,12 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _labels.length, vsync: this)
-      ..addListener(_handleTabControllerChanged);
+    _currentIndex = widget.initialIndex.clamp(0, _labels.length - 1);
+    _tabController = TabController(
+      initialIndex: _currentIndex,
+      length: _labels.length,
+      vsync: this,
+    )..addListener(_handleTabControllerChanged);
     _syncSourcesFromRegistry(context.read<PluginRegistryCubit>().state);
     _syncSearchFieldWithCurrentMode();
   }
@@ -300,6 +329,24 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     };
   }
 
+  void _maybePersistSort(ShelfPageMode mode, String sort) {
+    final cubit = context.read<GlobalSettingCubit>();
+    final setting = cubit.state.bookshelfSetting;
+    final shouldPersist = switch (mode) {
+      ShelfPageMode.favorite => setting.rememberFavoriteSort,
+      ShelfPageMode.history => setting.rememberHistorySort,
+      ShelfPageMode.download => setting.rememberDownloadSort,
+    };
+    if (!shouldPersist) return;
+    cubit.updateBookshelfSetting(
+      (current) => switch (mode) {
+        ShelfPageMode.favorite => current.copyWith(favoriteSort: sort),
+        ShelfPageMode.history => current.copyWith(historySort: sort),
+        ShelfPageMode.download => current.copyWith(downloadSort: sort),
+      },
+    );
+  }
+
   SearchStatusState _currentSearchState() {
     final cubit = context.read<BookshelfSearchCubit>();
     return cubit.state.stateOf(_currentMode());
@@ -381,6 +428,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     if (result == null) return;
 
     searchCubit.setSort(currentMode, result.sort);
+    _maybePersistSort(currentMode, result.sort);
 
     var nextSources = result.sources.toList();
     if (currentMode == ShelfPageMode.favorite &&

@@ -32,6 +32,11 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+# Force MSVC to read every C/C++ source file as UTF-8. This prevents C4819
+# warnings (and C2220 errors when /WX is enabled) on machines whose default code
+# page cannot represent Unicode characters in third-party plugin sources. The
+# COMPILE_LANGUAGE guard keeps /utf-8 away from MASM, which does not accept it.
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX,C>:/utf-8>")
 
 # Compilation settings that should be applied to most targets.
 #
@@ -40,7 +45,11 @@ add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
 # of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
+  # /utf-8 forces MSVC to read source files as UTF-8, avoiding C4819 on
+  # machines whose default code page (e.g. 936/GBK) cannot represent Unicode
+  # characters in third-party plugin sources. /WX already turns warnings into
+  # errors, so the source-charset mismatch was failing the build.
+  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100" /utf-8)
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")

@@ -132,6 +132,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default("") String compatibleVersion,
     @Default(CacheSettingState()) CacheSettingState cacheSetting,
     @Default(ChineseConvertMode.off) ChineseConvertMode chineseConvertMode,
+    @Default(BookshelfSettingState()) BookshelfSettingState bookshelfSetting,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
@@ -260,6 +261,22 @@ abstract class ReadSettingState with _$ReadSettingState {
       _$ReadSettingStateFromJson(json);
 }
 
+@freezed
+abstract class BookshelfSettingState with _$BookshelfSettingState {
+  const factory BookshelfSettingState({
+    @Default(0) int homePageIndex,
+    @Default(false) bool rememberFavoriteSort,
+    @Default('dd') String favoriteSort,
+    @Default(false) bool rememberHistorySort,
+    @Default('dd') String historySort,
+    @Default(false) bool rememberDownloadSort,
+    @Default('dd') String downloadSort,
+  }) = _BookshelfSettingState;
+
+  factory BookshelfSettingState.fromJson(Map<String, dynamic> json) =>
+      _$BookshelfSettingStateFromJson(json);
+}
+
 class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   // 构造函数，传入由 freezed 生成的默认 state
   GlobalSettingCubit() : super(const GlobalSettingState());
@@ -309,6 +326,15 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
     updateState(
       (current) =>
           current.copyWith(cacheSetting: updates(current.cacheSetting)),
+    );
+  }
+
+  void updateBookshelfSetting(
+    BookshelfSettingState Function(BookshelfSettingState current) updates,
+  ) {
+    updateState(
+      (current) =>
+          current.copyWith(bookshelfSetting: updates(current.bookshelfSetting)),
     );
   }
 

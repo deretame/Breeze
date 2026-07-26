@@ -94,6 +94,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           ),
           const Divider(height: 1, thickness: 0.3),
           settingCategoryTile(
+            icon: Icons.collections_bookmark_outlined,
+            title: t.settings.bookshelf,
+            subtitle: t.settings.bookshelfSubtitle,
+            onTap: () => _openSubPage(const BookshelfSettingRoute()),
+          ),
+          const Divider(height: 1, thickness: 0.3),
+          settingCategoryTile(
             icon: Icons.storage_outlined,
             title: t.settings.storage,
             subtitle: '${t.settings.cache} · ${t.settings.dataBackup}',

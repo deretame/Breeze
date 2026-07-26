@@ -50,9 +50,9 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                 children: items
                     .map(
                       (item) => _ClickableChip(
-                        label: processText(item.name).let(
-                          convertChineseForDisplay,
-                        ),
+                        label: processText(
+                          item.name,
+                        ).let(convertChineseForDisplay),
                         onTap: () => _onTap(item),
                         onLongPress: () {
                           Clipboard.setData(
@@ -110,10 +110,7 @@ class _LabelChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: textColor),
       ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 12, color: textColor),
-      ),
+      child: Text(label, style: TextStyle(fontSize: 12, color: textColor)),
     );
   }
 }

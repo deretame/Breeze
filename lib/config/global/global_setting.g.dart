@@ -74,6 +74,11 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
         json['chineseConvertMode'],
       ) ??
       ChineseConvertMode.off,
+  bookshelfSetting: json['bookshelfSetting'] == null
+      ? const BookshelfSettingState()
+      : BookshelfSettingState.fromJson(
+          json['bookshelfSetting'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -113,6 +118,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'cacheSetting': instance.cacheSetting.toJson(),
       'chineseConvertMode':
           _$ChineseConvertModeEnumMap[instance.chineseConvertMode]!,
+      'bookshelfSetting': instance.bookshelfSetting.toJson(),
     };
 
 const _$ThemeModeEnumMap = {
@@ -358,4 +364,28 @@ const _$ReaderInfoHorizontalPositionEnumMap = {
   ReaderInfoHorizontalPosition.left: 'left',
   ReaderInfoHorizontalPosition.center: 'center',
   ReaderInfoHorizontalPosition.right: 'right',
+};
+
+_BookshelfSettingState _$BookshelfSettingStateFromJson(
+  Map<String, dynamic> json,
+) => _BookshelfSettingState(
+  homePageIndex: (json['homePageIndex'] as num?)?.toInt() ?? 0,
+  rememberFavoriteSort: json['rememberFavoriteSort'] as bool? ?? false,
+  favoriteSort: json['favoriteSort'] as String? ?? 'dd',
+  rememberHistorySort: json['rememberHistorySort'] as bool? ?? false,
+  historySort: json['historySort'] as String? ?? 'dd',
+  rememberDownloadSort: json['rememberDownloadSort'] as bool? ?? false,
+  downloadSort: json['downloadSort'] as String? ?? 'dd',
+);
+
+Map<String, dynamic> _$BookshelfSettingStateToJson(
+  _BookshelfSettingState instance,
+) => <String, dynamic>{
+  'homePageIndex': instance.homePageIndex,
+  'rememberFavoriteSort': instance.rememberFavoriteSort,
+  'favoriteSort': instance.favoriteSort,
+  'rememberHistorySort': instance.rememberHistorySort,
+  'historySort': instance.historySort,
+  'rememberDownloadSort': instance.rememberDownloadSort,
+  'downloadSort': instance.downloadSort,
 };

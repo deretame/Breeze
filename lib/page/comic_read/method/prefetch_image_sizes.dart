@@ -54,10 +54,7 @@ Future<void> prefetchChapterImageSizes({
 
       // 与 ImageDisplay 上报保持一致：存渲染宽度 + 等比高度。
       final displayHeight = contentWidth * (rawSize.height / rawSize.width);
-      imageSizeCubit.updateSize(
-        cacheIndex,
-        Size(contentWidth, displayHeight),
-      );
+      imageSizeCubit.updateSize(cacheIndex, Size(contentWidth, displayHeight));
     } catch (_) {
       // 单张失败不影响其余图片。
     }

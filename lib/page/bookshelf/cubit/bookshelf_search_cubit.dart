@@ -45,7 +45,17 @@ class BookshelfSearchState {
 }
 
 class BookshelfSearchCubit extends Cubit<BookshelfSearchState> {
-  BookshelfSearchCubit() : super(const BookshelfSearchState());
+  BookshelfSearchCubit({
+    SearchStatusState favorite = const SearchStatusState(),
+    SearchStatusState history = const SearchStatusState(),
+    SearchStatusState download = const SearchStatusState(),
+  }) : super(
+         BookshelfSearchState(
+           favorite: favorite,
+           history: history,
+           download: download,
+         ),
+       );
 
   void setKeyword(ShelfPageMode mode, String keyword) {
     final next = state.stateOf(mode).copyWith(keyword: keyword);

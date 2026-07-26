@@ -278,6 +278,16 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get autoFollowOnCollectSubtitle => 'Automatically add comics to the follow list when favorited';
 	@override String get androidKeepAlive => 'Keep alive';
 	@override String get androidKeepAliveSubtitle => 'Use a foreground service to keep the app running in the background; shows a persistent notification';
+	@override String get bookshelf => 'Bookshelf';
+	@override String get bookshelfSubtitle => 'Home tab & remember sort';
+	@override String get bookshelfHomePage => 'Bookshelf home';
+	@override String get bookshelfHomePageSubtitle => 'Choose the default tab';
+	@override String get bookshelfRememberFavoriteSort => 'Remember favorite sort';
+	@override String get bookshelfRememberFavoriteSortSubtitle => 'Remember the last sort choice for favorites';
+	@override String get bookshelfRememberHistorySort => 'Remember history sort';
+	@override String get bookshelfRememberHistorySortSubtitle => 'Remember the last sort choice for history';
+	@override String get bookshelfRememberDownloadSort => 'Remember download sort';
+	@override String get bookshelfRememberDownloadSortSubtitle => 'Remember the last sort choice for downloads';
 	@override String get customExportPath => 'Custom export path';
 	@override String get storage => 'Storage';
 	@override String get cache => 'Cache';
@@ -1630,6 +1640,16 @@ extension on TranslationsEnUs {
 			'settings.autoFollowOnCollectSubtitle' => 'Automatically add comics to the follow list when favorited',
 			'settings.androidKeepAlive' => 'Keep alive',
 			'settings.androidKeepAliveSubtitle' => 'Use a foreground service to keep the app running in the background; shows a persistent notification',
+			'settings.bookshelf' => 'Bookshelf',
+			'settings.bookshelfSubtitle' => 'Home tab & remember sort',
+			'settings.bookshelfHomePage' => 'Bookshelf home',
+			'settings.bookshelfHomePageSubtitle' => 'Choose the default tab',
+			'settings.bookshelfRememberFavoriteSort' => 'Remember favorite sort',
+			'settings.bookshelfRememberFavoriteSortSubtitle' => 'Remember the last sort choice for favorites',
+			'settings.bookshelfRememberHistorySort' => 'Remember history sort',
+			'settings.bookshelfRememberHistorySortSubtitle' => 'Remember the last sort choice for history',
+			'settings.bookshelfRememberDownloadSort' => 'Remember download sort',
+			'settings.bookshelfRememberDownloadSortSubtitle' => 'Remember the last sort choice for downloads',
 			'settings.customExportPath' => 'Custom export path',
 			'settings.storage' => 'Storage',
 			'settings.cache' => 'Cache',
@@ -1963,6 +1983,8 @@ extension on TranslationsEnUs {
 			'reader.allHiddenNotice' => 'All hidden, info bar will be completely hidden',
 			'reader.edgePaddingDisabled' => 'Edge padding has no effect when horizontally centered',
 			'reader.settings' => 'Reader settings',
+			_ => null,
+		} ?? switch (path) {
 			'reader.previousChapter' => 'Previous chapter',
 			'reader.nextChapter' => 'Next chapter',
 			'reader.backToHome' => 'Back to home',
@@ -1973,8 +1995,6 @@ extension on TranslationsEnUs {
 			'reader.exitFullscreen' => 'Exit fullscreen',
 			'reader.chapterTransition' => 'Chapter transition',
 			'reader.transitionSwipeToLoad' => 'Swipe to load',
-			_ => null,
-		} ?? switch (path) {
 			'reader.transitionLoaded' => 'Load complete',
 			'reader.transitionLoadFailedRetry' => 'Load failed, tap to retry',
 			'reader.pullDownToPrevChapter' => 'Pull down to previous chapter',
@@ -2477,6 +2497,8 @@ extension on TranslationsEnUs {
 			'login.retry' => 'Retry',
 			'fontSetting.title' => 'Font Settings',
 			'fontSetting.clear' => 'Clear',
+			_ => null,
+		} ?? switch (path) {
 			'fontSetting.hint' => 'Select font files for each weight.',
 			'fontSetting.loadFailed' => 'Font load failed',
 			'fontSetting.cleared' => 'Cleared',
@@ -2487,8 +2509,6 @@ extension on TranslationsEnUs {
 			'fontSetting.selectFile' => 'Select File',
 			'fontSetting.sampleText' => 'Innovation in China 中国智造，慧及全球 0123456789',
 			'download.title' => 'Download tasks',
-			_ => null,
-		} ?? switch (path) {
 			'download.startDownload' => 'Start Download',
 			'download.selectChaptersPrompt' => 'Please select chapters to download',
 			'download.taskStarted' => 'Download task started',

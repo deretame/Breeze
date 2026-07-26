@@ -619,6 +619,36 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知'
 	String get androidKeepAliveSubtitle => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知';
 
+	/// zh-CN: '书架设置'
+	String get bookshelf => '书架设置';
+
+	/// zh-CN: '书架首页、记忆排序'
+	String get bookshelfSubtitle => '书架首页、记忆排序';
+
+	/// zh-CN: '书架首页'
+	String get bookshelfHomePage => '书架首页';
+
+	/// zh-CN: '选择书架默认展示的标签'
+	String get bookshelfHomePageSubtitle => '选择书架默认展示的标签';
+
+	/// zh-CN: '收藏记忆排序'
+	String get bookshelfRememberFavoriteSort => '收藏记忆排序';
+
+	/// zh-CN: '开启后，收藏页会记住你最后一次选择的排序'
+	String get bookshelfRememberFavoriteSortSubtitle => '开启后，收藏页会记住你最后一次选择的排序';
+
+	/// zh-CN: '历史记忆排序'
+	String get bookshelfRememberHistorySort => '历史记忆排序';
+
+	/// zh-CN: '开启后，历史页会记住你最后一次选择的排序'
+	String get bookshelfRememberHistorySortSubtitle => '开启后，历史页会记住你最后一次选择的排序';
+
+	/// zh-CN: '下载记忆排序'
+	String get bookshelfRememberDownloadSort => '下载记忆排序';
+
+	/// zh-CN: '开启后，下载页会记住你最后一次选择的排序'
+	String get bookshelfRememberDownloadSortSubtitle => '开启后，下载页会记住你最后一次选择的排序';
+
 	/// zh-CN: '自定义导出路径'
 	String get customExportPath => '自定义导出路径';
 
@@ -3779,6 +3809,16 @@ extension on Translations {
 			'settings.autoFollowOnCollectSubtitle' => '开启后收藏漫画时将自动加入追更列表',
 			'settings.androidKeepAlive' => '后台保活',
 			'settings.androidKeepAliveSubtitle' => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知',
+			'settings.bookshelf' => '书架设置',
+			'settings.bookshelfSubtitle' => '书架首页、记忆排序',
+			'settings.bookshelfHomePage' => '书架首页',
+			'settings.bookshelfHomePageSubtitle' => '选择书架默认展示的标签',
+			'settings.bookshelfRememberFavoriteSort' => '收藏记忆排序',
+			'settings.bookshelfRememberFavoriteSortSubtitle' => '开启后，收藏页会记住你最后一次选择的排序',
+			'settings.bookshelfRememberHistorySort' => '历史记忆排序',
+			'settings.bookshelfRememberHistorySortSubtitle' => '开启后，历史页会记住你最后一次选择的排序',
+			'settings.bookshelfRememberDownloadSort' => '下载记忆排序',
+			'settings.bookshelfRememberDownloadSortSubtitle' => '开启后，下载页会记住你最后一次选择的排序',
 			'settings.customExportPath' => '自定义导出路径',
 			'settings.storage' => '存储',
 			'settings.cache' => '缓存',
@@ -4112,6 +4152,8 @@ extension on Translations {
 			'reader.fontSize' => '字体大小',
 			'reader.allHiddenNotice' => '当前已全部关闭，阅读页中的信息条会完全隐藏。',
 			'reader.edgePaddingDisabled' => '横向在中间时，边缘间距不会生效。',
+			_ => null,
+		} ?? switch (path) {
 			'reader.settings' => '阅读设置',
 			'reader.previousChapter' => '上一章',
 			'reader.nextChapter' => '下一章',
@@ -4122,8 +4164,6 @@ extension on Translations {
 			'reader.enterFullscreen' => '全屏（f11）',
 			'reader.exitFullscreen' => '退出全屏',
 			'reader.chapterTransition' => '章节过渡中',
-			_ => null,
-		} ?? switch (path) {
 			'reader.transitionSwipeToLoad' => '继续翻页加载',
 			'reader.transitionLoaded' => '加载完成',
 			'reader.transitionLoadFailedRetry' => '加载失败，点击重试',
@@ -4626,6 +4666,8 @@ extension on Translations {
 			'login.loginButton' => '登录',
 			'login.retry' => '重试',
 			'fontSetting.title' => '字体设置',
+			_ => null,
+		} ?? switch (path) {
 			'fontSetting.clear' => '清空',
 			'fontSetting.hint' => '按字重分别选择字体文件。',
 			'fontSetting.loadFailed' => '字体加载失败',
@@ -4636,8 +4678,6 @@ extension on Translations {
 			'fontSetting.clearFile' => '清除',
 			'fontSetting.selectFile' => '选择文件',
 			'fontSetting.sampleText' => 'Innovation in China 中国智造，慧及全球 0123456789',
-			_ => null,
-		} ?? switch (path) {
 			'download.title' => '下载任务',
 			'download.startDownload' => '开始下载',
 			'download.selectChaptersPrompt' => '请选择要下载的章节',

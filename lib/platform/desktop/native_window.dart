@@ -76,8 +76,11 @@ int _enumWindowsProc(int hWnd, int lParam) {
   return 1;
 }
 
-final _enumWindowsProcNative = NativeCallable<Int32 Function(IntPtr, IntPtr)>
-    .isolateLocal(_enumWindowsProc, exceptionalReturn: 0);
+final _enumWindowsProcNative =
+    NativeCallable<Int32 Function(IntPtr, IntPtr)>.isolateLocal(
+      _enumWindowsProc,
+      exceptionalReturn: 0,
+    );
 
 /// Win32 窗口操作的同步封装，避免 method channel 延迟
 class NativeWindow {

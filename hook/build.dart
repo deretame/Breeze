@@ -17,6 +17,7 @@ void main(List<String> args) async {
     );
 
     await RustBuilder(
+      buildMode: input.config.linkingEnabled ? BuildMode.release : BuildMode.debug,
       assetName: 'src/rust/frb_generated.dart',
       extraCargoEnvironmentVariables: extraCargoEnvironmentVariables,
     ).run(input: input, output: output);

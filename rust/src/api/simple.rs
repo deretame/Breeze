@@ -14,6 +14,11 @@ static INIT_ONCE: Once = Once::new();
 
 #[frb(init)]
 pub fn init_app() {
+    if cfg!(debug_assertions) {
+        println!("Debug model");
+    } else {
+        println!("Release model");
+    }
     INIT_ONCE.call_once(|| {
         crate::api::user_utils::setup_default_user_utils();
         let mut config = current_http_client_config();

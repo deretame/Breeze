@@ -3,7 +3,9 @@ use flutter_rust_bridge::frb;
 use reqwest_dav::re_exports::reqwest as dav_reqwest;
 use reqwest_dav::types::list_cmd::ListResponse;
 use reqwest_dav::{Auth, Client, ClientBuilder, DecodeError, Depth, Error as DavError};
-use rquickjs_playground::current_http_client_config;
+use rquickjs_playground::{
+    BuildHttpClientOptions, build_http_client_ex, current_http_client_config,
+};
 use std::collections::{HashSet, VecDeque};
 use std::time::Duration;
 
@@ -271,31 +273,40 @@ fn build_client(host: &str, username: &str, password: &str) -> Result<Client> {
         )));
     }
 
-    ClientBuilder::new()
+    // 复用全局 HTTP 配置：代理（HTTP / SOCKS5）、TLS 校验开关与超时统一生效。
+    let agent = build_http_client_ex(
+        &current_http_client_config(),
+        BuildHttpClientOptions {
+            no_proxy: false,
+            timeout: Some(Duration::from_secs(120)),
+            connect_timeout: Some(Duration::from_secs(10)),
+            follow_redirects: Some(true),
+            user_agent: None,
+        },
+    )
+    .map_err(|e| {
+        anyhow!(rquickjs_playground::tr!(
+            "failed-to-build-http-client",
+            e = e
+        ))
+    })?;
+
+    let client = ClientBuilder::new()
         .set_host(host.trim().to_string())
         .set_auth(Auth::Basic(
             username.trim().to_string(),
             password.to_string(),
         ))
-        .set_agent(
-            dav_reqwest::ClientBuilder::new()
-                .timeout(Duration::from_secs(10))
-                .danger_accept_invalid_certs(current_http_client_config().disable_tls_verify)
-                .build()
-                .map_err(|e| {
-                    anyhow!(rquickjs_playground::tr!(
-                        "failed-to-build-http-client",
-                        e = e
-                    ))
-                })?,
-        )
+        .set_agent(agent)
         .build()
         .map_err(|e| {
             anyhow!(rquickjs_playground::tr!(
                 "failed-to-build-webdav-client",
                 e = e
             ))
-        })
+        })?;
+
+    Ok(client)
 }
 
 async fn ensure_directory(client: &Client, dir_path: &str) -> Result<()> {

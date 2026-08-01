@@ -1187,6 +1187,63 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
   );
 }
 
+/// 手动上传：以本机漫画数据为准，直接覆盖云端（不做合并）。
+Future<void> uploadComicData(ComicSyncRemoteAdapter adapter) async {
+  await adapter.testConnection();
+  await adapter.ensureRemoteReady();
+
+  final localPayload = await ComicSyncCore.buildCompressedPayload();
+  final localMd5 = ComicSyncCore.calculateMd5(localPayload);
+  final uploadFile = ComicSyncCore.buildComicDataFileName();
+  await adapter.uploadRemoteFile(uploadFile, localPayload);
+  await adapter.uploadRemoteMd5(localMd5);
+  logger.d('[sync][comic] manual_upload file=$uploadFile md5=$localMd5');
+
+  await _cleanupRemoteComicFiles(
+    adapter,
+    allSyncRootFiles: await adapter.listRemoteDataFiles(),
+    keepComicPath: '${ComicSyncCore.syncRemoteRootName}/$uploadFile',
+  );
+}
+
+/// 手动下载：把云端漫画数据合并到本机（不主动回传）。
+///
+/// 返回 false 表示云端还没有可用的漫画数据。
+Future<bool> downloadComicData(ComicSyncRemoteAdapter adapter) async {
+  await adapter.testConnection();
+  await adapter.ensureRemoteReady();
+
+  final allRemoteFiles = await adapter.listRemoteDataFiles();
+  final syncRootFiles = allRemoteFiles
+      .where(ComicSyncCore.isSyncRootPath)
+      .toList();
+  final remoteMd5 = await adapter.downloadRemoteMd5();
+  final remoteData = await _selectLatestRemoteComicData(
+    adapter,
+    syncRootFiles,
+    remoteMd5,
+  );
+  if (remoteData == null) {
+    logger.d('[sync][comic] manual_download skipped reason=remote_missing');
+    return false;
+  }
+
+  final cloudData = await ComicSyncCore.decodeCompressedPayload(
+    remoteData.bytes,
+  );
+  final mergeArg = <String, dynamic>{
+    '_data': cloudData,
+    '_deviceId': syncDeviceId,
+  };
+  await objectbox.store.runInTransactionAsync<int, Map<String, dynamic>>(
+    TxMode.write,
+    ComicSyncCore.mergeUnifiedDataInIsolate,
+    mergeArg,
+  );
+  logger.d('[sync][comic] manual_download file=${remoteData.path}');
+  return true;
+}
+
 Future<void> _cleanupRemoteComicFiles(
   ComicSyncRemoteAdapter adapter, {
   required List<String> allSyncRootFiles,

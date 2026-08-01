@@ -559,6 +559,36 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后同步插件配置与安装状态'
 	String get syncPluginsSubtitle => '开启后同步插件配置与安装状态';
 
+	/// zh-CN: '手动同步'
+	String get manualSyncSection => '手动同步';
+
+	/// zh-CN: '上传到云端'
+	String get uploadToCloud => '上传到云端';
+
+	/// zh-CN: '以本机数据为准，覆盖云端'
+	String get uploadToCloudSubtitle => '以本机数据为准，覆盖云端';
+
+	/// zh-CN: '从云端同步到本机'
+	String get downloadFromCloud => '从云端同步到本机';
+
+	/// zh-CN: '以云端数据为准，应用到本机'
+	String get downloadFromCloudSubtitle => '以云端数据为准，应用到本机';
+
+	/// zh-CN: '立即上传'
+	String get manualUpload => '立即上传';
+
+	/// zh-CN: '立即同步'
+	String get manualDownload => '立即同步';
+
+	/// zh-CN: '已上传到云端'
+	String get manualUploadSuccess => '已上传到云端';
+
+	/// zh-CN: '已从云端同步到本机'
+	String get manualDownloadSuccess => '已从云端同步到本机';
+
+	/// zh-CN: '手动同步失败'
+	String get manualSyncFailed => '手动同步失败';
+
 	/// zh-CN: '应用行为'
 	String get appBehavior => '应用行为';
 
@@ -2932,6 +2962,9 @@ class Translations$more$zh_CN {
 	/// zh-CN: '下载任务'
 	String get downloadTasks => '下载任务';
 
+	/// zh-CN: '同步'
+	String get sync => '同步';
+
 	/// zh-CN: '追更'
 	String get comicFollow => '追更';
 
@@ -3828,6 +3861,16 @@ extension on Translations {
 			'settings.syncSettingsSubtitle' => '开启后使用云端设置覆盖本地设置',
 			'settings.syncPlugins' => '同步插件',
 			'settings.syncPluginsSubtitle' => '开启后同步插件配置与安装状态',
+			'settings.manualSyncSection' => '手动同步',
+			'settings.uploadToCloud' => '上传到云端',
+			'settings.uploadToCloudSubtitle' => '以本机数据为准，覆盖云端',
+			'settings.downloadFromCloud' => '从云端同步到本机',
+			'settings.downloadFromCloudSubtitle' => '以云端数据为准，应用到本机',
+			'settings.manualUpload' => '立即上传',
+			'settings.manualDownload' => '立即同步',
+			'settings.manualUploadSuccess' => '已上传到云端',
+			'settings.manualDownloadSuccess' => '已从云端同步到本机',
+			'settings.manualSyncFailed' => '手动同步失败',
 			'settings.appBehavior' => '应用行为',
 			'settings.splashPage' => '开屏页',
 			'settings.splashPageSubtitle' => '选择启动页，打开应用直达目标',
@@ -4181,6 +4224,8 @@ extension on Translations {
 			'reader.einkOptimization' => '墨水屏优化（仅横向）',
 			'reader.einkOptimizationSubtitle' => '翻页后先白屏再显示图片',
 			'reader.einkDelay' => '白屏时长',
+			_ => null,
+		} ?? switch (path) {
 			'reader.sidePadding' => '两侧留白',
 			'reader.sidePaddingSubtitle' => '自定义左右留白比例',
 			'reader.sidePaddingPercent' => '每侧留白比例',
@@ -4191,8 +4236,6 @@ extension on Translations {
 			'reader.showInStatusBarSubtitle' => '开启后，顶部信息条会进入系统状态栏区域',
 			'reader.edgePadding' => '边缘间距',
 			'reader.infoBarStyle' => '信息条样式',
-			_ => null,
-		} ?? switch (path) {
 			'reader.backgroundOpacity' => '背景透明度',
 			'reader.fontSize' => '字体大小',
 			'reader.allHiddenNotice' => '当前已全部关闭，阅读页中的信息条会完全隐藏。',
@@ -4579,6 +4622,7 @@ extension on Translations {
 			'more.common' => '常用',
 			'more.others' => '其他',
 			'more.downloadTasks' => '下载任务',
+			'more.sync' => '同步',
 			'more.comicFollow' => '追更',
 			'more.changelog' => '更新日志',
 			'search.title' => '搜索',
@@ -4694,6 +4738,8 @@ extension on Translations {
 			'webview.cannotOpenLink' => ({required Object uri}) => '无法打开链接: ${uri}',
 			'webview.invalidLink' => '链接无效，无法打开网页',
 			'webview.emptyLink' => '(空链接)',
+			_ => null,
+		} ?? switch (path) {
 			'webview.loadFailed' => '网页加载失败',
 			'webview.retry' => '重试',
 			'webview.openInExternalBrowser' => '外部浏览器打开',
@@ -4705,8 +4751,6 @@ extension on Translations {
 			'webview.httpErrorStatus' => ({required Object statusCode}) => '服务器返回异常状态码：${statusCode}',
 			'oldRanking.bikaRanking' => '哔咔排行榜',
 			'oldRanking.jmRanking' => '禁漫排行榜',
-			_ => null,
-		} ?? switch (path) {
 			'oldRanking.switchSource' => '切换',
 			'login.title' => '登录',
 			'login.missingPluginId' => '缺少插件标识，无法打开登录页',

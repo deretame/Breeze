@@ -258,6 +258,16 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get syncSettingsSubtitle => 'Use cloud settings to override local settings';
 	@override String get syncPlugins => 'Sync plugins';
 	@override String get syncPluginsSubtitle => 'Sync plugin configuration and installation status';
+	@override String get manualSyncSection => 'Manual sync';
+	@override String get uploadToCloud => 'Upload to cloud';
+	@override String get uploadToCloudSubtitle => 'Use local data as the source of truth and overwrite the cloud';
+	@override String get downloadFromCloud => 'Download from cloud';
+	@override String get downloadFromCloudSubtitle => 'Use cloud data as the source of truth and apply it locally';
+	@override String get manualUpload => 'Upload now';
+	@override String get manualDownload => 'Sync now';
+	@override String get manualUploadSuccess => 'Uploaded to cloud';
+	@override String get manualDownloadSuccess => 'Synced from cloud';
+	@override String get manualSyncFailed => 'Manual sync failed';
 	@override String get appBehavior => 'App behavior';
 	@override String get splashPage => 'Startup page';
 	@override String get splashPageSubtitle => 'Choose startup page to open directly';
@@ -1132,6 +1142,7 @@ class _Translations$more$en_US extends Translations$more$zh_CN {
 	@override String get common => 'Common';
 	@override String get others => 'Others';
 	@override String get downloadTasks => 'Download Tasks';
+	@override String get sync => 'Sync';
 	@override String get comicFollow => 'Updates';
 	@override String get changelog => 'Changelog';
 }
@@ -1633,6 +1644,16 @@ extension on TranslationsEnUs {
 			'settings.syncSettingsSubtitle' => 'Use cloud settings to override local settings',
 			'settings.syncPlugins' => 'Sync plugins',
 			'settings.syncPluginsSubtitle' => 'Sync plugin configuration and installation status',
+			'settings.manualSyncSection' => 'Manual sync',
+			'settings.uploadToCloud' => 'Upload to cloud',
+			'settings.uploadToCloudSubtitle' => 'Use local data as the source of truth and overwrite the cloud',
+			'settings.downloadFromCloud' => 'Download from cloud',
+			'settings.downloadFromCloudSubtitle' => 'Use cloud data as the source of truth and apply it locally',
+			'settings.manualUpload' => 'Upload now',
+			'settings.manualDownload' => 'Sync now',
+			'settings.manualUploadSuccess' => 'Uploaded to cloud',
+			'settings.manualDownloadSuccess' => 'Synced from cloud',
+			'settings.manualSyncFailed' => 'Manual sync failed',
 			'settings.appBehavior' => 'App behavior',
 			'settings.splashPage' => 'Startup page',
 			'settings.splashPageSubtitle' => 'Choose startup page to open directly',
@@ -1986,6 +2007,8 @@ extension on TranslationsEnUs {
 			'reader.einkOptimizationSubtitle' => 'Show white screen before image after page turn',
 			'reader.einkDelay' => 'White screen duration',
 			'reader.sidePadding' => 'Side padding',
+			_ => null,
+		} ?? switch (path) {
 			'reader.sidePaddingSubtitle' => 'Customize left/right padding ratio',
 			'reader.sidePaddingPercent' => 'Padding per side',
 			'reader.batterySubtitle' => 'Off by default, enable as needed',
@@ -1996,8 +2019,6 @@ extension on TranslationsEnUs {
 			'reader.edgePadding' => 'Edge padding',
 			'reader.infoBarStyle' => 'Info bar style',
 			'reader.backgroundOpacity' => 'Background opacity',
-			_ => null,
-		} ?? switch (path) {
 			'reader.fontSize' => 'Font size',
 			'reader.allHiddenNotice' => 'All hidden, info bar will be completely hidden',
 			'reader.edgePaddingDisabled' => 'Edge padding has no effect when horizontally centered',
@@ -2383,6 +2404,7 @@ extension on TranslationsEnUs {
 			'more.common' => 'Common',
 			'more.others' => 'Others',
 			'more.downloadTasks' => 'Download Tasks',
+			'more.sync' => 'Sync',
 			'more.comicFollow' => 'Updates',
 			'more.changelog' => 'Changelog',
 			'search.title' => 'Search',
@@ -2499,6 +2521,8 @@ extension on TranslationsEnUs {
 			'webview.invalidLink' => 'Invalid link, cannot open webpage',
 			'webview.emptyLink' => '(empty link)',
 			'webview.loadFailed' => 'Webpage load failed',
+			_ => null,
+		} ?? switch (path) {
 			'webview.retry' => 'Retry',
 			'webview.openInExternalBrowser' => 'Open in external browser',
 			'webview.windowClosed' => 'WebView window closed',
@@ -2510,8 +2534,6 @@ extension on TranslationsEnUs {
 			'oldRanking.bikaRanking' => 'Bika Ranking',
 			'oldRanking.jmRanking' => 'JM Ranking',
 			'oldRanking.switchSource' => 'Switch',
-			_ => null,
-		} ?? switch (path) {
 			'login.title' => 'Login',
 			'login.missingPluginId' => 'Missing plugin identifier, cannot open login page',
 			'login.loadConfigFailed' => ({required Object error}) => 'Failed to load login config: ${error}',

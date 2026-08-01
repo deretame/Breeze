@@ -78,6 +78,158 @@ Future<void> autoSync(
   );
 }
 
+/// 手动上传：以本机数据为准，覆盖云端。
+///
+/// 包含漫画数据，以及开关已启用的设置 / 插件配置。
+Future<void> manualUploadToCloud({
+  required GlobalSettingState state,
+  GlobalSettingCubit? globalSettingCubit,
+  ComicFollowCubit? comicFollowCubit,
+}) async {
+  final adapter = createSyncAdapter(state);
+  if (adapter == null) {
+    throw StateError('未配置同步服务，请先选择并配置 WebDAV 或 S3');
+  }
+
+  await uploadComicData(adapter);
+  await _manualUploadSettings(
+    adapter,
+    state: state,
+    globalSettingCubit: globalSettingCubit,
+  );
+
+  // 同步后重新加载追更列表，确保内存状态与数据库一致。
+  await comicFollowCubit?.loadFromDatabase();
+}
+
+/// 手动下载：以云端数据为准，应用到本机。
+///
+/// 包含漫画数据，以及开关已启用的设置 / 插件配置。
+Future<void> manualDownloadFromCloud({
+  required GlobalSettingState state,
+  GlobalSettingCubit? globalSettingCubit,
+  ComicFollowCubit? comicFollowCubit,
+}) async {
+  final adapter = createSyncAdapter(state);
+  if (adapter == null) {
+    throw StateError('未配置同步服务，请先选择并配置 WebDAV 或 S3');
+  }
+
+  await downloadComicData(adapter);
+  await _manualDownloadSettings(
+    adapter,
+    state: state,
+    globalSettingCubit: globalSettingCubit,
+  );
+
+  // 同步后重新加载追更列表，确保内存状态与数据库一致。
+  await comicFollowCubit?.loadFromDatabase();
+}
+
+/// 手动上传设置与插件数据（以本地为准，直接覆盖云端）。
+Future<void> _manualUploadSettings(
+  ComicSyncRemoteAdapter adapter, {
+  required GlobalSettingState state,
+  GlobalSettingCubit? globalSettingCubit,
+}) async {
+  if (!state.syncSetting.syncSettings && !state.syncSetting.syncPlugins) {
+    return;
+  }
+
+  final localSnapshot = await _buildLocalSettingsSnapshot(state);
+  final localPayload = _buildSettingsPayload(state, localSnapshot);
+  final localBytes = await ComicSyncCore.encodeEncryptedPayload(
+    utf8.encode(jsonEncode(localPayload)),
+  );
+  final localMd5 = ComicSyncCore.calculateMd5(localBytes);
+
+  await _uploadSettingsPayload(
+    adapter,
+    payloadBytes: localBytes,
+    payloadMd5: localMd5,
+    syncTime: localSnapshot.syncTime,
+  );
+  await _updateLocalSettingsSyncTime(
+    state,
+    syncTime: localSnapshot.syncTime,
+    globalSettingCubit: globalSettingCubit,
+  );
+  await _cleanupRemoteSettingsFiles(adapter);
+}
+
+/// 手动下载设置与插件数据（以云端为准，应用到本机）。
+Future<void> _manualDownloadSettings(
+  ComicSyncRemoteAdapter adapter, {
+  required GlobalSettingState state,
+  GlobalSettingCubit? globalSettingCubit,
+}) async {
+  if (!state.syncSetting.syncSettings && !state.syncSetting.syncPlugins) {
+    return;
+  }
+
+  final allRemote = await adapter.listRemoteDataFiles();
+  final syncRootFiles = allRemote.where(ComicSyncCore.isSyncRootPath).toList();
+  final remoteMd5 = await _downloadRemoteText(
+    adapter,
+    _remoteSettingsMd5Path,
+    returnEmptyIfMissing: true,
+  );
+  final remoteData = await _selectLatestRemoteSettingsData(
+    adapter,
+    syncRootFiles,
+    remoteMd5,
+  );
+  if (remoteData == null) {
+    logger.d('[sync][settings] manual_download skipped reason=remote_missing');
+    return;
+  }
+
+  final remoteSnapshot = await _decodeSettingsPayload(
+    remoteData.bytes,
+    fallbackSyncTime: remoteData.timestamp,
+  );
+
+  final blocksToApply = <String, _SettingsBlockPayload>{};
+  if (state.syncSetting.syncSettings) {
+    for (final blockName in _syncableSettingsBlockNames) {
+      final block = remoteSnapshot.blocks[blockName];
+      if (block != null) {
+        blocksToApply[blockName] = block;
+      }
+    }
+  }
+  if (state.syncSetting.syncPlugins) {
+    final pluginBlock = remoteSnapshot.blocks[_pluginsBlockName];
+    if (pluginBlock != null) {
+      blocksToApply[_pluginsBlockName] = pluginBlock;
+    }
+  }
+  if (blocksToApply.isEmpty) {
+    return;
+  }
+
+  final mergedState = _applySyncableBlocksToState(state, blocksToApply)
+      .copyWith(
+        syncSetting: state.syncSetting.copyWith(
+          settingsSyncTime: remoteSnapshot.syncTime,
+        ),
+      );
+  await _applyMergedGlobalState(
+    mergedState,
+    globalSettingCubit: globalSettingCubit,
+  );
+
+  final pluginBlock = blocksToApply[_pluginsBlockName];
+  if (pluginBlock != null) {
+    await _applyPluginBlockData(pluginBlock.data);
+  }
+
+  await _persistLocalSettingsBlockMeta({
+    for (final entry in blocksToApply.entries)
+      entry.key: _LocalSettingsBlockMeta.fromBlock(entry.value),
+  });
+}
+
 Future<void> _syncSettings(
   ComicSyncRemoteAdapter adapter, {
   required GlobalSettingState currentGlobalSetting,

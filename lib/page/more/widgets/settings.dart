@@ -21,6 +21,12 @@ class SettingsWidget extends StatelessWidget {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => context.pushRoute(DownloadTaskRoute()),
         ),
+        ListTile(
+          leading: const Icon(Icons.sync_outlined),
+          title: Text(t.more.sync),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.pushRoute(SyncSettingRoute()),
+        ),
         BlocSelector<ComicFollowCubit, ComicFollowState, int>(
           selector: (state) => state.updateCount,
           builder: (context, updateCount) {

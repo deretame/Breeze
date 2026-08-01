@@ -48,14 +48,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     return state.locale.toLanguageTag();
   }
 
-  String _syncServiceLabel(SyncServiceType type) {
-    return switch (type) {
-      SyncServiceType.none => t.settings.syncServiceNone,
-      SyncServiceType.webdav => t.settings.syncServiceWebdav,
-      SyncServiceType.s3 => t.settings.syncServiceS3,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = context.watch<GlobalSettingCubit>().state;
@@ -77,13 +69,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             title: t.settings.contentAndNetwork,
             subtitle: '${t.settings.maskedKeywords} · ${t.settings.proxy}',
             onTap: () => _openSubPage(const ContentNetworkSettingRoute()),
-          ),
-          const Divider(height: 1, thickness: 0.3),
-          settingCategoryTile(
-            icon: Icons.sync_outlined,
-            title: t.settings.sync,
-            subtitle: _syncServiceLabel(state.syncSetting.syncServiceType),
-            onTap: () => _openSubPage(const SyncSettingRoute()),
           ),
           const Divider(height: 1, thickness: 0.3),
           settingCategoryTile(

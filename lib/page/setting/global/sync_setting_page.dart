@@ -5,14 +5,24 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/page/setting/global/widgets.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
-class SyncSettingPage extends StatelessWidget {
+class SyncSettingPage extends StatefulWidget {
   const SyncSettingPage({super.key});
+
+  @override
+  State<SyncSettingPage> createState() => _SyncSettingPageState();
+}
+
+class _SyncSettingPageState extends State<SyncSettingPage> {
+  bool _uploading = false;
+  bool _downloading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +46,92 @@ class SyncSettingPage extends StatelessWidget {
             _syncNotify(state, cubit),
           if (configuredSync) _syncSettings(state, cubit),
           if (configuredSync) _syncPlugins(state, cubit),
+          if (configuredSync) ...[
+            const SizedBox(height: 8),
+            const Divider(height: 1, thickness: 0.3),
+            settingSectionTitle(context, t.settings.manualSyncSection),
+            _buildManualSyncTile(
+              icon: Icons.upload_outlined,
+              title: t.settings.uploadToCloud,
+              subtitle: t.settings.uploadToCloudSubtitle,
+              actionLabel: t.settings.manualUpload,
+              busy: _uploading,
+              onPressed: _manualUpload,
+            ),
+            _buildManualSyncTile(
+              icon: Icons.download_outlined,
+              title: t.settings.downloadFromCloud,
+              subtitle: t.settings.downloadFromCloudSubtitle,
+              actionLabel: t.settings.manualDownload,
+              busy: _downloading,
+              onPressed: _manualDownload,
+            ),
+          ],
           const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+
+  Future<void> _manualUpload() async {
+    final cubit = context.read<GlobalSettingCubit>();
+    setState(() => _uploading = true);
+    try {
+      await manualUploadToCloud(
+        state: cubit.state,
+        globalSettingCubit: cubit,
+        comicFollowCubit: context.read<ComicFollowCubit>(),
+      );
+      if (mounted) showSuccessToast(t.settings.manualUploadSuccess);
+    } catch (e, s) {
+      logger.e('手动上传失败', error: e, stackTrace: s);
+      if (mounted) {
+        showErrorToast('${t.settings.manualSyncFailed}: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _manualDownload() async {
+    final cubit = context.read<GlobalSettingCubit>();
+    setState(() => _downloading = true);
+    try {
+      await manualDownloadFromCloud(
+        state: cubit.state,
+        globalSettingCubit: cubit,
+        comicFollowCubit: context.read<ComicFollowCubit>(),
+      );
+      if (mounted) showSuccessToast(t.settings.manualDownloadSuccess);
+    } catch (e, s) {
+      logger.e('手动下载失败', error: e, stackTrace: s);
+      if (mounted) {
+        showErrorToast('${t.settings.manualSyncFailed}: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  Widget _buildManualSyncTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String actionLabel,
+    required bool busy,
+    required VoidCallback onPressed,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: busy
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : FilledButton.tonal(onPressed: onPressed, child: Text(actionLabel)),
     );
   }
 

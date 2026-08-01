@@ -103,3 +103,7 @@ third_party/android_ncnn_deps/
 
 # ncnn source (cloned during static Android build)
 third_party/ncnn-src/
+
+# Native bridge generated files
+compile_commands.json
+native/generated/ir.json

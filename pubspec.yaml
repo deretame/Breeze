@@ -83,9 +83,9 @@ dependencies:
   equatable: ^2.0.3 # 工具: 值相等比较
   stream_transform: ^2.1.1 # 工具: Stream 变换
   intl: ^0.20.2 # 国际化: 文案与格式化
-  code_assets: ^1.0.0 # FFI: hooks/build.dart 使用的目标平台配置类型
+  code_assets: ^1.2.1 # FFI: hooks/build.dart 使用的目标平台配置类型
   native_toolchain_rust: ^1.0.4 # FFI: Rust 构建工具
-  hooks: ^2.0.2 # FFI: Dart 构建钩子
+  hooks: ^2.1.0 # FFI: Dart 构建钩子
   flutter_rust_bridge: ^2.10.0 # FFI: Flutter-Rust 桥接
   ffi: ^2.2.0 # FFI: Dart 原生互操作
   sentry_flutter: ^9.14.0 # 监控: 崩溃与异常上报
@@ -93,8 +93,10 @@ dependencies:
   worker_manager: ^7.2.9 # 并发: 全局 Isolate 任务池管理
   coreml_upscale:
     path: packages/coreml_upscale
+  dart_cpp_bridge: ^1.0.0
 
 dependency_overrides:
+  meta: ^1.19.0
   desktop_webview_linux:
     path: third_party/desktop_webview_linux
 

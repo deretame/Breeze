@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -52,6 +53,15 @@ class _DiscoverView extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButtonLocation:
+          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        tooltip: t.discover.search,
+        onPressed: () => _search(context),
+        child: const Icon(Icons.search),
+      ),
     );
   }
 
@@ -62,7 +72,7 @@ class _DiscoverView extends StatelessWidget {
 
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 40),
+          padding: const EdgeInsets.only(bottom: 120),
           children: [
             const SizedBox(height: 16),
             _buildPluginStoreButton(context),

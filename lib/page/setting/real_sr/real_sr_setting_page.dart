@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
@@ -55,6 +57,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
   CoreMLModelVariant _coreMLVariant = CoreMLModelConfig.defaultVariant;
   bool _isAvailable = false;
   bool _downloading = false;
+  bool _importing = false;
   double _downloadProgress = 0;
 
   bool get _usesCoreML => Platform.isIOS || Platform.isMacOS;
@@ -220,6 +223,49 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     }
   }
 
+  Future<void> _openManualDownloadUrl() async {
+    final url = RealSrSuperResolution.manualDownloadUrl;
+    if (url == null) {
+      showErrorToast(t.realSr.manualDownloadUnsupported);
+      return;
+    }
+    final opened = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!opened && mounted) {
+      showErrorToast(t.realSr.openDownloadUrlFailed);
+    }
+  }
+
+  Future<void> _importModel() async {
+    const typeGroup = XTypeGroup(label: '7z', extensions: ['7z']);
+    final XFile? file;
+    try {
+      file = await openFile(acceptedTypeGroups: [typeGroup]);
+    } catch (e) {
+      showErrorToast('${t.realSr.modelImportFailed}: $e');
+      return;
+    }
+    if (file == null) return;
+
+    setState(() => _importing = true);
+    try {
+      await RealSrSuperResolution.importModelArchive(file.path);
+      if (mounted) showSuccessToast(t.realSr.modelImportSuccess);
+    } catch (e, s) {
+      logger.e('模型导入失败', error: e, stackTrace: s);
+      if (mounted) {
+        showErrorToast('${t.realSr.modelImportFailed}: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _importing = false);
+        await _refreshAvailability();
+      }
+    }
+  }
+
   String get _coreMLBlockInfo {
     final blockSize = _coreMLVariant.config['blockSize'] as int? ?? 0;
     final shrinkSize = _coreMLVariant.config['shrinkSize'] as int? ?? 0;
@@ -365,6 +411,44 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     );
   }
 
+  Widget _buildManualDownloadTile() {
+    final url = RealSrSuperResolution.manualDownloadUrl;
+    if (url == null) {
+      return ListTile(
+        leading: const Icon(Icons.open_in_browser_outlined),
+        title: Text(t.realSr.manualDownload),
+        subtitle: Text(t.realSr.manualDownloadUnsupported),
+      );
+    }
+    return ListTile(
+      leading: const Icon(Icons.open_in_browser_outlined),
+      title: Text(t.realSr.manualDownload),
+      subtitle: Text(url, maxLines: 2, overflow: TextOverflow.ellipsis),
+      trailing: TextButton(
+        onPressed: _openManualDownloadUrl,
+        child: Text(t.realSr.openDownloadUrl),
+      ),
+    );
+  }
+
+  Widget _buildImportModelTile() {
+    return ListTile(
+      leading: const Icon(Icons.file_open_outlined),
+      title: Text(t.realSr.importModel),
+      subtitle: Text(t.realSr.importModelSubtitle),
+      trailing: _importing
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : TextButton(
+              onPressed: _importModel,
+              child: Text(t.realSr.importModelAction),
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SettingPageShell(
@@ -467,6 +551,8 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
                 const Divider(height: 1, thickness: 0.3),
                 settingSectionTitle(context, t.realSr.modelManagementSection),
                 _buildModelManagementTile(),
+                _buildManualDownloadTile(),
+                _buildImportModelTile(),
                 const SizedBox(height: 32),
               ],
             ),

@@ -1012,6 +1012,15 @@ class _Translations$realSr$en_US extends Translations$realSr$zh_CN {
 	@override String get modelNotDownloaded => 'Model not downloaded';
 	@override String get modelNotDownloadedSubtitle => 'Download model before using super-resolution';
 	@override String get downloadModel => 'Download Model';
+	@override String get manualDownload => 'Manual model download';
+	@override String get manualDownloadUnsupported => 'Manual model download is not supported on this platform';
+	@override String get openDownloadUrl => 'Open URL';
+	@override String get openDownloadUrlFailed => 'Failed to open URL';
+	@override String get importModel => 'Import model archive';
+	@override String get importModelSubtitle => 'Pick a manually downloaded 7z archive; the format and model content are validated before import';
+	@override String get importModelAction => 'Pick file';
+	@override String get modelImportSuccess => 'Model imported';
+	@override String get modelImportFailed => 'Model import failed';
 	@override String get modeEfficiency => 'Efficiency priority';
 	@override String get modeQuality => 'Quality priority';
 	@override String get noiseConservative => 'Conservative';
@@ -2281,6 +2290,15 @@ extension on TranslationsEnUs {
 			'realSr.modelNotDownloaded' => 'Model not downloaded',
 			'realSr.modelNotDownloadedSubtitle' => 'Download model before using super-resolution',
 			'realSr.downloadModel' => 'Download Model',
+			'realSr.manualDownload' => 'Manual model download',
+			'realSr.manualDownloadUnsupported' => 'Manual model download is not supported on this platform',
+			'realSr.openDownloadUrl' => 'Open URL',
+			'realSr.openDownloadUrlFailed' => 'Failed to open URL',
+			'realSr.importModel' => 'Import model archive',
+			'realSr.importModelSubtitle' => 'Pick a manually downloaded 7z archive; the format and model content are validated before import',
+			'realSr.importModelAction' => 'Pick file',
+			'realSr.modelImportSuccess' => 'Model imported',
+			'realSr.modelImportFailed' => 'Model import failed',
 			'realSr.modeEfficiency' => 'Efficiency priority',
 			'realSr.modeQuality' => 'Quality priority',
 			'realSr.noiseConservative' => 'Conservative',
@@ -2492,6 +2510,8 @@ extension on TranslationsEnUs {
 			'oldRanking.bikaRanking' => 'Bika Ranking',
 			'oldRanking.jmRanking' => 'JM Ranking',
 			'oldRanking.switchSource' => 'Switch',
+			_ => null,
+		} ?? switch (path) {
 			'login.title' => 'Login',
 			'login.missingPluginId' => 'Missing plugin identifier, cannot open login page',
 			'login.loadConfigFailed' => ({required Object error}) => 'Failed to load login config: ${error}',
@@ -2501,8 +2521,6 @@ extension on TranslationsEnUs {
 			'login.loggingIn' => 'Logging in, please wait...',
 			'login.loginSuccess' => 'Login successful',
 			'login.loginFailed' => 'Login failed',
-			_ => null,
-		} ?? switch (path) {
 			'login.loginButton' => 'Login',
 			'login.retry' => 'Retry',
 			'fontSetting.title' => 'Font Settings',

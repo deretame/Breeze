@@ -2626,6 +2626,33 @@ class Translations$realSr$zh_CN {
 	/// zh-CN: '下载模型'
 	String get downloadModel => '下载模型';
 
+	/// zh-CN: '手动下载模型'
+	String get manualDownload => '手动下载模型';
+
+	/// zh-CN: '当前平台不支持手动下载超分模型'
+	String get manualDownloadUnsupported => '当前平台不支持手动下载超分模型';
+
+	/// zh-CN: '打开链接'
+	String get openDownloadUrl => '打开链接';
+
+	/// zh-CN: '打开链接失败'
+	String get openDownloadUrlFailed => '打开链接失败';
+
+	/// zh-CN: '导入模型压缩包'
+	String get importModel => '导入模型压缩包';
+
+	/// zh-CN: '选择手动下载的 7z 压缩包，导入时会校验格式与模型内容'
+	String get importModelSubtitle => '选择手动下载的 7z 压缩包，导入时会校验格式与模型内容';
+
+	/// zh-CN: '选择文件'
+	String get importModelAction => '选择文件';
+
+	/// zh-CN: '模型导入成功'
+	String get modelImportSuccess => '模型导入成功';
+
+	/// zh-CN: '模型导入失败'
+	String get modelImportFailed => '模型导入失败';
+
 	/// zh-CN: '效率优先'
 	String get modeEfficiency => '效率优先';
 
@@ -4459,6 +4486,15 @@ extension on Translations {
 			'realSr.modelNotDownloaded' => '模型未下载',
 			'realSr.modelNotDownloadedSubtitle' => '使用超分前需要先下载模型',
 			'realSr.downloadModel' => '下载模型',
+			'realSr.manualDownload' => '手动下载模型',
+			'realSr.manualDownloadUnsupported' => '当前平台不支持手动下载超分模型',
+			'realSr.openDownloadUrl' => '打开链接',
+			'realSr.openDownloadUrlFailed' => '打开链接失败',
+			'realSr.importModel' => '导入模型压缩包',
+			'realSr.importModelSubtitle' => '选择手动下载的 7z 压缩包，导入时会校验格式与模型内容',
+			'realSr.importModelAction' => '选择文件',
+			'realSr.modelImportSuccess' => '模型导入成功',
+			'realSr.modelImportFailed' => '模型导入失败',
 			'realSr.modeEfficiency' => '效率优先',
 			'realSr.modeQuality' => '质量优先',
 			'realSr.noiseConservative' => '保守',
@@ -4669,6 +4705,8 @@ extension on Translations {
 			'webview.httpErrorStatus' => ({required Object statusCode}) => '服务器返回异常状态码：${statusCode}',
 			'oldRanking.bikaRanking' => '哔咔排行榜',
 			'oldRanking.jmRanking' => '禁漫排行榜',
+			_ => null,
+		} ?? switch (path) {
 			'oldRanking.switchSource' => '切换',
 			'login.title' => '登录',
 			'login.missingPluginId' => '缺少插件标识，无法打开登录页',
@@ -4678,8 +4716,6 @@ extension on Translations {
 			'login.configNotReady' => '登录配置未就绪，请稍后重试',
 			'login.loggingIn' => '正在登录，请耐心等待...',
 			'login.loginSuccess' => '登录成功',
-			_ => null,
-		} ?? switch (path) {
 			'login.loginFailed' => '登录失败',
 			'login.loginButton' => '登录',
 			'login.retry' => '重试',

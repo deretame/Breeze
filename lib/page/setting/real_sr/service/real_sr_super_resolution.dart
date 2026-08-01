@@ -197,6 +197,215 @@ class RealSrSuperResolution {
     return null;
   }
 
+  /// 当前平台手动下载模型的直链（可在浏览器中打开）。
+  ///
+  /// - Android：`realsr-android.7z`
+  /// - Windows：`realsr-win.7z`
+  /// - Linux：`realsr-linux.7z`
+  /// - iOS / macOS：`MacOS-iOS.7z`
+  static String? get manualDownloadUrl {
+    if (Platform.isIOS || Platform.isMacOS) {
+      return '${CoreMLModelConfig.binaryRepoBaseUrl}/${CoreMLModelConfig.archiveName}';
+    }
+    final assetName = _assetName;
+    if (assetName == null) return null;
+    return '$_binaryRepoBaseUrl/$assetName';
+  }
+
+  /// 7z 文件魔数（6 字节）。
+  static const List<int> _sevenZSignature = [
+    0x37,
+    0x7A,
+    0xBC,
+    0xAF,
+    0x27,
+    0x1C,
+  ];
+
+  /// 校验文件是否为有效的 7z 压缩包（仅检查头部魔数）。
+  static Future<bool> isSevenZArchive(File file) async {
+    try {
+      if (!file.existsSync()) return false;
+      final raf = await file.open();
+      try {
+        final bytes = await raf.read(_sevenZSignature.length);
+        if (bytes.length < _sevenZSignature.length) return false;
+        for (var i = 0; i < _sevenZSignature.length; i++) {
+          if (bytes[i] != _sevenZSignature[i]) return false;
+        }
+        return true;
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 导入本地手动下载的 7z 模型压缩包。
+  ///
+  /// 会先校验 7z 格式与当前平台所需的模型内容，全部通过后替换本地模型。
+  static Future<void> importModelArchive(String archivePath) async {
+    final archiveFile = File(archivePath);
+    if (!archiveFile.existsSync()) {
+      throw FileSystemException('模型压缩包不存在', archivePath);
+    }
+    if (!await isSevenZArchive(archiveFile)) {
+      throw const FormatException('不是有效的 7z 压缩包');
+    }
+
+    final tempDir = await Directory.systemTemp.createTemp(
+      'breeze_realsr_import_',
+    );
+    try {
+      try {
+        await decompress7Z(archivePath: archivePath, destPath: tempDir.path);
+      } catch (e, s) {
+        logger.w('手动导入：7z 解压失败', error: e, stackTrace: s);
+        throw const FormatException('7z 压缩包已损坏或解压失败');
+      }
+
+      final missing = _missingModelFiles(tempDir);
+      if (missing != null) {
+        throw FormatException('压缩包内容不符合当前平台要求: $missing');
+      }
+
+      if (Platform.isIOS || Platform.isMacOS) {
+        final tempBase = await getTemporaryDirectory();
+        final modelsDir = Directory(p.join(tempBase.path, 'coreml_models'));
+        final destDir = Directory(
+          p.join(modelsDir.path, CoreMLModelConfig.archiveSubDir),
+        );
+        if (modelsDir.existsSync()) {
+          await modelsDir.delete(recursive: true);
+        }
+        await modelsDir.create(recursive: true);
+        await _moveDirectory(
+          Directory(p.join(tempDir.path, CoreMLModelConfig.archiveSubDir)),
+          destDir,
+        );
+      } else {
+        final destDir = await _modelDirectory;
+        if (Directory(destDir).existsSync()) {
+          await Directory(destDir).delete(recursive: true);
+        }
+        await Directory(p.dirname(destDir)).create(recursive: true);
+        await _moveDirectory(tempDir, Directory(destDir));
+      }
+
+      // Linux / macOS 需要给可执行文件授权
+      if (Platform.isLinux || Platform.isMacOS) {
+        final modelRoot = await _modelDirectory;
+        for (final name in ['realcugan-ncnn-vulkan', 'waifu2x-ncnn-vulkan']) {
+          final exe = p.join(modelRoot, name);
+          try {
+            await Process.run('chmod', ['+x', exe], runInShell: false);
+          } catch (e, s) {
+            logger.w('RealSR 可执行文件授权失败: $exe', error: e, stackTrace: s);
+          }
+        }
+      }
+
+      _missingModelNotified = false;
+    } finally {
+      try {
+        if (tempDir.existsSync()) {
+          await tempDir.delete(recursive: true);
+        }
+      } catch (_) {}
+    }
+  }
+
+  /// 检查解压后的内容是否满足当前平台需求，返回缺失内容描述；null 表示通过。
+  static String? _missingModelFiles(Directory extractedRoot) {
+    if (Platform.isAndroid) {
+      final variant = AndroidNcnnModelConfig.variantFor(
+        mode: AndroidNcnnModelConfig.defaultMode,
+        noise: AndroidNcnnModelConfig.defaultNoise,
+      );
+      final modelDir = Directory(p.join(extractedRoot.path, variant.modelDir));
+      if (!modelDir.existsSync()) {
+        return '缺少模型目录 ${variant.modelDir}';
+      }
+      for (final relative in _androidModelFilesFor(variant)) {
+        if (!File(p.join(modelDir.path, relative)).existsSync()) {
+          return '缺少模型文件 ${p.join(variant.modelDir, relative)}';
+        }
+      }
+      return null;
+    }
+
+    if (Platform.isWindows || Platform.isLinux) {
+      final suffix = Platform.isWindows ? '.exe' : '';
+      const exes = ['realcugan-ncnn-vulkan', 'waifu2x-ncnn-vulkan'];
+      final hasExecutable = exes.any(
+        (name) => File(p.join(extractedRoot.path, '$name$suffix')).existsSync(),
+      );
+      if (!hasExecutable) {
+        return '缺少 waifu2x / Real-CUGAN 可执行文件';
+      }
+      const modelDirs = [
+        'models-pro',
+        'models-se',
+        'models-upconv_7_anime_style_art_rgb',
+      ];
+      final hasModelDir = modelDirs.any(
+        (name) => Directory(p.join(extractedRoot.path, name)).existsSync(),
+      );
+      if (!hasModelDir) {
+        return '缺少模型目录（models-pro / models-se 等）';
+      }
+      return null;
+    }
+
+    if (Platform.isIOS || Platform.isMacOS) {
+      final subDir = Directory(
+        p.join(extractedRoot.path, CoreMLModelConfig.archiveSubDir),
+      );
+      if (!subDir.existsSync()) {
+        return '缺少 ${CoreMLModelConfig.archiveSubDir} 目录';
+      }
+      for (final family in CoreMLModelConfig.families) {
+        for (final variant in family.variants) {
+          final path = p.join(subDir.path, variant.fileName);
+          final exists = variant.fileName.endsWith('.mlpackage')
+              ? Directory(path).existsSync()
+              : File(path).existsSync();
+          if (!exists) return '缺少模型 ${variant.fileName}';
+        }
+      }
+      return null;
+    }
+
+    return '当前平台不支持手动导入超分模型';
+  }
+
+  /// 把目录移动到目标位置；跨磁盘/分区失败时退回复制后删除。
+  static Future<void> _moveDirectory(Directory from, Directory to) async {
+    try {
+      await from.rename(to.path);
+    } on FileSystemException {
+      await to.create(recursive: true);
+      await _copyDirectoryContents(from, to);
+      await from.delete(recursive: true);
+    }
+  }
+
+  static Future<void> _copyDirectoryContents(
+    Directory from,
+    Directory to,
+  ) async {
+    await for (final entity in from.list()) {
+      final targetPath = p.join(to.path, p.basename(entity.path));
+      if (entity is Directory) {
+        await Directory(targetPath).create(recursive: true);
+        await _copyDirectoryContents(entity, Directory(targetPath));
+      } else if (entity is File) {
+        await entity.copy(targetPath);
+      }
+    }
+  }
+
   /// 下载并解压当前平台需要的超分模型。
   ///
   /// - Android：下载 `realsr-android.7z` 并解压 NCNN 模型。

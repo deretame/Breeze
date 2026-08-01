@@ -31,7 +31,7 @@ void main(List<String> args) async {
       OS.macOS => MacosConfig(),
       OS.iOS => IosConfig(),
       OS.android => AndroidConfig(
-        ndkPath: r"C:\Users\windy\AppData\Local\Android\Sdk\ndk\29.0.14206865",
+        ndkPath: _androidNdkPath(input.packageRoot.toFilePath()),
       ),
       final os => throw UnsupportedError('不支持的目标平台: $os'),
     };
@@ -160,6 +160,18 @@ Map<String, String> _androidEnvironmentVariables(
     'PATH':
         '${p.join(llvmBase, 'bin')}${_pathSep()}${Platform.environment['PATH'] ?? ''}',
   };
+}
+
+/// 解析 Android NDK 路径。
+///
+/// 优先使用环境变量（`ANDROID_NDK_HOME` / `ANDROID_NDK_ROOT`，与 CI 保持一致），
+/// 找不到时回退到 Windows 本地默认安装路径。
+String _androidNdkPath(String projectRoot) {
+  try {
+    return _findNdkPath(_readNdkVersion(projectRoot));
+  } catch (_) {
+    return r"C:\Users\windy\AppData\Local\Android\Sdk\ndk\29.0.14206865";
+  }
 }
 
 String _libClangPath(String llvmBase) {

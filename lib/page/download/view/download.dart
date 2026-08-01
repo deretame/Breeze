@@ -1,5 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -129,6 +131,10 @@ class _DownloadPageState extends State<DownloadPage> {
           ),
         ),
       ),
+      floatingActionButtonLocation:
+          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.download),
         label: Text(t.download.startDownload),

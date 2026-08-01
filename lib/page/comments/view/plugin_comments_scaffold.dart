@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comments/cubit/cubit.dart';
 import 'package:zephyr/page/comments/model/model.dart';
 import 'package:zephyr/type/enum.dart';
@@ -64,6 +65,10 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
             return Scaffold(
               appBar: AppBar(title: Text(widget.comicTitle)),
               body: _buildBody(state, cubit),
+              floatingActionButtonLocation:
+                  context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+                  ? FloatingActionButtonLocation.startFloat
+                  : FloatingActionButtonLocation.endFloat,
               floatingActionButton: state.canCommentComic
                   ? FloatingActionButton(
                       onPressed: state.posting

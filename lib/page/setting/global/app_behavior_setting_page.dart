@@ -87,6 +87,8 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           _oldPageRollback(state, cubit),
           _cloudFavoritePreferred(state, cubit),
           _autoFollowOnCollect(state, cubit),
+          _leftHandMode(state, cubit),
+          _clickCoverToStartReading(state, cubit),
           const SizedBox(height: 32),
         ],
       ),
@@ -169,6 +171,41 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
       onChanged: (bool value) {
         cubit.updateState(
           (current) => current.copyWith(autoFollowOnCollect: value),
+        );
+        showSuccessToast(t.common.settingSaved);
+      },
+    );
+  }
+
+  Widget _leftHandMode(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.back_hand_outlined),
+      title: Text(t.settings.leftHandMode),
+      subtitle: Text(t.settings.leftHandModeSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.leftHandModeEnabled,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(leftHandModeEnabled: value),
+        );
+        showSuccessToast(t.common.settingSaved);
+      },
+    );
+  }
+
+  Widget _clickCoverToStartReading(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.touch_app_outlined),
+      title: Text(t.settings.clickCoverToStartReading),
+      subtitle: Text(t.settings.clickCoverToStartReadingSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.clickCoverToStartReading,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(clickCoverToStartReading: value),
         );
         showSuccessToast(t.common.settingSaved);
       },

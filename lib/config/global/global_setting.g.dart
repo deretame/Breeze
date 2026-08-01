@@ -44,6 +44,8 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   oldPageRollbackEnabled: json['oldPageRollbackEnabled'] as bool? ?? false,
   cloudFavoritePreferred: json['cloudFavoritePreferred'] as bool? ?? false,
   autoFollowOnCollect: json['autoFollowOnCollect'] as bool? ?? false,
+  leftHandModeEnabled: json['leftHandModeEnabled'] as bool? ?? false,
+  clickCoverToStartReading: json['clickCoverToStartReading'] as bool? ?? false,
   searchHistory:
       (json['searchHistory'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -106,6 +108,8 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'oldPageRollbackEnabled': instance.oldPageRollbackEnabled,
       'cloudFavoritePreferred': instance.cloudFavoritePreferred,
       'autoFollowOnCollect': instance.autoFollowOnCollect,
+      'leftHandModeEnabled': instance.leftHandModeEnabled,
+      'clickCoverToStartReading': instance.clickCoverToStartReading,
       'searchHistory': instance.searchHistory,
       'windowWidth': instance.windowWidth,
       'windowHeight': instance.windowHeight,

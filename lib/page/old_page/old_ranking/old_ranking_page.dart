@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -113,6 +114,10 @@ class _OldRankingPageState extends State<OldRankingPage> {
       body: hasAnyPanel
           ? IndexedStack(index: effectiveIndex, children: panels)
           : const SizedBox.expand(),
+      floatingActionButtonLocation:
+          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
       floatingActionButton: panels.length > 1
           ? FloatingActionButton(
               onPressed: () {

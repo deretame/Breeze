@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -99,6 +100,10 @@ class _OldHomePageState extends State<OldHomePage> {
       body: hasAnyPanel
           ? IndexedStack(index: effectiveIndex, children: panels)
           : const SizedBox.expand(),
+      floatingActionButtonLocation:
+          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
       floatingActionButton: panels.length > 1
           ? FloatingActionButton(
               onPressed: () {

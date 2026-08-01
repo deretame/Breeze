@@ -613,6 +613,18 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后收藏漫画时将自动加入追更列表'
 	String get autoFollowOnCollectSubtitle => '开启后收藏漫画时将自动加入追更列表';
 
+	/// zh-CN: '左手优化'
+	String get leftHandMode => '左手优化';
+
+	/// zh-CN: '开启后将悬浮按钮等操作按钮移到屏幕左侧'
+	String get leftHandModeSubtitle => '开启后将悬浮按钮等操作按钮移到屏幕左侧';
+
+	/// zh-CN: '点击封面开始阅读'
+	String get clickCoverToStartReading => '点击封面开始阅读';
+
+	/// zh-CN: '在漫画详情页点击封面直接开始阅读'
+	String get clickCoverToStartReadingSubtitle => '在漫画详情页点击封面直接开始阅读';
+
 	/// zh-CN: '后台保活'
 	String get androidKeepAlive => '后台保活';
 
@@ -3807,6 +3819,10 @@ extension on Translations {
 			'settings.cloudFavoritePreferredSubtitle' => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏',
 			'settings.autoFollowOnCollect' => '收藏自动追更',
 			'settings.autoFollowOnCollectSubtitle' => '开启后收藏漫画时将自动加入追更列表',
+			'settings.leftHandMode' => '左手优化',
+			'settings.leftHandModeSubtitle' => '开启后将悬浮按钮等操作按钮移到屏幕左侧',
+			'settings.clickCoverToStartReading' => '点击封面开始阅读',
+			'settings.clickCoverToStartReadingSubtitle' => '在漫画详情页点击封面直接开始阅读',
 			'settings.androidKeepAlive' => '后台保活',
 			'settings.androidKeepAliveSubtitle' => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知',
 			'settings.bookshelf' => '书架设置',
@@ -4148,12 +4164,12 @@ extension on Translations {
 			'reader.showInStatusBarSubtitle' => '开启后，顶部信息条会进入系统状态栏区域',
 			'reader.edgePadding' => '边缘间距',
 			'reader.infoBarStyle' => '信息条样式',
+			_ => null,
+		} ?? switch (path) {
 			'reader.backgroundOpacity' => '背景透明度',
 			'reader.fontSize' => '字体大小',
 			'reader.allHiddenNotice' => '当前已全部关闭，阅读页中的信息条会完全隐藏。',
 			'reader.edgePaddingDisabled' => '横向在中间时，边缘间距不会生效。',
-			_ => null,
-		} ?? switch (path) {
 			'reader.settings' => '阅读设置',
 			'reader.previousChapter' => '上一章',
 			'reader.nextChapter' => '下一章',
@@ -4662,12 +4678,12 @@ extension on Translations {
 			'login.configNotReady' => '登录配置未就绪，请稍后重试',
 			'login.loggingIn' => '正在登录，请耐心等待...',
 			'login.loginSuccess' => '登录成功',
+			_ => null,
+		} ?? switch (path) {
 			'login.loginFailed' => '登录失败',
 			'login.loginButton' => '登录',
 			'login.retry' => '重试',
 			'fontSetting.title' => '字体设置',
-			_ => null,
-		} ?? switch (path) {
 			'fontSetting.clear' => '清空',
 			'fontSetting.hint' => '按字重分别选择字体文件。',
 			'fontSetting.loadFailed' => '字体加载失败',

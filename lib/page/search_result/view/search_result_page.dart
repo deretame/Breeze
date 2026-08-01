@@ -112,6 +112,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return Scaffold(
       appBar: SearchResultBar(searchEvent: searchEvent),
       body: _bloc(),
+      floatingActionButtonLocation:
+          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
       floatingActionButton: SlideTransition(
         position: _slideAnimation,
         child: SpeedDial(

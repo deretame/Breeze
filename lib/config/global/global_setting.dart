@@ -121,6 +121,8 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool oldPageRollbackEnabled,
     @Default(false) bool cloudFavoritePreferred,
     @Default(false) bool autoFollowOnCollect,
+    @Default(false) bool leftHandModeEnabled,
+    @Default(false) bool clickCoverToStartReading,
     @Default([]) List<String> searchHistory,
     @Default(1280.0) double windowWidth,
     @Default(720.0) double windowHeight,

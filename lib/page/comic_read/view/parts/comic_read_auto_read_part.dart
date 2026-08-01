@@ -39,7 +39,8 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
   Widget _autoReadControlWidget() {
     return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
       buildWhen: (previous, current) =>
-          previous.readSetting.autoScroll != current.readSetting.autoScroll,
+          previous.readSetting.autoScroll != current.readSetting.autoScroll ||
+          previous.leftHandModeEnabled != current.leftHandModeEnabled,
       builder: (context, globalSettingState) {
         if (!globalSettingState.readSetting.autoScroll) {
           return const Positioned.fill(
@@ -47,6 +48,7 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
           );
         }
 
+        final leftHandMode = globalSettingState.leftHandModeEnabled;
         return BlocSelector<ReaderCubit, ReaderState, bool>(
           selector: (state) => state.isMenuVisible,
           builder: (context, isMenuVisible) {
@@ -54,7 +56,8 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
             return AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOutCubic,
-              right: 14,
+              left: leftHandMode ? 14 : null,
+              right: leftHandMode ? null : 14,
               bottom: (isMenuVisible ? 122.0 : 14.0) + bottomSafe,
               child: FloatingActionButton.small(
                 heroTag: 'comic_auto_read_toggle',

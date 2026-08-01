@@ -289,6 +289,10 @@ class _ComicInfoState extends State<_ComicInfo>
           }
         },
       ),
+      floatingActionButtonLocation:
+          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
       floatingActionButton: _loadingComplete
           ? BlocBuilder<StringSelectCubit, String>(
               builder: (context, stringSelectDate) {
@@ -311,6 +315,10 @@ class _ComicInfoState extends State<_ComicInfo>
   Widget _infoView(NormalComicAllInfo normalComicAllInfo) {
     final comicInfo = normalComicAllInfo.comicInfo;
     _title = comicInfo.title;
+    final clickCoverToStartReading = context
+        .watch<GlobalSettingCubit>()
+        .state
+        .clickCoverToStartReading;
 
     if (!_loadingComplete) {
       WidgetsBinding.instance.addPostFrameCallback(
@@ -360,6 +368,15 @@ class _ComicInfoState extends State<_ComicInfo>
                       comicInfo: comicInfo,
                       from: widget.from,
                       type: _type,
+                      onCoverTap: clickCoverToStartReading
+                          ? () => goToComicRead(
+                              context,
+                              widget.comicId,
+                              _type,
+                              comicInfoDyn,
+                              widget.from,
+                            )
+                          : null,
                       onContinueRead: hasHistory
                           ? () => goToComicRead(
                               context,

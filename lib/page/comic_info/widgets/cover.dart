@@ -14,12 +14,14 @@ class Cover extends StatelessWidget {
   final PictureInfo pictureInfo;
   final double height;
   final double borderRadius;
+  final VoidCallback? onTap;
 
   const Cover({
     super.key,
     required this.pictureInfo,
     this.height = 180,
     this.borderRadius = 14,
+    this.onTap,
   });
 
   @override
@@ -54,11 +56,13 @@ class Cover extends StatelessWidget {
                 );
               case PictureLoadStatus.success:
                 return InkWell(
-                  onTap: () {
-                    context.pushRoute(
-                      FullRouteImageRoute(imagePath: state.imagePath!),
-                    );
-                  },
+                  onTap:
+                      onTap ??
+                      () {
+                        context.pushRoute(
+                          FullRouteImageRoute(imagePath: state.imagePath!),
+                        );
+                      },
                   child: ClipRRect(
                     borderRadius: radius,
                     child: Image.file(

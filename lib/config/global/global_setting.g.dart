@@ -51,6 +51,11 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  proxySetting: json['proxySetting'] == null
+      ? const ProxySettingState()
+      : ProxySettingState.fromJson(
+          json['proxySetting'] as Map<String, dynamic>,
+        ),
   windowWidth: (json['windowWidth'] as num?)?.toDouble() ?? 1280.0,
   windowHeight: (json['windowHeight'] as num?)?.toDouble() ?? 720.0,
   windowX: (json['windowX'] as num?)?.toDouble() ?? 0,
@@ -111,6 +116,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'leftHandModeEnabled': instance.leftHandModeEnabled,
       'clickCoverToStartReading': instance.clickCoverToStartReading,
       'searchHistory': instance.searchHistory,
+      'proxySetting': instance.proxySetting.toJson(),
       'windowWidth': instance.windowWidth,
       'windowHeight': instance.windowHeight,
       'windowX': instance.windowX,
@@ -163,6 +169,23 @@ Map<String, dynamic> _$AppLockSettingStateToJson(
   'gesturePasswordHash': instance.gesturePasswordHash,
   'resetPinHash': instance.resetPinHash,
 };
+
+_ProxySettingState _$ProxySettingStateFromJson(
+  Map<String, dynamic> json,
+) => _ProxySettingState(
+  enabled: json['enabled'] as bool? ?? false,
+  type: $enumDecodeNullable(_$ProxyTypeEnumMap, json['type']) ?? ProxyType.http,
+  address: json['address'] as String? ?? '',
+);
+
+Map<String, dynamic> _$ProxySettingStateToJson(_ProxySettingState instance) =>
+    <String, dynamic>{
+      'enabled': instance.enabled,
+      'type': _$ProxyTypeEnumMap[instance.type]!,
+      'address': instance.address,
+    };
+
+const _$ProxyTypeEnumMap = {ProxyType.http: 'http', ProxyType.socks5: 'socks5'};
 
 _WebDavSettingState _$WebDavSettingStateFromJson(Map<String, dynamic> json) =>
     _WebDavSettingState(

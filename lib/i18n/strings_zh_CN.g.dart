@@ -487,23 +487,35 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '繁体中文'
 	String get chineseConvertTraditional => '繁体中文';
 
-	/// zh-CN: 'SOCKS5 代理'
-	String get proxy => 'SOCKS5 代理';
+	/// zh-CN: '代理'
+	String get proxy => '代理';
 
-	/// zh-CN: '配置 SOCKS5 代理'
-	String get proxySubtitle => '配置 SOCKS5 代理';
+	/// zh-CN: '配置代理地址'
+	String get proxySubtitle => '配置代理地址';
 
-	/// zh-CN: '关闭后将不使用 SOCKS5 代理'
-	String get proxyEnabledSubtitle => '关闭后将不使用 SOCKS5 代理';
+	/// zh-CN: '开启后网络请求将经过代理'
+	String get proxyEnabledSubtitle => '开启后网络请求将经过代理';
 
 	/// zh-CN: '代理地址'
 	String get proxyAddress => '代理地址';
 
-	/// zh-CN: '请输入 SOCKS5 代理地址'
-	String get proxyHint => '请输入 SOCKS5 代理地址';
+	/// zh-CN: '请输入代理地址（HTTP / SOCKS5）'
+	String get proxyHint => '请输入代理地址（HTTP / SOCKS5）';
 
 	/// zh-CN: '当前代理：$currentProxy'
 	String proxyCurrent({required Object currentProxy}) => '当前代理：${currentProxy}';
+
+	/// zh-CN: '代理类型'
+	String get proxyType => '代理类型';
+
+	/// zh-CN: '选择代理协议'
+	String get proxyTypeSubtitle => '选择代理协议';
+
+	/// zh-CN: 'HTTP'
+	String get proxyTypeHttp => 'HTTP';
+
+	/// zh-CN: 'SOCKS5'
+	String get proxyTypeSocks5 => 'SOCKS5';
 
 	/// zh-CN: '更新下载加速'
 	String get updateAccelerate => '更新下载加速';
@@ -3837,12 +3849,16 @@ extension on Translations {
 			'settings.chineseConvertOff' => '关闭',
 			'settings.chineseConvertSimplified' => '简体中文',
 			'settings.chineseConvertTraditional' => '繁体中文',
-			'settings.proxy' => 'SOCKS5 代理',
-			'settings.proxySubtitle' => '配置 SOCKS5 代理',
-			'settings.proxyEnabledSubtitle' => '关闭后将不使用 SOCKS5 代理',
+			'settings.proxy' => '代理',
+			'settings.proxySubtitle' => '配置代理地址',
+			'settings.proxyEnabledSubtitle' => '开启后网络请求将经过代理',
 			'settings.proxyAddress' => '代理地址',
-			'settings.proxyHint' => '请输入 SOCKS5 代理地址',
+			'settings.proxyHint' => '请输入代理地址（HTTP / SOCKS5）',
 			'settings.proxyCurrent' => ({required Object currentProxy}) => '当前代理：${currentProxy}',
+			'settings.proxyType' => '代理类型',
+			'settings.proxyTypeSubtitle' => '选择代理协议',
+			'settings.proxyTypeHttp' => 'HTTP',
+			'settings.proxyTypeSocks5' => 'SOCKS5',
 			'settings.updateAccelerate' => '更新下载加速',
 			'settings.updateAccelerateSubtitle' => '开启后优先使用代理加速 GitHub 更新链接',
 			'settings.sync' => '同步',
@@ -4220,12 +4236,12 @@ extension on Translations {
 			'reader.disableAnimationSubtitle' => '关闭整页翻页动画，小幅滚动动画不受影响',
 			'reader.readFilter' => '阅读滤镜（仅深色模式）',
 			'reader.readFilterSubtitle' => '仅在阅读界面生效，可降低夜间阅读亮度',
+			_ => null,
+		} ?? switch (path) {
 			'reader.filterIntensity' => '滤镜强度',
 			'reader.einkOptimization' => '墨水屏优化（仅横向）',
 			'reader.einkOptimizationSubtitle' => '翻页后先白屏再显示图片',
 			'reader.einkDelay' => '白屏时长',
-			_ => null,
-		} ?? switch (path) {
 			'reader.sidePadding' => '两侧留白',
 			'reader.sidePaddingSubtitle' => '自定义左右留白比例',
 			'reader.sidePaddingPercent' => '每侧留白比例',
@@ -4734,12 +4750,12 @@ extension on Translations {
 			'changelog.publishedAt' => ({required Object date}) => '发布于 ${date}',
 			'changelog.viewInBrowser' => '在浏览器中查看',
 			'changelog.attachments' => '附件下载',
+			_ => null,
+		} ?? switch (path) {
 			'webview.title' => '网页',
 			'webview.cannotOpenLink' => ({required Object uri}) => '无法打开链接: ${uri}',
 			'webview.invalidLink' => '链接无效，无法打开网页',
 			'webview.emptyLink' => '(空链接)',
-			_ => null,
-		} ?? switch (path) {
 			'webview.loadFailed' => '网页加载失败',
 			'webview.retry' => '重试',
 			'webview.openInExternalBrowser' => '外部浏览器打开',

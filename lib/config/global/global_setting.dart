@@ -22,6 +22,9 @@ enum ReaderTapPageTurnMode { fullScreen, leftHand, rightHand }
 
 enum SyncServiceType { none, webdav, s3 }
 
+/// 代理协议类型。
+enum ProxyType { http, socks5 }
+
 extension SyncServiceTypeExtension on SyncServiceType {
   String get label {
     switch (this) {
@@ -124,6 +127,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool leftHandModeEnabled,
     @Default(false) bool clickCoverToStartReading,
     @Default([]) List<String> searchHistory,
+    @Default(ProxySettingState()) ProxySettingState proxySetting,
     @Default(1280.0) double windowWidth,
     @Default(720.0) double windowHeight,
     @Default(0) double windowX,
@@ -170,6 +174,18 @@ abstract class AppLockSettingState with _$AppLockSettingState {
   bool get hasResetPin => resetPinHash.trim().isNotEmpty;
 
   bool get isReady => hasGesturePassword && hasResetPin;
+}
+
+@freezed
+abstract class ProxySettingState with _$ProxySettingState {
+  const factory ProxySettingState({
+    @Default(false) bool enabled,
+    @Default(ProxyType.http) ProxyType type,
+    @Default('') String address,
+  }) = _ProxySettingState;
+
+  factory ProxySettingState.fromJson(Map<String, dynamic> json) =>
+      _$ProxySettingStateFromJson(json);
 }
 
 @freezed

@@ -234,12 +234,16 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get chineseConvertOff => 'Off';
 	@override String get chineseConvertSimplified => 'Simplified Chinese';
 	@override String get chineseConvertTraditional => 'Traditional Chinese';
-	@override String get proxy => 'SOCKS5 Proxy';
-	@override String get proxySubtitle => 'Configure SOCKS5 proxy';
-	@override String get proxyEnabledSubtitle => 'Disable to stop using SOCKS5 proxy';
+	@override String get proxy => 'Proxy';
+	@override String get proxySubtitle => 'Configure proxy address';
+	@override String get proxyEnabledSubtitle => 'Route network requests through a proxy when enabled';
 	@override String get proxyAddress => 'Proxy address';
-	@override String get proxyHint => 'Enter SOCKS5 proxy address';
+	@override String get proxyHint => 'Enter proxy address (HTTP / SOCKS5)';
 	@override String proxyCurrent({required Object currentProxy}) => 'Current proxy: ${currentProxy}';
+	@override String get proxyType => 'Proxy type';
+	@override String get proxyTypeSubtitle => 'Choose proxy protocol';
+	@override String get proxyTypeHttp => 'HTTP';
+	@override String get proxyTypeSocks5 => 'SOCKS5';
 	@override String get updateAccelerate => 'Update acceleration';
 	@override String get updateAccelerateSubtitle => 'Use proxy to accelerate GitHub update links';
 	@override String get sync => 'Sync';
@@ -1620,12 +1624,16 @@ extension on TranslationsEnUs {
 			'settings.chineseConvertOff' => 'Off',
 			'settings.chineseConvertSimplified' => 'Simplified Chinese',
 			'settings.chineseConvertTraditional' => 'Traditional Chinese',
-			'settings.proxy' => 'SOCKS5 Proxy',
-			'settings.proxySubtitle' => 'Configure SOCKS5 proxy',
-			'settings.proxyEnabledSubtitle' => 'Disable to stop using SOCKS5 proxy',
+			'settings.proxy' => 'Proxy',
+			'settings.proxySubtitle' => 'Configure proxy address',
+			'settings.proxyEnabledSubtitle' => 'Route network requests through a proxy when enabled',
 			'settings.proxyAddress' => 'Proxy address',
-			'settings.proxyHint' => 'Enter SOCKS5 proxy address',
+			'settings.proxyHint' => 'Enter proxy address (HTTP / SOCKS5)',
 			'settings.proxyCurrent' => ({required Object currentProxy}) => 'Current proxy: ${currentProxy}',
+			'settings.proxyType' => 'Proxy type',
+			'settings.proxyTypeSubtitle' => 'Choose proxy protocol',
+			'settings.proxyTypeHttp' => 'HTTP',
+			'settings.proxyTypeSocks5' => 'SOCKS5',
 			'settings.updateAccelerate' => 'Update acceleration',
 			'settings.updateAccelerateSubtitle' => 'Use proxy to accelerate GitHub update links',
 			'settings.sync' => 'Sync',
@@ -2003,12 +2011,12 @@ extension on TranslationsEnUs {
 			'reader.readFilter' => 'Read filter (dark mode only)',
 			'reader.readFilterSubtitle' => 'Only effective in reader, reduces brightness at night',
 			'reader.filterIntensity' => 'Filter intensity',
+			_ => null,
+		} ?? switch (path) {
 			'reader.einkOptimization' => 'E-ink optimization (landscape)',
 			'reader.einkOptimizationSubtitle' => 'Show white screen before image after page turn',
 			'reader.einkDelay' => 'White screen duration',
 			'reader.sidePadding' => 'Side padding',
-			_ => null,
-		} ?? switch (path) {
 			'reader.sidePaddingSubtitle' => 'Customize left/right padding ratio',
 			'reader.sidePaddingPercent' => 'Padding per side',
 			'reader.batterySubtitle' => 'Off by default, enable as needed',
@@ -2517,12 +2525,12 @@ extension on TranslationsEnUs {
 			'changelog.viewInBrowser' => 'View in browser',
 			'changelog.attachments' => 'Attachments',
 			'webview.title' => 'Webpage',
+			_ => null,
+		} ?? switch (path) {
 			'webview.cannotOpenLink' => ({required Object uri}) => 'Cannot open link: ${uri}',
 			'webview.invalidLink' => 'Invalid link, cannot open webpage',
 			'webview.emptyLink' => '(empty link)',
 			'webview.loadFailed' => 'Webpage load failed',
-			_ => null,
-		} ?? switch (path) {
 			'webview.retry' => 'Retry',
 			'webview.openInExternalBrowser' => 'Open in external browser',
 			'webview.windowClosed' => 'WebView window closed',

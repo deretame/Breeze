@@ -11,9 +11,10 @@ import 'package:zephyr/object_box/migration/migration_v4_to_v5.dart';
 import 'package:zephyr/object_box/migration/migration_v5_to_v6.dart';
 import 'package:zephyr/object_box/migration/migration_v6_to_v7.dart';
 import 'package:zephyr/object_box/migration/migration_v7_to_v8.dart';
+import 'package:zephyr/object_box/migration/migration_v8_to_v9.dart';
 
 const _defaultCompatibleVersion = 'v1';
-const _latestCompatibleVersion = 'v8';
+const _latestCompatibleVersion = 'v9';
 
 Future<void> ensureCompatibleMigration(BuildContext context) async {
   try {
@@ -77,8 +78,10 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
     }
 
     if (version == 'v8') {
+      await migrateV8ToV9();
       await setCompatibleVersion(_latestCompatibleVersion);
       migrated = true;
+      version = 'v9';
     }
 
     if (migrated && context.mounted) {

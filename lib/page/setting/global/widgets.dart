@@ -7,6 +7,7 @@ import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 Widget changeThemeColor(BuildContext context) {
@@ -21,9 +22,10 @@ Widget changeThemeColor(BuildContext context) {
   );
 }
 
-Widget socks5ProxyToggle(
+Widget proxyToggle(
   BuildContext context, {
   required bool enabled,
+  required ProxyType type,
   required String currentProxy,
 }) {
   return Column(
@@ -38,7 +40,9 @@ Widget socks5ProxyToggle(
         onChanged: (value) async {
           final globalSettingCubit = context.read<GlobalSettingCubit>();
           globalSettingCubit.updateState(
-            (current) => current.copyWith(socks5ProxyEnabled: value),
+            (current) => current.copyWith(
+              proxySetting: current.proxySetting.copyWith(enabled: value),
+            ),
           );
 
           if (!value) {
@@ -51,12 +55,40 @@ Widget socks5ProxyToggle(
           showSuccessToast(t.common.restartToTakeEffect);
         },
       ),
-      if (enabled) socks5ProxyEdit(context, currentProxy),
+      if (enabled) proxyTypeEdit(context, type),
+      if (enabled) proxyAddressEdit(context, currentProxy),
     ],
   );
 }
 
-Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
+Widget proxyTypeEdit(BuildContext context, ProxyType type) {
+  final items = <ProxyType, String>{
+    ProxyType.http: t.settings.proxyTypeHttp,
+    ProxyType.socks5: t.settings.proxyTypeSocks5,
+  };
+  return ListTile(
+    leading: const Icon(Icons.lan_outlined),
+    title: Text(t.settings.proxyType),
+    subtitle: Text(t.settings.proxyTypeSubtitle),
+    trailing: FluentDropdown<ProxyType>(
+      value: type,
+      displayValue: items[type]!,
+      items: items,
+      onChanged: (ProxyType value) {
+        if (value == type) return;
+        final globalSettingCubit = context.read<GlobalSettingCubit>();
+        globalSettingCubit.updateState(
+          (current) => current.copyWith(
+            proxySetting: current.proxySetting.copyWith(type: value),
+          ),
+        );
+        showSuccessToast(t.common.restartToTakeEffect);
+      },
+    ),
+  );
+}
+
+Widget proxyAddressEdit(BuildContext context, String currentProxy) {
   return ListTile(
     leading: const Icon(Icons.link_outlined),
     title: Text(t.settings.proxyAddress),
@@ -100,7 +132,9 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
 
       if (result != null && result != currentProxy) {
         globalSettingCubit.updateState(
-          (current) => current.copyWith(socks5Proxy: result),
+          (current) => current.copyWith(
+            proxySetting: current.proxySetting.copyWith(address: result),
+          ),
         );
         showSuccessToast(t.common.restartToTakeEffect);
       }

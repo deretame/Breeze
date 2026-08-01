@@ -35,10 +35,11 @@ class ContentNetworkSettingPage extends StatelessWidget {
             t.settings.network,
             icon: Icons.wifi_outlined,
           ),
-          socks5ProxyToggle(
+          proxyToggle(
             context,
-            enabled: state.socks5ProxyEnabled,
-            currentProxy: state.socks5Proxy,
+            enabled: state.proxySetting.enabled,
+            type: state.proxySetting.type,
+            currentProxy: state.proxySetting.address,
           ),
           // _updateAccelerate(state, cubit),
           const SizedBox(height: 32),

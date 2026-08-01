@@ -324,11 +324,23 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     await clearCache(await getCachePath());
   }
 
-  if (globalSettingCubit.state.socks5ProxyEnabled &&
-      globalSettingCubit.state.socks5Proxy.isNotEmpty) {
-    final proxy = globalSettingCubit.state.socks5Proxy;
-    SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
-    await setSocks5Proxy(proxy: proxy);
+  final proxySetting = globalSettingCubit.state.proxySetting;
+  if (proxySetting.enabled && proxySetting.address.trim().isNotEmpty) {
+    final proxyAddress = proxySetting.address.trim();
+    switch (proxySetting.type) {
+      case ProxyType.http:
+        final proxyUrl =
+            proxyAddress.startsWith('http://') ||
+                proxyAddress.startsWith('https://')
+            ? proxyAddress
+            : 'http://$proxyAddress';
+        await setHttpProxy(proxy: proxyUrl);
+        // Dart 侧纯 dart:io HttpClient（如 minio / S3 同步）也走 HTTP 代理
+        SocksProxy.initProxy(proxy: 'PROXY ${_stripProxyScheme(proxyUrl)}');
+      case ProxyType.socks5:
+        SocksProxy.initProxy(proxy: 'SOCKS5 $proxyAddress');
+        await setSocks5Proxy(proxy: proxyAddress);
+    }
   }
 
   // 设置日志转发（包含flutter和qjs的日志）
@@ -369,6 +381,18 @@ Future<void> _tryApplyHttpProxyFromEnv() async {
   if (!reachable) return;
 
   await setHttpProxy(proxy: proxyUrl);
+}
+
+/// 去掉代理地址的协议前缀，得到 `host:port`，供 Dart 侧 HttpClient 使用。
+String _stripProxyScheme(String url) {
+  var value = url.trim();
+  for (final prefix in const ['https://', 'http://']) {
+    if (value.startsWith(prefix)) {
+      value = value.substring(prefix.length);
+      break;
+    }
+  }
+  return value;
 }
 
 Future<String?> _readProxyFromEnvAsset() async {

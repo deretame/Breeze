@@ -528,6 +528,24 @@ class RealSrSuperResolution {
     throw UnsupportedError('当前平台不支持删除 RealSR 模型');
   }
 
+  static const Set<String> _supportedFormats = {
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+  };
+
+  /// 检测图片是否可被 RealSR 处理。
+  ///
+  /// 只读取文件头做判断，返回规范化扩展名；不支持（含动图 WebP）返回 null。
+  static Future<String?> _detectUpscalableExtension(File file) async {
+    final rawExt = await detectImageExtension(file);
+    final normalizedExt = rawExt.toLowerCase();
+    if (!_supportedFormats.contains(normalizedExt)) return null;
+    if (normalizedExt == '.webp' && await isAnimatedWebP(file)) return null;
+    return normalizedExt;
+  }
+
   /// 判断图片是否需要超分：仅当能解析出横向分辨率且小于阈值时返回 true。
   static Future<bool> shouldUpscale(
     String inputPath, {
@@ -558,6 +576,14 @@ class RealSrSuperResolution {
   static Future<void> upscaleAndConvertToWebp(String inputPath) async {
     final autoUpscale = await RealSrSettings.loadAutoUpscale();
     if (!autoUpscale) return;
+
+    // 先做廉价的文件头格式检测，不支持的格式（如 GIF、动图 WebP）直接跳过，
+    // 避免进入分辨率解析、模型检查与超分队列。
+    final supportedExt = await _detectUpscalableExtension(File(inputPath));
+    if (supportedExt == null) {
+      logger.d('RealSR 不支持的图片格式，跳过超分: $inputPath');
+      return;
+    }
 
     if (!await isAvailable) {
       if (!_missingModelNotified) {
@@ -592,11 +618,12 @@ class RealSrSuperResolution {
       );
 
       try {
-        await upscale(
+        final upscaled = await upscale(
           inputPath: inputPath,
           outputPath: tempOutput,
           tileSize: tileSize,
         );
+        if (!upscaled) return;
 
         // 超分成功后输出的是 PNG，再转换为 WebP 以节省空间
         await convertImageToWebp(inputPath: tempOutput, imageType: 'png');
@@ -627,7 +654,7 @@ class RealSrSuperResolution {
         orElse: () => RealSrNoiseLevel.conservative,
       );
 
-      await upscale(
+      final upscaled = await upscale(
         inputPath: inputPath,
         outputPath: inputPath,
         executable: variant.displayName,
@@ -636,14 +663,16 @@ class RealSrSuperResolution {
         noiseLevel: noiseLevel,
         tileSize: tileSize,
       );
+      if (!upscaled) return;
     } else {
       final noiseLevel = await RealSrSettings.loadNoiseLevel();
-      await upscale(
+      final upscaled = await upscale(
         inputPath: inputPath,
         outputPath: inputPath,
         noiseLevel: noiseLevel,
         tileSize: tileSize,
       );
+      if (!upscaled) return;
     }
 
     // 超分成功后输出的是 PNG，再转换为 WebP 以节省空间
@@ -655,7 +684,9 @@ class RealSrSuperResolution {
   }
 
   /// 对单张图片做超分放大。
-  static Future<void> upscale({
+  ///
+  /// 返回是否实际执行了超分；图片格式不支持、模型不可用等跳过场景返回 false。
+  static Future<bool> upscale({
     required String inputPath,
     String? outputPath,
     String executable = 'realcugan-ncnn-vulkan',
@@ -666,22 +697,35 @@ class RealSrSuperResolution {
     int syncGapMode = 3,
   }) async {
     if (!await isAvailable) {
-      logger.d('Upscaling $inputPath to $outputPath...');
-      return;
+      logger.d('RealSR 不可用，跳过超分: $inputPath');
+      return false;
     }
 
-    await _pool.withResource(() async {
+    final inputFile = File(inputPath);
+    if (!inputFile.existsSync()) {
+      throw ArgumentError.value(
+        inputPath,
+        'inputPath',
+        'Input file does not exist',
+      );
+    }
+
+    // 在占用超分并发池之前先判断格式，避免不支持的图片占着任务槽。
+    final rawExt = await detectImageExtension(inputFile);
+    final normalizedExt = rawExt.toLowerCase();
+    if (!_supportedFormats.contains(normalizedExt)) {
+      logger.w('RealSR 不支持的图片格式，跳过超分: $inputPath ($rawExt)');
+      return false;
+    }
+
+    if (normalizedExt == '.webp' && await isAnimatedWebP(inputFile)) {
+      logger.w('RealSR 不支持动图 WebP，跳过超分: $inputPath');
+      return false;
+    }
+
+    return _pool.withResource(() async {
       final startAt = DateTime.now();
       logger.d('Upscaling $inputPath to $outputPath');
-
-      final inputFile = File(inputPath);
-      if (!inputFile.existsSync()) {
-        throw ArgumentError.value(
-          inputPath,
-          'inputPath',
-          'Input file does not exist',
-        );
-      }
 
       final out =
           outputPath ??
@@ -689,19 +733,6 @@ class RealSrSuperResolution {
             p.dirname(inputPath),
             '${p.basenameWithoutExtension(inputPath)}_sr.png',
           );
-
-      final rawExt = await detectImageExtension(inputFile);
-      final normalizedExt = rawExt.toLowerCase();
-      const supportedFormats = {'.jpg', '.jpeg', '.png', '.webp'};
-      if (!supportedFormats.contains(normalizedExt)) {
-        logger.w('RealSR 不支持的图片格式，跳过超分: $inputPath ($rawExt)');
-        return;
-      }
-
-      if (normalizedExt == '.webp' && await isAnimatedWebP(inputFile)) {
-        logger.w('RealSR 不支持动图 WebP，跳过超分: $inputPath');
-        return;
-      }
 
       // 超分引擎统一按 PNG 输入处理，先转换到临时 PNG。
       String pngInputPath = inputPath;
@@ -751,6 +782,7 @@ class RealSrSuperResolution {
       final endAt = DateTime.now();
       final duration = endAt.difference(startAt).inMilliseconds;
       logger.d('Upscaling took ${duration}ms');
+      return true;
     });
   }
 

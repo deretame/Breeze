@@ -292,10 +292,10 @@ packages:
     dependency: "direct main"
     description:
       name: dart_cpp_bridge
-      sha256: "1dc191aa0feed083b55e89a405763a9df1cecfcbbb7a4f7363f20f4b970f51fc"
+      sha256: d4ce717a216f0c1fd0ab8832481e8f240785e9e351ebc6cde7c750f2d96cde7a
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.3"
+    version: "1.2.4"
   dart_style:
     dependency: transitive
     description:

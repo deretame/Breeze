@@ -194,6 +194,8 @@
     "clickCoverToStartReadingSubtitle": "Tap the cover on the comic info page to start reading directly",
     "androidKeepAlive": "Keep alive",
     "androidKeepAliveSubtitle": "Use a foreground service to keep the app running in the background; shows a persistent notification",
+    "backPressExit": "Exit on back",
+    "backPressExitSubtitle": "When enabled, pressing back on the home page exits the app; when disabled, it only returns to the home page",
     "bookshelf": "Bookshelf",
     "bookshelfSubtitle": "Home tab & remember sort",
     "bookshelfHomePage": "Bookshelf home",

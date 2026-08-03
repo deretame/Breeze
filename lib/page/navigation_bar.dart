@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
@@ -146,6 +147,7 @@ class _NavigationBarState extends State<NavigationBar> {
             return _buildMobileLayout(
               pageList: pageList,
               navBarItems: navBarItems,
+              backPressExitEnabled: globalSettingState.backPressExitEnabled,
             );
           }
         },
@@ -156,14 +158,15 @@ class _NavigationBarState extends State<NavigationBar> {
   Widget _buildMobileLayout({
     required List<Widget> pageList,
     required List<PersistentBottomNavBarItem> navBarItems,
+    required bool backPressExitEnabled,
   }) {
-    return PersistentTabView(
+    final tabView = PersistentTabView(
       context,
       controller: _controller,
       screens: pageList,
       items: navBarItems,
       backgroundColor: context.backgroundColor,
-      handleAndroidBackButtonPress: true,
+      handleAndroidBackButtonPress: !backPressExitEnabled,
       resizeToAvoidBottomInset: false,
       hideNavigationBarWhenKeyboardAppears: false,
       stateManagement: true,
@@ -173,6 +176,29 @@ class _NavigationBarState extends State<NavigationBar> {
           _selectedIndex = index;
         });
       },
+    );
+    if (!backPressExitEnabled) {
+      return tabView;
+    }
+    // 开启"返回键退出"后：非第一个 tab 先切回第一个 tab，
+    // 已在第一个 tab 时尝试弹出根导航栈，已无可弹页面则退出应用
+    return PopScope<Object?>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (_controller.index != 0) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+          _controller.jumpToTab(0);
+          return;
+        }
+        final canPop = await appRouter.maybePop();
+        if (!canPop && Platform.isAndroid) {
+          SystemNavigator.pop();
+        }
+      },
+      child: tabView,
     );
   }
 

@@ -673,6 +673,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知'
 	String get androidKeepAliveSubtitle => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知';
 
+	/// zh-CN: '返回键退出'
+	String get backPressExit => '返回键退出';
+
+	/// zh-CN: '开启后在首页按返回键将退出应用，关闭则仅返回首页'
+	String get backPressExitSubtitle => '开启后在首页按返回键将退出应用，关闭则仅返回首页';
+
 	/// zh-CN: '书架设置'
 	String get bookshelf => '书架设置';
 
@@ -3911,6 +3917,8 @@ extension on Translations {
 			'settings.clickCoverToStartReadingSubtitle' => '在漫画详情页点击封面直接开始阅读',
 			'settings.androidKeepAlive' => '后台保活',
 			'settings.androidKeepAliveSubtitle' => '开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知',
+			'settings.backPressExit' => '返回键退出',
+			'settings.backPressExitSubtitle' => '开启后在首页按返回键将退出应用，关闭则仅返回首页',
 			'settings.bookshelf' => '书架设置',
 			'settings.bookshelfSubtitle' => '书架首页、记忆排序',
 			'settings.bookshelfHomePage' => '书架首页',
@@ -4234,10 +4242,10 @@ extension on Translations {
 			'reader.readingExperience' => '阅读体验',
 			'reader.disableAnimation' => '关闭翻页动画',
 			'reader.disableAnimationSubtitle' => '关闭整页翻页动画，小幅滚动动画不受影响',
-			'reader.readFilter' => '阅读滤镜（仅深色模式）',
-			'reader.readFilterSubtitle' => '仅在阅读界面生效，可降低夜间阅读亮度',
 			_ => null,
 		} ?? switch (path) {
+			'reader.readFilter' => '阅读滤镜（仅深色模式）',
+			'reader.readFilterSubtitle' => '仅在阅读界面生效，可降低夜间阅读亮度',
 			'reader.filterIntensity' => '滤镜强度',
 			'reader.einkOptimization' => '墨水屏优化（仅横向）',
 			'reader.einkOptimizationSubtitle' => '翻页后先白屏再显示图片',
@@ -4748,10 +4756,10 @@ extension on Translations {
 			'changelog.retry' => '重试',
 			'changelog.empty' => '暂无更新日志',
 			'changelog.publishedAt' => ({required Object date}) => '发布于 ${date}',
-			'changelog.viewInBrowser' => '在浏览器中查看',
-			'changelog.attachments' => '附件下载',
 			_ => null,
 		} ?? switch (path) {
+			'changelog.viewInBrowser' => '在浏览器中查看',
+			'changelog.attachments' => '附件下载',
 			'webview.title' => '网页',
 			'webview.cannotOpenLink' => ({required Object uri}) => '无法打开链接: ${uri}',
 			'webview.invalidLink' => '链接无效，无法打开网页',

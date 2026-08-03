@@ -83,6 +83,7 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           _splashPage(state, cubit),
           if (isDesktop) _desktopCloseBehaviorTile(),
           if (Platform.isAndroid) _androidKeepAlive(state, cubit),
+          if (Platform.isAndroid) _backPressExit(state, cubit),
           _appLockSetting(state, cubit),
           _oldPageRollback(state, cubit),
           _cloudFavoritePreferred(state, cubit),
@@ -236,6 +237,22 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           );
           showErrorToast(e.toString());
         }
+      },
+    );
+  }
+
+  Widget _backPressExit(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.exit_to_app_outlined),
+      title: Text(t.settings.backPressExit),
+      subtitle: Text(t.settings.backPressExitSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.backPressExitEnabled,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(backPressExitEnabled: value),
+        );
+        showSuccessToast(t.common.settingSaved);
       },
     );
   }

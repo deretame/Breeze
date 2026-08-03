@@ -194,6 +194,8 @@
     "clickCoverToStartReadingSubtitle": "在漫画详情页点击封面直接开始阅读",
     "androidKeepAlive": "后台保活",
     "androidKeepAliveSubtitle": "开启后通过前台服务尽量保持应用在后台运行，会显示常驻通知",
+    "backPressExit": "返回键退出",
+    "backPressExitSubtitle": "开启后在首页按返回键将退出应用，关闭则仅返回首页",
     "bookshelf": "书架设置",
     "bookshelfSubtitle": "书架首页、记忆排序",
     "bookshelfHomePage": "书架首页",

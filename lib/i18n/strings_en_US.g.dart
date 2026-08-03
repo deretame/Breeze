@@ -296,6 +296,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get clickCoverToStartReadingSubtitle => 'Tap the cover on the comic info page to start reading directly';
 	@override String get androidKeepAlive => 'Keep alive';
 	@override String get androidKeepAliveSubtitle => 'Use a foreground service to keep the app running in the background; shows a persistent notification';
+	@override String get backPressExit => 'Exit on back';
+	@override String get backPressExitSubtitle => 'When enabled, pressing back on the home page exits the app; when disabled, it only returns to the home page';
 	@override String get bookshelf => 'Bookshelf';
 	@override String get bookshelfSubtitle => 'Home tab & remember sort';
 	@override String get bookshelfHomePage => 'Bookshelf home';
@@ -1686,6 +1688,8 @@ extension on TranslationsEnUs {
 			'settings.clickCoverToStartReadingSubtitle' => 'Tap the cover on the comic info page to start reading directly',
 			'settings.androidKeepAlive' => 'Keep alive',
 			'settings.androidKeepAliveSubtitle' => 'Use a foreground service to keep the app running in the background; shows a persistent notification',
+			'settings.backPressExit' => 'Exit on back',
+			'settings.backPressExitSubtitle' => 'When enabled, pressing back on the home page exits the app; when disabled, it only returns to the home page',
 			'settings.bookshelf' => 'Bookshelf',
 			'settings.bookshelfSubtitle' => 'Home tab & remember sort',
 			'settings.bookshelfHomePage' => 'Bookshelf home',
@@ -2009,10 +2013,10 @@ extension on TranslationsEnUs {
 			'reader.disableAnimation' => 'Disable page animation',
 			'reader.disableAnimationSubtitle' => 'Disable full-page turn animation',
 			'reader.readFilter' => 'Read filter (dark mode only)',
-			'reader.readFilterSubtitle' => 'Only effective in reader, reduces brightness at night',
-			'reader.filterIntensity' => 'Filter intensity',
 			_ => null,
 		} ?? switch (path) {
+			'reader.readFilterSubtitle' => 'Only effective in reader, reduces brightness at night',
+			'reader.filterIntensity' => 'Filter intensity',
 			'reader.einkOptimization' => 'E-ink optimization (landscape)',
 			'reader.einkOptimizationSubtitle' => 'Show white screen before image after page turn',
 			'reader.einkDelay' => 'White screen duration',
@@ -2523,10 +2527,10 @@ extension on TranslationsEnUs {
 			'changelog.empty' => 'No changelog',
 			'changelog.publishedAt' => ({required Object date}) => 'Published at ${date}',
 			'changelog.viewInBrowser' => 'View in browser',
-			'changelog.attachments' => 'Attachments',
-			'webview.title' => 'Webpage',
 			_ => null,
 		} ?? switch (path) {
+			'changelog.attachments' => 'Attachments',
+			'webview.title' => 'Webpage',
 			'webview.cannotOpenLink' => ({required Object uri}) => 'Cannot open link: ${uri}',
 			'webview.invalidLink' => 'Invalid link, cannot open webpage',
 			'webview.emptyLink' => '(empty link)',

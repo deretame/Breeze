@@ -25,11 +25,13 @@ else()
     "${CMAKE_CURRENT_SOURCE_DIR}/../.dart_tool/${_u}" ABSOLUTE)
 endif()
 include("${DCB_PKG_PATH}/native/cmake/dcb_find_package.cmake")
-add_subdirectory(${DCB_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/dcb_runtime)
-
-# --- Generated wire check ---
-set(GEN_WIRE "${CMAKE_CURRENT_SOURCE_DIR}/generated/wire_dispatch.cpp")
-if(NOT EXISTS "${GEN_WIRE}")
-  message(FATAL_ERROR
-    "Missing generated wire. Run: dcb_gen_tool generate dart_cpp_bridge.yaml")
+# dcb_find_package.cmake 带 include_guard(GLOBAL)：本文件被多个子工程
+# （native/ 与 quickjs-runtime/）重复包含时，第二次 include 会直接 return，
+# DCB_ROOT 不会在当前目录作用域设置，这里兜底。
+if(NOT DCB_ROOT)
+  set(DCB_ROOT "${DCB_PKG_PATH}/native")
+endif()
+# 同样的重复包含保护：dcb_runtime 目标全局唯一，只 add_subdirectory 一次。
+if(NOT TARGET dcb_runtime)
+  add_subdirectory(${DCB_ROOT} ${CMAKE_CURRENT_BINARY_DIR}/dcb_runtime)
 endif()

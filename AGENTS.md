@@ -231,6 +231,27 @@ flutter run
 flutter run --dart-define=sentry_dsn=YOUR_DSN
 ```
 
+#### native（dart_cpp_bridge）hook 构建的缓存陷阱
+
+`hook/build.dart` 由 hooks_runner 驱动，带增量缓存（`.dart_tool/hooks_runner/zephyr/<hash>/`）。其依赖清单只追踪声明过的路径（`native/`、Rust 源等），**`quickjs-runtime/` 的改动不会触发重跑**——它会复用上次的输出清单，若此时构建目录已被删除，会在 bundling 阶段报 `PathNotFoundException: Cannot copy file ... wind_core_cpp.dll`。
+
+要强制重跑 native hook，**只删构建目录（`dcb_build`）没用**，必须删缓存目录：
+
+```bash
+rm -rf .dart_tool/hooks_runner/zephyr/<hash>/
+# 然后重跑（会触发 configure + 构建，Rust 产物缓存不受影响）
+dart run D:/Project/flutter/dart_cpp_bridge/dcb_gen_tool/bin/dcb_gen_tool.dart generate dart_cpp_bridge.yaml --skip-version-check
+```
+
+C++ 构建产物在 `.dart_tool/hooks_runner/shared/zephyr/build/<hash>/dcb_build/`（Ninja 工程，`build.ninja` 里可查每个 target 的真实编译宏/flags/链接库）。hook 只构建 `wind_core_cpp` DLL 目标；quickjs-runtime 作为子工程引入时 `QJS_RUNTIME_BUILD_TOOLS=OFF`，不构建其主程序与测试（见 `quickjs-runtime/AGENTS.md`）。
+
+native 的 C++ 第三方依赖全部由 vcpkg 管理（`quickjs-runtime/vcpkg.json`，overrides 钉死版本），分两个 triplet：
+
+- `x64-windows`（动态库）：stdexec / Boost / OpenSSL / fmt 等 quickjs-runtime 自身依赖；由 `pixi run configure` 安装到 `quickjs-runtime/build/vcpkg_installed/`（独立构建用）。hook 使用的 `quickjs-runtime/vcpkg_installed/x64-windows` 需手动安装：`cd quickjs-runtime && third_party/vcpkg/vcpkg install --x-install-root=vcpkg_installed --triplet x64-windows`。
+- `x64-windows-static-md`（动态 CRT + 静态库本体）：libpng / libwebp / zlib，静态链进 `wind_core_cpp.dll`，避免运行时多带 DLL。安装：`cd quickjs-runtime && third_party/vcpkg/vcpkg install --x-install-root=vcpkg_installed --triplet x64-windows-static-md`。
+
+⚠️ 不要在 static-md 树已存在的情况下对它做整树清理式操作——vcpkg manifest 安装可能移除同 install root 下另一 triplet 树的文件（曾把 x64-windows 树清空）。native/CMakeLists.txt 用 `<Pkg>_DIR` 定点引用 static-md 的 config 包（`ZLIB_DIR`/`PNG_DIR`/`WebP_DIR`），**不要**把 static-md 加进 `CMAKE_PREFIX_PATH`（里面的静态 Boost 会与 `BOOST_*_DYN_LINK` 宏冲突）。另外 vcpkg 静态 zlib 的 config 只提供 `ZLIB::ZLIBSTATIC`，`ZLIB::ZLIB` 别名由 native/CMakeLists.txt 手动补（没走 vcpkg toolchain，没有 wrapper 帮忙）。
+
 ### 5.3 平台构建
 
 项目提供 Dart 脚本统一处理构建：

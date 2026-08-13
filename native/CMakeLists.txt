@@ -5,70 +5,71 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Shared helper: locates dart_cpp_bridge, sets up the runtime dependency,
-# and verifies that generated wire code exists.
+# --- dart_cpp_bridge 依赖策略 ---
+# 关闭 dcb 对 stdexec / asio 的 FetchContent 拉取，改用 boost::asio；
+# stdexec（STDEXEC::stdexec）与 Boost 改由 quickjs-runtime 的 vcpkg 提供。
+set(DCB_FETCH_STDEXEC OFF)
+set(DCB_FETCH_ASIO OFF)
+set(DCB_USE_BOOST_ASIO ON)
+
+# quickjs-runtime 的 vcpkg 依赖（stdexec / Boost / OpenSSL / fmt / …）。
+# 需先在仓库根目录执行 pixi run configure（或 setup-vcpkg 后任意一次 vcpkg
+# manifest 安装）生成 quickjs-runtime/vcpkg_installed/。
+set(QJS_VCPKG_INSTALLED
+    "${CMAKE_CURRENT_SOURCE_DIR}/../quickjs-runtime/vcpkg_installed/x64-windows")
+# libpng / libwebp / zlib 走 vcpkg 的 x64-windows-static-md（动态 CRT /MD，
+# 与全局一致；库本体静态链接进 wind_core_cpp.dll，避免运行时多带 DLL）：
+#   cd quickjs-runtime
+#   third_party/vcpkg/vcpkg install --x-install-root=vcpkg_installed \
+#       --triplet x64-windows-static-md
+set(QJS_VCPKG_STATIC_MD
+    "${CMAKE_CURRENT_SOURCE_DIR}/../quickjs-runtime/vcpkg_installed/x64-windows-static-md")
+if(NOT EXISTS "${QJS_VCPKG_INSTALLED}" OR NOT EXISTS "${QJS_VCPKG_STATIC_MD}")
+  message(FATAL_ERROR
+    "未找到 vcpkg 依赖目录（需要 x64-windows 与 x64-windows-static-md）\n"
+    "请先在仓库根目录运行: pixi run configure（生成 x64-windows），再执行\n"
+    "  cd quickjs-runtime && third_party/vcpkg/vcpkg install \\\n"
+    "    --x-install-root=vcpkg_installed --triplet x64-windows-static-md")
+endif()
+# static-md 树里也装了全套依赖（含静态版 Boost），不能直接进
+# CMAKE_PREFIX_PATH——否则 quickjs-runtime 的 find_package(Boost) 会命中
+# 静态库，与 TUs 的 BOOST_*_DYN_LINK 宏冲突。改用 <Pkg>_DIR 定点引用
+# libpng / libwebp / zlib 的 config 包。
+set(ZLIB_DIR "${QJS_VCPKG_STATIC_MD}/share/zlib")
+set(PNG_DIR "${QJS_VCPKG_STATIC_MD}/share/png")
+set(WebP_DIR "${QJS_VCPKG_STATIC_MD}/share/WebP")
+list(APPEND CMAKE_PREFIX_PATH "${QJS_VCPKG_INSTALLED}")
+# FindOpenSSL 不用 CMAKE_PREFIX_PATH，而 cmake 会把自身安装前缀（pixi 环境）
+# 加进 CMAKE_SYSTEM_PREFIX_PATH，导致命中 pixi 版 libssl 而链接失败——固定到 vcpkg。
+set(OPENSSL_ROOT_DIR "${QJS_VCPKG_INSTALLED}")
+
+# Shared helper: locates dart_cpp_bridge, sets up the runtime dependency.
 include(cmake/dcb_bridge.cmake)
 
-# --- Third-party dependencies (libwebp + libpng + zlib) ---
-include(FetchContent)
-
-# zlib（libpng 依赖）
-set(SKIP_INSTALL_ALL ON CACHE BOOL "" FORCE)
-set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(zlib
-  GIT_REPOSITORY https://github.com/madler/zlib.git
-  GIT_TAG v1.3.1
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(zlib)
-# 让 libpng 的 find_package(ZLIB) 直接命中刚构建的静态库
-set(ZLIB_INCLUDE_DIR "${zlib_SOURCE_DIR};${zlib_BINARY_DIR}" CACHE PATH "" FORCE)
-set(ZLIB_LIBRARY zlibstatic CACHE STRING "" FORCE)
-if(NOT TARGET ZLIB::ZLIB)
-  add_library(ZLIB::ZLIB ALIAS zlibstatic)
+# --- Generated wire check ---
+set(GEN_WIRE "${CMAKE_CURRENT_SOURCE_DIR}/generated/wire_dispatch.cpp")
+if(NOT EXISTS "${GEN_WIRE}")
+  message(FATAL_ERROR
+    "Missing generated wire. Run: dcb_gen_tool generate dart_cpp_bridge.yaml")
 endif()
-target_include_directories(zlibstatic PUBLIC
-  "${zlib_SOURCE_DIR}" "${zlib_BINARY_DIR}")
 
-# libpng（静态库）
-# 强制走“无 awk”分支：Git Bash 自带的 awk 会触发 genout.cmake 编译
-# pnglibconf.c 的复杂路径（缺少 zlib include 而失败），直接用预生成配置头。
-# 注意不能设 *-NOTFOUND（会被 find_program 重新搜索），用假值常量绕过。
-set(AWK FALSE CACHE FILEPATH "Disable awk: use prebuilt pnglibconf.h" FORCE)
-set(PNG_SHARED OFF CACHE BOOL "" FORCE)
-set(PNG_STATIC ON CACHE BOOL "" FORCE)
-set(PNG_EXECUTABLES OFF CACHE BOOL "" FORCE)
-set(PNG_TESTS OFF CACHE BOOL "" FORCE)
-set(PNG_BUILD_ZLIB ON CACHE BOOL "" FORCE)
-FetchContent_Declare(libpng
-  GIT_REPOSITORY https://github.com/pnggroup/libpng.git
-  GIT_TAG v1.6.43
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(libpng)
-# pnglibconf.h 生成在 build 目录，补进 png_static 的公开头路径
-target_include_directories(png_static PUBLIC "${libpng_BINARY_DIR}")
+# --- Third-party dependencies (vcpkg, x64-windows-static-md) ---
+# 注意：vcpkg 静态 zlib 的 config 包只提供 ZLIB::ZLIBSTATIC，ZLIB::ZLIB 别名
+# 平时由 vcpkg toolchain 的 wrapper 提供——这里没走 toolchain，手动补别名，
+# 否则 PNGConfig 的 find_dependency(ZLIB) 会退回模块模式找到 x64-windows 的
+# 动态 z.lib，给 DLL 引入 z.dll 运行时依赖。
+find_package(ZLIB CONFIG REQUIRED)   # ZLIB::ZLIBSTATIC
+if(NOT TARGET ZLIB::ZLIB)
+  add_library(ZLIB::ZLIB ALIAS ZLIB::ZLIBSTATIC)
+endif()
+find_package(PNG CONFIG REQUIRED)    # PNG::PNG
+find_package(WebP CONFIG REQUIRED)   # WebP::webp / WebP::webpdecoder / WebP::sharpyuv
 
-# libwebp（静态库，只保留核心编解码）
-set(WEBP_BUILD_ANIM_UTILS OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_CWEBP OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_DWEBP OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_GIF2WEBP OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_IMG2WEBP OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_VWEBP OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_WEBPINFO OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_WEBPMUX OFF CACHE BOOL "" FORCE)
-set(WEBP_BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
-# 临时切到静态库：全局 BUILD_SHARED_LIBS=ON（ wind_core_cpp 是 DLL），
-# 但 libwebp 需要静态链接进来，避免运行时多带一个 libwebp.dll
-set(BUILD_SHARED_LIBS OFF)
-FetchContent_Declare(libwebp
-  GIT_REPOSITORY https://github.com/webmproject/libwebp.git
-  GIT_TAG v1.4.0
-  GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(libwebp)
-set(BUILD_SHARED_LIBS ON)
+# --- quickjs-runtime 子工程（fetchcore / qjsbind / 测试等）---
+# 内部会 include native/cmake/dcb_bridge.cmake（带重复包含保护），
+# 并复用上面设置好的 DCB_* 策略与 vcpkg prefix path。
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../quickjs-runtime
+                 ${CMAKE_CURRENT_BINARY_DIR}/quickjs_runtime)
 
 # --- Library target ---
 option(BUILD_SHARED_LIBS "Build shared library" ON)
@@ -89,8 +90,8 @@ target_include_directories(wind_core_cpp
 
 target_link_libraries(wind_core_cpp PRIVATE
   $<LINK_LIBRARY:WHOLE_ARCHIVE,dart_cpp_bridge::runtime>
-  png_static
-  webp
+  PNG::PNG
+  WebP::webp
 )
 
 if(WIN32)

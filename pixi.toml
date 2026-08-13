@@ -6,8 +6,27 @@ platforms = ["win-64"]
 version = "0.1.0"
 
 [tasks]
+# ── quickjs-runtime（C++20 运行时，工程目录 quickjs-runtime/）──
+# 克隆并 bootstrap vcpkg 到 quickjs-runtime/third_party/vcpkg
+setup-vcpkg = "python script/pixi/bootstrap_vcpkg.py"
+# sparse clone WPT 测试资产到 quickjs-runtime/third_party/wpt（wpt_runner 测试用）
+setup-wpt = "python script/pixi/bootstrap_wpt.py"
+# 下载 Mozilla CA bundle 生成嵌入头文件 quickjs-runtime/src/fetch/cacert_embedded.hpp
+fetch-cacert = "python script/pixi/bootstrap_cacert.py"
+# 下载 OpenCC 官方词典数据生成嵌入头文件 quickjs-runtime/include/opencc/opencc_data.hpp
+fetch-opencc = "python script/pixi/bootstrap_opencc.py"
+# 重建 JS 资产（quickjs-runtime/js 工程：pnpm install + esbuild 打包，
+# 打包产物 .js 入库；node/pnpm 不在 pixi 环境内，需本机预装）
+build-js-assets = { cmd = "pnpm install && pnpm run build", cwd = "quickjs-runtime/js" }
+# 配置 CMake（MSVC + vcpkg toolchain + Ninja）
+configure = { cmd = "python script/pixi/configure.py", depends-on = ["setup-vcpkg", "fetch-cacert", "fetch-opencc"] }
+# 构建
+build = { cmd = "python script/pixi/build.py", depends-on = ["configure"] }
+# 运行测试
+test = { cmd = "python script/pixi/test.py", depends-on = ["build"] }
 
 [dependencies]
+python = "==3.13.14"
 cmake = ">=4.4.2,<5"
 ninja = ">=1.13.2,<2"
 clang-format = ">=22.1.8,<23"

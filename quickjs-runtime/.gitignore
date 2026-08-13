@@ -1,0 +1,72 @@
+# 构建产物
+build/
+out/
+# vcpkg CLI 默认安装目录（构建实际使用 build/vcpkg_installed）
+vcpkg_installed/
+
+# pixi 环境
+.pixi/
+# 注：pixi.lock 应纳入版本管理，勿忽略
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 工具目录
+.reasonix/
+
+# 3proxy（测试对打用二进制与文档，不入库；见 docs/proxy_test_plan.md §1.1）
+third_party/3proxy/
+
+# 3proxy 日志（按天滚动：3proxy.log.YYYY.MM.DD）
+tests/proxy/*.log*
+
+# vcpkg（由 scripts/bootstrap_vcpkg.py 克隆，不纳入版本管理）
+third_party/vcpkg/
+
+# cheerio 官方源码（测试资产来源，转译产物 tests/cheerio/ 已纳入版本管理）
+third_party/cheerio/
+
+# BoringSSL 官方源码（boringssl 依赖由 vcpkg 管理，本地克隆残留不入库）
+third_party/boringssl/
+
+# Patternia（header-only 模式匹配库源码克隆，不入库；用法见 docs/patternia_usage.md）
+third_party/patternia/
+
+# IDE
+.vs/
+.vscode/
+*.user
+CMakeUserPresets.json
+
+# 编译器中间产物（临时 mini 验证 / cl 直编残留）
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exe
+*.dll
+NUL.obj
+
+# 临时文件
+*.log
+*.tmp
+
+# 测试运行时生成的临时目录（task_test.cpp 的 pool 测试残留）
+pool_test_tmp/
+
+# 构建产物
+src/fetch/cacert_embedded.hpp
+third_party/wpt/
+.clice
+include/qjsbind/polyfill/dyn_blob_embedded.hpp
+include/qjsbind/polyfill/bundle_dispatcher_embedded.hpp
+include/qjsbind/polyfill/source_map_lib_embedded.hpp
+include/qjsbind/polyfill/runtime_api_embedded.hpp
+include/qjsbind/polyfill/crypto_embedded.hpp
+
+# OpenCC 官方词典数据（scripts/bootstrap_opencc.py 下载生成，不入库）
+include/opencc/opencc_data.hpp
+
+# Node.js（js/ 工程的依赖目录，不入库；pnpm-lock.yaml 入库）
+node_modules/

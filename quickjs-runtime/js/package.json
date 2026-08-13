@@ -1,0 +1,16 @@
+{
+  "name": "quickjs-runtime-js-assets",
+  "private": true,
+  "version": "0.2.0",
+  "description": "JS 资产打包工程（pnpm 管理）：把 npm 库打成单文件 JS，供 embed_js.py 嵌入 C++",
+  "scripts": {
+    "build": "esbuild src/source_map_lib_entry.js --bundle --format=iife --global-name=__sourcemap_lib --target=es2020 --outfile=../include/qjsbind/polyfill/source_map_lib.js && esbuild src/buffer_entry.js --bundle --format=iife --global-name=__buffer_lib --target=es2020 --outfile=../include/qjsbind/polyfill/buffer_lib.js"
+  },
+  "dependencies": {
+    "@jridgewell/trace-mapping": "^0.3.31",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

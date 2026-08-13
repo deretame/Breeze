@@ -8,15 +8,18 @@
 #include "dart_cpp_bridge/object_handle.hpp"
 #include "dart_cpp_bridge/runtime.hpp"
 #include "dart_cpp_bridge/session.hpp"
+#include "dart_cpp_bridge/start_with_receiver.hpp"
 #include "dart_cpp_bridge/stream_sink.hpp"
 
 #include "api/bridge_api.h"
 
-#include <async_simple/coro/Lazy.h>
-
-#include <asio/post.hpp>
+#include <stdexec/execution.hpp>
+#include <exec/start_detached.hpp>
 
 #include <chrono>
+#include <cstdio>
+#include <exception>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -29,6 +32,42 @@ namespace demo {
 
 namespace {
 
+// The environment starts_on(io_scheduler, sndr) actually provides to the
+// child sender: get_scheduler and get_start_scheduler both answer the io
+// scheduler. stdexec::task's completion signatures are env-independent, but
+// `sender_in<S, spawn_env_t>` is kept so non-senders are rejected with a
+// clear compile error at the call site while stdexec::task is accepted.
+using spawn_env_t = decltype(stdexec::env{
+    stdexec::prop{stdexec::get_scheduler,
+                   std::declval<const dcb::IoContextScheduler&>()},
+    stdexec::prop{stdexec::get_start_scheduler,
+                   std::declval<const dcb::IoContextScheduler&>()}});
+
+// Launch a dispatch coroutine on the bridge io thread. The official
+// exec::start_detached terminates on set_error, so an upon_error log is
+// appended (the coroutine bodies below catch everything anyway). Every
+// dispatch function returns stdexec::task<void>, so S deduces to the same type
+// at every call site and the chain below instantiates exactly once.
+template <class S>
+  requires stdexec::sender_in<S, spawn_env_t>
+void spawn_on_io(S&& sndr) {
+  exec::start_detached(
+      stdexec::starts_on(*dcb::Runtime::instance().io_scheduler(),
+                         std::forward<S>(sndr)) |
+      stdexec::upon_error([](std::exception_ptr ep) noexcept {
+          try {
+            std::rethrow_exception(ep);
+          } catch (const std::exception& e) {
+            std::fprintf(stderr, "[wire] detached sender error: %s\n", e.what());
+          } catch (...) {
+            std::fprintf(stderr, "[wire] detached sender error: unknown\n");
+          }
+        }) |
+      stdexec::upon_stopped([]() noexcept {
+        std::fprintf(stderr, "[wire] detached sender stopped\n");
+      }));
+}
+
 void post_ok(const std::shared_ptr<Session>& s, std::uint64_t gen, std::uint64_t req,
              std::uint32_t method, const std::vector<std::uint8_t>& payload) {
   s->try_post(gen, make_frame(MsgType::kResponseOk, req, method, payload));
@@ -40,6 +79,70 @@ void post_err(const std::shared_ptr<Session>& s, std::uint64_t gen, std::uint64_
   w.i32(1);
   w.str(dcb::error::format(fn, msg));
   s->try_post(gen, make_frame(MsgType::kResponseErr, req, method, w.raw()));
+}
+
+// Receiver that turns a sender's completion into a Dart response frame:
+// set_value -> responseOk, set_error / set_stopped -> responseErr.
+// Same pattern as examples/base_demo/demo_api.cpp.
+template <typename T>
+struct DispatchReceiver {
+  using receiver_concept = stdexec::receiver_tag;
+
+  std::shared_ptr<Session> session;
+  std::uint64_t gen{0};
+  std::uint64_t req{0};
+  std::uint32_t method{0};
+  std::string name;
+  std::function<void(ByteWriter&, const T&)> encode;
+
+  void set_value(T v) && noexcept {
+    try {
+      ByteWriter w;
+      encode(w, v);
+      post_ok(session, gen, req, method, w.raw());
+    } catch (const std::exception& e) {
+      post_err(session, gen, req, method, name.c_str(), e.what());
+    } catch (...) {
+      post_err(session, gen, req, method, name.c_str(), "unknown");
+    }
+  }
+
+  void set_error(std::exception_ptr ep) && noexcept {
+    std::string msg = "unknown";
+    try {
+      std::rethrow_exception(ep);
+    } catch (const std::exception& e) {
+      msg = e.what();
+    } catch (...) {
+    }
+    post_err(session, gen, req, method, name.c_str(), msg);
+  }
+
+  void set_stopped() && noexcept {
+    post_err(session, gen, req, method, name.c_str(), "sender stopped");
+  }
+};
+
+// Offload a blocking business call to the thread pool via dcb::spawn_blocking
+// (its completion is delivered back on the io thread) and route the result
+// into a response frame. Replaces the old asio::post(pool) + asio::post(io)
+// double hop; exceptions from the business call become responseErr frames.
+template <typename T, stdexec::sender S, typename Encode>
+void run_async(const std::shared_ptr<Session>& session, std::uint64_t gen,
+               std::uint64_t req, std::uint32_t method, S&& sndr,
+               Encode&& encode, const char* name) {
+  try {
+    auto chain = stdexec::starts_on(*dcb::Runtime::instance().io_scheduler(),
+                                    std::forward<S>(sndr));
+    auto rcvr = DispatchReceiver<T>{
+        session, gen, req, method, name,
+        std::function<void(ByteWriter&, const T&)>(std::forward<Encode>(encode))};
+    dcb::start_with_receiver(std::move(chain), std::move(rcvr));
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, name, e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, name, "unknown");
+  }
 }
 
 }  // namespace
@@ -71,25 +174,39 @@ void dispatch_request(std::shared_ptr<Session> session, std::uint64_t session_id
       case 117270329: {
         ByteReader r(frame.payload.data(), frame.payload.size());
         const auto input = r.i32();
-        auto* io = &Runtime::instance().io();
-        asio::post(Runtime::instance().pool(), [session, gen, req, method, io, input]() {
-          try {
-            auto out = ::heavy_compute(input);
-            asio::post(*io, [session, gen, req, method, out = std::move(out)]() {
-              ByteWriter w;
+        run_async<std::string>(
+            session, gen, req, method,
+            dcb::spawn_blocking([input]() {
+              return ::heavy_compute(input);
+            }),
+            [](ByteWriter& w, const auto& out) {
               w.str(out);
-              post_ok(session, gen, req, method, w.raw());
-            });
-          } catch (const std::exception& e) {
-            asio::post(*io, [session, gen, req, method, msg = std::string(e.what())]() {
-              post_err(session, gen, req, method, "heavy_compute", msg);
-            });
-          } catch (...) {
-            asio::post(*io, [session, gen, req, method]() {
-              post_err(session, gen, req, method, "heavy_compute", "unknown");
-            });
-          }
-        });
+            },
+            "heavy_compute");
+        break;
+      }
+
+      case 673703455: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto img_data = reinterpret_cast<std::uint8_t*>(r.u64());
+        const auto img_data_len = r.i32();
+        const auto chapter_id = r.i32();
+        const auto url = r.str();
+        const auto file_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::uint8_t* img_data, std::int32_t img_data_len, std::int32_t chapter_id, std::string url, std::string file_name) -> stdexec::task<void> {
+  try {
+    co_await ::anti_obfuscation_picture(img_data, img_data_len, chapter_id, url, file_name);
+    ByteWriter w;
+
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "anti_obfuscation_picture", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "anti_obfuscation_picture", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, img_data, img_data_len, chapter_id, std::move(url), std::move(file_name));
+        spawn_on_io(std::move(task));
         break;
       }
 
@@ -109,20 +226,20 @@ void dispatch_request(std::shared_ptr<Session> session, std::uint64_t session_id
       case 1278131711: {
         ByteReader r(frame.payload.data(), frame.payload.size());
         const auto name = r.str();
-        Runtime::instance().spawn_on_asio(
-            [session, gen, req, method, name = std::move(name)]() -> async_simple::coro::Lazy<> {
-              try {
-                auto out = co_await ::fetch_greeting(name);
-                ByteWriter w;
-                w.str(out);
-                post_ok(session, gen, req, method, w.raw());
-              } catch (const std::exception& e) {
-                post_err(session, gen, req, method, "fetch_greeting", e.what());
-              } catch (...) {
-                post_err(session, gen, req, method, "fetch_greeting", "unknown");
-              }
-              co_return;
-            });
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::fetch_greeting(name);
+    ByteWriter w;
+    w.str(out);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "fetch_greeting", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "fetch_greeting", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(name));
+        spawn_on_io(std::move(task));
         break;
       }
       default:

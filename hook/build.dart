@@ -40,9 +40,6 @@ void main(List<String> args) async {
       sourceDir: 'native',
       assetName: 'src/native_gen/dcb_bindings.dart',
       libName: 'wind_core_cpp',
-      buildOptions: DcbBuildOptions(
-        compileCommandsPath: 'native/build/compile_commands.json',
-      ),
     ).run(input: input, output: output);
   });
 }

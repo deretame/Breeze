@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
@@ -11,8 +13,8 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 
+import 'package:zephyr/src/native_gen/api/bridge_api.dart' as dcb;
 import 'package:zephyr/src/rust/api/simple.dart';
-import 'package:zephyr/src/rust/decode/decode.dart';
 import 'package:zephyr/util/get_path.dart';
 
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
@@ -632,17 +634,22 @@ Future<void> decodeAndSaveImage(
     throw Exception('404');
   }
 
-  final imageInfo = ImageInfo(
-    imgData: imgData,
-    chapterId: chapterId,
-    fileName: fileName,
-    url: url,
-  );
-
+  // 图片字节走 native 指针传递（避免 wire 序列化大 buffer），
+  // Future 完成前必须保证内存有效，因此在 finally 中释放。
+  final imgPtr = calloc<Uint8>(imgData.length);
   try {
-    await antiObfuscationPicture(imageInfo: imageInfo);
+    imgPtr.asTypedList(imgData.length).setAll(0, imgData);
+    await dcb.antiObfuscationPicture(
+      imgData: imgPtr,
+      imgDataLen: imgData.length,
+      chapterId: chapterId,
+      url: url,
+      fileName: fileName,
+    );
   } catch (e, s) {
     logger.e(e, stackTrace: s);
     rethrow;
+  } finally {
+    calloc.free(imgPtr);
   }
 }

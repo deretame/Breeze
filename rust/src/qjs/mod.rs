@@ -144,14 +144,7 @@ fn is_task_group_cancelled(runtime_name: &str, task_group_key: &str) -> bool {
 }
 
 #[derive(Clone)]
-enum TrackedQjsTaskKind {
-    Call,
-    CallBytes,
-}
-
-#[derive(Clone)]
 enum TrackedQjsTaskOutput {
-    Json(String),
     Bytes(Vec<u8>),
 }
 
@@ -161,7 +154,6 @@ struct TrackedQjsTaskState {
 }
 
 struct TrackedQjsTask {
-    kind: TrackedQjsTaskKind,
     group_key: String,
     cancel_runtime_name: String,
     meta: TrackedQjsTaskMeta,
@@ -175,11 +167,6 @@ struct TrackedQjsTaskMeta {
     fn_path: String,
     args_preview: String,
     started_at: Instant,
-}
-
-#[derive(Debug, Clone)]
-pub struct QjsCancelTaskResult {
-    pub status: String,
 }
 
 #[derive(Debug, Clone)]
@@ -584,10 +571,6 @@ async fn tracked_task_debug_items(runtime_name: &str) -> Vec<Value> {
             let elapsed_ms = task.meta.started_at.elapsed().as_millis() as u64;
             json!({
                 "taskId": *task_id,
-                "kind": match task.kind {
-                    TrackedQjsTaskKind::Call => "call",
-                    TrackedQjsTaskKind::CallBytes => "call_bytes",
-                },
                 "groupKey": task.group_key,
                 "cancelRuntimeName": task.cancel_runtime_name,
                 "ready": task.state.is_ready(),
@@ -604,55 +587,17 @@ async fn tracked_task_debug_items(runtime_name: &str) -> Vec<Value> {
 fn spawn_tracked_task_waiter(
     handle: rquickjs_playground::RuntimeTaskHandle,
     state: Arc<TrackedQjsTaskState>,
-    kind: TrackedQjsTaskKind,
 ) {
     tokio::spawn(async move {
-        let outcome = match kind {
-            TrackedQjsTaskKind::Call => match handle.wait_async().await {
-                Ok(raw) => parse_ok_json_payload(&raw)
-                    .and_then(|payload| {
-                        serde_json::to_string(&payload)
-                            .context(rquickjs_playground::tr!("failed-to-serialize-call-result"))
-                    })
-                    .map(TrackedQjsTaskOutput::Json),
-                Err(err) => Err(anyhow!(err)),
+        let outcome = match handle.wait_async().await {
+            Ok(raw) => match parse_ok_json_payload(&raw) {
+                Ok(data) => value_to_bytes(&data).map(TrackedQjsTaskOutput::Bytes),
+                Err(err) => Err(err.to_string()),
             },
-            TrackedQjsTaskKind::CallBytes => handle
-                .wait_bytes_async()
-                .await
-                .map(TrackedQjsTaskOutput::Bytes)
-                .map_err(|err| anyhow!(err)),
+            Err(err) => Err(err.to_string()),
         };
 
-        state.complete(outcome.map_err(|err| err.to_string()));
-    });
-}
-
-fn spawn_tracked_bundle_once_task_waiter(
-    handle: rquickjs_playground::RuntimeTaskHandle,
-    state: Arc<TrackedQjsTaskState>,
-    kind: TrackedQjsTaskKind,
-) {
-    tokio::spawn(async move {
-        let outcome = match kind {
-            TrackedQjsTaskKind::Call => match handle.wait_async().await {
-                Ok(raw) => parse_ok_json_payload(&raw)
-                    .and_then(|payload| {
-                        serde_json::to_string(&payload).context(rquickjs_playground::tr!(
-                            "failed-to-serialize-one-shot-call-result"
-                        ))
-                    })
-                    .map(TrackedQjsTaskOutput::Json),
-                Err(err) => Err(anyhow!(err)),
-            },
-            TrackedQjsTaskKind::CallBytes => handle
-                .wait_bytes_async()
-                .await
-                .map(TrackedQjsTaskOutput::Bytes)
-                .map_err(|err| anyhow!(err)),
-        };
-
-        state.complete(outcome.map_err(|err| err.to_string()));
+        state.complete(outcome);
     });
 }
 
@@ -928,24 +873,6 @@ fn format_qjs_error_message(error: &str, stack: &str, debug_scope: &str) -> Stri
     format!("{scoped_message}\n{stack}")
 }
 
-async fn insert_runtime_task_id(runtime_name: &str, task_id: u64) {
-    let mut map = qjs_in_flight_task_map().write().await;
-    map.entry(runtime_name.to_owned())
-        .or_default()
-        .insert(task_id);
-}
-
-async fn remove_runtime_task_id(runtime_name: &str, task_id: u64) {
-    let mut map = qjs_in_flight_task_map().write().await;
-    let Some(task_ids) = map.get_mut(runtime_name) else {
-        return;
-    };
-    task_ids.remove(&task_id);
-    if task_ids.is_empty() {
-        map.remove(runtime_name);
-    }
-}
-
 async fn take_runtime_task_ids(runtime_name: &str) -> Vec<u64> {
     let mut map = qjs_in_flight_task_map().write().await;
     let Some(task_ids) = map.remove(runtime_name) else {
@@ -992,44 +919,6 @@ async fn replace_bundle_inner(
     load_bundle_inner(runtime, name, bundle_js).await
 }
 
-async fn call_loaded_bundle_inner(
-    runtime_name: &str,
-    runtime: &AsyncHostRuntime,
-    name: &str,
-    fn_path: &str,
-    args: &Value,
-) -> Result<Value> {
-    let handle = runtime
-        .bundle_call_start(name, fn_path, args)
-        .await
-        .map_err(|err| anyhow!(err))?;
-
-    let task_id = handle.id();
-    insert_runtime_task_id(runtime_name, task_id).await;
-
-    let raw = handle.wait_async().await;
-    remove_runtime_task_id(runtime_name, task_id).await;
-
-    let raw = match raw {
-        Ok(raw) => raw,
-        Err(err) => {
-            let message = err.to_string();
-            if is_cancelled_error_text(&message) {
-                tracing::info!(
-                    "{}",
-                    rquickjs_playground::tr!(
-                        "qjs-task-cancelled-waiting-for-result",
-                        message = message
-                    )
-                );
-                return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
-            }
-            return Err(anyhow!(err));
-        }
-    };
-    parse_ok_json_payload(&raw)
-}
-
 async fn call_loaded_bundle_start(
     runtime_name: &str,
     runtime: &AsyncHostRuntime,
@@ -1037,7 +926,6 @@ async fn call_loaded_bundle_start(
     fn_path: &str,
     args: &Value,
     task_group_key: &str,
-    kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     let handle = runtime
         .bundle_call_start(name, fn_path, args)
@@ -1047,7 +935,6 @@ async fn call_loaded_bundle_start(
     let task_id = handle.id();
     let state = Arc::new(TrackedQjsTaskState::new());
     let task = Arc::new(TrackedQjsTask {
-        kind: kind.clone(),
         group_key: task_group_key.to_owned(),
         cancel_runtime_name: runtime_name.to_owned(),
         meta: TrackedQjsTaskMeta {
@@ -1060,7 +947,7 @@ async fn call_loaded_bundle_start(
         state: Arc::clone(&state),
     });
     insert_tracked_task(runtime_name, task_id, task).await;
-    spawn_tracked_task_waiter(handle, state, kind);
+    spawn_tracked_task_waiter(handle, state);
 
     Ok(task_id)
 }
@@ -1071,7 +958,6 @@ async fn call_bundle_once_start_by_json(
     fn_path: &str,
     args_json: &str,
     task_group_key: &str,
-    kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     if bundle_js.trim().is_empty() {
         return Err(anyhow!(rquickjs_playground::tr!(
@@ -1088,7 +974,6 @@ async fn call_bundle_once_start_by_json(
     let task_id = handle.id();
     let state = Arc::new(TrackedQjsTaskState::new());
     let task = Arc::new(TrackedQjsTask {
-        kind: kind.clone(),
         group_key: task_group_key.to_owned(),
         cancel_runtime_name: runtime_name.to_owned(),
         meta: TrackedQjsTaskMeta {
@@ -1102,23 +987,9 @@ async fn call_bundle_once_start_by_json(
     });
 
     insert_tracked_task(runtime_name, task_id, task).await;
-    spawn_tracked_bundle_once_task_waiter(handle, state, kind);
+    spawn_tracked_task_waiter(handle, state);
 
     Ok(task_id)
-}
-
-async fn call_current_bundle_inner(
-    runtime_name: &str,
-    runtime: &AsyncHostRuntime,
-    fn_path: &str,
-    args: &Value,
-) -> Result<Value> {
-    let Some(name) = current_bundle_name(runtime).await? else {
-        return Err(anyhow!(rquickjs_playground::tr!(
-            "current-runtime-has-no-bundle-loaded-please-call"
-        )));
-    };
-    call_loaded_bundle_inner(runtime_name, runtime, &name, fn_path, args).await
 }
 
 async fn call_current_bundle_start(
@@ -1127,7 +998,6 @@ async fn call_current_bundle_start(
     fn_path: &str,
     args: &Value,
     task_group_key: &str,
-    kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     let Some(name) = current_bundle_name(runtime).await? else {
         return Err(anyhow!(rquickjs_playground::tr!(
@@ -1135,28 +1005,7 @@ async fn call_current_bundle_start(
         )));
     };
 
-    call_loaded_bundle_start(
-        runtime_name,
-        runtime,
-        &name,
-        fn_path,
-        args,
-        task_group_key,
-        kind,
-    )
-    .await
-}
-
-async fn call_bundle_once_inner(
-    runtime: &AsyncHostRuntime,
-    bundle_js: &str,
-    fn_path: &str,
-    args: &Value,
-) -> Result<Value> {
-    runtime
-        .bundle_call_once(bundle_js, fn_path, args)
-        .await
-        .map_err(|err| anyhow!(err))
+    call_loaded_bundle_start(runtime_name, runtime, &name, fn_path, args, task_group_key).await
 }
 
 fn parse_call_input(fn_path: &str, args_json: &str) -> Result<Value> {
@@ -1166,80 +1015,15 @@ fn parse_call_input(fn_path: &str, args_json: &str) -> Result<Value> {
     parse_args_array(args_json)
 }
 
-async fn call_current_bundle_by_json(
-    runtime_name: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<Value> {
-    let runtime = qjs_runtime(runtime_name).await?;
-    let args = parse_call_input(fn_path, args_json)?;
-    call_current_bundle_inner(runtime_name, &runtime, fn_path, &args).await
-}
-
 async fn call_current_bundle_start_by_json(
     runtime_name: &str,
     fn_path: &str,
     args_json: &str,
     task_group_key: &str,
-    kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     let runtime = qjs_runtime(runtime_name).await?;
     let args = parse_call_input(fn_path, args_json)?;
-    call_current_bundle_start(runtime_name, &runtime, fn_path, &args, task_group_key, kind).await
-}
-
-async fn call_bundle_once_by_json(
-    runtime_name: &str,
-    bundle_js: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<Value> {
-    if bundle_js.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::tr!(
-            "bundle_js-cannot-be-empty"
-        )));
-    }
-
-    let runtime = qjs_runtime(runtime_name).await?;
-    let args = parse_call_input(fn_path, args_json)?;
-    call_bundle_once_inner(&runtime, bundle_js, fn_path, &args).await
-}
-
-async fn call_current_bundle_bytes_auto_by_json(
-    runtime_name: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<Vec<u8>> {
-    let runtime = qjs_runtime(runtime_name).await?;
-    let args = parse_call_input(fn_path, args_json)?;
-    let Some(name) = current_bundle_name(&runtime).await? else {
-        return Err(anyhow!(rquickjs_playground::tr!(
-            "current-runtime-has-no-bundle-loaded-please-call"
-        )));
-    };
-    runtime
-        .bundle_call_bytes(&name, fn_path, &args)
-        .await
-        .map_err(|err| anyhow!(err))
-}
-
-async fn call_bundle_once_bytes_auto_by_json(
-    runtime_name: &str,
-    bundle_js: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<Vec<u8>> {
-    if bundle_js.trim().is_empty() {
-        return Err(anyhow!(rquickjs_playground::tr!(
-            "bundle_js-cannot-be-empty"
-        )));
-    }
-    let runtime = qjs_runtime(runtime_name).await?;
-    let args = parse_call_input(fn_path, args_json)?;
-    runtime
-        .bundle_call_once_bytes(bundle_js, fn_path, &args)
-        .await
-        .map_err(|err| anyhow!(err))
+    call_current_bundle_start(runtime_name, &runtime, fn_path, &args, task_group_key).await
 }
 
 async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
@@ -1305,47 +1089,16 @@ fn is_bundle_url(value: &str) -> bool {
     value.starts_with("http://") || value.starts_with("https://")
 }
 
-async fn call_bundle_once_bytes_auto_by_url(
-    runtime_name: &str,
-    bundle_url: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<Vec<u8>> {
-    let bundle_js = load_bundle_js_from_url(bundle_url).await?;
-    call_bundle_once_bytes_auto_by_json(runtime_name, &bundle_js, fn_path, args_json).await
-}
-
-async fn call_bundle_once_bytes_auto_by_input(
-    runtime_name: &str,
-    bundle_input: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<Vec<u8>> {
-    if is_bundle_url(bundle_input) {
-        return call_bundle_once_bytes_auto_by_url(runtime_name, bundle_input, fn_path, args_json)
-            .await;
-    }
-    call_bundle_once_bytes_auto_by_json(runtime_name, bundle_input, fn_path, args_json).await
-}
-
 async fn call_bundle_once_start_by_url(
     runtime_name: &str,
     bundle_url: &str,
     fn_path: &str,
     args_json: &str,
     task_group_key: &str,
-    kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     let bundle_js = load_bundle_js_from_url(bundle_url).await?;
-    call_bundle_once_start_by_json(
-        runtime_name,
-        &bundle_js,
-        fn_path,
-        args_json,
-        task_group_key,
-        kind,
-    )
-    .await
+    call_bundle_once_start_by_json(runtime_name, &bundle_js, fn_path, args_json, task_group_key)
+        .await
 }
 
 async fn call_bundle_once_start_by_input(
@@ -1354,7 +1107,6 @@ async fn call_bundle_once_start_by_input(
     fn_path: &str,
     args_json: &str,
     task_group_key: &str,
-    kind: TrackedQjsTaskKind,
 ) -> Result<u64> {
     if is_bundle_url(bundle_input) {
         return call_bundle_once_start_by_url(
@@ -1363,7 +1115,6 @@ async fn call_bundle_once_start_by_input(
             fn_path,
             args_json,
             task_group_key,
-            kind,
         )
         .await;
     }
@@ -1373,7 +1124,6 @@ async fn call_bundle_once_start_by_input(
         fn_path,
         args_json,
         task_group_key,
-        kind,
     )
     .await
 }
@@ -1389,28 +1139,16 @@ async fn current_bundle_name(runtime: &AsyncHostRuntime) -> Result<Option<String
     Ok(Some(names.swap_remove(0)))
 }
 
-async fn wait_tracked_task_output(
-    runtime_name: &str,
-    task_id: u64,
-    expected_kind: TrackedQjsTaskKind,
-) -> Result<TrackedQjsTaskOutput> {
+async fn wait_tracked_task_bytes(runtime_name: &str, task_id: u64) -> Result<Vec<u8>> {
     let task: Arc<TrackedQjsTask> = get_tracked_task(runtime_name, task_id)
         .await
         .ok_or_else(|| anyhow!("任务不存在: {task_id}"))?;
 
-    let kind_matches = matches!(
-        (&task.kind, &expected_kind),
-        (TrackedQjsTaskKind::Call, TrackedQjsTaskKind::Call)
-            | (TrackedQjsTaskKind::CallBytes, TrackedQjsTaskKind::CallBytes,)
-    );
-
-    if !kind_matches {
-        return Err(anyhow!("任务类型不匹配: {task_id}"));
-    }
-
-    let outcome = task.state.wait().await;
+    let outcome = task.state.wait().await?;
     let _ = remove_tracked_task(runtime_name, task_id).await;
-    outcome
+    match outcome {
+        TrackedQjsTaskOutput::Bytes(bytes) => Ok(bytes),
+    }
 }
 
 pub async fn qjs_replace_bundle(
@@ -1422,69 +1160,57 @@ pub async fn qjs_replace_bundle(
     replace_bundle_inner(&runtime, &bundle_name, &bundle_js).await
 }
 
-pub async fn qjs_call(runtime_name: String, fn_path: String, args_json: String) -> Result<String> {
-    let data = call_current_bundle_by_json(&runtime_name, &fn_path, &args_json).await?;
-    serde_json::to_string(&data).context("序列化调用结果失败")
-}
-
-pub async fn qjs_call_task_start(
+/// 统一执行入口:调用插件 bundle 里的函数,返回原始字节。
+///
+/// - `is_once=true`:用 `bundle_js`/`bundle_url` 的源码走一次性 debug 池(不常驻)。
+/// - `is_once=false`:走常驻运行时里已加载的当前 bundle。
+/// - 返回值为原始字节:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
+///   否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
+pub async fn qjs_task_call(
     runtime_name: String,
     task_group_key: String,
+    is_once: bool,
+    bundle_js: Option<String>,
+    bundle_url: Option<String>,
     fn_path: String,
     args_json: String,
-) -> Result<u64> {
-    clear_task_group_cancelled(&runtime_name, &task_group_key);
-    call_current_bundle_start_by_json(
-        &runtime_name,
-        &fn_path,
-        &args_json,
-        &task_group_key,
-        TrackedQjsTaskKind::Call,
-    )
-    .await
-}
-
-pub async fn qjs_call_task_wait(runtime_name: String, task_id: u64) -> Result<String> {
-    match wait_tracked_task_output(&runtime_name, task_id, TrackedQjsTaskKind::Call).await? {
-        TrackedQjsTaskOutput::Json(raw) => Ok(raw),
-        TrackedQjsTaskOutput::Bytes(_) => Err(anyhow!("任务类型不匹配: {task_id}")),
+) -> Result<Vec<u8>> {
+    if !task_group_key.is_empty() {
+        clear_task_group_cancelled(&runtime_name, &task_group_key);
     }
+
+    let task_id = if is_once {
+        let bundle_input = match (bundle_js, bundle_url) {
+            (Some(js), _) => js,
+            (None, Some(url)) => load_bundle_js_from_url(&url).await?,
+            (None, None) => {
+                return Err(anyhow!("once 模式必须提供 bundle_js 或 bundle_url"));
+            }
+        };
+        call_bundle_once_start_by_input(
+            &runtime_name,
+            &bundle_input,
+            &fn_path,
+            &args_json,
+            &task_group_key,
+        )
+        .await?
+    } else {
+        call_current_bundle_start_by_json(&runtime_name, &fn_path, &args_json, &task_group_key)
+            .await?
+    };
+
+    wait_tracked_task_bytes(&runtime_name, task_id).await
 }
 
-pub async fn qjs_call_once(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<String> {
-    let data = call_bundle_once_by_json(&runtime_name, &bundle_js, &fn_path, &args_json).await?;
-    serde_json::to_string(&data).context("序列化一次性调用结果失败")
-}
-
-pub async fn qjs_call_once_task_start(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-    task_group_key: String,
-) -> Result<u64> {
-    clear_task_group_cancelled(&runtime_name, &task_group_key);
-    call_bundle_once_start_by_json(
-        &runtime_name,
-        &bundle_js,
-        &fn_path,
-        &args_json,
-        &task_group_key,
-        TrackedQjsTaskKind::Call,
-    )
-    .await
-}
-
-pub async fn qjs_call_once_task_wait(runtime_name: String, task_id: u64) -> Result<String> {
-    match wait_tracked_task_output(&runtime_name, task_id, TrackedQjsTaskKind::Call).await? {
-        TrackedQjsTaskOutput::Json(raw) => Ok(raw),
-        TrackedQjsTaskOutput::Bytes(_) => Err(anyhow!("任务类型不匹配: {task_id}")),
+fn value_to_bytes(data: &Value) -> Result<Vec<u8>, String> {
+    if let Some(obj) = data.as_object() {
+        if let Some(id) = obj.get("nativeBufferId").and_then(Value::as_u64) {
+            return rquickjs_playground::web_runtime::native_buffer_take_raw(id)
+                .ok_or_else(|| "native buffer 不存在或已被消费".to_string());
+        }
     }
+    serde_json::to_vec(data).map_err(|e| format!("序列化结果为字节失败: {e}"))
 }
 
 pub async fn qjs_clear_bundle(runtime_name: String) -> Result<bool> {
@@ -1629,32 +1355,6 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
     .context("序列化 qjs 调试快照失败")
 }
 
-pub async fn qjs_cancel_task(runtime_name: String, task_id: u64) -> Result<QjsCancelTaskResult> {
-    let Some(task) = get_tracked_task(&runtime_name, task_id).await else {
-        return Ok(QjsCancelTaskResult {
-            status: "not_found".to_string(),
-        });
-    };
-
-    if task.state.is_ready() {
-        let _ = remove_tracked_task(&runtime_name, task_id).await;
-        return Ok(QjsCancelTaskResult {
-            status: "not_found".to_string(),
-        });
-    }
-
-    let runtime = qjs_runtime(&task.cancel_runtime_name).await?;
-    if !runtime.cancel(task_id) {
-        return Err(anyhow!("取消任务失败: runtime 不可用"));
-    }
-
-    complete_tracked_task_as_cancelled(&task);
-    let _ = remove_tracked_task(&runtime_name, task_id).await;
-    Ok(QjsCancelTaskResult {
-        status: "cancelled".to_string(),
-    })
-}
-
 pub async fn qjs_cancel_tasks_by_group(
     runtime_name: String,
     task_group_key: String,
@@ -1719,124 +1419,6 @@ pub async fn qjs_cancel_tasks_by_group(
         not_found: not_found as i32,
         failed_runtime_groups,
     })
-}
-
-pub async fn qjs_fetch_image_bytes(
-    runtime_name: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    qjs_fetch_bytes_auto(runtime_name, fn_path, args_json).await
-}
-
-pub async fn qjs_fetch_image_bytes_task_start(
-    runtime_name: String,
-    task_group_key: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<u64> {
-    clear_task_group_cancelled(&runtime_name, &task_group_key);
-    call_current_bundle_start_by_json(
-        &runtime_name,
-        &fn_path,
-        &args_json,
-        &task_group_key,
-        TrackedQjsTaskKind::CallBytes,
-    )
-    .await
-}
-
-pub async fn qjs_fetch_image_bytes_task_wait(
-    runtime_name: String,
-    task_id: u64,
-) -> Result<Vec<u8>> {
-    match wait_tracked_task_output(&runtime_name, task_id, TrackedQjsTaskKind::CallBytes).await? {
-        TrackedQjsTaskOutput::Bytes(bytes) => Ok(bytes),
-        TrackedQjsTaskOutput::Json(_) => Err(anyhow!("任务类型不匹配(期望二进制): {task_id}")),
-    }
-}
-
-pub async fn qjs_fetch_image_bytes_once(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    qjs_fetch_bytes_auto_once(runtime_name, bundle_js, fn_path, args_json).await
-}
-
-pub async fn qjs_fetch_bytes_auto(
-    runtime_name: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    call_current_bundle_bytes_auto_by_json(&runtime_name, &fn_path, &args_json).await
-}
-
-pub async fn qjs_fetch_bytes_auto_once(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    call_bundle_once_bytes_auto_by_input(&runtime_name, &bundle_js, &fn_path, &args_json).await
-}
-
-pub async fn qjs_fetch_bytes_auto_once_by_url(
-    runtime_name: String,
-    bundle_url: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    call_bundle_once_bytes_auto_by_url(&runtime_name, &bundle_url, &fn_path, &args_json).await
-}
-
-pub async fn qjs_fetch_image_bytes_once_task_start(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-    task_group_key: String,
-) -> Result<u64> {
-    clear_task_group_cancelled(&runtime_name, &task_group_key);
-    call_bundle_once_start_by_input(
-        &runtime_name,
-        &bundle_js,
-        &fn_path,
-        &args_json,
-        &task_group_key,
-        TrackedQjsTaskKind::CallBytes,
-    )
-    .await
-}
-
-pub async fn qjs_fetch_image_bytes_once_task_start_by_url(
-    runtime_name: String,
-    bundle_url: String,
-    fn_path: String,
-    args_json: String,
-    task_group_key: String,
-) -> Result<u64> {
-    clear_task_group_cancelled(&runtime_name, &task_group_key);
-    call_bundle_once_start_by_url(
-        &runtime_name,
-        &bundle_url,
-        &fn_path,
-        &args_json,
-        &task_group_key,
-        TrackedQjsTaskKind::CallBytes,
-    )
-    .await
-}
-
-pub async fn qjs_fetch_image_bytes_once_task_wait(
-    runtime_name: String,
-    task_id: u64,
-) -> Result<Vec<u8>> {
-    match wait_tracked_task_output(&runtime_name, task_id, TrackedQjsTaskKind::CallBytes).await? {
-        TrackedQjsTaskOutput::Bytes(bytes) => Ok(bytes),
-        TrackedQjsTaskOutput::Json(_) => Err(anyhow!("任务类型不匹配(期望二进制): {task_id}")),
-    }
 }
 
 pub fn set_http_proxy(proxy: String) -> Result<()> {

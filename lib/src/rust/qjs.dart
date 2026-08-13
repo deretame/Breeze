@@ -6,22 +6,6 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-class QjsCancelTaskResult {
-  final String status;
-
-  const QjsCancelTaskResult({required this.status});
-
-  @override
-  int get hashCode => status.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QjsCancelTaskResult &&
-          runtimeType == other.runtimeType &&
-          status == other.status;
-}
-
 class QjsCancelTasksByGroupResult {
   final int cancelled;
   final int notFound;

@@ -283,12 +283,15 @@ Map<String, dynamic>? pickPreferredPluginAsset(List<dynamic> rawAssets) {
 
 Future<Map<String, dynamic>> callGetInfoByGlobalQjs(String bundleJs) async {
   await PluginRegistryService.I.initializeGlobalRuntime();
-  final raw = await qjsCallOnce(
+  final bytes = await qjsTaskCall(
     runtimeName: 'global',
+    taskGroupKey: '',
+    isOnce: true,
     bundleJs: bundleJs,
     fnPath: 'getInfo',
     argsJson: '{}',
   );
+  final raw = utf8.decode(bytes, allowMalformed: true);
   return requireJsonMap(jsonDecode(raw), message: 'getInfo 返回格式错误');
 }
 

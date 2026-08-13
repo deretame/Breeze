@@ -33,10 +33,6 @@ impl Default for HttpClientState {
     }
 }
 
-pub(crate) fn http_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
-    HTTP_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
-}
-
 fn http_promise_cancel_senders() -> &'static Mutex<HashMap<u64, oneshot::Sender<()>>> {
     static HTTP_PROMISE_CANCEL_SENDERS: OnceLock<Mutex<HashMap<u64, oneshot::Sender<()>>>> =
         OnceLock::new();
@@ -122,78 +118,6 @@ fn header_truthy(value: &str) -> bool {
         value.trim().to_ascii_lowercase().as_str(),
         "1" | "true" | "yes" | "on"
     )
-}
-
-fn is_binary_content(content_type: &str) -> bool {
-    let ct = content_type.to_lowercase();
-
-    if ct.starts_with("text/")
-        || ct.contains("json")
-        || ct.contains("xml")
-        || ct.contains("javascript")
-    {
-        return false;
-    }
-
-    if ct.starts_with("image/")
-        || ct.starts_with("audio/")
-        || ct.starts_with("video/")
-        || ct.starts_with("font/")
-        || ct.starts_with("multipart/")
-    {
-        return true;
-    }
-
-    static BINARY_PREFIXES: &[&str] = &[
-        "application/octet-stream",
-        "application/pdf",
-        "application/zip",
-        "application/gzip",
-        "application/wasm",
-        "application/vnd",
-        "application/x-protobuf",
-        "application/x-msgpack",
-    ];
-
-    BINARY_PREFIXES.iter().any(|&prefix| ct.starts_with(prefix))
-}
-
-fn should_auto_offload_response(headers: &reqwest::header::HeaderMap) -> bool {
-    if let Some(content_disposition) = headers
-        .get(reqwest::header::CONTENT_DISPOSITION)
-        .and_then(|v| v.to_str().ok())
-    {
-        let cd = content_disposition.to_ascii_lowercase();
-        if cd.contains("attachment") {
-            return true;
-        }
-    }
-
-    if let Some(content_length) = headers
-        .get(reqwest::header::CONTENT_LENGTH)
-        .and_then(|v| v.to_str().ok())
-        .and_then(|v| v.parse::<u64>().ok())
-    {
-        if content_length >= HTTP_AUTO_OFFLOAD_SIZE_THRESHOLD {
-            return true;
-        }
-    }
-
-    let content_type = headers
-        .get(reqwest::header::CONTENT_TYPE)
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-
-    if content_type.is_empty() {
-        return false;
-    }
-
-    if is_binary_content(&content_type) {
-        return true;
-    }
-
-    false
 }
 
 #[derive(Debug, Deserialize)]
@@ -414,115 +338,6 @@ pub fn build_http_client_ex(
     Ok(client)
 }
 
-pub fn http_request_start(
-    method: String,
-    url: String,
-    headers_json: String,
-    body: Option<String>,
-) -> String {
-    {
-        let mut pool = http_req_pool()
-            .lock()
-            .expect(&crate::tr!("failed-to-lock-http-request-pool"));
-        cleanup_stale_pending(&mut pool, &HTTP_STALE_DROPS);
-        if pool.len() >= HTTP_MAX_PENDING {
-            return json!({ "ok": false, "error": crate::tr!("http-pending-queue-is-full") })
-                .to_string();
-        }
-    }
-
-    let id = HTTP_REQ_ID.fetch_add(1, Ordering::Relaxed);
-    let (tx, rx) = mpsc::channel::<String>();
-    let sem = Arc::clone(http_io_sem());
-    let request_label = format!("method={} url={}", method, url);
-
-    let task = tokio::runtime::Handle::try_current()
-        .unwrap()
-        .spawn(async move {
-            let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
-                Ok(Ok(permit)) => permit,
-                Ok(Err(_)) => {
-                    let _ = tx.send(
-                        json!({ "ok": false, "error": crate::tr!("http-concurrency-controller-unavailable") })
-                            .to_string(),
-                    );
-                    return;
-                }
-                Err(_) => {
-                    let _ = tx.send(
-                        json!({ "ok": false, "error": crate::tr!("timed-out-waiting-for-http-concurrency-permit") })
-                            .to_string(),
-                    );
-                    return;
-                }
-            };
-            let payload =
-                match http_request_inner_async(method, url, headers_json, body, None).await {
-                    Ok(payload) => payload,
-                    Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
-                };
-            drop(permit);
-            let _ = tx.send(payload);
-        });
-
-    {
-        let mut pool = http_req_pool()
-            .lock()
-            .expect(&crate::tr!("failed-to-lock-http-request-pool"));
-        pool.insert(
-            id,
-            PendingTask {
-                rx,
-                task,
-                created_at: Instant::now(),
-                meta: PendingTaskMeta {
-                    kind: "http",
-                    label: request_label,
-                },
-            },
-        );
-    }
-
-    json!({ "ok": true, "id": id }).to_string()
-}
-
-pub fn http_request_try_take(id: u64) -> String {
-    let mut pool = http_req_pool()
-        .lock()
-        .expect(&crate::tr!("failed-to-lock-http-request-pool"));
-    cleanup_stale_pending(&mut pool, &HTTP_STALE_DROPS);
-    let Some(pending) = pool.get_mut(&id) else {
-        return json!({ "ok": false, "error": crate::tr!("request-id-does-not-exist") })
-            .to_string();
-    };
-
-    match pending.rx.try_recv() {
-        Ok(result) => {
-            pool.remove(&id);
-            json!({ "ok": true, "done": true, "result": result }).to_string()
-        }
-        Err(TryRecvError::Empty) => json!({ "ok": true, "done": false }).to_string(),
-        Err(TryRecvError::Disconnected) => {
-            pool.remove(&id);
-            json!({ "ok": false, "error": crate::tr!("request-execution-thread-panicked") })
-                .to_string()
-        }
-    }
-}
-
-pub fn http_request_drop(id: u64) -> String {
-    let mut pool = http_req_pool()
-        .lock()
-        .expect(&crate::tr!("failed-to-lock-http-request-pool"));
-    let existed = if let Some(pending) = pool.remove(&id) {
-        pending.task.abort();
-        true
-    } else {
-        false
-    };
-    json!({ "ok": true, "dropped": existed }).to_string()
-}
-
 pub fn http_request_promise(
     ctx: Ctx<'_>,
     method: String,
@@ -613,7 +428,6 @@ async fn http_request_inner_async(
     let headers_value: Value = serde_json::from_str(&headers_json)
         .context(crate::tr!("failed-to-parse-http-headers-json"))?;
     let client = http_client()?;
-    let mut offload_body_to_native = false;
     let mut formdata_body = false;
     let mut plain_headers: Vec<(String, String)> = Vec::new();
 
@@ -622,10 +436,6 @@ async fn http_request_inner_async(
     if let Value::Object(obj) = headers_value {
         for (key, value) in obj {
             if let Some(v) = value.as_str() {
-                if key.eq_ignore_ascii_case(HTTP_OFFLOAD_BODY_HEADER) {
-                    offload_body_to_native = header_truthy(v);
-                    continue;
-                }
                 if key.eq_ignore_ascii_case(HTTP_FORMDATA_BODY_HEADER) {
                     formdata_body = header_truthy(v);
                     continue;
@@ -664,7 +474,6 @@ async fn http_request_inner_async(
         .send()
         .await
         .context(crate::tr!("failed-to-send-http-request"))?;
-    let auto_offload_body = should_auto_offload_response(response.headers());
     let status = response.status();
     let final_url = response.url().to_string();
 
@@ -676,50 +485,21 @@ async fn http_request_inner_async(
         headers_map.insert(name.to_string(), Value::String(value_text));
     }
 
-    if offload_body_to_native || auto_offload_body {
-        let body_bytes = response
-            .bytes()
-            .await
-            .context(crate::tr!("failed-to-read-http-response-body-bytes"))?
-            .to_vec();
-
-        let native_buffer_id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
-        let body_len = body_bytes.len();
-
-        {
-            let mut pool = native_pool()
-                .lock()
-                .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
-            pool.insert(native_buffer_id, NativeBufferEntry::new(body_bytes));
-        }
-
-        headers_map.insert(
-            "x-rquickjs-host-offloaded".to_string(),
-            Value::String("1".to_string()),
-        );
-        headers_map.insert(
-            "x-rquickjs-host-native-buffer-id".to_string(),
-            Value::String(native_buffer_id.to_string()),
-        );
-
-        return Ok(json!({
-            "ok": true,
-            "status": status.as_u16(),
-            "statusText": status.canonical_reason().unwrap_or(""),
-            "url": final_url,
-            "headers": headers_map,
-            "body": "",
-            "offloaded": true,
-            "nativeBufferId": native_buffer_id,
-            "offloadedBytes": body_len
-        })
-        .to_string());
-    }
-
-    let body_text = response
-        .text()
+    let body_bytes = response
+        .bytes()
         .await
-        .context(crate::tr!("failed-to-read-http-response-body"))?;
+        .context(crate::tr!("failed-to-read-http-response-body-bytes"))?
+        .to_vec();
+
+    let native_buffer_id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
+    let body_len = body_bytes.len();
+
+    {
+        let mut pool = native_pool()
+            .lock()
+            .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
+        pool.insert(native_buffer_id, NativeBufferEntry::new(body_bytes));
+    }
 
     Ok(json!({
         "ok": true,
@@ -727,7 +507,10 @@ async fn http_request_inner_async(
         "statusText": status.canonical_reason().unwrap_or(""),
         "url": final_url,
         "headers": headers_map,
-        "body": body_text
+        "body": "",
+        "offloaded": true,
+        "nativeBufferId": native_buffer_id,
+        "offloadedBytes": body_len
     })
     .to_string())
 }

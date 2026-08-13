@@ -192,12 +192,15 @@ class PluginRegistryService {
 
     final onceRuntimeName = 'plugin_info_${uuid.replaceAll('-', '_')}';
     final bundleJs = await _resolveBundleJs(plugin);
-    final raw = await qjsCallOnce(
+    final bytes = await qjsTaskCall(
       runtimeName: onceRuntimeName,
+      taskGroupKey: '',
+      isOnce: true,
       bundleJs: bundleJs,
       fnPath: 'getInfo',
       argsJson: '{}',
     );
+    final raw = utf8.decode(bytes, allowMalformed: true);
     final decoded = requireJsonMap(jsonDecode(raw));
     _pluginInfoCache[uuid] = decoded;
     await updateLoadResult(uuid, success: true, error: null);

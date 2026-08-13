@@ -213,15 +213,6 @@
           this.__fetchStateId = null;
         }
       }
-      if (typeof globalThis.__body_state_register === "function") {
-        try {
-          this.__bodyStateId = Number(globalThis.__body_state_register());
-        } catch (_err) {
-          this.__bodyStateId = null;
-        }
-      } else {
-        this.__bodyStateId = null;
-      }
     }
 
     get bodyUsed() {
@@ -247,21 +238,13 @@
       if (this.__fetchStateId !== null && this.__fetchStateId !== undefined) {
         if (typeof globalThis.__fetch_state_try_consume === "function") {
           try {
-            if (globalThis.__fetch_state_try_consume(Number(this.__fetchStateId)) !== true) {
-              return false;
-            }
+            return globalThis.__fetch_state_try_consume(Number(this.__fetchStateId)) === true;
           } catch (_err) {
             return false;
           }
         }
       }
-      if (this.__bodyStateId === null || this.__bodyStateId === undefined) return true;
-      if (typeof globalThis.__body_state_try_consume !== "function") return true;
-      try {
-        return globalThis.__body_state_try_consume(Number(this.__bodyStateId)) === true;
-      } catch (_err) {
-        return false;
-      }
+      return true;
     }
 
     _isBodyStateConsumed() {
@@ -274,13 +257,7 @@
           }
         }
       }
-      if (this.__bodyStateId === null || this.__bodyStateId === undefined) return this.bodyUsed === true;
-      if (typeof globalThis.__body_state_is_consumed !== "function") return this.bodyUsed === true;
-      try {
-        return globalThis.__body_state_is_consumed(Number(this.__bodyStateId)) === true;
-      } catch (_err) {
-        return true;
-      }
+      return this.bodyUsed === true;
     }
 
     _consumeBody() {
@@ -1120,12 +1097,12 @@
           throw new TypeError(payload.error || "网络请求失败");
         }
 
-        return new Response(payload.body || "", {
+        return new Response("", {
           status: payload.status,
           statusText: payload.statusText,
           headers: payload.headers || {},
           url: payload.url || request.url,
-          offloaded: payload.offloaded === true,
+          offloaded: true,
           nativeBufferId: payload.nativeBufferId,
           offloadedBytes: payload.offloadedBytes,
         });

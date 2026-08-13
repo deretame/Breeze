@@ -17,68 +17,28 @@ Future<void> qjsReplaceBundle({
   bundleJs: bundleJs,
 );
 
-Future<String> qjsCall({
-  required String runtimeName,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsCall(
-  runtimeName: runtimeName,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<BigInt> qjsCallTaskStart({
+/// 统一执行入口:调用插件 bundle 里的函数,返回原始字节。
+///
+/// `is_once=true` 用 `bundle_js`/`bundle_url` 走一次性 debug 池(不常驻);
+/// `false` 走常驻运行时里已加载的当前 bundle。
+/// 返回值为原始字节:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
+/// 否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
+Future<Uint8List> qjsTaskCall({
   required String runtimeName,
   required String taskGroupKey,
+  required bool isOnce,
+  String? bundleJs,
+  String? bundleUrl,
   required String fnPath,
   required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsCallTaskStart(
+}) => RustLib.instance.api.crateApiQjsQjsTaskCall(
   runtimeName: runtimeName,
   taskGroupKey: taskGroupKey,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<String> qjsCallTaskWait({
-  required String runtimeName,
-  required BigInt taskId,
-}) => RustLib.instance.api.crateApiQjsQjsCallTaskWait(
-  runtimeName: runtimeName,
-  taskId: taskId,
-);
-
-Future<String> qjsCallOnce({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsCallOnce(
-  runtimeName: runtimeName,
+  isOnce: isOnce,
   bundleJs: bundleJs,
+  bundleUrl: bundleUrl,
   fnPath: fnPath,
   argsJson: argsJson,
-);
-
-Future<BigInt> qjsCallOnceTaskStart({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-  required String taskGroupKey,
-}) => RustLib.instance.api.crateApiQjsQjsCallOnceTaskStart(
-  runtimeName: runtimeName,
-  bundleJs: bundleJs,
-  fnPath: fnPath,
-  argsJson: argsJson,
-  taskGroupKey: taskGroupKey,
-);
-
-Future<String> qjsCallOnceTaskWait({
-  required String runtimeName,
-  required BigInt taskId,
-}) => RustLib.instance.api.crateApiQjsQjsCallOnceTaskWait(
-  runtimeName: runtimeName,
-  taskId: taskId,
 );
 
 Future<bool> qjsClearBundle({required String runtimeName}) =>
@@ -90,14 +50,6 @@ Future<String> qjsCurrentBundle({required String runtimeName}) =>
 Future<bool> qjsDropRuntime({required String runtimeName}) =>
     RustLib.instance.api.crateApiQjsQjsDropRuntime(runtimeName: runtimeName);
 
-Future<QjsCancelTaskResult> qjsCancelTask({
-  required String runtimeName,
-  required BigInt taskId,
-}) => RustLib.instance.api.crateApiQjsQjsCancelTask(
-  runtimeName: runtimeName,
-  taskId: taskId,
-);
-
 Future<QjsCancelTasksByGroupResult> qjsCancelTasksByGroup({
   required String runtimeName,
   required String taskGroupKey,
@@ -106,117 +58,8 @@ Future<QjsCancelTasksByGroupResult> qjsCancelTasksByGroup({
   taskGroupKey: taskGroupKey,
 );
 
-Future<Uint8List> qjsFetchImageBytes({
-  required String runtimeName,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytes(
-  runtimeName: runtimeName,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<BigInt> qjsFetchImageBytesTaskStart({
-  required String runtimeName,
-  required String taskGroupKey,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesTaskStart(
-  runtimeName: runtimeName,
-  taskGroupKey: taskGroupKey,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<Uint8List> qjsFetchImageBytesTaskWait({
-  required String runtimeName,
-  required BigInt taskId,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesTaskWait(
-  runtimeName: runtimeName,
-  taskId: taskId,
-);
-
-Future<Uint8List> qjsFetchImageBytesOnce({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnce(
-  runtimeName: runtimeName,
-  bundleJs: bundleJs,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<Uint8List> qjsFetchBytesAuto({
-  required String runtimeName,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchBytesAuto(
-  runtimeName: runtimeName,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<Uint8List> qjsFetchBytesAutoOnce({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchBytesAutoOnce(
-  runtimeName: runtimeName,
-  bundleJs: bundleJs,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<Uint8List> qjsFetchBytesAutoOnceByUrl({
-  required String runtimeName,
-  required String bundleUrl,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchBytesAutoOnceByUrl(
-  runtimeName: runtimeName,
-  bundleUrl: bundleUrl,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<BigInt> qjsFetchImageBytesOnceTaskStart({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-  required String taskGroupKey,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskStart(
-  runtimeName: runtimeName,
-  bundleJs: bundleJs,
-  fnPath: fnPath,
-  argsJson: argsJson,
-  taskGroupKey: taskGroupKey,
-);
-
-Future<BigInt> qjsFetchImageBytesOnceTaskStartByUrl({
-  required String runtimeName,
-  required String bundleUrl,
-  required String fnPath,
-  required String argsJson,
-  required String taskGroupKey,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskStartByUrl(
-  runtimeName: runtimeName,
-  bundleUrl: bundleUrl,
-  fnPath: fnPath,
-  argsJson: argsJson,
-  taskGroupKey: taskGroupKey,
-);
-
-Future<Uint8List> qjsFetchImageBytesOnceTaskWait({
-  required String runtimeName,
-  required BigInt taskId,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskWait(
-  runtimeName: runtimeName,
-  taskId: taskId,
-);
+Future<String> qjsDebugSnapshot({required String runtimeName}) =>
+    RustLib.instance.api.crateApiQjsQjsDebugSnapshot(runtimeName: runtimeName);
 
 Future<void> setHttpProxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
@@ -265,9 +108,6 @@ Future<bool> isQjsRuntimeInitialized({required String name}) =>
 
 Future<void> buildQjsRuntime({required QjsRuntimeBuildRequest request}) =>
     RustLib.instance.api.crateApiQjsBuildQjsRuntime(request: request);
-
-Future<String> qjsDebugSnapshot({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsDebugSnapshot(runtimeName: runtimeName);
 
 void registerFunction({
   required String functionName,

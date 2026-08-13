@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:async';
 
-import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
@@ -11,17 +10,7 @@ import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 
-class _TrackedQjsTaskRef extends Equatable {
-  const _TrackedQjsTaskRef({required this.runtimeName, required this.taskId});
-
-  final String runtimeName;
-  final BigInt taskId;
-
-  @override
-  List<Object?> get props => [runtimeName, taskId];
-}
-
-final Map<String, Set<_TrackedQjsTaskRef>> _trackedTaskRefsByGroup = {};
+final Map<String, Set<String>> _trackedRuntimesByGroup = {};
 final Set<String> _runtimeInitDone = <String>{};
 
 String runtimeNameForPluginId(String pluginIdOrLegacy) {
@@ -40,26 +29,25 @@ String _buildTaskGroupId(String pluginId, String taskGroupKey) {
   return '$pluginId::$taskGroupKey';
 }
 
-void _trackTaskRef({
+void _trackRuntime({
   required String pluginId,
   required String taskGroupKey,
-  required _TrackedQjsTaskRef taskRef,
+  required String runtimeName,
 }) {
-  (_trackedTaskRefsByGroup[_buildTaskGroupId(pluginId, taskGroupKey)] ??=
-          <_TrackedQjsTaskRef>{})
-      .add(taskRef);
+  (_trackedRuntimesByGroup[_buildTaskGroupId(pluginId, taskGroupKey)] ??= <String>{})
+      .add(runtimeName);
 }
 
-void _untrackTaskRef({
+void _untrackRuntime({
   required String pluginId,
   required String taskGroupKey,
-  required _TrackedQjsTaskRef taskRef,
+  required String runtimeName,
 }) {
   final groupId = _buildTaskGroupId(pluginId, taskGroupKey);
-  final refs = _trackedTaskRefsByGroup[groupId];
-  refs?.remove(taskRef);
+  final refs = _trackedRuntimesByGroup[groupId];
+  refs?.remove(runtimeName);
   if (refs != null && refs.isEmpty) {
-    _trackedTaskRefsByGroup.remove(groupId);
+    _trackedRuntimesByGroup.remove(groupId);
   }
 }
 
@@ -113,7 +101,13 @@ Future<void> _runRuntimeInitIfNeeded(String runtimeName) async {
     return;
   }
   try {
-    await qjsCall(runtimeName: runtimeName, fnPath: 'init', argsJson: '{}');
+    await qjsTaskCall(
+      runtimeName: runtimeName,
+      taskGroupKey: '',
+      isOnce: false,
+      fnPath: 'init',
+      argsJson: '{}',
+    );
     _runtimeInitDone.add(runtimeName);
   } catch (e) {
     if (e.toString().contains('target is not function: init')) {
@@ -125,6 +119,93 @@ Future<void> _runRuntimeInitIfNeeded(String runtimeName) async {
   }
 }
 
+/// 统一执行插件 JS 任务,返回原始字节。
+///
+/// 内部按需走常驻 bundle(非 once)或一次性 debug 池(once,`bundleUrl`/`bundleJs` 二选一),
+/// 并维护取消用的 runtime 跟踪。
+Future<Uint8List> _runQjsTask({
+  required String pluginId,
+  required String fnPath,
+  required String argsJson,
+  String? runtimeName,
+  String? taskGroupKey,
+}) async {
+  if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
+    if (isDownloadCancelSignaled(taskGroupKey)) {
+      throw const DownloadTaskCancelledException();
+    }
+  }
+
+  final normalizedPluginId = (pluginId).trim();
+  final resolvedRuntimeName =
+      runtimeName ?? runtimeNameForPluginId(normalizedPluginId);
+  final resolvedPluginId = normalizedPluginId.isNotEmpty
+      ? normalizedPluginId
+      : (resolvedRuntimeName).trim();
+  if (resolvedPluginId.isEmpty) {
+    throw StateError('pluginId/runtimeName 不能为空');
+  }
+  final resolvedFnPath = fnPath.trim();
+  if (resolvedFnPath.isEmpty) {
+    throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
+  }
+
+  final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
+  final debugBundleUrl = useCallOnce ? loadQjsDebugBundleUrl(resolvedPluginId) : null;
+  final bundleJs = useCallOnce && debugBundleUrl == null
+      ? await loadQjsBundleJs(resolvedPluginId)
+      : null;
+
+  if (!useCallOnce) {
+    await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
+  }
+
+  final waitFuture = qjsTaskCall(
+    runtimeName: resolvedRuntimeName,
+    taskGroupKey: taskGroupKey ?? '',
+    isOnce: useCallOnce,
+    bundleJs: bundleJs,
+    bundleUrl: debugBundleUrl,
+    fnPath: resolvedFnPath,
+    argsJson: argsJson,
+  );
+
+  var didUntrack = false;
+  void untrackOnce() {
+    if (didUntrack) return;
+    didUntrack = true;
+    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
+      _untrackRuntime(
+        pluginId: resolvedPluginId,
+        taskGroupKey: taskGroupKey,
+        runtimeName: resolvedRuntimeName,
+      );
+    }
+  }
+
+  if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
+    _trackRuntime(
+      pluginId: resolvedPluginId,
+      taskGroupKey: taskGroupKey,
+      runtimeName: resolvedRuntimeName,
+    );
+  }
+
+  unawaited(
+    waitFuture.then<void>((_) {}).catchError((_) {}).whenComplete(untrackOnce),
+  );
+  try {
+    return taskGroupKey != null && taskGroupKey.isNotEmpty
+        ? raceWithDownloadCancel(taskGroupKey, waitFuture)
+        : waitFuture;
+  } finally {
+    if (taskGroupKey == null || taskGroupKey.isEmpty) {
+      untrackOnce();
+    }
+  }
+}
+
+/// 调用插件函数,返回 JSON 字符串。
 Future<String> executeQjsCall({
   required String pluginId,
   required String fnPath,
@@ -132,193 +213,30 @@ Future<String> executeQjsCall({
   String? runtimeName,
   String? taskGroupKey,
 }) async {
-  if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-    if (isDownloadCancelSignaled(taskGroupKey)) {
-      throw const DownloadTaskCancelledException();
-    }
-  }
-
-  final normalizedPluginId = (pluginId).trim();
-  final resolvedRuntimeName =
-      runtimeName ?? runtimeNameForPluginId(normalizedPluginId);
-  final resolvedPluginId = normalizedPluginId.isNotEmpty
-      ? normalizedPluginId
-      : (resolvedRuntimeName).trim();
-  if (resolvedPluginId.isEmpty) {
-    throw StateError('pluginId/runtimeName 不能为空');
-  }
-  final resolvedFnPath = fnPath.trim();
-  if (resolvedFnPath.isEmpty) {
-    throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
-  }
-  final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
-  final bundleJs = useCallOnce ? await loadQjsBundleJs(resolvedPluginId) : null;
-
-  final taskId = useCallOnce
-      ? await qjsCallOnceTaskStart(
-          runtimeName: resolvedRuntimeName,
-          bundleJs: bundleJs!,
-          fnPath: resolvedFnPath,
-          argsJson: argsJson,
-          taskGroupKey: taskGroupKey ?? '',
-        )
-      : await () async {
-          await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
-          return qjsCallTaskStart(
-            runtimeName: resolvedRuntimeName,
-            taskGroupKey: taskGroupKey ?? '',
-            fnPath: resolvedFnPath,
-            argsJson: argsJson,
-          );
-        }();
-
-  final taskRef = _TrackedQjsTaskRef(
-    runtimeName: resolvedRuntimeName,
-    taskId: taskId,
+  final bytes = await _runQjsTask(
+    pluginId: pluginId,
+    fnPath: fnPath,
+    argsJson: argsJson,
+    runtimeName: runtimeName,
+    taskGroupKey: taskGroupKey,
   );
-  var didUntrack = false;
-  void untrackOnce() {
-    if (didUntrack) return;
-    didUntrack = true;
-    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-      _untrackTaskRef(
-        pluginId: resolvedPluginId,
-        taskGroupKey: taskGroupKey,
-        taskRef: taskRef,
-      );
-    }
-  }
-
-  if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-    _trackTaskRef(
-      pluginId: resolvedPluginId,
-      taskGroupKey: taskGroupKey,
-      taskRef: taskRef,
-    );
-  }
-
-  final waitFuture = useCallOnce
-      ? qjsCallOnceTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId)
-      : qjsCallTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId);
-  unawaited(
-    waitFuture.then<void>((_) {}).catchError((_) {}).whenComplete(untrackOnce),
-  );
-  try {
-    return taskGroupKey != null && taskGroupKey.isNotEmpty
-        ? raceWithDownloadCancel(taskGroupKey, waitFuture)
-        : waitFuture;
-  } finally {
-    if (taskGroupKey == null || taskGroupKey.isEmpty) {
-      untrackOnce();
-    }
-  }
+  return utf8.decode(bytes, allowMalformed: true);
 }
 
+/// 调用插件函数,返回原始字节(如图片)。
 Future<Uint8List> executeQjsFetchImageBytes({
   required String pluginId,
   required String fnPath,
   required String argsJson,
   String? runtimeName,
   String? taskGroupKey,
-}) async {
-  if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-    if (isDownloadCancelSignaled(taskGroupKey)) {
-      throw const DownloadTaskCancelledException();
-    }
-  }
-
-  final normalizedPluginId = (pluginId).trim();
-  final resolvedRuntimeName =
-      runtimeName ?? runtimeNameForPluginId(normalizedPluginId);
-  final resolvedPluginId = normalizedPluginId.isNotEmpty
-      ? normalizedPluginId
-      : (resolvedRuntimeName).trim();
-  if (resolvedPluginId.isEmpty) {
-    throw StateError('pluginId/runtimeName 不能为空');
-  }
-  final resolvedFnPath = fnPath.trim();
-  if (resolvedFnPath.isEmpty) {
-    throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
-  }
-  final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
-  final taskId = useCallOnce
-      ? await (() async {
-          final bundleUrl = loadQjsDebugBundleUrl(resolvedPluginId);
-          if (bundleUrl != null) {
-            return qjsFetchImageBytesOnceTaskStartByUrl(
-              runtimeName: resolvedRuntimeName,
-              bundleUrl: bundleUrl,
-              fnPath: resolvedFnPath,
-              argsJson: argsJson,
-              taskGroupKey: taskGroupKey ?? '',
-            );
-          }
-          final bundleJs = await loadQjsBundleJs(resolvedPluginId);
-          return qjsFetchImageBytesOnceTaskStart(
-            runtimeName: resolvedRuntimeName,
-            bundleJs: bundleJs,
-            fnPath: resolvedFnPath,
-            argsJson: argsJson,
-            taskGroupKey: taskGroupKey ?? '',
-          );
-        })()
-      : await (() async {
-          await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
-          return qjsFetchImageBytesTaskStart(
-            runtimeName: resolvedRuntimeName,
-            taskGroupKey: taskGroupKey ?? '',
-            fnPath: resolvedFnPath,
-            argsJson: argsJson,
-          );
-        })();
-
-  final taskRef = _TrackedQjsTaskRef(
-    runtimeName: resolvedRuntimeName,
-    taskId: taskId,
-  );
-  var didUntrack = false;
-  void untrackOnce() {
-    if (didUntrack) return;
-    didUntrack = true;
-    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-      _untrackTaskRef(
-        pluginId: resolvedPluginId,
-        taskGroupKey: taskGroupKey,
-        taskRef: taskRef,
-      );
-    }
-  }
-
-  if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-    _trackTaskRef(
-      pluginId: resolvedPluginId,
-      taskGroupKey: taskGroupKey,
-      taskRef: taskRef,
-    );
-  }
-
-  final waitFuture = useCallOnce
-      ? qjsFetchImageBytesOnceTaskWait(
-          runtimeName: resolvedRuntimeName,
-          taskId: taskId,
-        )
-      : qjsFetchImageBytesTaskWait(
-          runtimeName: resolvedRuntimeName,
-          taskId: taskId,
-        );
-  unawaited(
-    waitFuture.then<void>((_) {}).catchError((_) {}).whenComplete(untrackOnce),
-  );
-  try {
-    return taskGroupKey != null && taskGroupKey.isNotEmpty
-        ? raceWithDownloadCancel(taskGroupKey, waitFuture)
-        : waitFuture;
-  } finally {
-    if (taskGroupKey == null || taskGroupKey.isEmpty) {
-      untrackOnce();
-    }
-  }
-}
+}) => _runQjsTask(
+  pluginId: pluginId,
+  fnPath: fnPath,
+  argsJson: argsJson,
+  runtimeName: runtimeName,
+  taskGroupKey: taskGroupKey,
+);
 
 bool _shouldUseQjsCallOnce(String pluginId) {
   // return true;
@@ -349,19 +267,15 @@ Future<void> cancelTrackedQjsTasks({
 }) async {
   final normalizedPluginId = (pluginId).trim();
   final groupId = _buildTaskGroupId(normalizedPluginId, taskGroupKey);
-  final refs = _trackedTaskRefsByGroup.remove(groupId)?.toList() ?? const [];
-  final runtimeNames = refs.map((ref) => ref.runtimeName).toSet().toList();
+  final runtimeNames = _trackedRuntimesByGroup.remove(groupId)?.toList() ?? [];
   if (runtimeNames.isEmpty) {
+    logger.d(
+      '取消 QJS 任务组: $groupId -> no_tracked_tasks, fallback_runtime_cancel',
+    );
     final fallbackRuntime = runtimeNameForPluginId(normalizedPluginId);
     if (fallbackRuntime.isNotEmpty) {
       runtimeNames.add(fallbackRuntime);
     }
-  }
-
-  if (refs.isEmpty) {
-    logger.d(
-      '取消 QJS 任务组: $groupId -> no_tracked_tasks, fallback_runtime_cancel',
-    );
   }
 
   var cancelledCount = 0;
@@ -379,10 +293,7 @@ Future<void> cancelTrackedQjsTasks({
         if (result.cancelled == 0 &&
             result.notFound == 0 &&
             result.failedRuntimeGroups.isEmpty) {
-          final trackedInRuntime = refs
-              .where((ref) => ref.runtimeName == runtimeName)
-              .length;
-          notFoundCount += trackedInRuntime;
+          notFoundCount += 1;
           logger.d('取消 QJS 任务组未找到: $runtimeName/$taskGroupKey');
           return;
         }

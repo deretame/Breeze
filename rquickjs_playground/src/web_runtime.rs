@@ -60,16 +60,16 @@ pub use self::bridge::{
 };
 pub use self::http::{
     BuildHttpClientOptions, HttpClientConfig, build_http_client, build_http_client_ex,
-    configure_http_client, current_http_client_config, http_request_cancel, http_request_drop,
-    http_request_promise, http_request_start, http_request_try_take, set_worker_http_config,
+    configure_http_client, current_http_client_config, http_request_cancel, http_request_promise,
+    set_worker_http_config,
 };
 pub use self::native_buffer::{
     native_buffer_free, native_buffer_put, native_buffer_put_binary, native_buffer_put_raw,
     native_buffer_take, native_buffer_take_raw, native_exec, native_exec_chain,
 };
 pub use self::state::{
-    body_state_is_consumed, body_state_register, body_state_try_consume, fetch_state_can_clone,
-    fetch_state_register, fetch_state_take_offloaded, fetch_state_try_consume,
+    fetch_state_can_clone, fetch_state_register, fetch_state_take_offloaded,
+    fetch_state_try_consume,
 };
 pub use self::url_headers::{headers_query, headers_rewrite, urlsp_query, urlsp_rewrite};
 
@@ -80,10 +80,10 @@ use self::fs_ops::{
     fs_task_dispatch, fs_truncate, fs_unlink, fs_utimes, fs_write_file,
 };
 use self::http::{
-    HttpClientState, cleanup_stale_pending, cleanup_stale_pending_abort, http_io_sem, http_req_pool,
+    HttpClientState, cleanup_stale_pending, cleanup_stale_pending_abort, http_io_sem,
 };
 use self::native_buffer::{NATIVE_BUF_ID, native_pool, start_native_buffer_gc_loop};
-use self::state::{cleanup_stale_body_state, cleanup_stale_fetch_state};
+use self::state::cleanup_stale_fetch_state;
 
 const WEB_POLYFILL_CORE: &str = concat!(
     include_str!("../js/04_runtime_base_polyfills.js"),
@@ -193,9 +193,6 @@ pub fn install_host_bindings(
     }
     let runtime_name = normalize_runtime_name(runtime_name);
     let globals = ctx.globals();
-    globals.set("__http_request_start", Func::from(http_request_start))?;
-    globals.set("__http_request_try_take", Func::from(http_request_try_take))?;
-    globals.set("__http_request_drop", Func::from(http_request_drop))?;
     globals.set(
         "__http_request_promise",
         Function::new(ctx.clone(), http_request_promise)?,
@@ -214,15 +211,6 @@ pub fn install_host_bindings(
     globals.set(
         "__fetch_state_take_offloaded",
         Func::from(fetch_state_take_offloaded),
-    )?;
-    globals.set("__body_state_register", Func::from(body_state_register))?;
-    globals.set(
-        "__body_state_try_consume",
-        Func::from(body_state_try_consume),
-    )?;
-    globals.set(
-        "__body_state_is_consumed",
-        Func::from(body_state_is_consumed),
     )?;
     globals.set("__native_buffer_put", Func::from(native_buffer_put))?;
     globals.set("__native_buffer_put_raw", Func::from(native_buffer_put_raw))?;
@@ -397,9 +385,7 @@ fn sourcemap_lookup(bundle_name: String, gen_line: f64, gen_col: f64) -> String 
 }
 
 static HTTP_REQ_ID: AtomicU64 = AtomicU64::new(1);
-static BODY_STATE_ID: AtomicU64 = AtomicU64::new(1);
 static FETCH_STATE_ID: AtomicU64 = AtomicU64::new(1);
-static HTTP_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
 static BRIDGE_REQ_ID: AtomicU64 = AtomicU64::new(1);
 static BRIDGE_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
 static FS_REQ_ID: AtomicU64 = AtomicU64::new(1);
@@ -409,7 +395,6 @@ static TIMER_REQ_EVENT_POOL: OnceLock<Mutex<HashMap<u64, PendingAbortTask>>> = O
 static HTTP_CLIENT_STATE: OnceLock<Mutex<HttpClientState>> = OnceLock::new();
 static HTTP_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 static FS_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
-static HTTP_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static HTTP_EVENT_CANCELED: AtomicU64 = AtomicU64::new(0);
 static BRIDGE_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static FS_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
@@ -430,13 +415,9 @@ static BRIDGE_LIMIT_HITS: AtomicU64 = AtomicU64::new(0);
 static NATIVE_BUF_GC_TTL_SECS: AtomicU64 = AtomicU64::new(DEFAULT_NATIVE_BUFFER_GC_TTL_SECS);
 static NATIVE_BUF_GC_DROPS: AtomicU64 = AtomicU64::new(0);
 static NATIVE_BUF_GC_LOOP_STARTED: OnceLock<()> = OnceLock::new();
-static BODY_STATE_POOL: OnceLock<Mutex<HashMap<u64, BodyStateEntry>>> = OnceLock::new();
-static BODY_CONSUME_REJECTS: AtomicU64 = AtomicU64::new(0);
-static BODY_STATE_GC_DROPS: AtomicU64 = AtomicU64::new(0);
 static FETCH_STATE_POOL: OnceLock<Mutex<HashMap<u64, FetchStateEntry>>> = OnceLock::new();
 static FETCH_STATE_REJECTS: AtomicU64 = AtomicU64::new(0);
 static FETCH_STATE_GC_DROPS: AtomicU64 = AtomicU64::new(0);
-static BODY_STATE_OP_SEQ: AtomicU64 = AtomicU64::new(0);
 static FETCH_STATE_OP_SEQ: AtomicU64 = AtomicU64::new(0);
 static BRIDGE_ROUTE_SYNC_HANDLERS: OnceLock<Mutex<HashMap<String, BridgeRouteSyncHandler>>> =
     OnceLock::new();
@@ -488,19 +469,12 @@ struct FetchObjectState {
 }
 
 #[derive(Debug, Clone)]
-struct BodyStateEntry {
-    consumed: bool,
-    created_at: Instant,
-}
-
-#[derive(Debug, Clone)]
 struct FetchStateEntry {
     state: FetchObjectState,
     created_at: Instant,
 }
 
 const FETCH_STATE_TTL: Duration = Duration::from_secs(30 * 60);
-const BODY_STATE_TTL: Duration = Duration::from_secs(30 * 60);
 const STATE_GC_EVERY_OPS: u64 = 256;
 
 impl NativeBufferEntry {
@@ -518,10 +492,6 @@ struct LogEvent {
     message: String,
     ts_ms: u128,
     runtime_name: String,
-}
-
-fn body_state_pool() -> &'static Mutex<HashMap<u64, BodyStateEntry>> {
-    BODY_STATE_POOL.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 fn fetch_state_pool() -> &'static Mutex<HashMap<u64, FetchStateEntry>> {
@@ -544,10 +514,7 @@ fn timer_req_event_pool() -> &'static Mutex<HashMap<u64, PendingAbortTask>> {
 
 const HTTP_MAX_IN_FLIGHT: usize = 256;
 const FS_MAX_IN_FLIGHT: usize = 128;
-const HTTP_OFFLOAD_BODY_HEADER: &str = "x-rquickjs-host-offload-binary-v1";
 const HTTP_FORMDATA_BODY_HEADER: &str = "x-rquickjs-host-body-formdata-v1";
-const HTTP_AUTO_OFFLOAD_SIZE_THRESHOLD: u64 = 1 * 1024 * 1024;
-const HTTP_MAX_PENDING: usize = 4096;
 const BRIDGE_MAX_PENDING: usize = 4096;
 const FS_MAX_PENDING: usize = 4096;
 const TIMER_MAX_PENDING: usize = 8192;
@@ -1272,21 +1239,11 @@ pub fn log_emit(level: String, message: String, runtime_name: String) -> String 
 }
 
 pub fn runtime_stats() -> String {
-    let mut http_pending = http_req_pool().lock().map(|m| m.len()).unwrap_or_default();
     let mut fs_pending = fs_req_pool().lock().map(|m| m.len()).unwrap_or_default();
-    let mut http_pending_debug = Vec::new();
     let mut fs_pending_debug = Vec::new();
     let mut bridge_pending_debug = Vec::new();
     let mut timer_pending_debug = Vec::new();
 
-    if let Ok(mut pool) = http_req_pool().lock() {
-        cleanup_stale_pending(&mut pool, &HTTP_STALE_DROPS);
-        http_pending = pool.len();
-        http_pending_debug = pool
-            .iter()
-            .map(|(id, pending)| pending_task_debug_item(*id, pending))
-            .collect();
-    }
     if let Ok(mut pool) = fs_req_pool().lock() {
         cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
         fs_pending = pool.len();
@@ -1312,9 +1269,6 @@ pub fn runtime_stats() -> String {
             .map(|(id, pending)| pending_abort_task_debug_item(*id, pending))
             .collect();
     }
-    if let Ok(mut pool) = body_state_pool().lock() {
-        cleanup_stale_body_state(&mut pool);
-    }
     if let Ok(mut pool) = fetch_state_pool().lock() {
         cleanup_stale_fetch_state(&mut pool);
     }
@@ -1328,7 +1282,6 @@ pub fn runtime_stats() -> String {
         "ok": true,
         "limits": {
             "pending": {
-                "http": HTTP_MAX_PENDING,
                 "fs": FS_MAX_PENDING,
             },
             "inFlight": {
@@ -1337,12 +1290,10 @@ pub fn runtime_stats() -> String {
             }
         },
         "pending": {
-            "http": http_pending,
             "fs": fs_pending,
             "bridge": bridge_pending_count(),
         },
         "pendingDebug": {
-            "http": http_pending_debug,
             "fs": fs_pending_debug,
             "bridge": bridge_pending_debug,
             "timer": timer_pending_debug,
@@ -1352,7 +1303,6 @@ pub fn runtime_stats() -> String {
             "fsAvailable": fs_available,
         },
         "staleDrops": {
-            "http": HTTP_STALE_DROPS.load(Ordering::Relaxed),
             "fs": FS_STALE_DROPS.load(Ordering::Relaxed),
             "bridge": BRIDGE_STALE_DROPS.load(Ordering::Relaxed),
         },
@@ -1376,12 +1326,6 @@ pub fn runtime_stats() -> String {
             "gcTtlSeconds": current_native_buffer_gc_ttl_seconds(),
             "gcIntervalSeconds": NATIVE_BUFFER_GC_INTERVAL.as_secs(),
             "gcDrops": NATIVE_BUF_GC_DROPS.load(Ordering::Relaxed),
-        },
-        "bodyState": {
-            "poolSize": body_state_pool().lock().map(|m| m.len()).unwrap_or_default(),
-            "consumeRejects": BODY_CONSUME_REJECTS.load(Ordering::Relaxed),
-            "ttlSeconds": BODY_STATE_TTL.as_secs(),
-            "gcDrops": BODY_STATE_GC_DROPS.load(Ordering::Relaxed),
         },
         "fetchState": {
             "poolSize": fetch_state_pool().lock().map(|m| m.len()).unwrap_or_default(),

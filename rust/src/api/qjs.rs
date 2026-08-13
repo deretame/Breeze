@@ -1,7 +1,7 @@
 use anyhow::Result;
 use flutter_rust_bridge::{DartFnFuture, frb};
 
-pub use crate::qjs::{QjsCancelTaskResult, QjsCancelTasksByGroupResult, QjsRuntimeBuildRequest};
+pub use crate::qjs::{QjsCancelTasksByGroupResult, QjsRuntimeBuildRequest};
 
 #[frb]
 pub async fn qjs_replace_bundle(
@@ -12,57 +12,32 @@ pub async fn qjs_replace_bundle(
     crate::qjs::qjs_replace_bundle(runtime_name, bundle_name, bundle_js).await
 }
 
+/// 统一执行入口:调用插件 bundle 里的函数,返回原始字节。
+///
+/// `is_once=true` 用 `bundle_js`/`bundle_url` 走一次性 debug 池(不常驻);
+/// `false` 走常驻运行时里已加载的当前 bundle。
+/// 返回值为原始字节:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
+/// 否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
 #[frb]
-pub async fn qjs_call(runtime_name: String, fn_path: String, args_json: String) -> Result<String> {
-    crate::qjs::qjs_call(runtime_name, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_call_task_start(
+pub async fn qjs_task_call(
     runtime_name: String,
     task_group_key: String,
+    is_once: bool,
+    bundle_js: Option<String>,
+    bundle_url: Option<String>,
     fn_path: String,
     args_json: String,
-) -> Result<u64> {
-    crate::qjs::qjs_call_task_start(runtime_name, task_group_key, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_call_task_wait(runtime_name: String, task_id: u64) -> Result<String> {
-    crate::qjs::qjs_call_task_wait(runtime_name, task_id).await
-}
-
-#[frb]
-pub async fn qjs_call_once(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<String> {
-    crate::qjs::qjs_call_once(runtime_name, bundle_js, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_call_once_task_start(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-    task_group_key: String,
-) -> Result<u64> {
-    crate::qjs::qjs_call_once_task_start(
+) -> Result<Vec<u8>> {
+    crate::qjs::qjs_task_call(
         runtime_name,
+        task_group_key,
+        is_once,
         bundle_js,
+        bundle_url,
         fn_path,
         args_json,
-        task_group_key,
     )
     .await
-}
-
-#[frb]
-pub async fn qjs_call_once_task_wait(runtime_name: String, task_id: u64) -> Result<String> {
-    crate::qjs::qjs_call_once_task_wait(runtime_name, task_id).await
 }
 
 #[frb]
@@ -81,11 +56,6 @@ pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
 }
 
 #[frb]
-pub async fn qjs_cancel_task(runtime_name: String, task_id: u64) -> Result<QjsCancelTaskResult> {
-    crate::qjs::qjs_cancel_task(runtime_name, task_id).await
-}
-
-#[frb]
 pub async fn qjs_cancel_tasks_by_group(
     runtime_name: String,
     task_group_key: String,
@@ -94,114 +64,8 @@ pub async fn qjs_cancel_tasks_by_group(
 }
 
 #[frb]
-pub async fn qjs_fetch_image_bytes(
-    runtime_name: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_image_bytes(runtime_name, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_task_start(
-    runtime_name: String,
-    task_group_key: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<u64> {
-    crate::qjs::qjs_fetch_image_bytes_task_start(runtime_name, task_group_key, fn_path, args_json)
-        .await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_task_wait(
-    runtime_name: String,
-    task_id: u64,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_image_bytes_task_wait(runtime_name, task_id).await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_once(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_image_bytes_once(runtime_name, bundle_js, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_fetch_bytes_auto(
-    runtime_name: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_bytes_auto(runtime_name, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_fetch_bytes_auto_once(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_bytes_auto_once(runtime_name, bundle_js, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_fetch_bytes_auto_once_by_url(
-    runtime_name: String,
-    bundle_url: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_bytes_auto_once_by_url(runtime_name, bundle_url, fn_path, args_json).await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_once_task_start(
-    runtime_name: String,
-    bundle_js: String,
-    fn_path: String,
-    args_json: String,
-    task_group_key: String,
-) -> Result<u64> {
-    crate::qjs::qjs_fetch_image_bytes_once_task_start(
-        runtime_name,
-        bundle_js,
-        fn_path,
-        args_json,
-        task_group_key,
-    )
-    .await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_once_task_start_by_url(
-    runtime_name: String,
-    bundle_url: String,
-    fn_path: String,
-    args_json: String,
-    task_group_key: String,
-) -> Result<u64> {
-    crate::qjs::qjs_fetch_image_bytes_once_task_start_by_url(
-        runtime_name,
-        bundle_url,
-        fn_path,
-        args_json,
-        task_group_key,
-    )
-    .await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_once_task_wait(
-    runtime_name: String,
-    task_id: u64,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_fetch_image_bytes_once_task_wait(runtime_name, task_id).await
+pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
+    crate::qjs::qjs_debug_snapshot(runtime_name).await
 }
 
 #[frb]
@@ -280,11 +144,6 @@ pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
 #[frb]
 pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
     crate::qjs::build_qjs_runtime(request).await
-}
-
-#[frb]
-pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
-    crate::qjs::qjs_debug_snapshot(runtime_name).await
 }
 
 #[frb(sync)]

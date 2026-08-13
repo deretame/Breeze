@@ -293,7 +293,7 @@ packages:
     description:
       path: dart
       ref: "feat/stdexec-migration"
-      resolved-ref: "9312a29cedc53960032ad12efed4a79d130cd261"
+      resolved-ref: "13f945ae19634f5024df5c90bbc01d5d614ad525"
       url: "https://github.com/deretame/dart_cpp_bridge.git"
     source: git
     version: "1.3.0"

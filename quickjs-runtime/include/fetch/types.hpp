@@ -300,7 +300,9 @@ struct Request {
     size_t body_size = 0;       // 流式体已知总长（Content-Length 用；body_stream 时必须
                                 // >0，否则 BodyLengthMiddleware 抛 fetch::Error）
     std::string integrity;      // SRI 表达式，空 = 不校验
-    enum class Redirect { follow, error, manual } redirect = Redirect::follow;
+    // passthrough：不跟随、不报错、不吞——3xx 原样返回（reqwest
+    // follow_redirects(false) 语义；manual 则是 WHATWG opaqueredirect 哨兵）
+    enum class Redirect { follow, error, manual, passthrough } redirect = Redirect::follow;
     std::optional<Proxy> proxy; // 请求级代理（最高优先级；nullopt = 未配置，
                                 // 回落实例级/进程级）；重定向各跳沿用
 };

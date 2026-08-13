@@ -56,7 +56,8 @@
 ### 2.4 数据持久化与网络
 
 - **本地数据库**：`objectbox` + `objectbox_flutter_libs`
-- **HTTP 客户端**：Rust `reqwest`（经 FRB 暴露为 `HttpClient` / Dart `WindHttp`）
+- **HTTP 客户端（Dart 侧 fetch）**：已迁移到 **C++ fetchcore**（`quickjs-runtime/include/fetch/`，经 dcb 桥接暴露为 `WindHttpClient`，Dart 封装 `lib/network/http/wind_http.dart` 的 `WindHttp`）。代理/TLS 全局状态在 Dart 侧 `WindHttpConfig`（main.dart 启动时与 Rust 侧同步设置——Rust `reqwest` 仍服务于插件 QJS 运行时与 WebDAV）。
+- **HTTP 客户端（插件/同步侧）**：Rust `reqwest`（FRB `HttpClient` 保留给 QJS 插件运行时）
 - **图片加载/缓存**：`photo_view`
 - **后台下载**：自研下载队列（`lib/service/download/`）
 - **WebDAV / S3 同步**：Rust 侧 `reqwest_dav`、Dart 侧 `minio`
@@ -254,6 +255,21 @@ dart run D:/Project/flutter/dart_cpp_bridge/dcb_gen_tool/bin/dcb_gen_tool.dart g
 ```
 
 C++ 构建产物在 `.dart_tool/hooks_runner/shared/zephyr/build/<hash>/dcb_build/`（Ninja 工程，`build.ninja` 里可查每个 target 的真实编译宏/flags/链接库）。
+
+##### 旧 wire 卡死 codegen 的鸡生蛋问题
+
+`dart run .../dcb_gen_tool.dart generate` 会以 Breeze 为当前包**先跑一遍 build hooks（编译现有 wire）再执行 codegen**。因此当 `native/api/` 的声明发生不兼容变化时，旧 `wire_dispatch.cpp` 会先编译失败，codegen 永远没机会重新生成。此时绕过 hook、直接跑 codegen 脚本产出新 wire 即可：
+
+```bash
+DCB_CODEGEN_ENV_KEY=<见 generate 日志的 "Reusing existing toolchain env"> \
+DCB_PACKAGE_ROOT=D:/Project/flutter/dart_cpp_bridge/dcb_gen_tool \
+"%LOCALAPPDATA%/dart_cpp_bridge/toolchain/envs/<envKey>/python/python.exe" \
+  D:/Project/flutter/dart_cpp_bridge/dcb_gen_tool/scripts/run_codegen.py \
+  D:/Project/flutter/Breeze/dart_cpp_bridge.yaml
+# wire 恢复可编译后再正常跑 dart run ... generate（重建 DLL）
+```
+
+注意 `DCB_PACKAGE_ROOT` 必须指到 **dcb_gen_tool 子目录**（stubs 头在其下），指到仓库根会因 `stdexec/execution.hpp not found` 把模板类型静默降级成 `int`（ir.json 里 `diagnostics` 非空即是此症状）。
 
 ### 5.3 平台构建
 

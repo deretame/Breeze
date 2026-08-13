@@ -52,7 +52,7 @@ import 'package:zephyr/widgets/desktop/custom_title_bar.dart';
 import 'package:zephyr/widgets/desktop/intent.dart';
 
 export 'package:zephyr/network/http/wind_http.dart'
-    show WindHttp, FetchResponse, fetch, fetchDirect;
+    show WindHttp, WindHttpConfig, FetchResponse, fetch, fetchDirect;
 
 ObjectBox? _objectbox;
 ObjectBox get objectbox => _objectbox!;
@@ -335,11 +335,13 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
             ? proxyAddress
             : 'http://$proxyAddress';
         await setHttpProxy(proxy: proxyUrl);
+        WindHttpConfig.proxy = proxyUrl;
         // Dart 侧纯 dart:io HttpClient（如 minio / S3 同步）也走 HTTP 代理
         SocksProxy.initProxy(proxy: 'PROXY ${_stripProxyScheme(proxyUrl)}');
       case ProxyType.socks5:
         SocksProxy.initProxy(proxy: 'SOCKS5 $proxyAddress');
         await setSocks5Proxy(proxy: proxyAddress);
+        WindHttpConfig.proxy = 'socks5://$proxyAddress';
     }
   }
 
@@ -362,6 +364,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   setHostCacheGcEnabled(enabled: false);
 
   setTlsVerifyEnabled(enabled: false);
+  WindHttpConfig.tlsVerify = false;
 
   return (globalSettingCubit, pluginRegistryCubit);
 }
@@ -381,6 +384,7 @@ Future<void> _tryApplyHttpProxyFromEnv() async {
   if (!reachable) return;
 
   await setHttpProxy(proxy: proxyUrl);
+  WindHttpConfig.proxy = proxyUrl;
 }
 
 /// 去掉代理地址的协议前缀，得到 `host:port`，供 Dart 侧 HttpClient 使用。

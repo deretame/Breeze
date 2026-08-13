@@ -3,7 +3,112 @@
 
 import 'dart:ffi';
 
+import 'dart:typed_data';
+
+import 'dart:async';
+
+import 'package:dart_cpp_bridge/dart_cpp_bridge.dart';
+
 import 'package:zephyr/src/native_gen/dcb_generated.dart';
+
+// ═════════════════════════════════════════════
+// Data classes
+// ═════════════════════════════════════════════
+
+/// Generated data class for `WindDownloadProgress`.
+final class WindDownloadProgress {
+  const WindDownloadProgress({required this.received, required this.total});
+
+  final int received;
+  final int total;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WindDownloadProgress &&
+          received == other.received &&
+          total == other.total);
+
+  @override
+  int get hashCode => Object.hash(received, total);
+
+  @override
+  String toString() =>
+      'WindDownloadProgress(received: $received, total: $total)';
+}
+
+/// Generated data class for `WindFetchInit`.
+final class WindFetchInit {
+  const WindFetchInit({
+    required this.method,
+    required this.headers,
+    required this.body,
+    required this.timeoutMs,
+    this.followRedirects,
+  });
+
+  final String method;
+  final Map<String, String> headers;
+  final Uint8List body;
+  final int timeoutMs;
+  final bool? followRedirects;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WindFetchInit &&
+          method == other.method &&
+          headers == other.headers &&
+          body == other.body &&
+          timeoutMs == other.timeoutMs &&
+          followRedirects == other.followRedirects);
+
+  @override
+  int get hashCode =>
+      Object.hash(method, headers, body, timeoutMs, followRedirects);
+
+  @override
+  String toString() =>
+      'WindFetchInit(method: $method, headers: $headers, body: $body, timeoutMs: $timeoutMs, followRedirects: $followRedirects)';
+}
+
+/// Generated data class for `WindFetchResponse`.
+final class WindFetchResponse {
+  const WindFetchResponse({
+    required this.status,
+    required this.statusText,
+    required this.headers,
+    required this.body,
+    required this.url,
+    required this.redirected,
+  });
+
+  final int status;
+  final String statusText;
+  final Map<String, String> headers;
+  final Uint8List body;
+  final String url;
+  final bool redirected;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WindFetchResponse &&
+          status == other.status &&
+          statusText == other.statusText &&
+          headers == other.headers &&
+          body == other.body &&
+          url == other.url &&
+          redirected == other.redirected);
+
+  @override
+  int get hashCode =>
+      Object.hash(status, statusText, headers, body, url, redirected);
+
+  @override
+  String toString() =>
+      'WindFetchResponse(status: $status, statusText: $statusText, headers: $headers, body: $body, url: $url, redirected: $redirected)';
+}
 
 // ═════════════════════════════════════════════
 // Functions
@@ -30,3 +135,54 @@ int add({required int a, required int b}) => BridgeApiImpl.instance.add(a, b);
 
 Future<String> fetchGreeting({required String name}) =>
     BridgeApiImpl.instance.fetchGreeting(name);
+
+// ═════════════════════════════════════════════
+// WindHttpClient
+// ═════════════════════════════════════════════
+
+/// Opaque wrapper for `WindHttpClient`.
+final class WindHttpClient extends CppOpaqueInterface {
+  WindHttpClient.fromHandle({required super.bridge, required super.handle});
+
+  // ── Constructors ──
+
+  factory WindHttpClient.mapStringStringInt64TBoolStringBoolString({
+    required Map<String, String> defaultHeaders,
+    required int timeoutMs,
+    required bool followRedirects,
+    required String proxy,
+    required bool tlsVerify,
+    required String userAgent,
+  }) => BridgeApiImpl.instance.windHttpClientNewWithDefaultHeaders(
+    defaultHeaders,
+    timeoutMs,
+    followRedirects,
+    proxy,
+    tlsVerify,
+    userAgent,
+  );
+
+  // ── Instance Methods ──
+
+  Future<WindFetchResponse> fetch({
+    required String url,
+    required WindFetchInit init,
+  }) => BridgeApiImpl.instance.windHttpClientFetch(this, url, init);
+
+  Future<void> download({
+    required String url,
+    required String savePath,
+    required WindFetchInit init,
+    StreamController<WindDownloadProgress>? progress,
+  }) => BridgeApiImpl.instance.windHttpClientDownload(
+    this,
+    url,
+    savePath,
+    init,
+    progress,
+  );
+
+  // ── Static Methods ──
+
+  static int aliveCount() => BridgeApiImpl.instance.windHttpClientAliveCount();
+}

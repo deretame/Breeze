@@ -16,8 +16,8 @@ dart_output: lib/src/native_gen/
 cpp_wire_output: native/generated/
 
 # clang-format candidate paths (tried top-to-bottom, then PATH fallback).
-# clang_format:
-#   - C:\Program Files\LLVM\bin
+clang_format:
+  - C:\Program Files\LLVM\bin
 
 std: c++20
 defines:

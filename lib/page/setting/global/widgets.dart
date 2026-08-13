@@ -5,6 +5,7 @@ import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/network/http/wind_http.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
@@ -49,6 +50,7 @@ Widget proxyToggle(
             try {
               await setSocks5Proxy(proxy: '');
             } catch (_) {}
+            WindHttpConfig.proxy = null;
             SocksProxy.setProxy('DIRECT');
           }
 

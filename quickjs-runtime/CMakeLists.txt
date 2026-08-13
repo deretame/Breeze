@@ -142,8 +142,8 @@ endif()
 
 # ---- fetchcore：独立纯 C++ fetch 核心库（不 include/不链接任何 quickjs/qjsbind）----
 # 类型/Client/中间件 header-only（include/fetch/），传输实现在此静态库。
-# EXCLUDE_FROM_ALL：hook 构建（只交付 wind_core_cpp.dll）不白编它；
-# pixi 构建里 tests/主程序链接它时仍会被自动拉出，不受影响。
+# EXCLUDE_FROM_ALL：不进入默认构建目标；wind_core_cpp（fetch 桥接）与
+# pixi 下的 tests/主程序链接它时会被依赖自动拉出。
 add_library(fetchcore STATIC EXCLUDE_FROM_ALL src/fetch/beast_transport.cpp src/fetch/socks5.cpp src/fetch/http_proxy.cpp src/fetch/connection_pool.cpp src/fetch/pooled_transport.cpp src/fetch/dns_resolver.cpp src/fetch/doh_resolver.cpp src/fetch/process_proxy.cpp)
 if(MSVC)
     target_compile_options(fetchcore PRIVATE /utf-8)
@@ -186,6 +186,7 @@ add_library(wind_core_cpp
   ${BREEZE_NATIVE_DIR}/api_impl/bridge_api.cpp
   ${BREEZE_NATIVE_DIR}/api_impl/jm_decode.cpp
   ${BREEZE_NATIVE_DIR}/api_impl/jm_md5.cpp
+  ${BREEZE_NATIVE_DIR}/api_impl/wind_http.cpp
 )
 target_include_directories(wind_core_cpp PRIVATE
   ${BREEZE_NATIVE_DIR}
@@ -197,6 +198,7 @@ target_link_libraries(wind_core_cpp PRIVATE
   $<LINK_LIBRARY:WHOLE_ARCHIVE,dart_cpp_bridge::runtime>
   PNG::PNG
   WebP::webp
+  fetchcore
 )
 if(MSVC)
   target_compile_options(wind_core_cpp PRIVATE /utf-8)

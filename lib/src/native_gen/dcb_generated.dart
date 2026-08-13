@@ -7,6 +7,85 @@ import 'dart:typed_data';
 
 import 'package:dart_cpp_bridge/dart_cpp_bridge.dart';
 
+import 'package:zephyr/src/native_gen/api/bridge_api.dart';
+
+void _writeDataClass_WindDownloadProgress(
+  ByteWriter w,
+  WindDownloadProgress v,
+) {
+  w.i64(v.received);
+  w.i64(v.total);
+}
+
+WindDownloadProgress _readDataClass_WindDownloadProgress(ByteReader r) {
+  return WindDownloadProgress(received: r.i64(), total: r.i64());
+}
+
+void _writeDataClass_WindFetchInit(ByteWriter w, WindFetchInit v) {
+  w.str(v.method);
+  w.u32(v.headers.length);
+  v.headers.forEach((final k, final v) {
+    w.str(k);
+    w.str(v);
+  });
+  w.u8vec(v.body);
+  w.i64(v.timeoutMs);
+  if (v.followRedirects == null) {
+    w.u8(0);
+  } else {
+    w.u8(1);
+    w.u8(v.followRedirects! ? 1 : 0);
+  }
+}
+
+WindFetchInit _readDataClass_WindFetchInit(ByteReader r) {
+  return WindFetchInit(
+    method: r.str(),
+    headers: (() {
+      final n = r.u32();
+      final result = <String, String>{};
+      for (var i = 0; i < n; i++) {
+        result[r.str()] = r.str();
+      }
+      return result;
+    })(),
+    body: r.u8vec(),
+    timeoutMs: r.i64(),
+    followRedirects: ((r.u8() != 0) ? r.u8() != 0 : null),
+  );
+}
+
+void _writeDataClass_WindFetchResponse(ByteWriter w, WindFetchResponse v) {
+  w.i32(v.status);
+  w.str(v.statusText);
+  w.u32(v.headers.length);
+  v.headers.forEach((final k, final v) {
+    w.str(k);
+    w.str(v);
+  });
+  w.u8vec(v.body);
+  w.str(v.url);
+  w.u8(v.redirected ? 1 : 0);
+}
+
+WindFetchResponse _readDataClass_WindFetchResponse(ByteReader r) {
+  return WindFetchResponse(
+    status: r.i32(),
+    statusText: r.str(),
+    headers: (() {
+      final n = r.u32();
+      final result = <String, String>{};
+      for (var i = 0; i < n; i++) {
+        result[r.str()] = r.str();
+      }
+      return result;
+    })(),
+    body: r.u8vec(),
+    url: r.str(),
+    redirected: r.u8() != 0,
+  );
+}
+
 /// Wire-level API singleton. Access via [BridgeApiImpl.instance].
 final class BridgeApiImpl {
   BridgeApiImpl._(this.bridge);
@@ -29,6 +108,10 @@ final class BridgeApiImpl {
   static const int antiObfuscationPictureId = 673703455;
   static const int addId = 1130012286;
   static const int fetchGreetingId = 1278131711;
+  static const int windHttpClientNewWithDefaultHeadersId = 33985225;
+  static const int windHttpClientFetchId = 596115912;
+  static const int windHttpClientDownloadId = 1023045398;
+  static const int windHttpClientAliveCountId = 2058390274;
 
   Future<String> heavyCompute(int input) async {
     final payload = ByteWriter();
@@ -70,5 +153,84 @@ final class BridgeApiImpl {
     final payloadBytes = payload.takeBytes();
     final bytes = await bridge.invokeAsyncMethod(fetchGreetingId, payloadBytes);
     return ByteReader(bytes).str();
+  }
+
+  WindHttpClient windHttpClientNewWithDefaultHeaders(
+    Map<String, String> defaultHeaders,
+    int timeoutMs,
+    bool followRedirects,
+    String proxy,
+    bool tlsVerify,
+    String userAgent,
+  ) {
+    final payload = ByteWriter();
+    payload.u32(defaultHeaders.length);
+    defaultHeaders.forEach((final k, final v) {
+      payload.str(k);
+      payload.str(v);
+    });
+    payload.i64(timeoutMs);
+    payload.u8(followRedirects ? 1 : 0);
+    payload.str(proxy);
+    payload.u8(tlsVerify ? 1 : 0);
+    payload.str(userAgent);
+    final payloadBytes = payload.takeBytes();
+    final bytes = bridge.invokeSyncMethod(
+      windHttpClientNewWithDefaultHeadersId,
+      payloadBytes,
+    );
+    return WindHttpClient.fromHandle(
+      bridge: bridge,
+      handle: ByteReader(bytes).u64(),
+    );
+  }
+
+  Future<WindFetchResponse> windHttpClientFetch(
+    WindHttpClient self,
+    String url,
+    WindFetchInit init,
+  ) async {
+    self.ensureAlive();
+    final payload = ByteWriter();
+    payload.u64(self.handle);
+    payload.str(url);
+    _writeDataClass_WindFetchInit(payload, init);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      windHttpClientFetchId,
+      payloadBytes,
+    );
+    return _readDataClass_WindFetchResponse(ByteReader(bytes));
+  }
+
+  Future<void> windHttpClientDownload(
+    WindHttpClient self,
+    String url,
+    String savePath,
+    WindFetchInit init,
+    StreamController<WindDownloadProgress>? progress,
+  ) async {
+    self.ensureAlive();
+    final payload = ByteWriter();
+    payload.u64(self.handle);
+    payload.str(url);
+    payload.str(savePath);
+    _writeDataClass_WindFetchInit(payload, init);
+    await bridge.invokeAsyncMethodWithStream<WindDownloadProgress>(
+      windHttpClientDownloadId,
+      payload,
+      progress,
+      (final r) => _readDataClass_WindDownloadProgress(r),
+    );
+  }
+
+  int windHttpClientAliveCount() {
+    final payload = ByteWriter();
+    final payloadBytes = payload.takeBytes();
+    final bytes = bridge.invokeSyncMethod(
+      windHttpClientAliveCountId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).i32();
   }
 }

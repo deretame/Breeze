@@ -1,0 +1,14 @@
+[workspace]
+authors = ["deretame <deretame@outlook.com>"]
+channels = ["conda-forge"]
+name = "Breeze"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+cmake = ">=4.4.2,<5"
+ninja = ">=1.13.2,<2"
+clang-format = ">=22.1.8,<23"
+clang = ">=22.1.8,<23"

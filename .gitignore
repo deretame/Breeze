@@ -107,4 +107,6 @@ third_party/ncnn-src/
 # Native bridge generated files
 compile_commands.json
 native/generated/ir.json
-.clice
+.clice# pixi environments
+.pixi/*
+!.pixi/config.toml

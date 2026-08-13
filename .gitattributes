@@ -14,3 +14,5 @@ android/Breeze-key.keystore filter=git-crypt diff=git-crypt
 *.jpeg binary
 *.ico binary
 *.ttf binary
+# SCM syntax highlighting & preventing 3-way merges
+pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff

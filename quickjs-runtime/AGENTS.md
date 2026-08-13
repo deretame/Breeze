@@ -59,12 +59,13 @@ Web 风格 API（fetch、Headers、URL、Stream、Blob、定时器等）。
 - **cheerio（lexbor）不属于网络层**，只被测试目标链接。
 - **dart_cpp_bridge 已外置**：仓库内不再 vendored `include/dart_cpp_bridge/`，
   改为依赖 dart_cpp_bridge 包（pub git 依赖）的 `dart_cpp_bridge::runtime`，
-  由 `../native/cmake/dcb_bridge.cmake` 引入（含 `if(NOT TARGET dcb_runtime)` 重复包含保护）。
-- CMake target：`fetchcore`（STATIC）、
-  `qjsbind`（INTERFACE）、`quickjs_runtime`（可执行）、`quickjs_runtime_tests`（测试）。
-- 主程序与测试由 `QJS_RUNTIME_BUILD_TOOLS` 控制：独立构建（`cmake -S quickjs-runtime`）
-  默认 ON；被 Breeze `native/CMakeLists.txt` 以 `add_subdirectory` 引入时默认 OFF，
-  只暴露 `fetchcore` / `qjsbind` 库目标（hook 构建不会出现 tests 目标）。
+  由 `cmake/dcb_bridge.cmake` 引入（含 `if(NOT TARGET dcb_runtime)` 重复包含保护）。
+- CMake target：`fetchcore`（STATIC）、`qjsbind`（INTERFACE）、
+  `wind_core_cpp`（Breeze Dart 侧 native 库，源码在 `../native/`）、
+  `quickjs_runtime`（可执行）、`quickjs_runtime_tests`（测试）。
+- 本工程是 Breeze 的**唯一 CMake 入口**：pixi 独立构建与 Dart hook 构建
+  （`hook/build.dart` 的 `sourceDir: 'quickjs-runtime'`）共用本 CMakeLists。
+  `QJS_RUNTIME_BUILD_TOOLS` 默认 ON；hook 构建显式传 OFF，只产出 wind_core_cpp。
 
 ## 构建与测试命令
 
@@ -72,7 +73,7 @@ Web 风格 API（fetch、Headers、URL、Stream、Blob、定时器等）。
 
 ```bash
 pixi install                                  # 安装 pixi 环境
-pixi run setup-vcpkg                          # 克隆并 bootstrap vcpkg 到 third_party/vcpkg
+pixi run setup-vcpkg                          # 克隆并 bootstrap vcpkg 到仓库根 third_party/vcpkg
 pixi run setup-wpt                            # sparse clone WPT 测试资产到 third_party/wpt
 pixi run configure                            # 配置 CMake（默认 Debug + clang-cl）
 pixi run build                                # 构建到 build/
@@ -107,12 +108,20 @@ pixi run test                                 # 跑全部测试（自动串联 s
   ⚠️ 已知问题：MSVC cl（14.51）编译的 `quickjs_runtime_tests.exe` 在静态初始化
   注册 gtest 用例时段错误（clang-cl 正常）；测试请以 clang-cl 路径为准，cl 仅用于
   Breeze hook 构建库目标（不构建 tests）。
-- **vcpkg**：由 `script/pixi/bootstrap_vcpkg.py` 克隆 master 到 `third_party/vcpkg`（不入库）。
+- **vcpkg**：由 `script/pixi/bootstrap_vcpkg.py` 克隆 master 到**仓库根** `third_party/vcpkg`
+  （不入库；不放本目录是因为 Dart hook 依赖追踪会扫描本目录全部 C/C++/cmake 文件，
+  3 万+ 文件的哈希会拖慢每次构建）。
   `vcpkg.json` 的 `overrides` 把所有直接+传递依赖的版本与 port-version 精确钉死；
   **升级依赖 = 显式修改 overrides 条目**，不要依赖 vcpkg 版本漂移。
-  注意：`libpng` / `libwebp`（及 `zlib`）是给 Breeze `native/`（图片解码）用的，
-  quickjs-runtime 自身不链接它们；native 侧以 `x64-windows-static-md` triplet 静态链接
-  （见仓库根 `AGENTS.md` 的 native hook 小节）。
+  注意：`libpng` / `libwebp`（及 `zlib`）是给 Breeze `native/`（图片解码，wind_core_cpp
+  的 jm_decode）用的，quickjs-runtime 自身只有测试链接 lexbor。
+- **triplet 统一为 `x64-windows-static-md`**（动态 CRT `/MD` + 静态库本体，CMakeLists
+  在 `project()` 前固定）：所有依赖静态链接，测试/主程序/wind_core_cpp.dll 均无
+  vcpkg DLL 运行时依赖。install root 固定为仓库根的 `third_party/vcpkg_installed/`，
+  pixi 与 Dart hook 构建共享同一棵树；hook 侧以 `VCPKG_MANIFEST_MODE=OFF` 纯消费
+  （其环境缺 LOCALAPPDATA/APPDATA 跑不了 vcpkg.exe），依赖安装/升级统一走
+  `pixi run configure`。static 形态下个别包导出的 target 名不同
+  （`lexbor::lexbor_static`、zlib 的 `ZLIB::ZLIBSTATIC`），CMakeLists 里已补别名。
 - **overlay-ports**：`overlays/stdexec` 固定 NVIDIA/stdexec 的 GitHub commit，
   含针对 Windows/vcpkg 的本地修复；升级时同步修改 port 内的 `REF`。
 - **生成的文件**：`src/fetch/cacert_embedded.hpp`（由 `pixi run fetch-cacert` 下载

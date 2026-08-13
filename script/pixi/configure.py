@@ -12,7 +12,7 @@ import vs_env
 
 ROOT = Path(__file__).resolve().parents[2] / "quickjs-runtime"
 BUILD_DIR = ROOT / "build"
-TOOLCHAIN = ROOT / "third_party" / "vcpkg" / "scripts" / "buildsystems" / "vcpkg.cmake"
+TOOLCHAIN = ROOT.parent / "third_party" / "vcpkg" / "scripts" / "buildsystems" / "vcpkg.cmake"
 CLANG_CL = r"C:\Program Files\LLVM\bin\clang-cl.exe"
 
 
@@ -34,12 +34,12 @@ def main() -> int:
         if not Path(CLANG_CL).exists():
             print(f"错误: 未找到 clang-cl: {CLANG_CL}", file=sys.stderr)
             return 1
-        # clang-cl 为 MS ABI，可复用 vcpkg 已安装的 MSVC（x64-windows triplet）预编译库；
-        # 显式固定 triplet，避免 vcpkg 按编译器自动切到 x64-clang-cl 全量重建依赖。
+        # clang-cl 为 MS ABI，复用 vcpkg MSVC triplet 预编译库。
+        # triplet 由 CMakeLists.txt 在 project() 前固定为 x64-windows-static-md，
+        # 避免 vcpkg 按编译器自动切到 x64-clang-cl 全量重建依赖。
         compiler = (
             f' -DCMAKE_C_COMPILER="{CLANG_CL}"'
             f' -DCMAKE_CXX_COMPILER="{CLANG_CL}"'
-            f' -DVCPKG_TARGET_TRIPLET=x64-windows'
         )
 
     cmd = (

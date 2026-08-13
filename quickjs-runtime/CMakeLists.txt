@@ -1,10 +1,38 @@
 cmake_minimum_required(VERSION 3.25)
 
+# ---- vcpkg 单一 triplet：x64-windows-static-md（动态 CRT /MD，库本体静态）----
+# 本工程是 Breeze 唯一的 CMake 入口（pixi 独立构建与 Dart hook 构建共用），
+# toolchain 由调用方传入（pixi: script/pixi/configure.py；hook: hook/build.dart）。
+# 以下默认值在 project() 前设置，toolchain 加载时生效：
+# - 固定 static-md triplet：依赖全部静态链接，产物无 vcpkg DLL 运行时依赖
+# - install root 固定到源码目录：pixi 与 hook 共享同一棵 vcpkg_installed 树
+if(NOT WIN32)
+  message(FATAL_ERROR "本工程目前仅支持 Windows（vcpkg triplet x64-windows-static-md）")
+endif()
+if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+  set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
+endif()
+if(NOT DEFINED VCPKG_INSTALLED_DIR)
+  # 安装树放在仓库根 third_party/：与 vcpkg 克隆同处，且避开 Dart hook 对
+  # 本目录（hook sourceDir）的依赖追踪扫描
+  set(VCPKG_INSTALLED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/vcpkg_installed" CACHE PATH "vcpkg install root")
+endif()
+
 project(quickjs_runtime VERSION 0.1.0 LANGUAGES CXX)
 
-# 主程序与测试仅在本工程独立构建时默认开启；
-# 作为库被 add_subdirectory 引入（如 Breeze native/）时默认关闭，只暴露库目标。
-option(QJS_RUNTIME_BUILD_TOOLS "构建 quickjs_runtime 主程序与测试" ${PROJECT_IS_TOP_LEVEL})
+# hook 构建（DcbCMakeBuilder 环境缺 LOCALAPPDATA/APPDATA，vcpkg 无法定位
+# 缓存目录）以 -DVCPKG_MANIFEST_MODE=OFF 纯消费已安装树；依赖统一由 pixi 侧
+# （pixi run configure，manifest 模式）安装，这里做存在性检查。
+if(DEFINED VCPKG_MANIFEST_MODE AND NOT VCPKG_MANIFEST_MODE
+   AND NOT EXISTS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+  message(FATAL_ERROR
+    "未找到 vcpkg 依赖树 ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}\n"
+    "请先在仓库根目录运行: pixi run configure（安装全部 vcpkg 依赖）")
+endif()
+
+# 主程序与测试默认开启；Breeze hook 构建时显式传 -DQJS_RUNTIME_BUILD_TOOLS=OFF，
+# 只产出 wind_core_cpp（及 dcb_runtime），跳过主程序与测试。
+option(QJS_RUNTIME_BUILD_TOOLS "构建 quickjs_runtime 主程序与测试" ON)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -91,15 +119,22 @@ find_package(stdexec CONFIG REQUIRED)
 find_package(glaze CONFIG REQUIRED)
 find_package(qjs CONFIG REQUIRED)
 find_package(lexbor CONFIG REQUIRED)
+# static-md triplet 下 lexbor 只导出 lexbor::lexbor_static，补别名兼容
+if(NOT TARGET lexbor::lexbor AND TARGET lexbor::lexbor_static)
+  add_library(lexbor::lexbor ALIAS lexbor::lexbor_static)
+endif()
 find_package(GTest CONFIG REQUIRED)
+# 图片解码三件套（wind_core_cpp 的 jm_decode 用）：静态链接
+find_package(PNG REQUIRED)             # PNG::PNG（vcpkg wrapper → config 包）
+find_package(WebP CONFIG REQUIRED)     # WebP::webp / WebP::webpdecoder / WebP::sharpyuv
 
-# ---- dart_cpp_bridge：异步运行时（dcb 包，经 native/cmake/dcb_bridge.cmake 引入）----
+# ---- dart_cpp_bridge：异步运行时（dcb 包，经 cmake/dcb_bridge.cmake 引入）----
 # 头文件（dart_cpp_bridge/channel.hpp 等）与 dcb_runtime 均由 dart_cpp_bridge::runtime 提供。
-# 与 native/ 共享同一套依赖策略：stdexec / Boost 由本工程 vcpkg 提供，不由 dcb 拉取。
+# 依赖策略：stdexec / Boost 由本工程 vcpkg 提供，不由 dcb 拉取。
 set(DCB_FETCH_STDEXEC OFF)
 set(DCB_FETCH_ASIO OFF)
 set(DCB_USE_BOOST_ASIO ON)
-include(${CMAKE_CURRENT_SOURCE_DIR}/../native/cmake/dcb_bridge.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/dcb_bridge.cmake)
 # boost 模式下 dcb 不会给 asio_iface 补 Boost 头路径，这里补上
 if(TARGET asio_iface)
   target_link_libraries(asio_iface INTERFACE Boost::asio)
@@ -107,7 +142,9 @@ endif()
 
 # ---- fetchcore：独立纯 C++ fetch 核心库（不 include/不链接任何 quickjs/qjsbind）----
 # 类型/Client/中间件 header-only（include/fetch/），传输实现在此静态库。
-add_library(fetchcore STATIC src/fetch/beast_transport.cpp src/fetch/socks5.cpp src/fetch/http_proxy.cpp src/fetch/connection_pool.cpp src/fetch/pooled_transport.cpp src/fetch/dns_resolver.cpp src/fetch/doh_resolver.cpp src/fetch/process_proxy.cpp)
+# EXCLUDE_FROM_ALL：hook 构建（只交付 wind_core_cpp.dll）不白编它；
+# pixi 构建里 tests/主程序链接它时仍会被自动拉出，不受影响。
+add_library(fetchcore STATIC EXCLUDE_FROM_ALL src/fetch/beast_transport.cpp src/fetch/socks5.cpp src/fetch/http_proxy.cpp src/fetch/connection_pool.cpp src/fetch/pooled_transport.cpp src/fetch/dns_resolver.cpp src/fetch/doh_resolver.cpp src/fetch/process_proxy.cpp)
 if(MSVC)
     target_compile_options(fetchcore PRIVATE /utf-8)
 endif()
@@ -132,6 +169,38 @@ target_link_libraries(fetchcore PUBLIC
 add_library(qjsbind INTERFACE)
 target_include_directories(qjsbind INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(qjsbind INTERFACE qjs Boost::uuid Boost::url ada::ada utf8cpp::utf8cpp fetchcore spdlog::spdlog)
+
+# ---- wind_core_cpp：Breeze Dart 侧 native 库（dcb wire，hook 构建的产物）----
+# 源码留在 ../native/（api/ 声明 + api_impl/ 实现 + generated/ wire），
+# 由 dcb_gen_tool 依据 dart_cpp_bridge.yaml 生成/扫描（cpp_root: native/）。
+set(BREEZE_NATIVE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../native)
+set(GEN_WIRE ${BREEZE_NATIVE_DIR}/generated/wire_dispatch.cpp)
+if(NOT EXISTS "${GEN_WIRE}")
+  message(FATAL_ERROR
+    "Missing generated wire. Run: dcb_gen_tool generate dart_cpp_bridge.yaml")
+endif()
+# 不显式 SHARED：尊重调用方 -DBUILD_SHARED_LIBS（hook 传 ON 产出 DLL；
+# pixi 独立构建默认静态库，仅供本机编译验证）
+add_library(wind_core_cpp
+  ${BREEZE_NATIVE_DIR}/generated/wire_dispatch.cpp
+  ${BREEZE_NATIVE_DIR}/api_impl/bridge_api.cpp
+  ${BREEZE_NATIVE_DIR}/api_impl/jm_decode.cpp
+  ${BREEZE_NATIVE_DIR}/api_impl/jm_md5.cpp
+)
+target_include_directories(wind_core_cpp PRIVATE
+  ${BREEZE_NATIVE_DIR}
+  ${BREEZE_NATIVE_DIR}/api
+  ${BREEZE_NATIVE_DIR}/api_impl
+  ${BREEZE_NATIVE_DIR}/generated
+)
+target_link_libraries(wind_core_cpp PRIVATE
+  $<LINK_LIBRARY:WHOLE_ARCHIVE,dart_cpp_bridge::runtime>
+  PNG::PNG
+  WebP::webp
+)
+if(MSVC)
+  target_compile_options(wind_core_cpp PRIVATE /utf-8)
+endif()
 
 # ---- 主程序 ----
 if(QJS_RUNTIME_BUILD_TOOLS)

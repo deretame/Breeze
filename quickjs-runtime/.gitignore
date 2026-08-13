@@ -1,8 +1,6 @@
 # 构建产物
 build/
 out/
-# vcpkg CLI 默认安装目录（构建实际使用 build/vcpkg_installed）
-vcpkg_installed/
 
 # pixi 环境
 .pixi/
@@ -21,8 +19,8 @@ third_party/3proxy/
 # 3proxy 日志（按天滚动：3proxy.log.YYYY.MM.DD）
 tests/proxy/*.log*
 
-# vcpkg（由 scripts/bootstrap_vcpkg.py 克隆，不纳入版本管理）
-third_party/vcpkg/
+# vcpkg 克隆已上移到仓库根 third_party/vcpkg（见仓库根 .gitignore），
+# 安装树在仓库根 third_party/vcpkg_installed；本目录下不再有 vcpkg。
 
 # cheerio 官方源码（测试资产来源，转译产物 tests/cheerio/ 已纳入版本管理）
 third_party/cheerio/

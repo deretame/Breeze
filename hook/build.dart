@@ -37,9 +37,21 @@ void main(List<String> args) async {
     };
     await DcbCMakeBuilder(
       config: config,
-      sourceDir: 'native',
+      // CMake 单一入口在 quickjs-runtime/（wind_core_cpp target 定义在其中，
+      // 源码仍在 native/ 下）；toolchain 走 vcpkg 主路（static-md triplet）。
+      sourceDir: 'quickjs-runtime',
       assetName: 'src/native_gen/dcb_bindings.dart',
       libName: 'wind_core_cpp',
+      extraDefines: switch (input.config.code.targetOS) {
+        OS.windows => [
+          '-DCMAKE_TOOLCHAIN_FILE=${input.packageRoot.toFilePath()}/third_party/vcpkg/scripts/buildsystems/vcpkg.cmake',
+          '-DQJS_RUNTIME_BUILD_TOOLS=OFF',
+          // hook 环境缺 LOCALAPPDATA/APPDATA，vcpkg.exe 无法运行；
+          // 依赖树由 pixi 侧统一安装，这里只消费。
+          '-DVCPKG_MANIFEST_MODE=OFF',
+        ],
+        final os => throw UnsupportedError('native C++ 构建目前仅支持 Windows: $os'),
+      },
     ).run(input: input, output: output);
   });
 }

@@ -104,6 +104,10 @@ third_party/android_ncnn_deps/
 # ncnn source (cloned during static Android build)
 third_party/ncnn-src/
 
+# vcpkg 克隆与安装树（quickjs-runtime/native C++ 依赖；由 script/pixi/bootstrap_vcpkg.py 管理）
+third_party/vcpkg/
+third_party/vcpkg_installed/
+
 # Native bridge generated files
 compile_commands.json
 native/generated/ir.json

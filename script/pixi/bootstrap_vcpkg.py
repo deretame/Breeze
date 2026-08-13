@@ -1,4 +1,8 @@
-"""克隆 vcpkg 到 third_party/vcpkg 并执行 bootstrap（跟随上游 master，不固定版本）。
+"""克隆 vcpkg 到仓库根 third_party/vcpkg 并执行 bootstrap（跟随上游 master，不固定版本）。
+
+注意：克隆放在仓库根（而非 quickjs-runtime/third_party）——Dart hook 的
+依赖追踪按扩展名扫 sourceDir（quickjs-runtime/）下的全部 C/C++/cmake 文件，
+vcpkg 克隆有 3 万+ 此类文件，放在里面会让每次构建前的哈希耗时数分钟。
 
 版本策略：
 - vcpkg 本体：克隆最新 master，不固定 release tag（上游漂移不影响依赖——见下）。
@@ -7,7 +11,7 @@
 - 为保证 builtin-baseline 指向的 commit（含各 port 的 git-tree）可解析，
   需要完整克隆；已存在的浅克隆会自动 unshallow 补全历史。
 
-用法: python scripts/bootstrap_vcpkg.py
+用法: python script/pixi/bootstrap_vcpkg.py
 """
 from __future__ import annotations
 
@@ -15,8 +19,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2] / "quickjs-runtime"
-VCPKG_DIR = ROOT / "third_party" / "vcpkg"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+VCPKG_DIR = REPO_ROOT / "third_party" / "vcpkg"
 VCPKG_URL = "https://github.com/microsoft/vcpkg.git"
 VCPKG_EXE = VCPKG_DIR / "vcpkg.exe"
 

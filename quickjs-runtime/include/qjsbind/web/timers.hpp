@@ -1,4 +1,4 @@
-﻿// qjsbind::web —— setTimeout / setInterval / clearTimeout / clearInterval
+// qjsbind::web —— setTimeout / setInterval / clearTimeout / clearInterval
 //
 // 实现：asio::steady_timer + 全局注册表。回调在 io 线程执行（= JS 线程，
 // Runtime::run 单线程驱动 io_context）。Runtime 析构时 io_context 销毁，
@@ -112,31 +112,41 @@ inline void install_timers(qjs::Context& ctx) {
     ctx.globals().set("setTimeout",
                       qjs::func(ctx.raw(),
                                 [](qjs::Ctx c, qjs::Function fn, double ms,
-                                   qjs::Rest<qjs::Value> args) -> uint64_t {
+                                   qjs::Rest<qjs::Value> args) -> double {
                                     std::vector<qjs::RtValue> rt_args;
                                     for (auto& a : args.items)
                                         rt_args.emplace_back(JS_GetRuntime(c.ctx), a.take());
-                                    return schedule(c.ctx, std::move(fn), ms, std::move(rt_args),
-                                                    false);
+                                    return static_cast<double>(
+                                        schedule(c.ctx, std::move(fn), ms, std::move(rt_args),
+                                                 false));
                                 },
                                 "setTimeout"));
     ctx.globals().set("setInterval",
                       qjs::func(ctx.raw(),
                                 [](qjs::Ctx c, qjs::Function fn, double ms,
-                                   qjs::Rest<qjs::Value> args) -> uint64_t {
+                                   qjs::Rest<qjs::Value> args) -> double {
                                     std::vector<qjs::RtValue> rt_args;
                                     for (auto& a : args.items)
                                         rt_args.emplace_back(JS_GetRuntime(c.ctx), a.take());
-                                    return schedule(c.ctx, std::move(fn), ms, std::move(rt_args),
-                                                    true);
+                                    return static_cast<double>(
+                                        schedule(c.ctx, std::move(fn), ms, std::move(rt_args),
+                                                 true));
                                 },
                                 "setInterval"));
+    // id 以 JS number 传递（对齐浏览器；BigInt 会让 clearTimeout(setTimeout(...))
+    // 在 JS_ToInt64 处抛 "expected uint64"）
     ctx.globals().set("clearTimeout",
                       qjs::func(ctx.raw(),
-                                [](uint64_t id) { timers_detail::clear(id); }, "clearTimeout"));
+                                [](double id) {
+                                    timers_detail::clear(static_cast<uint64_t>(id));
+                                },
+                                "clearTimeout"));
     ctx.globals().set("clearInterval",
                       qjs::func(ctx.raw(),
-                                [](uint64_t id) { timers_detail::clear(id); }, "clearInterval"));
+                                [](double id) {
+                                    timers_detail::clear(static_cast<uint64_t>(id));
+                                },
+                                "clearInterval"));
 }
 
 } // namespace qjsbind::web

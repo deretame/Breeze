@@ -199,6 +199,36 @@ globalThis.bridge = (() => {
     },
     'dart.getAppVersion': () => '0.0.0-cpp',
     'dart.getLocaleInfo': () => ({}),
+    // deprecated crypto 路由（kit 兼容层）：委托 crypto 全局
+    //（字符串入参，hex/b64 字符串 Promise 出参与 Rust 版一致）
+    'crypto.md5_hex': (input) => globalThis.crypto.md5(String(input ?? '')),
+    'crypto.sha1_hex': (input) => globalThis.crypto.sha1(String(input ?? '')),
+    'crypto.sha256_hex': (input) => globalThis.crypto.sha256(String(input ?? '')),
+    'crypto.sha512_hex': (input) => globalThis.crypto.sha512(String(input ?? '')),
+    'crypto.hmac_sha1_hex': (key, input) =>
+      globalThis.crypto.hmacSha1(String(key ?? ''), String(input ?? '')),
+    'crypto.hmac_sha256_hex': (key, input) =>
+      globalThis.crypto.hmacSha256(String(key ?? ''), String(input ?? '')),
+    'crypto.hmac_sha512_hex': (key, input) =>
+      globalThis.crypto.hmacSha512(String(key ?? ''), String(input ?? '')),
+    'crypto.aes_ecb_pkcs7_decrypt_b64': (payloadB64, keyRaw) =>
+      globalThis.crypto.aesEcbPkcs7Decrypt(
+        globalThis.bytesFromBase64(String(payloadB64 ?? '')), String(keyRaw ?? ''))
+        .then((bytes) => new TextDecoder().decode(bytes)),
+    'crypto.aes_cbc_pkcs7_encrypt_b64': (plainB64, keyRaw, ivRaw) =>
+      globalThis.crypto.aesCbcPkcs7EncryptB64(
+        String(plainB64 ?? ''), String(keyRaw ?? ''), String(ivRaw ?? '')),
+    'crypto.aes_cbc_pkcs7_decrypt_b64': (payloadB64, keyRaw, ivRaw) =>
+      globalThis.crypto.aesCbcPkcs7DecryptB64(
+        String(payloadB64 ?? ''), String(keyRaw ?? ''), String(ivRaw ?? '')),
+    'crypto.aes_gcm_encrypt_b64': (payloadB64, keyRaw, nonceRaw, aadB64) =>
+      globalThis.crypto.aesGcmEncryptB64(
+        String(payloadB64 ?? ''), String(keyRaw ?? ''), String(nonceRaw ?? ''),
+        aadB64 == null ? null : String(aadB64)),
+    'crypto.aes_gcm_decrypt_b64': (payloadB64, keyRaw, nonceRaw, aadB64) =>
+      globalThis.crypto.aesGcmDecryptB64(
+        String(payloadB64 ?? ''), String(keyRaw ?? ''), String(nonceRaw ?? ''),
+        aadB64 == null ? null : String(aadB64)),
   };
   return {
     call: (name, ...args) => {

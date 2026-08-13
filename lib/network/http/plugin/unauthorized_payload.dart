@@ -21,7 +21,12 @@ UnauthorizedPayload? parseUnauthorizedPayload(
   Object error, {
   required String fallbackPluginId,
 }) {
-  final text = (error as AnyhowException).message.trim().split('\n').first;
+  // C++ 后端（dcb）的错误是 StateError 等普通异常，不是 AnyhowException；
+  // 统一取文本再匹配，两类后端都兼容。
+  final text = (error is AnyhowException ? error.message : error.toString())
+      .trim()
+      .split('\n')
+      .first;
   final regExp = RegExp(
     r'(?:bundle:.*?cjs\]|source:.*?cjs\])\s*(\{.*\})',
     dotAll: true,

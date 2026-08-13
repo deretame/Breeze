@@ -48,9 +48,9 @@ void main() {
   HttpServer? server;
   late String base;
   final downloadBytes = List<int>.generate(
-    1024 * 1024,
+    3 * 1024 * 1024,
     (i) => i % 251,
-  ); // 1 MiB 确定性内容
+  ); // 3 MiB 确定性内容（> beast 默认 1MB body_limit，覆盖回归）
 
   setUpAll(() async {
     await DcbLib.init();

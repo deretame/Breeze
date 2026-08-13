@@ -33,6 +33,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -495,6 +496,10 @@ std_exec::task<Response> exchange_pooled(PooledConnection conn, const Request& r
                                          std::string_view target, const HttpProxy* proxy,
                                          bool& write_done) {
     auto parser = std::make_shared<http::response_parser<http::buffer_body>>();
+    // beast 默认 body_limit 仅 1 MB，大文件下载（模型等）会被截杀；
+    // body 是流式消费（buffer_body 不攒内存），上限放开，与 reqwest 语义对齐
+    //（解压炸弹防护由 Options::max_decompressed_bytes 单独负责）。
+    parser->body_limit(std::numeric_limits<std::uint64_t>::max());
     // 读头阶段的取消回调：绑连接底层（与 body 阶段 BeastBodySource 的回调交接）。
     // stream_ptr 指向 conn.stream()。竞态防护：回调（跨线程）与 io 线程的
     // 连接 move/回池 经 mu_ 互斥——回调先查 valid 再持锁 visit；io 线程在

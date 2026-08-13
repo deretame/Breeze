@@ -125,3 +125,67 @@ private:
   std::string user_agent_;
   std::shared_ptr<fetch::easy::Client> client_;
 };
+
+// ============================================================
+// 插件 QJS 运行时（qjs::HostRuntime 桥接，替代原 Rust rquickjs 路径）
+// 最小可用版：初始化 / 任务调用 / 销毁 / 替换 / debug。
+// bridge 路由（cache.*/opencc.convert）、Dart 回调、组取消等见
+// docs/cpp_plugin_runtime_design.md 后续补全清单。
+// ============================================================
+
+/// 建 runtime（重复调用幂等）。bundle_js 为空 = 建空 runtime（无插件函数）。
+/// → Dart: Future<void> qjsBuildRuntime(String runtimeName, String bundleName, String bundleJs)
+BRIDGE_ASYNC
+stdexec::task<void> qjs_build_runtime(std::string runtime_name,
+                                      std::string bundle_name,
+                                      std::string bundle_js);
+
+/// → Dart: Future<bool> qjsIsInitialized(String runtimeName)
+BRIDGE_ASYNC
+stdexec::task<bool> qjs_is_initialized(std::string runtime_name);
+
+/// 销毁 runtime（排干后回收实例线程）。→ Dart: Future<bool>
+BRIDGE_ASYNC
+stdexec::task<bool> qjs_drop_runtime(std::string runtime_name);
+
+/// 热替换常驻 bundle（原子替换，失败保留旧代码）。
+/// → Dart: Future<void> qjsReplaceBundle(...)
+BRIDGE_ASYNC
+stdexec::task<void> qjs_replace_bundle(std::string runtime_name,
+                                       std::string bundle_name,
+                                       std::string bundle_js);
+
+/// 清空常驻 bundle（替换为空 exports）。→ Dart: Future<bool>
+BRIDGE_ASYNC
+stdexec::task<bool> qjs_clear_bundle(std::string runtime_name);
+
+/// 当前 bundle 名（JSON 文本："null" 或 "\"name\""）。→ Dart: Future<String>
+BRIDGE_ASYNC
+stdexec::task<std::string> qjs_current_bundle(std::string runtime_name);
+
+/// 唯一调用入口（对齐 Rust qjs_task_call）。
+/// is_once=true 且带 bundle_js = debug 热重载调用（屏障 + 串行 + 源码哈希
+/// 缓存跳过重复 eval）。args_json 约定：JSON 文本整体 parse 后作为唯一参数
+/// 传给目标函数。返回值：JS 返回 Uint8Array/ArrayBuffer → 真实字节；
+/// 否则 JSON.stringify 的 UTF-8 字节。
+/// task_group_key 仅签名对齐，组取消本期未实现。
+/// → Dart: Future<Uint8List> qjsTaskCall(...)
+BRIDGE_ASYNC
+stdexec::task<std::vector<std::uint8_t>> qjs_task_call(
+    std::string runtime_name, std::string task_group_key, bool is_once,
+    std::optional<std::string> bundle_js, std::string fn_path,
+    std::string args_json);
+
+/// 实例诊断快照（pretty JSON）。→ Dart: Future<String>
+BRIDGE_ASYNC
+stdexec::task<std::string> qjs_debug_snapshot(std::string runtime_name);
+
+/// 进程级 fetch 配置（仅对之后新建的 runtime 实例生效）。
+/// 空串 = 清除/直连。设置 http 代理会强制关闭 TLS 校验（对齐 Rust 行为）。
+/// socks5 与 http 代理互斥（socks5 优先）。
+BRIDGE_SYNC
+void qjs_set_http_proxy(std::string proxy);
+BRIDGE_SYNC
+void qjs_set_socks5_proxy(std::string proxy);
+BRIDGE_SYNC
+void qjs_set_tls_verify_enabled(bool enabled);

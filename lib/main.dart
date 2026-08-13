@@ -28,6 +28,7 @@ import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
+import 'package:zephyr/network/http/plugin/qjs_backend.dart';
 import 'package:zephyr/network/http/wind_http.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -336,12 +337,14 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
             : 'http://$proxyAddress';
         await setHttpProxy(proxy: proxyUrl);
         WindHttpConfig.proxy = proxyUrl;
+        qjsBackendSetHttpProxy(proxyUrl);
         // Dart 侧纯 dart:io HttpClient（如 minio / S3 同步）也走 HTTP 代理
         SocksProxy.initProxy(proxy: 'PROXY ${_stripProxyScheme(proxyUrl)}');
       case ProxyType.socks5:
         SocksProxy.initProxy(proxy: 'SOCKS5 $proxyAddress');
         await setSocks5Proxy(proxy: proxyAddress);
         WindHttpConfig.proxy = 'socks5://$proxyAddress';
+        qjsBackendSetSocks5Proxy(proxyAddress);
     }
   }
 
@@ -365,6 +368,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   setTlsVerifyEnabled(enabled: false);
   WindHttpConfig.tlsVerify = false;
+  qjsBackendSetTlsVerify(false);
 
   return (globalSettingCubit, pluginRegistryCubit);
 }
@@ -385,6 +389,7 @@ Future<void> _tryApplyHttpProxyFromEnv() async {
 
   await setHttpProxy(proxy: proxyUrl);
   WindHttpConfig.proxy = proxyUrl;
+  qjsBackendSetHttpProxy(proxyUrl);
 }
 
 /// 去掉代理地址的协议前缀，得到 `host:port`，供 Dart 侧 HttpClient 使用。

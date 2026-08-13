@@ -13,8 +13,8 @@
 
 #include "api/bridge_api.h"
 
-#include <exec/start_detached.hpp>
 #include <stdexec/execution.hpp>
+#include <exec/start_detached.hpp>
 
 #include <chrono>
 #include <cstdio>
@@ -39,9 +39,9 @@ namespace {
 // clear compile error at the call site while stdexec::task is accepted.
 using spawn_env_t = decltype(stdexec::env{
     stdexec::prop{stdexec::get_scheduler,
-                  std::declval<const dcb::IoContextScheduler &>()},
+                   std::declval<const dcb::IoContextScheduler&>()},
     stdexec::prop{stdexec::get_start_scheduler,
-                  std::declval<const dcb::IoContextScheduler &>()}});
+                   std::declval<const dcb::IoContextScheduler&>()}});
 
 // Launch a dispatch coroutine on the bridge io thread. The official
 // exec::start_detached terminates on set_error, so an upon_error log is
@@ -50,33 +50,31 @@ using spawn_env_t = decltype(stdexec::env{
 // at every call site and the chain below instantiates exactly once.
 template <class S>
   requires stdexec::sender_in<S, spawn_env_t>
-void spawn_on_io(S &&sndr) {
+void spawn_on_io(S&& sndr) {
   exec::start_detached(
       stdexec::starts_on(*dcb::Runtime::instance().io_scheduler(),
                          std::forward<S>(sndr)) |
       stdexec::upon_error([](std::exception_ptr ep) noexcept {
-        try {
-          std::rethrow_exception(ep);
-        } catch (const std::exception &e) {
-          std::fprintf(stderr, "[wire] detached sender error: %s\n", e.what());
-        } catch (...) {
-          std::fprintf(stderr, "[wire] detached sender error: unknown\n");
-        }
-      }) |
+          try {
+            std::rethrow_exception(ep);
+          } catch (const std::exception& e) {
+            std::fprintf(stderr, "[wire] detached sender error: %s\n", e.what());
+          } catch (...) {
+            std::fprintf(stderr, "[wire] detached sender error: unknown\n");
+          }
+        }) |
       stdexec::upon_stopped([]() noexcept {
         std::fprintf(stderr, "[wire] detached sender stopped\n");
       }));
 }
 
-void post_ok(const std::shared_ptr<Session> &s, std::uint64_t gen,
-             std::uint64_t req, std::uint32_t method,
-             const std::vector<std::uint8_t> &payload) {
+void post_ok(const std::shared_ptr<Session>& s, std::uint64_t gen, std::uint64_t req,
+             std::uint32_t method, const std::vector<std::uint8_t>& payload) {
   s->try_post(gen, make_frame(MsgType::kResponseOk, req, method, payload));
 }
 
-void post_err(const std::shared_ptr<Session> &s, std::uint64_t gen,
-              std::uint64_t req, std::uint32_t method, const char *fn,
-              const std::string &msg) {
+void post_err(const std::shared_ptr<Session>& s, std::uint64_t gen, std::uint64_t req,
+              std::uint32_t method, const char* fn, const std::string& msg) {
   ByteWriter w;
   w.i32(1);
   w.str(dcb::error::format(fn, msg));
@@ -86,7 +84,8 @@ void post_err(const std::shared_ptr<Session> &s, std::uint64_t gen,
 // Receiver that turns a sender's completion into a Dart response frame:
 // set_value -> responseOk, set_error / set_stopped -> responseErr.
 // Same pattern as examples/base_demo/demo_api.cpp.
-template <typename T> struct DispatchReceiver {
+template <typename T>
+struct DispatchReceiver {
   using receiver_concept = stdexec::receiver_tag;
 
   std::shared_ptr<Session> session;
@@ -94,14 +93,14 @@ template <typename T> struct DispatchReceiver {
   std::uint64_t req{0};
   std::uint32_t method{0};
   std::string name;
-  std::function<void(ByteWriter &, const T &)> encode;
+  std::function<void(ByteWriter&, const T&)> encode;
 
   void set_value(T v) && noexcept {
     try {
       ByteWriter w;
       encode(w, v);
       post_ok(session, gen, req, method, w.raw());
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       post_err(session, gen, req, method, name.c_str(), e.what());
     } catch (...) {
       post_err(session, gen, req, method, name.c_str(), "unknown");
@@ -112,7 +111,7 @@ template <typename T> struct DispatchReceiver {
     std::string msg = "unknown";
     try {
       std::rethrow_exception(ep);
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
       msg = e.what();
     } catch (...) {
     }
@@ -129,119 +128,91 @@ template <typename T> struct DispatchReceiver {
 // into a response frame. Replaces the old asio::post(pool) + asio::post(io)
 // double hop; exceptions from the business call become responseErr frames.
 template <typename T, stdexec::sender S, typename Encode>
-void run_async(const std::shared_ptr<Session> &session, std::uint64_t gen,
-               std::uint64_t req, std::uint32_t method, S &&sndr,
-               Encode &&encode, const char *name) {
+void run_async(const std::shared_ptr<Session>& session, std::uint64_t gen,
+               std::uint64_t req, std::uint32_t method, S&& sndr,
+               Encode&& encode, const char* name) {
   try {
     auto chain = stdexec::starts_on(*dcb::Runtime::instance().io_scheduler(),
                                     std::forward<S>(sndr));
-    auto rcvr =
-        DispatchReceiver<T>{session,
-                            gen,
-                            req,
-                            method,
-                            name,
-                            std::function<void(ByteWriter &, const T &)>(
-                                std::forward<Encode>(encode))};
+    auto rcvr = DispatchReceiver<T>{
+        session, gen, req, method, name,
+        std::function<void(ByteWriter&, const T&)>(std::forward<Encode>(encode))};
     dcb::start_with_receiver(std::move(chain), std::move(rcvr));
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     post_err(session, gen, req, method, name, e.what());
   } catch (...) {
     post_err(session, gen, req, method, name, "unknown");
   }
 }
 
-} // namespace
+}  // namespace
 
-// Per-class alive instance counters (per-session, generated for opaque
-// classes).
+// Per-class alive instance counters (per-session, generated for opaque classes).
 struct AliveCounter_WindHttpClient {
   std::mutex mu;
   std::unordered_map<std::uint64_t, std::int32_t> counts;
-  void increment(std::uint64_t sid) {
-    std::lock_guard<std::mutex> lk(mu);
-    counts[sid]++;
-  }
-  void decrement(std::uint64_t sid) {
-    std::lock_guard<std::mutex> lk(mu);
-    auto it = counts.find(sid);
-    if (it != counts.end() && --it->second <= 0)
-      counts.erase(it);
-  }
-  std::int32_t load(std::uint64_t sid) {
-    std::lock_guard<std::mutex> lk(mu);
-    auto it = counts.find(sid);
-    return it != counts.end() ? it->second : 0;
-  }
+  void increment(std::uint64_t sid) { std::lock_guard<std::mutex> lk(mu); counts[sid]++; }
+  void decrement(std::uint64_t sid) { std::lock_guard<std::mutex> lk(mu); auto it = counts.find(sid); if (it != counts.end() && --it->second <= 0) counts.erase(it); }
+  std::int32_t load(std::uint64_t sid) { std::lock_guard<std::mutex> lk(mu); auto it = counts.find(sid); return it != counts.end() ? it->second : 0; }
 };
 static AliveCounter_WindHttpClient g_WindHttpClient_alive_count;
 
-inline void encode_WindDownloadProgress(ByteWriter &w,
-                                        const ::WindDownloadProgress &v) {
+inline void encode_WindDownloadProgress(ByteWriter& w, const ::WindDownloadProgress& v) {
   w.i64(v.received);
   w.i64(v.total);
 }
 
-inline ::WindDownloadProgress decode_WindDownloadProgress(ByteReader &r) {
+inline ::WindDownloadProgress decode_WindDownloadProgress(ByteReader& r) {
   ::WindDownloadProgress v;
   v.received = r.i64();
   v.total = r.i64();
   return v;
 }
-inline void encode_WindFetchInit(ByteWriter &w, const ::WindFetchInit &v) {
+inline void encode_WindFetchInit(ByteWriter& w, const ::WindFetchInit& v) {
   w.str(v.method);
-  w.map(
-      v.headers, [&](const auto &k) { w.str(k); },
-      [&](const auto &v) { w.str(v); });
+  w.map(v.headers, [&](const auto& k) { w.str(k); }, [&](const auto& v) { w.str(v); });
   w.u8vec(v.body);
   w.i64(v.timeout_ms);
-  w.opt(v.follow_redirects, [&](const auto &v) { w.u8(v ? 1 : 0); });
+  w.opt(v.follow_redirects, [&](const auto& v) { w.u8(v ? 1 : 0); });
 }
 
-inline ::WindFetchInit decode_WindFetchInit(ByteReader &r) {
+inline ::WindFetchInit decode_WindFetchInit(ByteReader& r) {
   ::WindFetchInit v;
   v.method = r.str();
-  v.headers = r.map<std::string, std::string>([&]() { return r.str(); },
-                                              [&]() { return r.str(); });
+  v.headers = r.map<std::string, std::string>([&]() { return r.str(); }, [&]() { return r.str(); });
   v.body = r.u8vec();
   v.timeout_ms = r.i64();
   v.follow_redirects = r.opt<bool>([&]() { return static_cast<bool>(r.u8()); });
   return v;
 }
-inline void encode_WindFetchResponse(ByteWriter &w,
-                                     const ::WindFetchResponse &v) {
+inline void encode_WindFetchResponse(ByteWriter& w, const ::WindFetchResponse& v) {
   w.i32(v.status);
   w.str(v.status_text);
-  w.map(
-      v.headers, [&](const auto &k) { w.str(k); },
-      [&](const auto &v) { w.str(v); });
+  w.map(v.headers, [&](const auto& k) { w.str(k); }, [&](const auto& v) { w.str(v); });
   w.u8vec(v.body);
   w.str(v.url);
   w.u8(v.redirected ? 1 : 0);
 }
 
-inline ::WindFetchResponse decode_WindFetchResponse(ByteReader &r) {
+inline ::WindFetchResponse decode_WindFetchResponse(ByteReader& r) {
   ::WindFetchResponse v;
   v.status = r.i32();
   v.status_text = r.str();
-  v.headers = r.map<std::string, std::string>([&]() { return r.str(); },
-                                              [&]() { return r.str(); });
+  v.headers = r.map<std::string, std::string>([&]() { return r.str(); }, [&]() { return r.str(); });
   v.body = r.u8vec();
   v.url = r.str();
   v.redirected = static_cast<bool>(r.u8());
   return v;
 }
 
-void dispatch_request(std::shared_ptr<Session> session,
-                      std::uint64_t session_id, const std::uint8_t *data,
-                      std::size_t len) {
+void dispatch_request(std::shared_ptr<Session> session, std::uint64_t session_id,
+                      const std::uint8_t* data, std::size_t len) {
   const auto gen = session->generation();
   FrameHeader frame;
   try {
     frame = parse_frame(data, len);
-  } catch (const std::exception &e) {
-    post_err(session, gen, 0, 0, "dispatch",
-             std::string("bad frame: ") + e.what());
+  } catch (const std::exception& e) {
+    post_err(session, gen, 0, 0, "dispatch", std::string("bad frame: ") + e.what());
     return;
   } catch (...) {
     post_err(session, gen, 0, 0, "dispatch", "bad frame");
@@ -254,216 +225,436 @@ void dispatch_request(std::shared_ptr<Session> session,
   try {
     switch (method) {
 
-    case 117270329: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto input = r.i32();
-      run_async<std::string>(
-          session, gen, req, method,
-          dcb::spawn_blocking([input]() { return ::heavy_compute(input); }),
-          [](ByteWriter &w, const auto &out) { w.str(out); }, "heavy_compute");
-      break;
-    }
-
-    case 673703455: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto img_data = reinterpret_cast<std::uint8_t *>(r.u64());
-      const auto img_data_len = r.i32();
-      const auto chapter_id = r.i32();
-      const auto url = r.str();
-      const auto file_name = r.str();
-      auto task = [](std::shared_ptr<Session> session, std::uint64_t gen,
-                     std::uint64_t req, std::uint32_t method,
-                     std::uint8_t *img_data, std::int32_t img_data_len,
-                     std::int32_t chapter_id, std::string url,
-                     std::string file_name) -> stdexec::task<void> {
-        try {
-          co_await ::anti_obfuscation_picture(img_data, img_data_len,
-                                              chapter_id, url, file_name);
-          ByteWriter w;
-
-          post_ok(session, gen, req, method, w.raw());
-        } catch (const std::exception &e) {
-          post_err(session, gen, req, method, "anti_obfuscation_picture",
-                   e.what());
-        } catch (...) {
-          post_err(session, gen, req, method, "anti_obfuscation_picture",
-                   "unknown");
-        }
-        co_return;
-      }(session, gen, req, method, img_data, img_data_len, chapter_id,
-                                            std::move(url),
-                                            std::move(file_name));
-      spawn_on_io(std::move(task));
-      break;
-    }
-
-    case 1130012286: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto a = r.i32();
-      const auto b = r.i32();
-      ByteWriter w;
-      {
-        auto out = ::add(a, b);
-        w.i32(out);
+      case 117270329: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto input = r.i32();
+        run_async<std::string>(
+            session, gen, req, method,
+            dcb::spawn_blocking([input]() {
+              return ::heavy_compute(input);
+            }),
+            [](ByteWriter& w, const auto& out) {
+              w.str(out);
+            },
+            "heavy_compute");
+        break;
       }
-      post_ok(session, gen, req, method, w.raw());
-      break;
-    }
 
-    case 1278131711: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto name = r.str();
-      auto task = [](std::shared_ptr<Session> session, std::uint64_t gen,
-                     std::uint64_t req, std::uint32_t method,
-                     std::string name) -> stdexec::task<void> {
-        try {
-          auto out = co_await ::fetch_greeting(name);
-          ByteWriter w;
-          w.str(out);
-          post_ok(session, gen, req, method, w.raw());
-        } catch (const std::exception &e) {
-          post_err(session, gen, req, method, "fetch_greeting", e.what());
-        } catch (...) {
-          post_err(session, gen, req, method, "fetch_greeting", "unknown");
+      case 129382005: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::qjs_debug_snapshot(runtime_name);
+    ByteWriter w;
+    w.str(out);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_debug_snapshot", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_debug_snapshot", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 229742803: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::qjs_clear_bundle(runtime_name);
+    ByteWriter w;
+    w.u8(out ? 1 : 0);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_clear_bundle", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_clear_bundle", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 332377940: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto proxy = r.str();
+        ByteWriter w;
+        {
+          ::qjs_set_http_proxy(proxy);
+
         }
-        co_return;
-      }(session, gen, req, method, std::move(name));
-      spawn_on_io(std::move(task));
-      break;
-    }
+        post_ok(session, gen, req, method, w.raw());
+        break;
+      }
 
-    case 33985225: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto default_headers = r.map<std::string, std::string>(
-          [&]() { return r.str(); }, [&]() { return r.str(); });
-      const auto timeout_ms = r.i64();
-      const auto follow_redirects = static_cast<bool>(r.u8());
-      const auto proxy = r.str();
-      const auto tls_verify = static_cast<bool>(r.u8());
-      const auto user_agent = r.str();
-      auto obj = std::make_shared<::WindHttpClient>(default_headers, timeout_ms,
-                                                    follow_redirects, proxy,
-                                                    tls_verify, user_agent);
-      g_WindHttpClient_alive_count.increment(session_id);
-      const auto handle = dcb::ObjectHandleRegistry::instance().insert(
-          session_id, obj, [session_id](std::shared_ptr<void> &) {
-            g_WindHttpClient_alive_count.decrement(session_id);
+      case 381890690: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        const auto bundle_name = r.str();
+        const auto bundle_js = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name, std::string bundle_name, std::string bundle_js) -> stdexec::task<void> {
+  try {
+    co_await ::qjs_build_runtime(runtime_name, bundle_name, bundle_js);
+    ByteWriter w;
+
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_build_runtime", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_build_runtime", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name), std::move(bundle_name), std::move(bundle_js));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 614503869: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto proxy = r.str();
+        ByteWriter w;
+        {
+          ::qjs_set_socks5_proxy(proxy);
+
+        }
+        post_ok(session, gen, req, method, w.raw());
+        break;
+      }
+
+      case 673703455: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto img_data = reinterpret_cast<std::uint8_t*>(r.u64());
+        const auto img_data_len = r.i32();
+        const auto chapter_id = r.i32();
+        const auto url = r.str();
+        const auto file_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::uint8_t* img_data, std::int32_t img_data_len, std::int32_t chapter_id, std::string url, std::string file_name) -> stdexec::task<void> {
+  try {
+    co_await ::anti_obfuscation_picture(img_data, img_data_len, chapter_id, url, file_name);
+    ByteWriter w;
+
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "anti_obfuscation_picture", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "anti_obfuscation_picture", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, img_data, img_data_len, chapter_id, std::move(url), std::move(file_name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 915368852: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::qjs_is_initialized(runtime_name);
+    ByteWriter w;
+    w.u8(out ? 1 : 0);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_is_initialized", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_is_initialized", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 1096426791: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::qjs_drop_runtime(runtime_name);
+    ByteWriter w;
+    w.u8(out ? 1 : 0);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_drop_runtime", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_drop_runtime", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 1130012286: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto a = r.i32();
+        const auto b = r.i32();
+        ByteWriter w;
+        {
+          auto out = ::add(a, b);
+          w.i32(out);
+        }
+        post_ok(session, gen, req, method, w.raw());
+        break;
+      }
+
+      case 1159358141: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        const auto task_group_key = r.str();
+        const auto is_once = static_cast<bool>(r.u8());
+        const auto bundle_js = r.opt<std::string>([&]() { return r.str(); });
+        const auto fn_path = r.str();
+        const auto args_json = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name, std::string task_group_key, bool is_once, std::optional<std::string> bundle_js, std::string fn_path, std::string args_json) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::qjs_task_call(runtime_name, task_group_key, is_once, bundle_js, fn_path, args_json);
+    ByteWriter w;
+    w.u8vec(out);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_task_call", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_task_call", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name), std::move(task_group_key), is_once, bundle_js, std::move(fn_path), std::move(args_json));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 1278131711: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::fetch_greeting(name);
+    ByteWriter w;
+    w.str(out);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "fetch_greeting", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "fetch_greeting", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 1461330420: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto enabled = static_cast<bool>(r.u8());
+        ByteWriter w;
+        {
+          ::qjs_set_tls_verify_enabled(enabled);
+
+        }
+        post_ok(session, gen, req, method, w.raw());
+        break;
+      }
+
+      case 1679656109: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        const auto bundle_name = r.str();
+        const auto bundle_js = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name, std::string bundle_name, std::string bundle_js) -> stdexec::task<void> {
+  try {
+    co_await ::qjs_replace_bundle(runtime_name, bundle_name, bundle_js);
+    ByteWriter w;
+
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_replace_bundle", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_replace_bundle", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name), std::move(bundle_name), std::move(bundle_js));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 1714687961: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto runtime_name = r.str();
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::string runtime_name) -> stdexec::task<void> {
+  try {
+    auto out = co_await ::qjs_current_bundle(runtime_name);
+    ByteWriter w;
+    w.str(out);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "qjs_current_bundle", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "qjs_current_bundle", "unknown");
+  }
+  co_return;
+}(session, gen, req, method, std::move(runtime_name));
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 33985225: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto default_headers = r.map<std::string, std::string>([&]() { return r.str(); }, [&]() { return r.str(); });
+        const auto timeout_ms = r.i64();
+        const auto follow_redirects = static_cast<bool>(r.u8());
+        const auto proxy = r.str();
+        const auto tls_verify = static_cast<bool>(r.u8());
+        const auto user_agent = r.str();
+        auto obj = std::make_shared<::WindHttpClient>(default_headers, timeout_ms, follow_redirects, proxy, tls_verify, user_agent);
+        g_WindHttpClient_alive_count.increment(session_id);
+        const auto handle = dcb::ObjectHandleRegistry::instance().insert(session_id, obj, [session_id](std::shared_ptr<void>&) {
+          g_WindHttpClient_alive_count.decrement(session_id);
+        });
+        ByteWriter w;
+        w.u64(handle);
+        post_ok(session, gen, req, method, w.raw());
+        break;
+      }
+
+      case 596115912: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto handle = r.u64();
+        auto obj = dcb::ObjectHandleRegistry::instance().get(handle);
+        if (!obj) {
+          post_err(session, gen, req, method, "WindHttpClient::fetch", "WindHttpClient handle not found or already dropped");
+          break;
+        }
+        const auto url = r.str();
+        const auto init = decode_WindFetchInit(r);
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t session_id, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::shared_ptr<void> obj, std::string url, ::WindFetchInit init) -> stdexec::task<void> {
+  try {
+    auto out = co_await static_cast<::WindHttpClient*>(obj.get())->fetch(url, init);
+    ByteWriter w;
+    encode_WindFetchResponse(w, out);
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "WindHttpClient::fetch", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "WindHttpClient::fetch", "unknown");
+  }
+  co_return;
+}(session, session_id, gen, req, method, obj, std::move(url), init);
+        spawn_on_io(std::move(task));
+        break;
+      }
+
+      case 1023045398: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+        const auto handle = r.u64();
+        auto obj = dcb::ObjectHandleRegistry::instance().get(handle);
+        if (!obj) {
+          post_err(session, gen, req, method, "WindHttpClient::download", "WindHttpClient handle not found or already dropped");
+          break;
+        }
+        const auto url = r.str();
+        const auto save_path = r.str();
+        const auto init = decode_WindFetchInit(r);
+        const auto _stream_id = r.u64();
+        std::optional<dcb::StreamSink<::WindDownloadProgress>> sink;
+        if (_stream_id != 0) {
+          sink.emplace(session, _stream_id, gen, method, [](::WindDownloadProgress v) {
+            ByteWriter w;
+            encode_WindDownloadProgress(w, v);
+            return w.raw();
           });
-      ByteWriter w;
-      w.u64(handle);
-      post_ok(session, gen, req, method, w.raw());
-      break;
-    }
+        }
+        auto task = []( std::shared_ptr<Session> session, std::uint64_t session_id, std::uint64_t gen, std::uint64_t req, std::uint32_t method, std::shared_ptr<void> obj, std::string url, std::string save_path, ::WindFetchInit init, std::optional<dcb::StreamSink<::WindDownloadProgress>> sink) -> stdexec::task<void> {
+  try {
+    co_await static_cast<::WindHttpClient*>(obj.get())->download(url, save_path, init, std::move(sink));
+    ByteWriter w;
 
-    case 596115912: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto handle = r.u64();
-      auto obj = dcb::ObjectHandleRegistry::instance().get(handle);
-      if (!obj) {
-        post_err(session, gen, req, method, "WindHttpClient::fetch",
-                 "WindHttpClient handle not found or already dropped");
+    post_ok(session, gen, req, method, w.raw());
+  } catch (const std::exception& e) {
+    post_err(session, gen, req, method, "WindHttpClient::download", e.what());
+  } catch (...) {
+    post_err(session, gen, req, method, "WindHttpClient::download", "unknown");
+  }
+  co_return;
+}(session, session_id, gen, req, method, obj, std::move(url), std::move(save_path), init, std::move(sink));
+        spawn_on_io(std::move(task));
         break;
       }
-      const auto url = r.str();
-      const auto init = decode_WindFetchInit(r);
-      auto task = [](std::shared_ptr<Session> session, std::uint64_t session_id,
-                     std::uint64_t gen, std::uint64_t req, std::uint32_t method,
-                     std::shared_ptr<void> obj, std::string url,
-                     ::WindFetchInit init) -> stdexec::task<void> {
-        try {
-          auto out = co_await static_cast<::WindHttpClient *>(obj.get())->fetch(
-              url, init);
-          ByteWriter w;
-          encode_WindFetchResponse(w, out);
-          post_ok(session, gen, req, method, w.raw());
-        } catch (const std::exception &e) {
-          post_err(session, gen, req, method, "WindHttpClient::fetch",
-                   e.what());
-        } catch (...) {
-          post_err(session, gen, req, method, "WindHttpClient::fetch",
-                   "unknown");
-        }
-        co_return;
-      }(session, session_id, gen, req, method, obj, std::move(url), init);
-      spawn_on_io(std::move(task));
-      break;
-    }
 
-    case 1023045398: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-      const auto handle = r.u64();
-      auto obj = dcb::ObjectHandleRegistry::instance().get(handle);
-      if (!obj) {
-        post_err(session, gen, req, method, "WindHttpClient::download",
-                 "WindHttpClient handle not found or already dropped");
+      case 2058390274: {
+        ByteReader r(frame.payload.data(), frame.payload.size());
+
+        ByteWriter w;
+        {
+          auto out = g_WindHttpClient_alive_count.load(session_id);
+          w.i32(out);
+        }
+        post_ok(session, gen, req, method, w.raw());
         break;
       }
-      const auto url = r.str();
-      const auto save_path = r.str();
-      const auto init = decode_WindFetchInit(r);
-      const auto _stream_id = r.u64();
-      std::optional<dcb::StreamSink<::WindDownloadProgress>> sink;
-      if (_stream_id != 0) {
-        sink.emplace(session, _stream_id, gen, method,
-                     [](::WindDownloadProgress v) {
-                       ByteWriter w;
-                       encode_WindDownloadProgress(w, v);
-                       return w.raw();
-                     });
-      }
-      auto task =
-          [](std::shared_ptr<Session> session, std::uint64_t session_id,
-             std::uint64_t gen, std::uint64_t req, std::uint32_t method,
-             std::shared_ptr<void> obj, std::string url, std::string save_path,
-             ::WindFetchInit init,
-             std::optional<dcb::StreamSink<::WindDownloadProgress>> sink)
-          -> stdexec::task<void> {
-        try {
-          co_await static_cast<::WindHttpClient *>(obj.get())->download(
-              url, save_path, init, std::move(sink));
-          ByteWriter w;
-
-          post_ok(session, gen, req, method, w.raw());
-        } catch (const std::exception &e) {
-          post_err(session, gen, req, method, "WindHttpClient::download",
-                   e.what());
-        } catch (...) {
-          post_err(session, gen, req, method, "WindHttpClient::download",
-                   "unknown");
-        }
-        co_return;
-      }(session, session_id, gen, req, method, obj, std::move(url),
-          std::move(save_path), init, std::move(sink));
-      spawn_on_io(std::move(task));
-      break;
+      default:
+        post_err(session, gen, req, method, "dispatch", "unknown method");
+        break;
     }
-
-    case 2058390274: {
-      ByteReader r(frame.payload.data(), frame.payload.size());
-
-      ByteWriter w;
-      {
-        auto out = g_WindHttpClient_alive_count.load(session_id);
-        w.i32(out);
-      }
-      post_ok(session, gen, req, method, w.raw());
-      break;
-    }
-    default:
-      post_err(session, gen, req, method, "dispatch", "unknown method");
-      break;
-    }
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     post_err(session, gen, req, method, "dispatch", e.what());
   } catch (...) {
     post_err(session, gen, req, method, "dispatch", "unknown");
   }
 }
 
-std::vector<std::uint8_t> dispatch_sync(std::uint64_t session_id,
-                                        const std::uint8_t *data,
-                                        std::size_t len) {
+std::vector<std::uint8_t> dispatch_sync(std::uint64_t session_id, const std::uint8_t* data, std::size_t len) {
   auto frame = parse_frame(data, len);
+
+  if (frame.method_id == 332377940u) {
+    ByteReader r(frame.payload.data(), frame.payload.size());
+    const auto proxy = r.str();
+    try {
+      ByteWriter w;
+      {
+        ::qjs_set_http_proxy(proxy);
+
+      }
+      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id, w.raw());
+    } catch (const std::exception& e) {
+      ByteWriter ew;
+      ew.i32(1);
+      ew.str(dcb::error::format("qjs_set_http_proxy", e.what()));
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
+    } catch (...) {
+      ByteWriter ew;
+      ew.i32(1);
+      ew.str(dcb::error::format("qjs_set_http_proxy", "unknown"));
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
+    }
+  }
+
+  if (frame.method_id == 614503869u) {
+    ByteReader r(frame.payload.data(), frame.payload.size());
+    const auto proxy = r.str();
+    try {
+      ByteWriter w;
+      {
+        ::qjs_set_socks5_proxy(proxy);
+
+      }
+      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id, w.raw());
+    } catch (const std::exception& e) {
+      ByteWriter ew;
+      ew.i32(1);
+      ew.str(dcb::error::format("qjs_set_socks5_proxy", e.what()));
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
+    } catch (...) {
+      ByteWriter ew;
+      ew.i32(1);
+      ew.str(dcb::error::format("qjs_set_socks5_proxy", "unknown"));
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
+    }
+  }
 
   if (frame.method_id == 1130012286u) {
     ByteReader r(frame.payload.data(), frame.payload.size());
@@ -475,57 +666,70 @@ std::vector<std::uint8_t> dispatch_sync(std::uint64_t session_id,
         auto out = ::add(a, b);
         w.i32(out);
       }
-      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id,
-                        w.raw());
-    } catch (const std::exception &e) {
+      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id, w.raw());
+    } catch (const std::exception& e) {
       ByteWriter ew;
       ew.i32(1);
       ew.str(dcb::error::format("add", e.what()));
-      return make_frame(MsgType::kResponseErr, frame.request_id,
-                        frame.method_id, ew.raw());
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
     } catch (...) {
       ByteWriter ew;
       ew.i32(1);
       ew.str(dcb::error::format("add", "unknown"));
-      return make_frame(MsgType::kResponseErr, frame.request_id,
-                        frame.method_id, ew.raw());
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
+    }
+  }
+
+  if (frame.method_id == 1461330420u) {
+    ByteReader r(frame.payload.data(), frame.payload.size());
+    const auto enabled = static_cast<bool>(r.u8());
+    try {
+      ByteWriter w;
+      {
+        ::qjs_set_tls_verify_enabled(enabled);
+
+      }
+      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id, w.raw());
+    } catch (const std::exception& e) {
+      ByteWriter ew;
+      ew.i32(1);
+      ew.str(dcb::error::format("qjs_set_tls_verify_enabled", e.what()));
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
+    } catch (...) {
+      ByteWriter ew;
+      ew.i32(1);
+      ew.str(dcb::error::format("qjs_set_tls_verify_enabled", "unknown"));
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
     }
   }
 
   if (frame.method_id == 33985225u) {
     ByteReader r(frame.payload.data(), frame.payload.size());
-    const auto default_headers = r.map<std::string, std::string>(
-        [&]() { return r.str(); }, [&]() { return r.str(); });
-    const auto timeout_ms = r.i64();
-    const auto follow_redirects = static_cast<bool>(r.u8());
-    const auto proxy = r.str();
-    const auto tls_verify = static_cast<bool>(r.u8());
-    const auto user_agent = r.str();
+    const auto default_headers = r.map<std::string, std::string>([&]() { return r.str(); }, [&]() { return r.str(); });
+        const auto timeout_ms = r.i64();
+        const auto follow_redirects = static_cast<bool>(r.u8());
+        const auto proxy = r.str();
+        const auto tls_verify = static_cast<bool>(r.u8());
+        const auto user_agent = r.str();
     try {
-      auto obj = std::make_shared<::WindHttpClient>(default_headers, timeout_ms,
-                                                    follow_redirects, proxy,
-                                                    tls_verify, user_agent);
+      auto obj = std::make_shared<::WindHttpClient>(default_headers, timeout_ms, follow_redirects, proxy, tls_verify, user_agent);
       g_WindHttpClient_alive_count.increment(session_id);
-      const auto handle = dcb::ObjectHandleRegistry::instance().insert(
-          session_id, obj, [session_id](std::shared_ptr<void> &) {
-            g_WindHttpClient_alive_count.decrement(session_id);
-          });
+      const auto handle = dcb::ObjectHandleRegistry::instance().insert(session_id, obj, [session_id](std::shared_ptr<void>&) {
+        g_WindHttpClient_alive_count.decrement(session_id);
+      });
       ByteWriter w;
       w.u64(handle);
-      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id,
-                        w.raw());
-    } catch (const std::exception &e) {
+      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id, w.raw());
+    } catch (const std::exception& e) {
       ByteWriter ew;
       ew.i32(1);
       ew.str(dcb::error::format("WindHttpClient::WindHttpClient", e.what()));
-      return make_frame(MsgType::kResponseErr, frame.request_id,
-                        frame.method_id, ew.raw());
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
     } catch (...) {
       ByteWriter ew;
       ew.i32(1);
       ew.str(dcb::error::format("WindHttpClient::WindHttpClient", "unknown"));
-      return make_frame(MsgType::kResponseErr, frame.request_id,
-                        frame.method_id, ew.raw());
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
     }
   }
 
@@ -538,27 +742,24 @@ std::vector<std::uint8_t> dispatch_sync(std::uint64_t session_id,
         auto out = g_WindHttpClient_alive_count.load(session_id);
         w.i32(out);
       }
-      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id,
-                        w.raw());
-    } catch (const std::exception &e) {
+      return make_frame(MsgType::kResponseOk, frame.request_id, frame.method_id, w.raw());
+    } catch (const std::exception& e) {
       ByteWriter ew;
       ew.i32(1);
       ew.str(dcb::error::format("WindHttpClient::aliveCount", e.what()));
-      return make_frame(MsgType::kResponseErr, frame.request_id,
-                        frame.method_id, ew.raw());
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
     } catch (...) {
       ByteWriter ew;
       ew.i32(1);
       ew.str(dcb::error::format("WindHttpClient::aliveCount", "unknown"));
-      return make_frame(MsgType::kResponseErr, frame.request_id,
-                        frame.method_id, ew.raw());
+      return make_frame(MsgType::kResponseErr, frame.request_id, frame.method_id, ew.raw());
     }
   }
   throw std::runtime_error("sync: method not sync-capable");
 }
 
-} // namespace demo
-} // namespace dcb
+}  // namespace demo
+}  // namespace dcb
 
 // Auto-register dispatch at DLL load time.
 namespace {
@@ -566,4 +767,4 @@ const bool _dcb_registered = [] {
   dcb::set_dispatch(&dcb::demo::dispatch_request, &dcb::demo::dispatch_sync);
   return true;
 }();
-} // namespace
+}  // namespace

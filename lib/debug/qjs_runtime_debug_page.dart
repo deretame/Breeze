@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/network/http/plugin/qjs_backend.dart';
 
 @RoutePage()
 class QjsRuntimeDebugPage extends StatefulWidget {
@@ -43,7 +43,7 @@ class _QjsRuntimeDebugPageState extends State<QjsRuntimeDebugPage> {
     });
 
     try {
-      final raw = await qjsDebugSnapshot(runtimeName: runtimeName);
+      final raw = await qjsBackendDebugSnapshot(runtimeName);
       final decoded = jsonDecode(raw);
       const encoder = JsonEncoder.withIndent('  ');
       final pretty = encoder.convert(decoded);

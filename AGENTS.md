@@ -393,6 +393,7 @@ Android 端已彻底从 JNI + ncnn 共享库方案切换到 **waifu2x CLI** 方�
 |-----------|-----------|
 | 新增页面 / 路由 | `lib/page/`、`lib/util/router/router.dart`，然后运行代码生成 |
 | 新增数据源/插件支持 | `lib/network/http/plugin/unified_comic_plugin.dart`、`rust/src/api/qjs.rs` |
+| 插件 QJS 运行时（C++ 迁移） | `docs/cpp_plugin_runtime_design.md`、`native/api_impl/wind_qjs.cpp`、`lib/network/http/plugin/qjs_backend.dart`（`useCppQjsRuntime` 开关）、`test/cpp_qjs_smoke_test.dart` |
 | 修改数据库模型 | `lib/object_box/model.dart`，然后运行代码生成 |
 | 修改全局设置 | `lib/config/global/global_setting.dart` |
 | 修改图片/下载逻辑 | `lib/util/download/`、`lib/network/http/picture/` |

@@ -187,6 +187,7 @@ add_library(wind_core_cpp
   ${BREEZE_NATIVE_DIR}/api_impl/jm_decode.cpp
   ${BREEZE_NATIVE_DIR}/api_impl/jm_md5.cpp
   ${BREEZE_NATIVE_DIR}/api_impl/wind_http.cpp
+  ${BREEZE_NATIVE_DIR}/api_impl/wind_qjs.cpp
 )
 target_include_directories(wind_core_cpp PRIVATE
   ${BREEZE_NATIVE_DIR}
@@ -199,6 +200,7 @@ target_link_libraries(wind_core_cpp PRIVATE
   PNG::PNG
   WebP::webp
   fetchcore
+  qjsbind
 )
 if(MSVC)
   target_compile_options(wind_core_cpp PRIVATE /utf-8)

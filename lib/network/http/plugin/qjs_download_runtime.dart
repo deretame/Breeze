@@ -4,7 +4,9 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_backend.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/src/native_gen/api/bridge_api.dart' as native_qjs;
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
@@ -69,6 +71,36 @@ Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
   final bundleName = runtimeName;
 
   try {
+    if (useCppQjsRuntime) {
+      // C++ 后端：幂等 build / 必要时原子 replace
+      final ready = await qjsBackendIsInitialized(runtimeName);
+      var needInstall = !ready;
+      if (ready) {
+        String? currentBundle;
+        try {
+          currentBundle =
+              jsonDecode(await qjsBackendCurrentBundle(runtimeName))
+                  as String?;
+        } catch (_) {
+          currentBundle = null;
+        }
+        if (currentBundle == null || currentBundle.trim().isEmpty) {
+          needInstall = true;
+        }
+      }
+      if (needInstall) {
+        final bundleJs = await loadQjsBundleJs(normalizedPluginId);
+        if (ready) {
+          await qjsBackendReplaceBundle(runtimeName, bundleJs);
+        } else {
+          await qjsBackendBuildRuntime(runtimeName, bundleJs: bundleJs);
+        }
+        _runtimeInitDone.remove(runtimeName);
+      }
+      await _runRuntimeInitIfNeeded(runtimeName);
+      return;
+    }
+
     Future<void> installBundle() async {
       final bundleJs = await loadQjsBundleJs(normalizedPluginId);
       await buildQjsRuntime(
@@ -113,7 +145,17 @@ Future<void> _runRuntimeInitIfNeeded(String runtimeName) async {
     return;
   }
   try {
-    await qjsCall(runtimeName: runtimeName, fnPath: 'init', argsJson: '{}');
+    if (useCppQjsRuntime) {
+      await native_qjs.qjsTaskCall(
+        runtimeName: runtimeName,
+        taskGroupKey: '',
+        isOnce: false,
+        fnPath: 'init',
+        argsJson: '{}',
+      );
+    } else {
+      await qjsCall(runtimeName: runtimeName, fnPath: 'init', argsJson: '{}');
+    }
     _runtimeInitDone.add(runtimeName);
   } catch (e) {
     if (e.toString().contains('target is not function: init')) {
@@ -152,6 +194,36 @@ Future<String> executeQjsCall({
     throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
   }
   final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
+
+  if (useCppQjsRuntime) {
+    // C++ 后端：单次 qjsTaskCall 即完成投递+等待（无 start/wait 两阶段）；
+    // once（debug 热重载）由 C++ 侧携带 bundle 处理（含源码哈希跳过）。
+    final callFuture = () async {
+      if (useCallOnce) {
+        return native_qjs.qjsTaskCall(
+          runtimeName: resolvedRuntimeName,
+          taskGroupKey: taskGroupKey ?? '',
+          isOnce: true,
+          bundleJs: await loadQjsBundleJs(resolvedPluginId),
+          fnPath: resolvedFnPath,
+          argsJson: argsJson,
+        );
+      }
+      await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
+      return native_qjs.qjsTaskCall(
+        runtimeName: resolvedRuntimeName,
+        taskGroupKey: taskGroupKey ?? '',
+        isOnce: false,
+        fnPath: resolvedFnPath,
+        argsJson: argsJson,
+      );
+    }();
+    final bytes = taskGroupKey != null && taskGroupKey.isNotEmpty
+        ? await raceWithDownloadCancel(taskGroupKey, callFuture)
+        : await callFuture;
+    return utf8.decode(bytes, allowMalformed: true);
+  }
+
   final bundleJs = useCallOnce ? await loadQjsBundleJs(resolvedPluginId) : null;
 
   final taskId = useCallOnce
@@ -241,6 +313,35 @@ Future<Uint8List> executeQjsFetchImageBytes({
     throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
   }
   final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
+
+  if (useCppQjsRuntime) {
+    // C++ 后端：二进制结果直接经 native buffer 通道返回（once-by-url 路径
+    // 消失——loadQjsBundleJs 已含 debugUrl/.br 解压逻辑）
+    final callFuture = () async {
+      if (useCallOnce) {
+        return native_qjs.qjsTaskCall(
+          runtimeName: resolvedRuntimeName,
+          taskGroupKey: taskGroupKey ?? '',
+          isOnce: true,
+          bundleJs: await loadQjsBundleJs(resolvedPluginId),
+          fnPath: resolvedFnPath,
+          argsJson: argsJson,
+        );
+      }
+      await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
+      return native_qjs.qjsTaskCall(
+        runtimeName: resolvedRuntimeName,
+        taskGroupKey: taskGroupKey ?? '',
+        isOnce: false,
+        fnPath: resolvedFnPath,
+        argsJson: argsJson,
+      );
+    }();
+    return taskGroupKey != null && taskGroupKey.isNotEmpty
+        ? raceWithDownloadCancel(taskGroupKey, callFuture)
+        : callFuture;
+  }
+
   final taskId = useCallOnce
       ? await (() async {
           final bundleUrl = loadQjsDebugBundleUrl(resolvedPluginId);
@@ -349,6 +450,12 @@ Future<void> cancelTrackedQjsTasks({
 }) async {
   final normalizedPluginId = (pluginId).trim();
   final groupId = _buildTaskGroupId(normalizedPluginId, taskGroupKey);
+  if (useCppQjsRuntime) {
+    // C++ 后端组取消协议未实现：仅清理 Dart 侧追踪表（在飞任务结果会被丢弃）
+    _trackedTaskRefsByGroup.remove(groupId);
+    logger.d('取消 QJS 任务组(C++ 后端仅清追踪): $groupId');
+    return;
+  }
   final refs = _trackedTaskRefsByGroup.remove(groupId)?.toList() ?? const [];
   final runtimeNames = refs.map((ref) => ref.runtimeName).toSet().toList();
   if (runtimeNames.isEmpty) {

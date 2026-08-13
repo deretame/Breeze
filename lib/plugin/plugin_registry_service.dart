@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_backend.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -12,8 +13,6 @@ import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
@@ -94,9 +93,9 @@ class PluginRegistryService {
 
       final runtimeName = resolveRuntimeName(uuid);
       try {
-        final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);
+        final runtimeReady = await qjsBackendIsInitialized(runtimeName);
         if (runtimeReady) {
-          await qjsDropRuntime(runtimeName: runtimeName);
+          await qjsBackendDropRuntime(runtimeName);
         }
       } catch (e, st) {
         logger.w('同步后清理插件 runtime 失败: $uuid', error: e, stackTrace: st);
@@ -124,14 +123,10 @@ class PluginRegistryService {
 
   Future<void> initializeGlobalRuntime() async {
     const globalRuntimeName = 'global';
-    final ready = await isQjsRuntimeInitialized(name: globalRuntimeName);
+    final ready = await qjsBackendIsInitialized(globalRuntimeName);
     if (!ready) {
-      await buildQjsRuntime(
-        request: const QjsRuntimeBuildRequest(
-          runtimeName: globalRuntimeName,
-          injectFilesystem: false,
-        ),
-      );
+      // 空 runtime（无 bundle）：C++/Rust 后端语义一致
+      await qjsBackendBuildRuntime(globalRuntimeName);
     }
   }
 
@@ -192,7 +187,7 @@ class PluginRegistryService {
 
     final onceRuntimeName = 'plugin_info_${uuid.replaceAll('-', '_')}';
     final bundleJs = await _resolveBundleJs(plugin);
-    final raw = await qjsCallOnce(
+    final raw = await qjsBackendCallOnce(
       runtimeName: onceRuntimeName,
       bundleJs: bundleJs,
       fnPath: 'getInfo',
@@ -321,9 +316,9 @@ class PluginRegistryService {
       }
     } else {
       try {
-        final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);
+        final runtimeReady = await qjsBackendIsInitialized(runtimeName);
         if (runtimeReady) {
-          await qjsDropRuntime(runtimeName: runtimeName);
+          await qjsBackendDropRuntime(runtimeName);
         }
       } catch (e, st) {
         logger.w('禁用插件时释放 runtime 失败: $uuid', error: e, stackTrace: st);
@@ -396,9 +391,9 @@ class PluginRegistryService {
 
     final runtimeName = resolveRuntimeName(uuid);
     try {
-      final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);
+      final runtimeReady = await qjsBackendIsInitialized(runtimeName);
       if (runtimeReady) {
-        await qjsDropRuntime(runtimeName: runtimeName);
+        await qjsBackendDropRuntime(runtimeName);
       }
     } catch (_) {
       // runtime 失败不阻断删除主流程
@@ -559,16 +554,7 @@ class PluginRegistryService {
     required String runtimeName,
   }) async {
     final bundleJs = await _resolveBundleJs(plugin);
-    await buildQjsRuntime(
-      request: QjsRuntimeBuildRequest(
-        runtimeName: runtimeName,
-        injectFilesystem: false,
-        bundle: QjsRuntimeBundleBuild(
-          bundleName: runtimeName,
-          bundleJs: bundleJs,
-        ),
-      ),
-    );
+    await qjsBackendBuildRuntime(runtimeName, bundleJs: bundleJs);
     _pluginInitDone.remove(plugin.uuid);
   }
 

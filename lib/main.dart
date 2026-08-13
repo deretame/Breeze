@@ -37,8 +37,6 @@ import 'package:zephyr/platform/desktop/native_window.dart';
 import 'package:zephyr/platform/desktop/system_tray.dart';
 import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/service/reader/reader_desktop_fullscreen_service.dart';
-import 'package:zephyr/src/native_gen/api/bridge_api.dart';
-import 'package:zephyr/src/native_gen/api/init.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
@@ -237,17 +235,6 @@ Future<void> main(List<String> args) async {
 Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await initRustLib();
-
-  // 简单测试一下cpp的接入效果
-  try {
-    await DcbLib.init();
-
-    final greeting = await fetchGreeting(name: "dcb");
-
-    logger.i(greeting);
-  } catch (e) {
-    logger.e("initRustLog failed", error: e);
-  }
 
   // 初始化 i18n：先设置默认中文，待 GlobalSettingCubit 加载后再根据用户设置或系统语言切换。
   LocaleSettings.setLocale(AppLocale.enUs);

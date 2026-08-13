@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
-import 'package:dart_cpp_bridge/hook.dart';
 import 'package:hooks/hooks.dart';
 import 'package:native_toolchain_rust/native_toolchain_rust.dart';
 import 'package:path/path.dart' as p;
@@ -23,26 +22,6 @@ void main(List<String> args) async {
           : BuildMode.debug,
       assetName: 'src/rust/frb_generated.dart',
       extraCargoEnvironmentVariables: extraCargoEnvironmentVariables,
-    ).run(input: input, output: output);
-
-    final config = switch (input.config.code.targetOS) {
-      OS.windows => WindowsConfig(generator: CmakeGenerator.ninja),
-      OS.linux => LinuxConfig(),
-      OS.macOS => MacosConfig(),
-      OS.iOS => IosConfig(),
-      OS.android => AndroidConfig(
-        ndkPath: _androidNdkPath(input.packageRoot.toFilePath()),
-      ),
-      final os => throw UnsupportedError('不支持的目标平台: $os'),
-    };
-    await DcbCMakeBuilder(
-      config: config,
-      sourceDir: 'native',
-      assetName: 'src/native_gen/dcb_bindings.dart',
-      libName: 'wind_core_cpp',
-      buildOptions: DcbBuildOptions(
-        compileCommandsPath: 'native/build/compile_commands.json',
-      ),
     ).run(input: input, output: output);
   });
 }
@@ -163,18 +142,6 @@ Map<String, String> _androidEnvironmentVariables(
     'PATH':
         '${p.join(llvmBase, 'bin')}${_pathSep()}${Platform.environment['PATH'] ?? ''}',
   };
-}
-
-/// 解析 Android NDK 路径。
-///
-/// 优先使用环境变量（`ANDROID_NDK_HOME` / `ANDROID_NDK_ROOT`，与 CI 保持一致），
-/// 找不到时回退到 Windows 本地默认安装路径。
-String _androidNdkPath(String projectRoot) {
-  try {
-    return _findNdkPath(_readNdkVersion(projectRoot));
-  } catch (_) {
-    return r"C:\Users\windy\AppData\Local\Android\Sdk\ndk\29.0.14206865";
-  }
 }
 
 String _libClangPath(String llvmBase) {

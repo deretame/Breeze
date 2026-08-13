@@ -93,7 +93,6 @@ dependencies:
   worker_manager: ^7.2.9 # 并发: 全局 Isolate 任务池管理
   coreml_upscale:
     path: packages/coreml_upscale
-  dart_cpp_bridge: ^1.0.0
 
 dependency_overrides:
   meta: ^1.19.0

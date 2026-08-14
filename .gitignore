@@ -13,6 +13,7 @@
 migrate_working_dir/
 .idea/
 .vscode/settings.json
+.clice/
 
 # IntelliJ related
 *.iml

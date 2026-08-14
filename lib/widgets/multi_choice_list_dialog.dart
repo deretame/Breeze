@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 
 class MultiChoiceDialogOption {
@@ -22,6 +22,11 @@ Future<Set<String>?> showMultiChoiceListDialog(
   double height = 420,
 }) {
   final selected = Set<String>.from(initialSelected);
+  // Scrollbar 和 ListView 必须共用同一个 controller，否则在 Dialog 上下文
+  // （无 PrimaryScrollController 时）它们会各自建 controller，导致 Scrollbar
+  // 的 controller 没有 ScrollPosition 附着，抛
+  // "The Scrollbar's ScrollController has no ScrollPosition attached"。
+  final scrollController = ScrollController();
   return showDialog<Set<String>>(
     context: context,
     builder: (dialogContext) {
@@ -33,8 +38,10 @@ Future<Set<String>?> showMultiChoiceListDialog(
               width: width,
               height: height,
               child: Scrollbar(
+                controller: scrollController,
                 thumbVisibility: true,
                 child: ListView.builder(
+                  controller: scrollController,
                   itemCount: options.length,
                   itemBuilder: (context, index) {
                     final option = options[index];
@@ -83,5 +90,6 @@ Future<Set<String>?> showMultiChoiceListDialog(
         },
       );
     },
-  );
+    // dialog 关闭后释放 controller
+  ).whenComplete(scrollController.dispose);
 }

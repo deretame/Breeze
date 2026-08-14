@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
 use tokio::sync::mpsc as tokio_mpsc;
-use tokio::sync::oneshot;
+use tokio::sync::{OnceCell, oneshot};
 
 use crate::web_runtime::{
     WebRuntimeOptions, install_host_bindings, native_buffer_take_raw, polyfill_script,
@@ -239,6 +239,8 @@ pub struct AsyncHostRuntime {
     states: Arc<Mutex<HashMap<u64, TaskState>>>,
     waiters: Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
     next_id: AtomicU64,
+    dispatcher_ready: OnceCell<()>,
+    bundle_names: Mutex<Vec<String>>,
 }
 
 pub struct AsyncHostRuntimeBuilder {
@@ -927,6 +929,8 @@ impl AsyncHostRuntime {
                 states,
                 waiters,
                 next_id: AtomicU64::new(1),
+                dispatcher_ready: OnceCell::const_new(),
+                bundle_names: Mutex::new(Vec::new()),
             }),
             Ok(Err(err)) => {
                 unregister_runtime_shared(runtime_id);
@@ -1112,6 +1116,7 @@ impl AsyncHostRuntime {
             .await
             .map_err(|e| crate::tr!("failed-to-load-bundle", e = e))?;
         let _ = parse_ok_json_payload(&raw)?;
+        self.remember_bundle_loaded(name);
         Ok(())
     }
 
@@ -1234,7 +1239,11 @@ impl AsyncHostRuntime {
             .await
             .map_err(|e| crate::tr!("failed-to-unload-bundle", e = e))?;
         let data = parse_ok_json_payload(&raw)?;
-        Ok(data.as_bool().unwrap_or(false))
+        let removed = data.as_bool().unwrap_or(false);
+        if removed {
+            self.remember_bundle_unloaded(name);
+        }
+        Ok(removed)
     }
 
     pub async fn bundle_list(&self) -> Result<Vec<String>, String> {
@@ -1267,21 +1276,55 @@ impl AsyncHostRuntime {
         let arr = data.as_array().ok_or_else(|| {
             crate::tr!("failed-to-read-bundle-list-return-value-is-not-an").to_string()
         })?;
-        Ok(arr
+        let names = arr
             .iter()
             .map(|v| v.as_str().unwrap_or_default().to_string())
-            .collect())
+            .collect::<Vec<_>>();
+        if let Ok(mut cached) = self.bundle_names.lock() {
+            *cached = names.clone();
+        }
+        Ok(names)
     }
 
     async fn bundle_ensure_dispatcher(&self) -> Result<(), String> {
-        let raw = self
-            .spawn(BUNDLE_DISPATCHER_JS)
-            .map_err(|e| crate::tr!("failed-to-initialize-bundle-dispatcher", e = e))?
-            .wait_async()
-            .await
-            .map_err(|e| crate::tr!("failed-to-initialize-bundle-dispatcher", e = e))?;
-        let _ = parse_ok_json_payload(&raw)?;
+        self.dispatcher_ready
+            .get_or_try_init(|| async {
+                let raw = self
+                    .spawn(BUNDLE_DISPATCHER_JS)
+                    .map_err(|e| crate::tr!("failed-to-initialize-bundle-dispatcher", e = e))?
+                    .wait_async()
+                    .await
+                    .map_err(|e| crate::tr!("failed-to-initialize-bundle-dispatcher", e = e))?;
+                let _ = parse_ok_json_payload(&raw)?;
+                Ok::<(), String>(())
+            })
+            .await?;
         Ok(())
+    }
+
+    fn remember_bundle_loaded(&self, name: &str) {
+        let Ok(mut names) = self.bundle_names.lock() else {
+            return;
+        };
+        if !names.iter().any(|current| current == name) {
+            names.push(name.to_string());
+        }
+    }
+
+    fn remember_bundle_unloaded(&self, name: &str) {
+        if let Ok(mut names) = self.bundle_names.lock() {
+            names.retain(|current| current != name);
+        }
+    }
+
+    pub async fn current_bundle_name(&self) -> Result<Option<String>, String> {
+        if let Ok(names) = self.bundle_names.lock() {
+            if let Some(name) = names.first() {
+                return Ok(Some(name.clone()));
+            }
+        }
+
+        Ok(self.bundle_list().await?.into_iter().next())
     }
 
     async fn spawn_once(
@@ -1293,12 +1336,13 @@ impl AsyncHostRuntime {
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
         let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
         let source_owned = source.to_string();
-        let source_hash = crate::global_handle().spawn_blocking({
-            let source_for_hash = source_owned.clone();
-            move || fast_u64_hash(&source_for_hash)
-        })
-        .await
-        .map_err(|e| crate::tr!("failed-to-compute-one-shot-bundle-hash", e = e))?;
+        let source_hash = crate::global_handle()
+            .spawn_blocking({
+                let source_for_hash = source_owned.clone();
+                move || fast_u64_hash(&source_for_hash)
+            })
+            .await
+            .map_err(|e| crate::tr!("failed-to-compute-one-shot-bundle-hash", e = e))?;
         let submission = OnceTaskSubmission {
             source: source_owned,
             source_hash,

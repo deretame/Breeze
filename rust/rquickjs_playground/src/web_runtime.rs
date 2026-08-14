@@ -78,7 +78,7 @@ use self::bridge::{BridgeRouteAsyncHandler, BridgeRouteBlockingHandler, BridgeRo
 use self::fs_ops::{
     fs_access, fs_chmod, fs_copy_file, fs_cp, fs_link, fs_lstat, fs_mkdir, fs_mkdtemp,
     fs_read_file, fs_readdir, fs_readlink, fs_realpath, fs_rename, fs_rm, fs_stat, fs_symlink,
-    fs_task_dispatch, fs_truncate, fs_unlink, fs_utimes, fs_write_file,
+    fs_task_dispatch, fs_truncate, fs_unlink, fs_utimes, fs_write_file, fs_write_file_native,
 };
 use self::http::{
     HttpClientState, cleanup_stale_pending, cleanup_stale_pending_abort, http_io_sem,
@@ -347,6 +347,7 @@ pub fn install_host_bindings(
     if options.fs {
         globals.set("__fs_read_file", Func::from(fs_read_file))?;
         globals.set("__fs_write_file", Func::from(fs_write_file))?;
+        globals.set("__fs_write_file_native", Func::from(fs_write_file_native))?;
         globals.set("__fs_mkdir", Func::from(fs_mkdir))?;
         globals.set("__fs_readdir", Func::from(fs_readdir))?;
         globals.set("__fs_stat", Func::from(fs_stat))?;

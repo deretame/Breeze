@@ -7,7 +7,6 @@ use brotli::reader::Decompressor as DecompressorReader;
 use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
 use tokio::fs::File;
 
-use crate::memory::TrackedAllocation;
 use tokio_tar::Builder;
 use tokio_tar::Header;
 use zip::{CompressionMethod, ZipWriter};
@@ -135,98 +134,96 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
     let dest_path = dest_path.to_string();
     let pack_info_clone = pack_info;
 
-    rquickjs_playground::global_handle().spawn_blocking(move || {
-        use std::fs::File;
-        use std::io::{BufWriter, Read, Write};
-        use zip::write::FileOptions;
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || {
+            use std::fs::File;
+            use std::io::{BufWriter, Read, Write};
+            use zip::write::FileOptions;
 
-        // 创建ZIP文件
-        let file = File::create(&dest_path)
-            .context(rquickjs_playground::tr!("failed-to-create-zip-file"))?;
-        // 优化点：BufWriter 依然保留，减少系统调用，但可以考虑调整 buffer 大小
-        // 默认 8KB 是比较平衡的，如果要进一步降低系统调用频率，可以设为 64KB-128KB，但会增加少量堆内存
-        let writer = BufWriter::with_capacity(64 * 1024, file);
-        let mut zip = ZipWriter::new(writer);
+            // 创建ZIP文件
+            let file = File::create(&dest_path)
+                .context(rquickjs_playground::tr!("failed-to-create-zip-file"))?;
+            // 优化点：BufWriter 依然保留，减少系统调用，但可以考虑调整 buffer 大小
+            // 默认 8KB 是比较平衡的，如果要进一步降低系统调用频率，可以设为 64KB-128KB，但会增加少量堆内存
+            let writer = BufWriter::with_capacity(64 * 1024, file);
+            let mut zip = ZipWriter::new(writer);
 
-        // 基础配置：使用 Stored (不压缩)
-        let base_options = FileOptions::<()>::default()
-            .compression_method(CompressionMethod::Stored)
-            .unix_permissions(0o644);
+            // 基础配置：使用 Stored (不压缩)
+            let base_options = FileOptions::<()>::default()
+                .compression_method(CompressionMethod::Stored)
+                .unix_permissions(0o644);
 
-        // --- 写入元数据 JSON (这些可以用 Deflated，因为文本压缩率高，但为了统一逻辑也可以 Stored) ---
-        // 文本很小，这里用 Stored 也没关系，或者单独对 JSON 用 Deflated
-        zip.start_file("comic_info.json", base_options)
-            .context(rquickjs_playground::tr!(
-                "failed-to-create-comic_info-json-entry"
-            ))?;
-        zip.write_all(pack_info_clone.comic_info_string.as_bytes())
-            .context(rquickjs_playground::tr!("failed-to-write-comic_info-json"))?;
+            // --- 写入元数据 JSON (这些可以用 Deflated，因为文本压缩率高，但为了统一逻辑也可以 Stored) ---
+            // 文本很小，这里用 Stored 也没关系，或者单独对 JSON 用 Deflated
+            zip.start_file("comic_info.json", base_options)
+                .context(rquickjs_playground::tr!(
+                    "failed-to-create-comic_info-json-entry"
+                ))?;
+            zip.write_all(pack_info_clone.comic_info_string.as_bytes())
+                .context(rquickjs_playground::tr!("failed-to-write-comic_info-json"))?;
 
-        zip.start_file("processed_comic_info.json", base_options)
-            .context(rquickjs_playground::tr!(
-                "failed-to-create-processed_comic_info-json-entry"
-            ))?;
-        zip.write_all(pack_info_clone.processed_comic_info_string.as_bytes())
-            .context(rquickjs_playground::tr!(
-                "failed-to-write-processed_comic_info-json"
-            ))?;
+            zip.start_file("processed_comic_info.json", base_options)
+                .context(rquickjs_playground::tr!(
+                    "failed-to-create-processed_comic_info-json-entry"
+                ))?;
+            zip.write_all(pack_info_clone.processed_comic_info_string.as_bytes())
+                .context(rquickjs_playground::tr!(
+                    "failed-to-write-processed_comic_info-json"
+                ))?;
 
-        // --- 处理图片 ---
-        // 复用缓冲区，避免在循环中反复分配
-        let mut buffer = [0u8; 64 * 1024]; // 提升到 64KB，提升大文件拷贝速度
-        let _buffer_tracker = TrackedAllocation::new(64 * 1024, Some("zip_buffer"));
+            // --- 处理图片 ---
+            // 复用缓冲区，避免在循环中反复分配
+            let mut buffer = [0u8; 64 * 1024]; // 提升到 64KB，提升大文件拷贝速度
 
-        for (i, original_path) in pack_info_clone.original_image_paths.iter().enumerate() {
-            if i >= pack_info_clone.pack_image_paths.len() {
-                break;
-            }
-            let pack_path = &pack_info_clone.pack_image_paths[i];
-
-            // 打开源文件
-            let mut source_file = File::open(original_path).with_context(|| {
-                rquickjs_playground::tr!("failed-to-open-file", arg0 = original_path)
-            })?;
-
-            let current_options = base_options;
-
-            zip.start_file(pack_path, current_options)
-                .with_context(|| {
-                    rquickjs_playground::tr!("failed-to-create-zip-entry-2", arg0 = pack_path)
-                })?;
-
-            // 流式拷贝
-            loop {
-                let bytes_read = source_file.read(&mut buffer).with_context(|| {
-                    rquickjs_playground::tr!("failed-to-read-file-2", arg0 = original_path)
-                })?;
-
-                if bytes_read == 0 {
+            for (i, original_path) in pack_info_clone.original_image_paths.iter().enumerate() {
+                if i >= pack_info_clone.pack_image_paths.len() {
                     break;
                 }
-                zip.write_all(&buffer[..bytes_read]).with_context(|| {
-                    rquickjs_playground::tr!("failed-to-write-zip-entry-2", arg0 = pack_path)
+                let pack_path = &pack_info_clone.pack_image_paths[i];
+
+                // 打开源文件
+                let mut source_file = File::open(original_path).with_context(|| {
+                    rquickjs_playground::tr!("failed-to-open-file", arg0 = original_path)
                 })?;
+
+                let current_options = base_options;
+
+                zip.start_file(pack_path, current_options)
+                    .with_context(|| {
+                        rquickjs_playground::tr!("failed-to-create-zip-entry-2", arg0 = pack_path)
+                    })?;
+
+                // 流式拷贝
+                loop {
+                    let bytes_read = source_file.read(&mut buffer).with_context(|| {
+                        rquickjs_playground::tr!("failed-to-read-file-2", arg0 = original_path)
+                    })?;
+
+                    if bytes_read == 0 {
+                        break;
+                    }
+                    zip.write_all(&buffer[..bytes_read]).with_context(|| {
+                        rquickjs_playground::tr!("failed-to-write-zip-entry-2", arg0 = pack_path)
+                    })?;
+                }
             }
-        }
 
-        zip.finish()
-            .context(rquickjs_playground::tr!("failed-to-finish-zip-file"))?;
+            zip.finish()
+                .context(rquickjs_playground::tr!("failed-to-finish-zip-file"))?;
 
-        Ok::<(), anyhow::Error>(())
-    })
-    .await
-    .context(rquickjs_playground::tr!("zip-task-execution-failed"))?
-    .context(rquickjs_playground::tr!("zip-compression-failed"))?;
+            Ok::<(), anyhow::Error>(())
+        })
+        .await
+        .context(rquickjs_playground::tr!("zip-task-execution-failed"))?
+        .context(rquickjs_playground::tr!("zip-compression-failed"))?;
 
     Ok(())
 }
 
 /// 压缩图像并返回base64编码字符串
 pub fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
-    // 跟踪输入图片的内存使用
-    let _input_tracker = TrackedAllocation::new(image_bytes.len(), Some("image_input"));
-
     let img = image::load_from_memory(&image_bytes)?;
+    let rgb_img = img.to_rgb8();
 
     let mut low = 1u8;
     let mut high = 100u8;
@@ -239,10 +236,6 @@ pub fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
         let mut compressed_bytes = Vec::new();
 
         {
-            let rgb_img = img.to_rgb8();
-            let _rgb_tracker =
-                TrackedAllocation::new(rgb_img.as_raw().len(), Some("rgb_conversion"));
-
             let mut encoder = JpegEncoder::new_with_quality(&mut compressed_bytes, mid);
             encoder.encode(
                 rgb_img.as_raw(),
@@ -250,13 +243,9 @@ pub fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
                 rgb_img.height(),
                 ExtendedColorType::Rgb8,
             )?;
-
-            // 跟踪压缩后的字节
-            let _compressed_tracker =
-                TrackedAllocation::new(compressed_bytes.len(), Some("jpeg_compressed"));
         }
 
-        let current_size = general_purpose::STANDARD.encode(&compressed_bytes).len();
+        let current_size = compressed_bytes.len().div_ceil(3) * 4;
 
         if current_size <= 689493 {
             // 当前 quality 满足条件，尝试更高 quality
@@ -282,45 +271,47 @@ pub fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
 }
 
 pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
-    rquickjs_playground::global_handle().spawn_blocking(move || {
-        let mut compressed = Vec::new();
-        let mut writer = CompressorWriter::new(&mut compressed, 4096, 11, 24);
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || {
+            let mut compressed = Vec::new();
+            let mut writer = CompressorWriter::new(&mut compressed, 4096, 11, 24);
 
-        writer.write_all(&data).context(rquickjs_playground::tr!(
-            "failed-to-write-compressed-stream-data"
-        ))?;
+            writer.write_all(&data).context(rquickjs_playground::tr!(
+                "failed-to-write-compressed-stream-data"
+            ))?;
 
-        writer.flush().context(rquickjs_playground::tr!(
-            "failed-to-flush-compressed-stream"
-        ))?;
+            writer.flush().context(rquickjs_playground::tr!(
+                "failed-to-flush-compressed-stream"
+            ))?;
 
-        drop(writer);
+            drop(writer);
 
-        Ok(compressed)
-    })
-    .await
-    .context(rquickjs_playground::tr!(
-        "compression-thread-pool-scheduling-failed"
-    ))? // 捕获 JoinError
+            Ok(compressed)
+        })
+        .await
+        .context(rquickjs_playground::tr!(
+            "compression-thread-pool-scheduling-failed"
+        ))? // 捕获 JoinError
 }
 
 pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Result<Vec<u8>> {
-    rquickjs_playground::global_handle().spawn_blocking(move || {
-        let mut decompressed = Vec::new();
-        let mut reader = DecompressorReader::new(&compressed_data[..], 4096);
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || {
+            let mut decompressed = Vec::new();
+            let mut reader = DecompressorReader::new(&compressed_data[..], 4096);
 
-        reader
-            .read_to_end(&mut decompressed)
-            .context(rquickjs_playground::tr!(
-                "brotli-decompression-failed-data-may-be-corrupted"
-            ))?;
+            reader
+                .read_to_end(&mut decompressed)
+                .context(rquickjs_playground::tr!(
+                    "brotli-decompression-failed-data-may-be-corrupted"
+                ))?;
 
-        Ok(decompressed)
-    })
-    .await
-    .context(rquickjs_playground::tr!(
-        "decompression-thread-pool-scheduling-failed"
-    ))? // 捕获 JoinError
+            Ok(decompressed)
+        })
+        .await
+        .context(rquickjs_playground::tr!(
+            "decompression-thread-pool-scheduling-failed"
+        ))? // 捕获 JoinError
 }
 
 /// 使用 sevenz-rust 解压 7z 文件到目标目录。
@@ -328,23 +319,24 @@ pub async fn decompress_7z(archive_path: &str, dest_path: &str) -> Result<()> {
     let archive_path = archive_path.to_string();
     let dest_path = dest_path.to_string();
 
-    rquickjs_playground::global_handle().spawn_blocking(move || {
-        std::fs::create_dir_all(&dest_path).with_context(|| {
-            rquickjs_playground::tr!(
-                "failed-to-create-decompression-target-directory",
-                arg0 = dest_path
-            )
-        })?;
-        sevenz_rust::decompress_file(&archive_path, &dest_path).map_err(|err| {
-            anyhow::anyhow!(rquickjs_playground::tr!(
-                "msg-7z-decompression-failed",
-                arg0 = err
-            ))
-        })?;
-        Ok(())
-    })
-    .await
-    .context(rquickjs_playground::tr!(
-        "7z-decompression-task-execution-failed"
-    ))?
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || {
+            std::fs::create_dir_all(&dest_path).with_context(|| {
+                rquickjs_playground::tr!(
+                    "failed-to-create-decompression-target-directory",
+                    arg0 = dest_path
+                )
+            })?;
+            sevenz_rust::decompress_file(&archive_path, &dest_path).map_err(|err| {
+                anyhow::anyhow!(rquickjs_playground::tr!(
+                    "msg-7z-decompression-failed",
+                    arg0 = err
+                ))
+            })?;
+            Ok(())
+        })
+        .await
+        .context(rquickjs_playground::tr!(
+            "7z-decompression-task-execution-failed"
+        ))?
 }

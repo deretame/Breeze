@@ -1,3 +1,5 @@
+use super::native_buffer::{native_buffer_put_raw, native_buffer_take_raw};
+
 pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
     let args: Vec<Value> = match serde_json::from_str(&args_json) {
         Ok(v) => v,
@@ -59,6 +61,17 @@ pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
             _ => {
                 json!({ "ok": false, "code": "EINVAL", "error": crate::tr!("writefile-argument-invalid") }).to_string()
             }
+        },
+        "writeFileNative" => match (
+            arg_str(0, "path"),
+            arg_u64(1, "nativeBufferId"),
+            arg_opt_str(2),
+            arg_bool(3, "append"),
+        ) {
+            (Ok(path), Ok(native_buffer_id), encoding, Ok(append)) => {
+                fs_write_file_native(path, native_buffer_id, encoding, append)
+            }
+            _ => json!({ "ok": false, "code": "EINVAL", "error": crate::tr!("writefile-argument-invalid") }).to_string(),
         },
         "mkdir" => match (arg_str(0, "path"), arg_bool(1, "recursive")) {
             (Ok(path), Ok(recursive)) => fs_mkdir(path, recursive),
@@ -199,7 +212,13 @@ pub fn fs_read_file(path: String, encoding: Option<String>) -> String {
         Ok(bytes) => {
             let encoding = normalize_encoding(encoding);
             if encoding.is_empty() {
-                json!({ "ok": true, "kind": "bytes", "data": bytes }).to_string()
+                let native_buffer_id = native_buffer_put_raw(bytes);
+                json!({
+                    "ok": true,
+                    "kind": "native",
+                    "nativeBufferId": native_buffer_id
+                })
+                .to_string()
             } else if encoding == "utf8" || encoding == "utf-8" {
                 match String::from_utf8(bytes) {
                     Ok(text) => json!({ "ok": true, "kind": "text", "data": text }).to_string(),
@@ -215,6 +234,37 @@ pub fn fs_read_file(path: String, encoding: Option<String>) -> String {
                 .to_string()
             }
         }
+        Err(error) => fs_error_payload(error),
+    }
+}
+
+pub fn fs_write_file_native(
+    path: String,
+    native_buffer_id: u64,
+    _encoding: Option<String>,
+    append: bool,
+) -> String {
+    let Some(bytes) = native_buffer_take_raw(native_buffer_id) else {
+        return json!({
+            "ok": false,
+            "code": "EINVAL",
+            "error": crate::tr!("buffer-id-does-not-exist")
+        })
+        .to_string();
+    };
+
+    let result = if append {
+        fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+            .and_then(|mut file| file.write_all(&bytes))
+    } else {
+        fs::write(&path, bytes)
+    };
+
+    match result {
+        Ok(()) => json!({ "ok": true }).to_string(),
         Err(error) => fs_error_payload(error),
     }
 }

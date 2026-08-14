@@ -1129,14 +1129,10 @@ async fn call_bundle_once_start_by_input(
 }
 
 async fn current_bundle_name(runtime: &AsyncHostRuntime) -> Result<Option<String>> {
-    let mut names = runtime
-        .bundle_list()
+    runtime
+        .current_bundle_name()
         .await
-        .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))?;
-    if names.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(names.swap_remove(0)))
+        .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))
 }
 
 async fn wait_tracked_task_bytes(runtime_name: &str, task_id: u64) -> Result<Vec<u8>> {

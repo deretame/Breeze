@@ -505,6 +505,7 @@
   const FS_ASYNC_OP_MAP = new Map([
     [globalThis.__fs_read_file, "readFile"],
     [globalThis.__fs_write_file, "writeFile"],
+    [globalThis.__fs_write_file_native, "writeFileNative"],
     [globalThis.__fs_mkdir, "mkdir"],
     [globalThis.__fs_readdir, "readdir"],
     [globalThis.__fs_stat, "stat"],
@@ -578,8 +579,50 @@
 
   function decodeReadPayload(payload) {
     if (payload.kind === "text") return payload.data;
+    if (payload.kind === "native") {
+      if (globalThis.native && typeof globalThis.native.take === "function") {
+        return globalThis.native.take(Number(payload.nativeBufferId));
+      }
+      throw new FSError("native buffer 不可用", "EIO");
+    }
     if (payload.kind === "bytes") return Uint8Array.from(payload.data || []);
     throw new FSError("无效的 readFile 返回类型", "EINVAL");
+  }
+
+  function isBinaryData(data) {
+    return data instanceof Uint8Array || ArrayBuffer.isView(data) || data instanceof ArrayBuffer;
+  }
+
+  function writeFileWithNativeBuffer(path, data, encoding, append) {
+    if (
+      !isBinaryData(data)
+      || !globalThis.native
+      || globalThis.native.supportsBinaryBridge !== true
+      || typeof globalThis.native.put !== "function"
+    ) {
+      return null;
+    }
+
+    let nativeBufferId;
+    return globalThis.native.put(data)
+      .then((id) => {
+        nativeBufferId = Number(id);
+        return callHost(
+          globalThis.__fs_write_file_native,
+          [String(path), nativeBufferId, encoding, append],
+          path,
+        );
+      })
+      .catch(async (error) => {
+        if (nativeBufferId) {
+          try {
+            await globalThis.native.free(nativeBufferId);
+          } catch (_) {
+            // The host may already have consumed the buffer.
+          }
+        }
+        throw error;
+      });
   }
 
   function readFile(path, options) {
@@ -589,6 +632,18 @@
 
   function writeFile(path, data, options) {
     const normalized = normalizeWriteOptions(options);
+    const nativeWrite = writeFileWithNativeBuffer(
+      path,
+      data,
+      normalized.encoding,
+      false,
+    );
+    if (nativeWrite) {
+      return nativeWrite.then((result) => {
+        notifyWatchers(path, "change");
+        return result;
+      });
+    }
     return callHost(
       globalThis.__fs_write_file,
       [String(path), JSON.stringify(normalizeWriteData(data)), normalized.encoding, false],
@@ -601,6 +656,18 @@
 
   function appendFile(path, data, options) {
     const normalized = normalizeWriteOptions(options);
+    const nativeWrite = writeFileWithNativeBuffer(
+      path,
+      data,
+      normalized.encoding,
+      true,
+    );
+    if (nativeWrite) {
+      return nativeWrite.then((result) => {
+        notifyWatchers(path, "change");
+        return result;
+      });
+    }
     return callHost(
       globalThis.__fs_write_file,
       [String(path), JSON.stringify(normalizeWriteData(data)), normalized.encoding, true],

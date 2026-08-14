@@ -3,6 +3,37 @@ use flutter_rust_bridge::{DartFnFuture, frb};
 
 pub use crate::qjs::{QjsCancelTasksByGroupResult, QjsRuntimeBuildRequest};
 
+/// Rust 堆缓冲句柄，所有权已移交给 Dart。
+///
+/// `ptr` 指向 heap 上一段 `len` 字节的连续内存（Rust `Vec<u8>` 的 data 指针）。
+/// Dart 侧应把它当作零拷贝的 `Uint8List` 视图使用（`Uint8List.view`），
+/// 用完后调用 [`qjs_free_task_bytes`] 释放，或经 Dart 侧 finalizer 自动释放。
+/// `ptr == 0 && len == 0` 表示空结果。
+pub struct QjsTaskBytes {
+    pub ptr: usize,
+    pub len: usize,
+}
+
+/// 把 `Vec<u8>` 泄漏为堆缓冲并返回 `(data_ptr, len)`，所有权转交给 Dart。
+///
+/// 释放时用 `Vec::from_raw_parts(ptr, len, len)` 重建，因此必须保证
+/// `capacity == len`：`shrink_to_fit` 后若 allocator 不舍得缩容，重新精确收集一次。
+fn leak_vec_to_qjs_task_bytes(mut bytes: Vec<u8>) -> QjsTaskBytes {
+    if bytes.is_empty() {
+        return QjsTaskBytes { ptr: 0, len: 0 };
+    }
+    bytes.shrink_to_fit();
+    if bytes.capacity() != bytes.len() {
+        // 极小概率 allocator 不舍得缩容；重新精确收集，保证 capacity == len。
+        bytes = bytes.into_iter().collect();
+    }
+    let len = bytes.len();
+    let ptr = bytes.as_mut_ptr();
+    // 泄漏：所有权交给 Dart，由 qjs_free_task_bytes 归还。
+    std::mem::forget(bytes);
+    QjsTaskBytes { ptr: ptr as usize, len }
+}
+
 #[frb]
 pub async fn qjs_replace_bundle(
     runtime_name: String,
@@ -16,8 +47,9 @@ pub async fn qjs_replace_bundle(
 ///
 /// `is_once=true` 用 `bundle_js`/`bundle_url` 走一次性 debug 池(不常驻);
 /// `false` 走常驻运行时里已加载的当前 bundle。
-/// 返回值为原始字节:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
+/// 返回值为 Rust 堆缓冲句柄:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
 /// 否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
+/// 缓冲所有权已移交给 Dart,用完后必须调用 `qjs_free_task_bytes` 释放。
 #[frb]
 pub async fn qjs_task_call(
     runtime_name: String,
@@ -27,8 +59,8 @@ pub async fn qjs_task_call(
     bundle_url: Option<String>,
     fn_path: String,
     args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_task_call(
+) -> Result<QjsTaskBytes> {
+    let bytes = crate::qjs::qjs_task_call(
         runtime_name,
         task_group_key,
         is_once,
@@ -37,7 +69,24 @@ pub async fn qjs_task_call(
         fn_path,
         args_json,
     )
-    .await
+    .await?;
+    Ok(leak_vec_to_qjs_task_bytes(bytes))
+}
+
+/// 释放 [`qjs_task_call`] 返回的 Rust 堆缓冲（把所有权归还给 Rust）。
+///
+/// 同一 `(ptr, len)` 只能释放一次；重复释放或释放非法句柄是未定义行为。
+#[frb(sync)]
+pub fn qjs_free_task_bytes(ptr: usize, len: usize) {
+    if ptr == 0 || len == 0 {
+        return;
+    }
+    // SAFETY:
+    // - ptr/len 由 leak_vec_to_qjs_task_bytes 配套产生，已保证 capacity == len；
+    // - Dart 侧承诺同一句柄只释放一次。
+    unsafe {
+        drop(Vec::from_raw_parts(ptr as *mut u8, len, len));
+    }
 }
 
 #[frb]

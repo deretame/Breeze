@@ -7,6 +7,8 @@ import '../frb_generated.dart';
 import '../qjs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `leak_vec_to_qjs_task_bytes`
+
 Future<void> qjsReplaceBundle({
   required String runtimeName,
   required String bundleName,
@@ -21,9 +23,10 @@ Future<void> qjsReplaceBundle({
 ///
 /// `is_once=true` 用 `bundle_js`/`bundle_url` 走一次性 debug 池(不常驻);
 /// `false` 走常驻运行时里已加载的当前 bundle。
-/// 返回值为原始字节:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
+/// 返回值为 Rust 堆缓冲句柄:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
 /// 否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
-Future<Uint8List> qjsTaskCall({
+/// 缓冲所有权已移交给 Dart,用完后必须调用 `qjs_free_task_bytes` 释放。
+Future<QjsTaskBytes> qjsTaskCall({
   required String runtimeName,
   required String taskGroupKey,
   required bool isOnce,
@@ -40,6 +43,12 @@ Future<Uint8List> qjsTaskCall({
   fnPath: fnPath,
   argsJson: argsJson,
 );
+
+/// 释放 [`qjs_task_call`] 返回的 Rust 堆缓冲（把所有权归还给 Rust）。
+///
+/// 同一 `(ptr, len)` 只能释放一次；重复释放或释放非法句柄是未定义行为。
+void qjsFreeTaskBytes({required BigInt ptr, required BigInt len}) =>
+    RustLib.instance.api.crateApiQjsQjsFreeTaskBytes(ptr: ptr, len: len);
 
 Future<bool> qjsClearBundle({required String runtimeName}) =>
     RustLib.instance.api.crateApiQjsQjsClearBundle(runtimeName: runtimeName);
@@ -121,3 +130,27 @@ void initRustFunctions() => RustLib.instance.api.crateApiQjsInitRustFunctions();
 
 String openccConvert({required String text, required String config}) =>
     RustLib.instance.api.crateApiQjsOpenccConvert(text: text, config: config);
+
+/// Rust 堆缓冲句柄，所有权已移交给 Dart。
+///
+/// `ptr` 指向 heap 上一段 `len` 字节的连续内存（Rust `Vec<u8>` 的 data 指针）。
+/// Dart 侧应把它当作零拷贝的 `Uint8List` 视图使用（`Uint8List.view`），
+/// 用完后调用 [`qjs_free_task_bytes`] 释放，或经 Dart 侧 finalizer 自动释放。
+/// `ptr == 0 && len == 0` 表示空结果。
+class QjsTaskBytes {
+  final BigInt ptr;
+  final BigInt len;
+
+  const QjsTaskBytes({required this.ptr, required this.len});
+
+  @override
+  int get hashCode => ptr.hashCode ^ len.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QjsTaskBytes &&
+          runtimeType == other.runtimeType &&
+          ptr == other.ptr &&
+          len == other.len;
+}

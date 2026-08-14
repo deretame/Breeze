@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/plugin/utils/qjs_task_bytes_handle.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -283,15 +284,20 @@ Map<String, dynamic>? pickPreferredPluginAsset(List<dynamic> rawAssets) {
 
 Future<Map<String, dynamic>> callGetInfoByGlobalQjs(String bundleJs) async {
   await PluginRegistryService.I.initializeGlobalRuntime();
-  final bytes = await qjsTaskCall(
+  final handle = wrapQjsTaskBytes(await qjsTaskCall(
     runtimeName: 'global',
     taskGroupKey: '',
     isOnce: true,
     bundleJs: bundleJs,
     fnPath: 'getInfo',
     argsJson: '{}',
-  );
-  final raw = utf8.decode(bytes, allowMalformed: true);
+  ));
+  final String raw;
+  try {
+    raw = handle.utf8Decode();
+  } finally {
+    handle.free(); // 幂等：utf8Decode 已释放，这里兜底异常路径
+  }
   return requireJsonMap(jsonDecode(raw), message: 'getInfo 返回格式错误');
 }
 

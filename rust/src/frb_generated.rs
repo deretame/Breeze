@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -677458283;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1289138251;
 
 // Section: executor
 
@@ -1841,6 +1841,39 @@ fn wire__crate__api__qjs__qjs_drop_runtime_impl(
         },
     )
 }
+fn wire__crate__api__qjs__qjs_free_task_bytes_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "qjs_free_task_bytes",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_ptr = <usize>::sse_decode(&mut deserializer);
+            let api_len = <usize>::sse_decode(&mut deserializer);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::qjs::qjs_free_task_bytes(api_ptr, api_len);
+                })?;
+                Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__qjs__qjs_replace_bundle_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3364,6 +3397,18 @@ impl SseDecode for crate::qjs::QjsRuntimeBundleBuild {
     }
 }
 
+impl SseDecode for crate::api::qjs::QjsTaskBytes {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_ptr = <usize>::sse_decode(deserializer);
+        let mut var_len = <usize>::sse_decode(deserializer);
+        return crate::api::qjs::QjsTaskBytes {
+            ptr: var_ptr,
+            len: var_len,
+        };
+    }
+}
+
 impl SseDecode for (String, String) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3515,65 +3560,65 @@ fn pde_ffi_dispatcher_primary_impl(
         47 => wire__crate__api__qjs__qjs_current_bundle_impl(port, ptr, rust_vec_len, data_len),
         48 => wire__crate__api__qjs__qjs_debug_snapshot_impl(port, ptr, rust_vec_len, data_len),
         49 => wire__crate__api__qjs__qjs_drop_runtime_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__qjs__qjs_replace_bundle_impl(port, ptr, rust_vec_len, data_len),
-        51 => wire__crate__api__qjs__qjs_task_call_impl(port, ptr, rust_vec_len, data_len),
-        52 => wire__crate__api__data_backup__read_data_backup_config_impl(
+        51 => wire__crate__api__qjs__qjs_replace_bundle_impl(port, ptr, rust_vec_len, data_len),
+        52 => wire__crate__api__qjs__qjs_task_call_impl(port, ptr, rust_vec_len, data_len),
+        53 => wire__crate__api__data_backup__read_data_backup_config_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__api__memory__reset_rust_memory_stats_impl(
+        55 => wire__crate__api__memory__reset_rust_memory_stats_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => wire__crate__api__user_utils__setup_default_user_utils_impl(
+        63 => wire__crate__api__user_utils__setup_default_user_utils_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        63 => wire__crate__api__simple__sleep_test_impl(port, ptr, rust_vec_len, data_len),
-        64 => wire__crate__api__system__start_shutdown_listener_impl(
+        64 => wire__crate__api__simple__sleep_test_impl(port, ptr, rust_vec_len, data_len),
+        65 => wire__crate__api__system__start_shutdown_listener_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => wire__crate__api__simple__stream_test_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__webdav__webdav_delete_remote_files_impl(
+        66 => wire__crate__api__simple__stream_test_impl(port, ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__webdav__webdav_delete_remote_files_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        67 => {
+        68 => {
             wire__crate__api__webdav__webdav_download_file_impl(port, ptr, rust_vec_len, data_len)
         }
-        68 => {
+        69 => {
             wire__crate__api__webdav__webdav_download_text_impl(port, ptr, rust_vec_len, data_len)
         }
-        69 => wire__crate__api__webdav__webdav_ensure_remote_ready_impl(
+        70 => wire__crate__api__webdav__webdav_ensure_remote_ready_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        70 => wire__crate__api__webdav__webdav_list_remote_data_files_impl(
+        71 => wire__crate__api__webdav__webdav_list_remote_data_files_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        71 => {
+        72 => {
             wire__crate__api__webdav__webdav_test_connection_impl(port, ptr, rust_vec_len, data_len)
         }
-        72 => wire__crate__api__webdav__webdav_upload_bytes_impl(port, ptr, rust_vec_len, data_len),
-        73 => wire__crate__api__webdav__webdav_upload_text_impl(port, ptr, rust_vec_len, data_len),
-        74 => wire__crate__api__simple__zstd_compress_bytes_impl(port, ptr, rust_vec_len, data_len),
-        75 => {
+        73 => wire__crate__api__webdav__webdav_upload_bytes_impl(port, ptr, rust_vec_len, data_len),
+        74 => wire__crate__api__webdav__webdav_upload_text_impl(port, ptr, rust_vec_len, data_len),
+        75 => wire__crate__api__simple__zstd_compress_bytes_impl(port, ptr, rust_vec_len, data_len),
+        76 => {
             wire__crate__api__simple__zstd_decompress_bytes_impl(port, ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),
@@ -3615,16 +3660,17 @@ fn pde_ffi_dispatcher_sync_impl(
         39 => wire__crate__api__qjs__is_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
         41 => wire__crate__api__qjs__is_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
         42 => wire__crate__api__qjs__opencc_convert_impl(ptr, rust_vec_len, data_len),
-        53 => wire__crate__api__qjs__register_function_impl(ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__qjs__set_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__qjs__set_http_proxy_impl(ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__qjs__set_log_http_forward_impl(ptr, rust_vec_len, data_len),
-        58 => {
+        50 => wire__crate__api__qjs__qjs_free_task_bytes_impl(ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__qjs__register_function_impl(ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__qjs__set_host_cache_gc_enabled_impl(ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__qjs__set_http_proxy_impl(ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__qjs__set_log_http_forward_impl(ptr, rust_vec_len, data_len),
+        59 => {
             wire__crate__api__qjs__set_qjs_error_message_language_impl(ptr, rust_vec_len, data_len)
         }
-        59 => wire__crate__api__qjs__set_qjs_error_stack_enabled_impl(ptr, rust_vec_len, data_len),
-        60 => wire__crate__api__qjs__set_socks5_proxy_impl(ptr, rust_vec_len, data_len),
-        61 => wire__crate__api__qjs__set_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__qjs__set_qjs_error_stack_enabled_impl(ptr, rust_vec_len, data_len),
+        61 => wire__crate__api__qjs__set_socks5_proxy_impl(ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__qjs__set_tls_verify_enabled_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -3870,6 +3916,24 @@ impl flutter_rust_bridge::IntoIntoDart<crate::qjs::QjsRuntimeBundleBuild>
     for crate::qjs::QjsRuntimeBundleBuild
 {
     fn into_into_dart(self) -> crate::qjs::QjsRuntimeBundleBuild {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::qjs::QjsTaskBytes {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.ptr.into_into_dart().into_dart(),
+            self.len.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::qjs::QjsTaskBytes {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::qjs::QjsTaskBytes>
+    for crate::api::qjs::QjsTaskBytes
+{
+    fn into_into_dart(self) -> crate::api::qjs::QjsTaskBytes {
         self
     }
 }
@@ -4261,6 +4325,14 @@ impl SseEncode for crate::qjs::QjsRuntimeBundleBuild {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.bundle_name, serializer);
         <String>::sse_encode(self.bundle_js, serializer);
+    }
+}
+
+impl SseEncode for crate::api::qjs::QjsTaskBytes {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <usize>::sse_encode(self.ptr, serializer);
+        <usize>::sse_encode(self.len, serializer);
     }
 }
 

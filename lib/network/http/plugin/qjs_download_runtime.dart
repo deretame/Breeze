@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/plugin/utils/qjs_task_bytes_handle.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
@@ -102,13 +103,13 @@ Future<void> _runRuntimeInitIfNeeded(String runtimeName) async {
     return;
   }
   try {
-    await qjsTaskCall(
+    wrapQjsTaskBytes(await qjsTaskCall(
       runtimeName: runtimeName,
       taskGroupKey: '',
       isOnce: false,
       fnPath: 'init',
       argsJson: '{}',
-    );
+    )).free();
     _runtimeInitDone.add(runtimeName);
   } catch (e) {
     if (e.toString().contains('target is not function: init')) {
@@ -163,6 +164,8 @@ Future<Uint8List> _runQjsTask({
     await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
   }
 
+  // qjsTaskCall 返回 Rust 堆缓冲句柄：这里立刻包成零拷贝视图，所有权挂在
+  // 视图上（GC 回收时自动归还给 Rust），图片字节不再经 FRB 复制。
   final waitFuture = qjsTaskCall(
     runtimeName: resolvedRuntimeName,
     taskGroupKey: taskGroupKey ?? '',
@@ -171,7 +174,7 @@ Future<Uint8List> _runQjsTask({
     bundleUrl: debugBundleUrl,
     fnPath: resolvedFnPath,
     argsJson: argsJson,
-  );
+  ).then<Uint8List>((bytes) => wrapQjsTaskBytes(bytes).bytes);
 
   var didUntrack = false;
   void untrackOnce() {

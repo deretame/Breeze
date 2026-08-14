@@ -13,5 +13,12 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "lib/util/router/router.gr.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   errors:
     invalid_annotation_target: ignore

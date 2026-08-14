@@ -70,7 +70,7 @@ dependencies:
   mime: ^2.0.0 # 工具: MIME 类型
 
   # 后台任务与通知
-  flutter_foreground_task: ^9.1.0 # 后台: 前台任务
+  flutter_foreground_task: ^10.0.0 # 后台: 前台任务
   flutter_local_notifications: ^22.0.0 # 通知: 本地通知
 
   # 安全、工具与运行时

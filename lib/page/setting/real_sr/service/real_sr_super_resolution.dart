@@ -10,15 +10,15 @@ import 'package:pool/pool.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
+import 'package:zephyr/page/setting/real_sr/service/android_ncnn_model_config.dart';
+import 'package:zephyr/page/setting/real_sr/service/desktop_ncnn_model_config.dart';
+import 'package:zephyr/page/setting/real_sr/service/real_sr_settings.dart';
 import 'package:zephyr/src/rust/api/image.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/coreml_model_config.dart';
 import 'package:zephyr/util/coreml_model_loader.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/page/setting/real_sr/service/android_ncnn_model_config.dart';
-import 'package:zephyr/page/setting/real_sr/service/desktop_ncnn_model_config.dart';
-import 'package:zephyr/page/setting/real_sr/service/real_sr_settings.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// Breeze 内置 RealSR / Real-CUGAN / CoreML 超分封装
@@ -76,7 +76,7 @@ class RealSrSuperResolution {
     if (Platform.isAndroid) {
       try {
         if (!await isDeviceSupported) return false;
-        return _isAndroidNcnnAvailable(
+        return await _isAndroidNcnnAvailable(
           variant: AndroidNcnnModelConfig.variantFor(
             mode: AndroidNcnnModelConfig.defaultMode,
             noise: AndroidNcnnModelConfig.defaultNoise,

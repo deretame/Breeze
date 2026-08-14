@@ -415,7 +415,7 @@ pub fn http_request_promise(
         }
     };
     let (result_tx, result_rx) = oneshot::channel::<String>();
-    http_worker_runtime().spawn(async move {
+    crate::global_runtime().spawn(async move {
         let _ = result_tx.send(work.await);
     });
 
@@ -450,22 +450,11 @@ pub fn http_request_cancel(id: u64) -> String {
     json!({ "ok": true, "canceled": existed }).to_string()
 }
 
-/// 专门跑 HTTP 请求的多线程 tokio runtime。
-///
-/// 为什么必须独立 runtime：QJS worker 用的是 current_thread 单线程 runtime，
-/// 它的事件循环（pump_jobs）以固定节奏轮询 JS 任务，HTTP 响应体分块到达时
-/// 无法被及时驱动（实测每块 ~50-80ms），几 MB 的 body 会拖到数秒甚至超时。
-/// 用一个多线程 runtime 跑 HTTP，body 读取由 tokio 的 I/O 直接驱动，和直连一致。
-fn http_worker_runtime() -> &'static tokio::runtime::Runtime {
-    static HTTP_WORKER_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
-    HTTP_WORKER_RT.get_or_init(|| {
-        tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(2)
-            .enable_all()
-            .build()
-            .expect(&crate::tr!("failed-to-create-http-worker-runtime"))
-    })
-}
+/// 为什么 HTTP 必须跑在多线程 runtime 上：QJS worker 用的是 current_thread
+/// 单线程 runtime，它的事件循环（pump_jobs）以固定节奏轮询 JS 任务，HTTP
+/// 响应体分块到达时无法被及时驱动（实测每块 ~50-80ms），几 MB 的 body 会拖到
+/// 数秒甚至超时。这里把请求派发到进程级全局多线程 runtime（[`crate::global_runtime`]），
+/// body 读取由 tokio 的 I/O 直接驱动，和直连一致。
 
 async fn http_request_inner_async(
     method: String,

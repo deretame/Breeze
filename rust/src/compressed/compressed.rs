@@ -6,7 +6,6 @@ use brotli::CompressorWriter;
 use brotli::reader::Decompressor as DecompressorReader;
 use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
 use tokio::fs::File;
-use tokio::task;
 
 use crate::memory::TrackedAllocation;
 use tokio_tar::Builder;
@@ -136,7 +135,7 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
     let dest_path = dest_path.to_string();
     let pack_info_clone = pack_info;
 
-    tokio::task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         use std::fs::File;
         use std::io::{BufWriter, Read, Write};
         use zip::write::FileOptions;
@@ -223,7 +222,7 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
 }
 
 /// 压缩图像并返回base64编码字符串
-pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
+pub fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
     // 跟踪输入图片的内存使用
     let _input_tracker = TrackedAllocation::new(image_bytes.len(), Some("image_input"));
 
@@ -283,7 +282,7 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
 }
 
 pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
-    task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         let mut compressed = Vec::new();
         let mut writer = CompressorWriter::new(&mut compressed, 4096, 11, 24);
 
@@ -306,7 +305,7 @@ pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
 }
 
 pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Result<Vec<u8>> {
-    task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         let mut decompressed = Vec::new();
         let mut reader = DecompressorReader::new(&compressed_data[..], 4096);
 
@@ -329,7 +328,7 @@ pub async fn decompress_7z(archive_path: &str, dest_path: &str) -> Result<()> {
     let archive_path = archive_path.to_string();
     let dest_path = dest_path.to_string();
 
-    tokio::task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         std::fs::create_dir_all(&dest_path).with_context(|| {
             rquickjs_playground::tr!(
                 "failed-to-create-decompression-target-directory",

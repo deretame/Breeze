@@ -8,10 +8,10 @@ import '../decode/decode.dart';
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<String> greet({required String name}) =>
+String greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
 
-Future<String> getSystemTimeZone() =>
+String getSystemTimeZone() =>
     RustLib.instance.api.crateApiSimpleGetSystemTimeZone();
 
 Future<String> sleepTest() => RustLib.instance.api.crateApiSimpleSleepTest();

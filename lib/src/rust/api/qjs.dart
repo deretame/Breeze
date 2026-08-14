@@ -61,10 +61,10 @@ Future<QjsCancelTasksByGroupResult> qjsCancelTasksByGroup({
 Future<String> qjsDebugSnapshot({required String runtimeName}) =>
     RustLib.instance.api.crateApiQjsQjsDebugSnapshot(runtimeName: runtimeName);
 
-Future<void> setHttpProxy({required String proxy}) =>
+void setHttpProxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
 
-Future<void> setSocks5Proxy({required String proxy}) =>
+void setSocks5Proxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
 
 void setTlsVerifyEnabled({required bool enabled}) =>

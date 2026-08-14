@@ -68,12 +68,12 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
     crate::qjs::qjs_debug_snapshot(runtime_name).await
 }
 
-#[frb]
+#[frb(sync)]
 pub fn set_http_proxy(proxy: String) -> Result<()> {
     crate::qjs::set_http_proxy(proxy)
 }
 
-#[frb]
+#[frb(sync)]
 pub fn set_socks5_proxy(proxy: String) -> Result<()> {
     crate::qjs::set_socks5_proxy(proxy)
 }

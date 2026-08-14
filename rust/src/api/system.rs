@@ -11,32 +11,27 @@ pub fn start_shutdown_listener(sink: StreamSink<bool>) -> Result<()> {
     {
         use tokio::net::windows::named_pipe::ServerOptions;
 
-        std::thread::spawn(move || {
-            let rt = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap();
-            rt.block_on(async {
-                loop {
-                    let pipe_name = r"\\.\pipe\zephyr_shutdown_signal";
+        // 复用进程级全局 runtime，不再为监听器单独开线程和 current_thread runtime。
+        rquickjs_playground::global_runtime().spawn(async move {
+            loop {
+                let pipe_name = r"\\.\pipe\zephyr_shutdown_signal";
 
-                    let server = ServerOptions::new()
-                        .first_pipe_instance(true)
-                        .create(pipe_name);
+                let server = ServerOptions::new()
+                    .first_pipe_instance(true)
+                    .create(pipe_name);
 
-                    if let Ok(server) = server {
-                        // 等待客户端连接
-                        if server.connect().await.is_ok() {
-                            // 收到连接，发送退出信号给 Dart
-                            let _ = sink.add(true);
-                            break;
-                        }
-                    } else {
-                        // 管道创建失败（可能已存在），休眠后重试
-                        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                if let Ok(server) = server {
+                    // 等待客户端连接
+                    if server.connect().await.is_ok() {
+                        // 收到连接，发送退出信号给 Dart
+                        let _ = sink.add(true);
+                        break;
                     }
+                } else {
+                    // 管道创建失败（可能已存在），休眠后重试
+                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                 }
-            });
+            }
         });
     }
 

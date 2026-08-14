@@ -28,44 +28,66 @@ pub fn init_app() {
     });
 }
 
-#[frb]
+#[frb(sync)]
 pub fn greet(name: String) -> String {
     format!("Hello, {name}!")
 }
 
-#[frb]
+#[frb(sync)]
 pub fn get_system_time_zone() -> Result<String> {
     iana_time_zone::get_timezone().map_err(|err| anyhow!(err.to_string()))
 }
 
 #[frb]
-pub fn sleep_test() -> String {
-    std::thread::sleep(std::time::Duration::from_secs(5));
-    "Done".to_string()
+pub async fn sleep_test() -> Result<String> {
+    // 测试用阻塞休眠，放到全局阻塞线程池上，避免占用 FRB 的线程。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(|| {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+            Ok::<_, anyhow::Error>("Done".to_string())
+        })
+        .await?
 }
 
 #[frb]
-pub fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
-    decode::segmentation_picture_to_disk(image_info)
+pub async fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
+    // 反混淆是 CPU 密集的阻塞操作（图像解码/分块重排/webp 编码/落盘），
+    // 放到进程级全局 runtime 的阻塞线程池上执行，避免占用 FRB 的线程。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || decode::segmentation_picture_to_disk(image_info))
+        .await
+        .map_err(|err| anyhow!("anti-obfuscation task failed: {err}"))?
 }
 
 #[frb]
 pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
-    compressed::compress_image(image_bytes).await
+    // 图片压缩（解码 + 二分法 JPEG 编码）是 CPU 密集阻塞操作，
+    // 放到全局阻塞线程池上执行。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || compressed::compress_image(image_bytes))
+        .await?
 }
 
 #[frb]
-pub fn zstd_compress_bytes(raw: Vec<u8>, level: i32) -> Result<Vec<u8>> {
-    let encoded = zstd::stream::encode_all(std::io::Cursor::new(raw), level)
-        .map_err(|err| anyhow!(err.to_string()))?;
-    Ok(encoded)
+pub async fn zstd_compress_bytes(raw: Vec<u8>, level: i32) -> Result<Vec<u8>> {
+    // zstd 压缩是 CPU 密集阻塞操作，放到全局阻塞线程池上执行。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || {
+            zstd::stream::encode_all(std::io::Cursor::new(raw), level)
+                .map_err(|err| anyhow!(err.to_string()))
+        })
+        .await?
 }
 
 #[frb]
-pub fn zstd_decompress_bytes(encoded: Vec<u8>) -> Result<Vec<u8>> {
-    let decoded = zstd::stream::decode_all(std::io::Cursor::new(encoded))
-        .map_err(|err| anyhow!(err.to_string()))?;
-    Ok(decoded)
+pub async fn zstd_decompress_bytes(encoded: Vec<u8>) -> Result<Vec<u8>> {
+    // zstd 解压是 CPU 密集阻塞操作，放到全局阻塞线程池上执行。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || {
+            zstd::stream::decode_all(std::io::Cursor::new(encoded))
+                .map_err(|err| anyhow!(err.to_string()))
+        })
+        .await?
 }
 
 #[frb]

@@ -195,13 +195,13 @@ abstract class RustLibApi extends BaseApi {
 
   List<String> crateApiLocalizationGetSystemLanguages();
 
-  Future<String> crateApiSimpleGetSystemTimeZone();
+  String crateApiSimpleGetSystemTimeZone();
 
   String crateApiLocalizationGetSystemTimezone();
 
   String crateApiLocalizationGetSystemTimezoneOffset();
 
-  Future<String> crateApiSimpleGreet({required String name});
+  String crateApiSimpleGreet({required String name});
 
   Future<HttpClientOptions> crateApiHttpHttpClientOptionsDefault();
 
@@ -272,7 +272,7 @@ abstract class RustLibApi extends BaseApi {
 
   void crateApiQjsSetHostCacheGcEnabled({required bool enabled});
 
-  Future<void> crateApiQjsSetHttpProxy({required String proxy});
+  void crateApiQjsSetHttpProxy({required String proxy});
 
   void crateApiQjsSetLogHttpForward({required String url});
 
@@ -280,7 +280,7 @@ abstract class RustLibApi extends BaseApi {
 
   void crateApiQjsSetQjsErrorStackEnabled({required bool enabled});
 
-  Future<void> crateApiQjsSetSocks5Proxy({required String proxy});
+  void crateApiQjsSetSocks5Proxy({required String proxy});
 
   void crateApiQjsSetTlsVerifyEnabled({required bool enabled});
 
@@ -1323,17 +1323,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "get_system_languages", argNames: []);
 
   @override
-  Future<String> crateApiSimpleGetSystemTimeZone() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
+  String crateApiSimpleGetSystemTimeZone() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 32,
-            port: port_,
-          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -1397,18 +1392,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiSimpleGreet({required String name}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
+  String crateApiSimpleGreet({required String name}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(name, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 35,
-            port: port_,
-          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2050,18 +2040,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiQjsSetHttpProxy({required String proxy}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
+  void crateApiQjsSetHttpProxy({required String proxy}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(proxy, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 56,
-            port: port_,
-          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2153,18 +2138,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiQjsSetSocks5Proxy({required String proxy}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
+  void crateApiQjsSetSocks5Proxy({required String proxy}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(proxy, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 60,
-            port: port_,
-          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 60)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2248,7 +2228,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleSleepTestConstMeta,
         argValues: [],

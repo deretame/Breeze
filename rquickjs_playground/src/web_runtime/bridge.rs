@@ -325,8 +325,7 @@ async fn call_registered_bridge_route(
         .get(&name)
         .cloned();
     if let Some(blocking_handler) = blocking_handler {
-        return tokio::runtime::Handle::try_current()
-            .unwrap()
+        return crate::global_handle()
             .spawn_blocking(move || blocking_handler(runtime_name, args))
             .await
             .map_err(|err| {

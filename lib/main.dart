@@ -321,12 +321,12 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
                 proxyAddress.startsWith('https://')
             ? proxyAddress
             : 'http://$proxyAddress';
-        await setHttpProxy(proxy: proxyUrl);
+        setHttpProxy(proxy: proxyUrl);
         // Dart 侧纯 dart:io HttpClient（如 minio / S3 同步）也走 HTTP 代理
         SocksProxy.initProxy(proxy: 'PROXY ${_stripProxyScheme(proxyUrl)}');
       case ProxyType.socks5:
         SocksProxy.initProxy(proxy: 'SOCKS5 $proxyAddress');
-        await setSocks5Proxy(proxy: proxyAddress);
+        setSocks5Proxy(proxy: proxyAddress);
     }
   }
 
@@ -367,7 +367,7 @@ Future<void> _tryApplyHttpProxyFromEnv() async {
   final reachable = await _probeProxyWithTimeout(proxyUrl);
   if (!reachable) return;
 
-  await setHttpProxy(proxy: proxyUrl);
+  setHttpProxy(proxy: proxyUrl);
 }
 
 /// 去掉代理地址的协议前缀，得到 `host:port`，供 Dart 侧 HttpClient 使用。

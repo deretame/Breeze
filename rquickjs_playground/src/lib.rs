@@ -1,9 +1,11 @@
+pub mod global_runtime;
 pub mod host_runtime;
 pub mod html;
 pub mod i18n;
 pub mod source_map;
 pub mod web_runtime;
 
+pub use global_runtime::{global_handle, global_runtime};
 pub use i18n::{DEFAULT_LOCALE, SUPPORTED_LOCALES, current_locale, set_locale, tr, tr_args};
 
 pub use host_runtime::{

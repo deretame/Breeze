@@ -47,7 +47,7 @@ Widget proxyToggle(
 
           if (!value) {
             try {
-              await setSocks5Proxy(proxy: '');
+              setSocks5Proxy(proxy: '');
             } catch (_) {}
             SocksProxy.setProxy('DIRECT');
           }

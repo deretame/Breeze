@@ -10,7 +10,15 @@ use webp::Encoder;
 ///             传入空字符串或不支持的值时会根据文件头自动识别。
 ///             固定使用 95.0 质量，兼顾画质与压缩率。
 #[frb]
-pub fn convert_image_to_webp(input_path: String, image_type: String) -> Result<()> {
+pub async fn convert_image_to_webp(input_path: String, image_type: String) -> Result<()> {
+    // 图片转换（解码 + webp 编码 + 落盘）是 CPU/IO 密集阻塞操作，
+    // 放到全局阻塞线程池上执行。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || convert_image_to_webp_impl(input_path, image_type))
+        .await?
+}
+
+fn convert_image_to_webp_impl(input_path: String, image_type: String) -> Result<()> {
     let input_bytes = std::fs::read(&input_path).with_context(|| {
         rquickjs_playground::tr!("failed-to-read-input-file", arg0 = input_path)
     })?;
@@ -35,7 +43,15 @@ pub fn convert_image_to_webp(input_path: String, image_type: String) -> Result<(
 /// 格式校验（仅支持 jpg/png/非动图 webp）请在 Dart 侧完成，本函数只负责解码并输出 PNG。
 /// 转换后的 PNG 写入 [output_path]。
 #[frb]
-pub fn convert_image_to_png(input_path: String, output_path: String) -> Result<()> {
+pub async fn convert_image_to_png(input_path: String, output_path: String) -> Result<()> {
+    // 图片转换（解码 + png 编码 + 落盘）是 CPU/IO 密集阻塞操作，
+    // 放到全局阻塞线程池上执行。
+    rquickjs_playground::global_handle()
+        .spawn_blocking(move || convert_image_to_png_impl(input_path, output_path))
+        .await?
+}
+
+fn convert_image_to_png_impl(input_path: String, output_path: String) -> Result<()> {
     let input_bytes = std::fs::read(&input_path).with_context(|| {
         rquickjs_playground::tr!("failed-to-read-input-file", arg0 = input_path)
     })?;

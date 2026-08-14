@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `load_image`
+// These functions are ignored because they are not marked as `pub`: `convert_image_to_png_impl`, `convert_image_to_webp_impl`, `load_image`
 
 /// 将任意支持的图片格式转换为 WebP，并覆盖写入原路径。
 ///

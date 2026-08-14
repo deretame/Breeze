@@ -795,19 +795,6 @@ fn log_http_direct_client() -> AnyResult<&'static Client> {
     }
 }
 
-static LOG_FORWARD_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
-
-fn log_forward_runtime() -> &'static tokio::runtime::Runtime {
-    LOG_FORWARD_RT.get_or_init(|| {
-        tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(1)
-            .enable_all()
-            .thread_name("rquickjs-log-forward")
-            .build()
-            .expect(&crate::tr!("failed-to-create-log-forward-tokio-runtime"))
-    })
-}
-
 fn forward_log_event_if_needed(event: &LogEvent) {
     let Some(url) = current_log_http_endpoint() else {
         return;
@@ -817,7 +804,7 @@ fn forward_log_event_if_needed(event: &LogEvent) {
     let message = event.message.clone();
     let ts_ms = event.ts_ms;
 
-    let _ = log_forward_runtime().spawn(async move {
+    let _ = crate::global_runtime().spawn(async move {
         let payload = json!({
             "level": level,
             "message": message,
@@ -855,7 +842,7 @@ pub fn forward_log_line(level: impl Into<String>, message: impl Into<String>) {
         .map(|d| d.as_millis())
         .unwrap_or(0);
 
-    let _ = log_forward_runtime().spawn(async move {
+    let _ = crate::global_runtime().spawn(async move {
         let Ok(client) = log_http_direct_client() else {
             return;
         };
@@ -1032,7 +1019,7 @@ pub fn fs_task_start(op: String, args_json: String) -> String {
                     return;
                 }
             };
-            let payload = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json))
+            let payload = crate::global_handle().spawn_blocking(move || fs_task_dispatch(op, args_json))
                 .await
                 .unwrap_or_else(|e| json!({ "ok": false, "error": e.to_string() }).to_string());
             drop(permit);
@@ -1144,7 +1131,7 @@ pub fn fs_task_promise(
                 })
                 .to_string())
             }
-            r = tokio::task::spawn_blocking(move || fs_task_dispatch(op, args_json)) => r,
+            r = crate::global_handle().spawn_blocking(move || fs_task_dispatch(op, args_json)) => r,
         };
 
         drop(permit);

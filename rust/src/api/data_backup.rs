@@ -18,7 +18,7 @@ pub async fn create_data_backup_zip(
     data_dir: String,
     download_dir: Option<String>,
 ) -> Result<()> {
-    tokio::task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         let file = File::create(&zip_path).with_context(|| {
             rquickjs_playground::tr!("failed-to-create-backup-zip-file", arg0 = zip_path)
         })?;
@@ -54,7 +54,7 @@ pub async fn create_data_backup_zip(
 /// 从数据备份 zip 中直接读取 config.json 内容。
 #[frb]
 pub async fn read_data_backup_config(zip_path: String) -> Result<String> {
-    tokio::task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         let file = File::open(&zip_path).with_context(|| {
             rquickjs_playground::tr!("failed-to-open-backup-zip", arg0 = zip_path)
         })?;
@@ -81,7 +81,7 @@ pub async fn read_data_backup_config(zip_path: String) -> Result<String> {
 /// 将数据备份 zip 解压到目标目录。
 #[frb]
 pub async fn extract_data_backup_zip(zip_path: String, extract_dir: String) -> Result<()> {
-    tokio::task::spawn_blocking(move || {
+    rquickjs_playground::global_handle().spawn_blocking(move || {
         std::fs::create_dir_all(&extract_dir).with_context(|| {
             rquickjs_playground::tr!("failed-to-create-extraction-directory", arg0 = extract_dir)
         })?;

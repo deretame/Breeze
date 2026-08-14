@@ -1293,7 +1293,7 @@ impl AsyncHostRuntime {
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
         let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
         let source_owned = source.to_string();
-        let source_hash = tokio::task::spawn_blocking({
+        let source_hash = crate::global_handle().spawn_blocking({
             let source_for_hash = source_owned.clone();
             move || fast_u64_hash(&source_for_hash)
         })

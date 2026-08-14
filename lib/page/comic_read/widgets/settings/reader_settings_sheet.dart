@@ -15,14 +15,14 @@ part 'reader_settings_read_tab.dart';
 
 Future<void> showReaderSettingsSheet(
   BuildContext context, {
-  required ValueChanged<int> changePageIndex,
+  ValueChanged<int>? changePageIndex,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) {
-      return _ReaderSettingsSheet(changePageIndex: changePageIndex);
+      return _ReaderSettingsSheet(changePageIndex: changePageIndex ?? (_) {});
     },
   );
 }

@@ -1558,6 +1558,15 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '右手模式'
 	String get rightHandMode => '右手模式';
 
+	/// zh-CN: '条漫点击翻动'
+	String get webtoonTapPageTurn => '条漫点击翻动';
+
+	/// zh-CN: '允许点击上下翻动'
+	String get enableWebtoonTapPageTurn => '允许点击上下翻动';
+
+	/// zh-CN: '条漫模式下点击上方/下方区域翻动，中央区域仍用于打开操作栏'
+	String get webtoonTapPageTurnSubtitle => '条漫模式下点击上方/下方区域翻动，中央区域仍用于打开操作栏';
+
 	/// zh-CN: '阅读模式'
 	String get readingMode => '阅读模式';
 
@@ -1633,8 +1642,14 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '自动阅读'
 	String get autoRead => '自动阅读';
 
-	/// zh-CN: '开启后自动滚动，并在右下角显示暂停/播放按钮'
-	String get autoReadSubtitle => '开启后自动滚动，并在右下角显示暂停/播放按钮';
+	/// zh-CN: '开启后自动滚动'
+	String get autoReadSubtitle => '开启后自动滚动';
+
+	/// zh-CN: '隐藏暂停按钮'
+	String get autoReadHidePauseButton => '隐藏暂停按钮';
+
+	/// zh-CN: '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮'
+	String get autoReadHidePauseButtonSubtitle => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮';
 
 	/// zh-CN: '平滑滚动'
 	String get autoReadSmooth => '平滑滚动';
@@ -4203,6 +4218,9 @@ extension on Translations {
 			'reader.fullscreen' => '全屏模式',
 			'reader.leftHandMode' => '左手模式',
 			'reader.rightHandMode' => '右手模式',
+			'reader.webtoonTapPageTurn' => '条漫点击翻动',
+			'reader.enableWebtoonTapPageTurn' => '允许点击上下翻动',
+			'reader.webtoonTapPageTurnSubtitle' => '条漫模式下点击上方/下方区域翻动，中央区域仍用于打开操作栏',
 			'reader.readingMode' => '阅读模式',
 			'reader.infoDisplay' => '信息项显示',
 			'reader.pageNumber' => '页数',
@@ -4228,7 +4246,9 @@ extension on Translations {
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
-			'reader.autoReadSubtitle' => '开启后自动滚动，并在右下角显示暂停/播放按钮',
+			'reader.autoReadSubtitle' => '开启后自动滚动',
+			'reader.autoReadHidePauseButton' => '隐藏暂停按钮',
+			'reader.autoReadHidePauseButtonSubtitle' => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮',
 			'reader.autoReadSmooth' => '平滑滚动',
 			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
 			'reader.webtoonScrollDistance' => '条漫滚动距离',
@@ -4237,13 +4257,13 @@ extension on Translations {
 			'reader.background' => '阅读背景',
 			'reader.auto' => '自动',
 			'reader.black' => '黑色',
+			_ => null,
+		} ?? switch (path) {
 			'reader.white' => '白色',
 			'reader.grey' => '灰色',
 			'reader.readingExperience' => '阅读体验',
 			'reader.disableAnimation' => '关闭翻页动画',
 			'reader.disableAnimationSubtitle' => '关闭整页翻页动画，小幅滚动动画不受影响',
-			_ => null,
-		} ?? switch (path) {
 			'reader.readFilter' => '阅读滤镜（仅深色模式）',
 			'reader.readFilterSubtitle' => '仅在阅读界面生效，可降低夜间阅读亮度',
 			'reader.filterIntensity' => '滤镜强度',
@@ -4751,13 +4771,13 @@ extension on Translations {
 			'changelog.title' => '更新日志',
 			'changelog.loadFailed' => '加载失败',
 			'changelog.loadFailedWithError' => ({required Object error}) => '加载失败: ${error}',
+			_ => null,
+		} ?? switch (path) {
 			'changelog.cannotOpenLink' => ({required Object url}) => '无法打开链接: ${url}',
 			'changelog.checkNetwork' => '加载失败，请检查网络',
 			'changelog.retry' => '重试',
 			'changelog.empty' => '暂无更新日志',
 			'changelog.publishedAt' => ({required Object date}) => '发布于 ${date}',
-			_ => null,
-		} ?? switch (path) {
 			'changelog.viewInBrowser' => '在浏览器中查看',
 			'changelog.attachments' => '附件下载',
 			'webview.title' => '网页',

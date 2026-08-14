@@ -243,6 +243,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(0) int readMode,
     @Default(ReaderTapPageTurnMode.rightHand)
     ReaderTapPageTurnMode tapPageTurnMode,
+    @Default(false) bool tapPageTurnInWebtoon,
     @Default(ReaderBackgroundMode.auto)
     ReaderBackgroundMode readerBackgroundMode,
     @Default(true) bool readFilterEnabled,
@@ -250,6 +251,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(false) bool einkOptimization,
     @Default(120) int einkDelayMs,
     @Default(false) bool autoScroll,
+    @Default(false) bool autoScrollHidePauseButton,
     @Default(false) bool autoScrollSmooth,
     @Default(1600) int autoScrollColumnIntervalMs,
     @Default(3000) int autoScrollPageIntervalMs,

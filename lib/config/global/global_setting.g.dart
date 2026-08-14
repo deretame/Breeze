@@ -279,6 +279,7 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
             json['tapPageTurnMode'],
           ) ??
           ReaderTapPageTurnMode.rightHand,
+      tapPageTurnInWebtoon: json['tapPageTurnInWebtoon'] as bool? ?? false,
       readerBackgroundMode:
           $enumDecodeNullable(
             _$ReaderBackgroundModeEnumMap,
@@ -291,6 +292,8 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
       einkOptimization: json['einkOptimization'] as bool? ?? false,
       einkDelayMs: (json['einkDelayMs'] as num?)?.toInt() ?? 120,
       autoScroll: json['autoScroll'] as bool? ?? false,
+      autoScrollHidePauseButton:
+          json['autoScrollHidePauseButton'] as bool? ?? false,
       autoScrollSmooth: json['autoScrollSmooth'] as bool? ?? false,
       autoScrollColumnIntervalMs:
           (json['autoScrollColumnIntervalMs'] as num?)?.toInt() ?? 1600,
@@ -337,6 +340,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'comicReadTopContainer': instance.comicReadTopContainer,
   'readMode': instance.readMode,
   'tapPageTurnMode': _$ReaderTapPageTurnModeEnumMap[instance.tapPageTurnMode]!,
+  'tapPageTurnInWebtoon': instance.tapPageTurnInWebtoon,
   'readerBackgroundMode':
       _$ReaderBackgroundModeEnumMap[instance.readerBackgroundMode]!,
   'readFilterEnabled': instance.readFilterEnabled,
@@ -344,6 +348,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'einkOptimization': instance.einkOptimization,
   'einkDelayMs': instance.einkDelayMs,
   'autoScroll': instance.autoScroll,
+  'autoScrollHidePauseButton': instance.autoScrollHidePauseButton,
   'autoScrollSmooth': instance.autoScrollSmooth,
   'autoScrollColumnIntervalMs': instance.autoScrollColumnIntervalMs,
   'autoScrollPageIntervalMs': instance.autoScrollPageIntervalMs,

@@ -608,6 +608,9 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get fullscreen => 'Fullscreen';
 	@override String get leftHandMode => 'Left-hand mode';
 	@override String get rightHandMode => 'Right-hand mode';
+	@override String get webtoonTapPageTurn => 'Webtoon tap navigation';
+	@override String get enableWebtoonTapPageTurn => 'Allow tapping to turn vertically';
+	@override String get webtoonTapPageTurnSubtitle => 'Tap the upper/lower area in webtoon mode; the center still opens the controls';
 	@override String get readingMode => 'Reading mode';
 	@override String get infoDisplay => 'Info display';
 	@override String get pageNumber => 'Page number';
@@ -633,7 +636,9 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
 	@override String get themeMode => 'Theme mode';
 	@override String get autoRead => 'Auto read';
-	@override String get autoReadSubtitle => 'Auto-scroll and show play/pause button';
+	@override String get autoReadSubtitle => 'Automatically scroll the reader';
+	@override String get autoReadHidePauseButton => 'Hide pause button';
+	@override String get autoReadHidePauseButtonSubtitle => 'Keep auto-read running without showing the pause/play button';
 	@override String get autoReadSmooth => 'Smooth scroll';
 	@override String get autoReadSmoothSubtitle => 'Continuous scroll in webtoon mode; off uses interval jumps';
 	@override String get webtoonScrollDistance => 'Webtoon scroll distance';
@@ -1973,6 +1978,9 @@ extension on TranslationsEnUs {
 			'reader.fullscreen' => 'Fullscreen',
 			'reader.leftHandMode' => 'Left-hand mode',
 			'reader.rightHandMode' => 'Right-hand mode',
+			'reader.webtoonTapPageTurn' => 'Webtoon tap navigation',
+			'reader.enableWebtoonTapPageTurn' => 'Allow tapping to turn vertically',
+			'reader.webtoonTapPageTurnSubtitle' => 'Tap the upper/lower area in webtoon mode; the center still opens the controls',
 			'reader.readingMode' => 'Reading mode',
 			'reader.infoDisplay' => 'Info display',
 			'reader.pageNumber' => 'Page number',
@@ -1998,7 +2006,9 @@ extension on TranslationsEnUs {
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.themeMode' => 'Theme mode',
 			'reader.autoRead' => 'Auto read',
-			'reader.autoReadSubtitle' => 'Auto-scroll and show play/pause button',
+			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
+			'reader.autoReadHidePauseButton' => 'Hide pause button',
+			'reader.autoReadHidePauseButtonSubtitle' => 'Keep auto-read running without showing the pause/play button',
 			'reader.autoReadSmooth' => 'Smooth scroll',
 			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
@@ -2008,13 +2018,13 @@ extension on TranslationsEnUs {
 			'reader.auto' => 'Auto',
 			'reader.black' => 'Black',
 			'reader.white' => 'White',
+			_ => null,
+		} ?? switch (path) {
 			'reader.grey' => 'Grey',
 			'reader.readingExperience' => 'Reading experience',
 			'reader.disableAnimation' => 'Disable page animation',
 			'reader.disableAnimationSubtitle' => 'Disable full-page turn animation',
 			'reader.readFilter' => 'Read filter (dark mode only)',
-			_ => null,
-		} ?? switch (path) {
 			'reader.readFilterSubtitle' => 'Only effective in reader, reduces brightness at night',
 			'reader.filterIntensity' => 'Filter intensity',
 			'reader.einkOptimization' => 'E-ink optimization (landscape)',
@@ -2522,13 +2532,13 @@ extension on TranslationsEnUs {
 			'changelog.loadFailed' => 'Load failed',
 			'changelog.loadFailedWithError' => ({required Object error}) => 'Load failed: ${error}',
 			'changelog.cannotOpenLink' => ({required Object url}) => 'Cannot open link: ${url}',
+			_ => null,
+		} ?? switch (path) {
 			'changelog.checkNetwork' => 'Load failed, please check network',
 			'changelog.retry' => 'Retry',
 			'changelog.empty' => 'No changelog',
 			'changelog.publishedAt' => ({required Object date}) => 'Published at ${date}',
 			'changelog.viewInBrowser' => 'View in browser',
-			_ => null,
-		} ?? switch (path) {
 			'changelog.attachments' => 'Attachments',
 			'webview.title' => 'Webpage',
 			'webview.cannotOpenLink' => ({required Object uri}) => 'Cannot open link: ${uri}',

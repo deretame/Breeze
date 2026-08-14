@@ -5,6 +5,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
 
@@ -62,6 +63,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             subtitle:
                 '${_languageLabel(state)} · ${_themeLabel(state.themeMode)}',
             onTap: () => _openSubPage(const AppearanceSettingRoute()),
+          ),
+          const Divider(height: 1, thickness: 0.3),
+          settingCategoryTile(
+            icon: Icons.menu_book_outlined,
+            title: t.reader.settings,
+            subtitle: '${t.reader.readingMode} · ${t.reader.doubleTapAction}',
+            onTap: () => showReaderSettingsSheet(context),
           ),
           const Divider(height: 1, thickness: 0.3),
           settingCategoryTile(

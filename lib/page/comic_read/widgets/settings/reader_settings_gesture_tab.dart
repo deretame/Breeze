@@ -11,11 +11,106 @@ class _ReaderSettingsGestureTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const _TapPageTurnModeSection(),
+          const SizedBox(height: 18),
+          const _WebtoonTapPageTurnSection(),
+          const SizedBox(height: 18),
           const _DoubleTapSection(),
           if (isAndroidPhone) const SizedBox(height: 18),
           if (isAndroidPhone) const _VolumeKeyPageTurnSection(),
         ],
       ),
+    );
+  }
+}
+
+class _TapPageTurnModeSection extends StatelessWidget {
+  const _TapPageTurnModeSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final mode = globalSettingState.readSetting.tapPageTurnMode;
+
+    return _SettingsSection(
+      title: t.reader.pageMode,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _SettingsChoiceChip(
+              title: t.reader.fullscreen,
+              selected: mode == ReaderTapPageTurnMode.fullScreen,
+              onTap: () {
+                if (mode == ReaderTapPageTurnMode.fullScreen) {
+                  return;
+                }
+                globalSettingCubit.updateReadSetting(
+                  (current) => current.copyWith(
+                    tapPageTurnMode: ReaderTapPageTurnMode.fullScreen,
+                  ),
+                );
+              },
+            ),
+            _SettingsChoiceChip(
+              title: t.reader.leftHandMode,
+              selected: mode == ReaderTapPageTurnMode.leftHand,
+              onTap: () {
+                if (mode == ReaderTapPageTurnMode.leftHand) {
+                  return;
+                }
+                globalSettingCubit.updateReadSetting(
+                  (current) => current.copyWith(
+                    tapPageTurnMode: ReaderTapPageTurnMode.leftHand,
+                  ),
+                );
+              },
+            ),
+            _SettingsChoiceChip(
+              title: t.reader.rightHandMode,
+              selected: mode == ReaderTapPageTurnMode.rightHand,
+              onTap: () {
+                if (mode == ReaderTapPageTurnMode.rightHand) {
+                  return;
+                }
+                globalSettingCubit.updateReadSetting(
+                  (current) => current.copyWith(
+                    tapPageTurnMode: ReaderTapPageTurnMode.rightHand,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _WebtoonTapPageTurnSection extends StatelessWidget {
+  const _WebtoonTapPageTurnSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final readSetting = context.watch<GlobalSettingCubit>().state.readSetting;
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+
+    return _SettingsSection(
+      title: t.reader.webtoonTapPageTurn,
+      children: [
+        _SettingsSwitchTile(
+          title: t.reader.enableWebtoonTapPageTurn,
+          subtitle: t.reader.webtoonTapPageTurnSubtitle,
+          value: readSetting.tapPageTurnInWebtoon,
+          onChanged: (value) {
+            globalSettingCubit.updateReadSetting(
+              (current) => current.copyWith(tapPageTurnInWebtoon: value),
+            );
+          },
+        ),
+      ],
     );
   }
 }

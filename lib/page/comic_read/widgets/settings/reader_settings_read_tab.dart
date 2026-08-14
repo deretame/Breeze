@@ -7,16 +7,11 @@ class _ReaderSettingsReadTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final readMode = context.select(
-      (GlobalSettingCubit c) => c.state.readSetting.readMode,
-    );
     return _SettingsTabContent(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ReadModeSection(changePageIndex: changePageIndex),
-          if (readMode != 0) const SizedBox(height: 18),
-          if (readMode != 0) const _TapPageTurnModeSection(),
           const SizedBox(height: 18),
           const _ThemeModeSection(),
           const SizedBox(height: 18),
@@ -27,71 +22,6 @@ class _ReaderSettingsReadTab extends StatelessWidget {
           const _ReadExperienceSection(),
         ],
       ),
-    );
-  }
-}
-
-class _TapPageTurnModeSection extends StatelessWidget {
-  const _TapPageTurnModeSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final mode = globalSettingState.readSetting.tapPageTurnMode;
-
-    return _SettingsSection(
-      title: t.reader.pageMode,
-      children: [
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _SettingsChoiceChip(
-              title: t.reader.fullscreen,
-              selected: mode == ReaderTapPageTurnMode.fullScreen,
-              onTap: () {
-                if (mode == ReaderTapPageTurnMode.fullScreen) {
-                  return;
-                }
-                globalSettingCubit.updateReadSetting(
-                  (current) => current.copyWith(
-                    tapPageTurnMode: ReaderTapPageTurnMode.fullScreen,
-                  ),
-                );
-              },
-            ),
-            _SettingsChoiceChip(
-              title: t.reader.leftHandMode,
-              selected: mode == ReaderTapPageTurnMode.leftHand,
-              onTap: () {
-                if (mode == ReaderTapPageTurnMode.leftHand) {
-                  return;
-                }
-                globalSettingCubit.updateReadSetting(
-                  (current) => current.copyWith(
-                    tapPageTurnMode: ReaderTapPageTurnMode.leftHand,
-                  ),
-                );
-              },
-            ),
-            _SettingsChoiceChip(
-              title: t.reader.rightHandMode,
-              selected: mode == ReaderTapPageTurnMode.rightHand,
-              onTap: () {
-                if (mode == ReaderTapPageTurnMode.rightHand) {
-                  return;
-                }
-                globalSettingCubit.updateReadSetting(
-                  (current) => current.copyWith(
-                    tapPageTurnMode: ReaderTapPageTurnMode.rightHand,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -262,6 +192,17 @@ class _AutoReadSection extends StatelessWidget {
             );
           },
         ),
+        if (readSetting.autoScroll)
+          _SettingsSwitchTile(
+            title: t.reader.autoReadHidePauseButton,
+            subtitle: t.reader.autoReadHidePauseButtonSubtitle,
+            value: readSetting.autoScrollHidePauseButton,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(autoScrollHidePauseButton: value),
+              );
+            },
+          ),
         if (readSetting.autoScroll)
           _SettingsSwitchTile(
             title: t.reader.autoReadSmooth,

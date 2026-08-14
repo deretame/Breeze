@@ -40,9 +40,12 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
     return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
       buildWhen: (previous, current) =>
           previous.readSetting.autoScroll != current.readSetting.autoScroll ||
+          previous.readSetting.autoScrollHidePauseButton !=
+              current.readSetting.autoScrollHidePauseButton ||
           previous.leftHandModeEnabled != current.leftHandModeEnabled,
       builder: (context, globalSettingState) {
-        if (!globalSettingState.readSetting.autoScroll) {
+        if (globalSettingState.readSetting.autoScroll == false ||
+            globalSettingState.readSetting.autoScrollHidePauseButton) {
           return const Positioned.fill(
             child: IgnorePointer(child: SizedBox.shrink()),
           );

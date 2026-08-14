@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class ReaderActionController {
+  static const int _webtoonTapScrollPercent = 70;
+
   final BuildContext context;
   final ScrollController scrollController;
-  final ListObserverController observerController;
   final PageController pageController;
   final bool Function(bool isNext)? onBeforeTurnPage;
 
@@ -19,7 +18,6 @@ class ReaderActionController {
   ReaderActionController({
     required this.context,
     required this.scrollController,
-    required this.observerController,
     required this.pageController,
     this.onBeforeTurnPage,
     this.isUserScrolling,
@@ -77,12 +75,12 @@ class ReaderActionController {
   }
 
   // ================= 2. 音量键/点击专用逻辑 (手机体验) =================
-  // 特点：竖向模式下是“整页/大幅跳转”，保持快速阅读体验
+  // 特点：竖向模式下按固定比例滚动，避免依赖漫画项分页定位。
 
   void onPageActionNext() {
     final mode = _readMode;
     if (mode == 0) {
-      _scrollVertical(page: true, next: true);
+      _scrollVerticalByPercent(percent: _webtoonTapScrollPercent, next: true);
     } else {
       _turnPage(isNext: true);
     }
@@ -91,7 +89,7 @@ class ReaderActionController {
   void onPageActionPrev() {
     final mode = _readMode;
     if (mode == 0) {
-      _scrollVertical(page: true, next: false);
+      _scrollVerticalByPercent(percent: _webtoonTapScrollPercent, next: false);
     } else {
       _turnPage(isNext: false);
     }
@@ -134,56 +132,24 @@ class ReaderActionController {
 
   // ================= 内部实现 =================
 
-  void _scrollVertical({
-    double offset = 0,
-    int durationMs = 0,
-    bool page = false,
-    bool next = true,
-  }) {
-    if (page) {
-      final totalSlots = _totalSlots;
-      if (totalSlots <= 0 || !scrollController.hasClients) return;
+  void _scrollVertical({double offset = 0, int durationMs = 0}) {
+    if (!scrollController.hasClients) return;
 
-      final currentSlot = _currentSlot + (next ? 1 : -1);
+    final double currentOffset = scrollController.offset;
+    final double targetOffset = currentOffset + offset;
+    final clampedOffset = targetOffset.clamp(
+      scrollController.position.minScrollExtent,
+      scrollController.position.maxScrollExtent,
+    );
 
-      final targetSlot = currentSlot.clamp(0, totalSlots - 1);
-
-      logger.d(
-        'index: $_currentSlot currentSlot: $currentSlot targetSlot: $targetSlot',
-      );
-
-      if (_noAnimation) {
-        observerController.jumpTo(
-          index: targetSlot,
-          offset: (offset) => getReaderTopOffset(_activeContext),
-        );
-      } else {
-        observerController.animateTo(
-          index: targetSlot,
-          duration: kReaderAnimationDuration,
-          curve: Curves.easeInOut,
-          offset: (offset) => getReaderTopOffset(_activeContext),
-        );
-      }
+    if (_noAnimation) {
+      scrollController.jumpTo(clampedOffset);
     } else {
-      if (!scrollController.hasClients) return;
-
-      final double currentOffset = scrollController.offset;
-      final double targetOffset = currentOffset + offset;
-      final clampedOffset = targetOffset.clamp(
-        scrollController.position.minScrollExtent,
-        scrollController.position.maxScrollExtent,
+      scrollController.animateTo(
+        clampedOffset,
+        duration: Duration(milliseconds: durationMs),
+        curve: Curves.easeOutQuad,
       );
-
-      if (_noAnimation) {
-        scrollController.jumpTo(clampedOffset);
-      } else {
-        scrollController.animateTo(
-          clampedOffset,
-          duration: Duration(milliseconds: durationMs),
-          curve: Curves.easeOutQuad,
-        );
-      }
     }
   }
 
@@ -231,12 +197,13 @@ class ReaderActionController {
   void _scrollVerticalByPercent({required int percent, required bool next}) {
     if (!scrollController.hasClients) return;
 
-    final viewportHeight = MediaQuery.of(_activeContext).size.height;
+    // 使用当前应用窗口的高度，不取屏幕尺寸或宽高中的较大值。
+    final windowHeight = MediaQuery.sizeOf(_activeContext).height;
     final distancePercent = percent.clamp(10, 100);
     final direction = next ? 1.0 : -1.0;
     final targetOffset =
         scrollController.offset +
-        viewportHeight * (distancePercent / 100) * direction;
+        windowHeight * (distancePercent / 100) * direction;
     final clamped = targetOffset.clamp(
       scrollController.position.minScrollExtent,
       scrollController.position.maxScrollExtent,

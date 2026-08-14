@@ -13,7 +13,8 @@ class ReaderGestureLogic {
     VoidCallback? onBeforePageTurn,
   }) {
     final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
-    if (readSetting.readMode == 0) {
+    final isWebtoon = readSetting.readMode == 0;
+    if (isWebtoon && !readSetting.tapPageTurnInWebtoon) {
       onToggleMenu();
       return;
     }
@@ -35,11 +36,19 @@ class ReaderGestureLogic {
       return;
     }
 
-    final shouldNext = switch (readSetting.tapPageTurnMode) {
-      ReaderTapPageTurnMode.fullScreen => true,
-      ReaderTapPageTurnMode.leftHand => tapPosition.dx < (screenWidth / 2),
-      ReaderTapPageTurnMode.rightHand => tapPosition.dx >= (screenWidth / 2),
-    };
+    final shouldNext = isWebtoon
+        ? _shouldNextForWebtoonTap(
+            mode: readSetting.tapPageTurnMode,
+            tapY: tapPosition.dy,
+            screenHeight: screenHeight,
+          )
+        : switch (readSetting.tapPageTurnMode) {
+            ReaderTapPageTurnMode.fullScreen => true,
+            ReaderTapPageTurnMode.leftHand =>
+              tapPosition.dx < (screenWidth / 2),
+            ReaderTapPageTurnMode.rightHand =>
+              tapPosition.dx >= (screenWidth / 2),
+          };
 
     onBeforePageTurn?.call();
     if (shouldNext) {
@@ -47,5 +56,17 @@ class ReaderGestureLogic {
     } else {
       actionController.onPageActionPrev();
     }
+  }
+
+  static bool _shouldNextForWebtoonTap({
+    required ReaderTapPageTurnMode mode,
+    required double tapY,
+    required double screenHeight,
+  }) {
+    return switch (mode) {
+      ReaderTapPageTurnMode.fullScreen => true,
+      ReaderTapPageTurnMode.leftHand => tapY < (screenHeight / 2),
+      ReaderTapPageTurnMode.rightHand => tapY >= (screenHeight / 2),
+    };
   }
 }

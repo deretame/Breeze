@@ -23,6 +23,7 @@ class EpButtonWidget extends StatelessWidget {
   final String comicId;
   final String from;
   final int index;
+  final bool isReversed;
 
   const EpButtonWidget({
     super.key,
@@ -33,13 +34,16 @@ class EpButtonWidget extends StatelessWidget {
     required this.comicId,
     required this.from,
     required this.index,
+    required this.isReversed,
   });
 
   @override
   Widget build(BuildContext context) {
-    final episodeIndex = doc.order > 0 ? doc.order : 1;
+    // 不依赖插件返回的 order，按当前显示位置自主计算序号：
+    // 正序从上到下 1..N，倒序从下到上 N..1。
+    final displayNumber = isReversed ? epsLength - index : index + 1;
     final title = doc.name.trim().isEmpty
-        ? t.comicInfo.episodeFallback(index: episodeIndex)
+        ? t.comicInfo.episodeFallback(index: displayNumber)
         : doc.name.trim();
     return InkWell(
       onTap: () {
@@ -77,7 +81,7 @@ class EpButtonWidget extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              t.comicInfo.episodeLabel(index: index + 1),
+              t.comicInfo.episodeLabel(index: displayNumber),
               style: context.theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.theme.colorScheme.primary,

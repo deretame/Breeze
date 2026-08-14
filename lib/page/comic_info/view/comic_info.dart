@@ -453,6 +453,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         type: _type,
                         comicId: widget.comicId,
                         from: widget.from,
+                        isReversed: _isReversed,
                       ),
                     ),
                     if (normalComicAllInfo.recommend.isNotEmpty) ...[
@@ -1054,6 +1055,7 @@ class _EpisodeListSection extends StatelessWidget {
     required this.type,
     required this.comicId,
     required this.from,
+    required this.isReversed,
   });
 
   final List<dynamic> episodes;
@@ -1062,6 +1064,7 @@ class _EpisodeListSection extends StatelessWidget {
   final ComicEntryType type;
   final String comicId;
   final String from;
+  final bool isReversed;
 
   @override
   Widget build(BuildContext context) {
@@ -1085,13 +1088,14 @@ class _EpisodeListSection extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: EpButtonWidget(
-                    index: i,
                     doc: episodes[i] as Ep,
                     allInfo: allInfo,
                     epsLength: epsLength,
                     type: type,
                     comicId: comicId,
                     from: from,
+                    index: i,
+                    isReversed: isReversed,
                   ),
                 ),
             ],
@@ -1111,13 +1115,14 @@ class _EpisodeListSection extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: EpButtonWidget(
-                        index: i,
                         doc: episodes[i] as Ep,
                         allInfo: allInfo,
                         epsLength: epsLength,
                         type: type,
                         comicId: comicId,
                         from: from,
+                        index: i,
+                        isReversed: isReversed,
                       ),
                     ),
                   ),
@@ -1147,6 +1152,7 @@ class _EpisodeListSection extends StatelessWidget {
               comicId: comicId,
               from: from,
               index: index,
+              isReversed: isReversed,
             );
           },
         );

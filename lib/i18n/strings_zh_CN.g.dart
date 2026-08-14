@@ -1408,11 +1408,11 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '$count 话'
 	String episodeCount({required Object count}) => '${count} 话';
 
-	/// zh-CN: '第$index话'
-	String episodeFallback({required Object index}) => '第${index}话';
+	/// zh-CN: '$index'
+	String episodeFallback({required Object index}) => '${index}';
 
-	/// zh-CN: '第$index话'
-	String episodeLabel({required Object index}) => '第${index}话';
+	/// zh-CN: '$index'
+	String episodeLabel({required Object index}) => '${index}';
 
 	/// zh-CN: '作者'
 	String get author => '作者';
@@ -4156,8 +4156,8 @@ extension on Translations {
 			'comicInfo.noChapters' => '暂无章节信息',
 			'comicInfo.chapterList' => '章节目录',
 			'comicInfo.episodeCount' => ({required Object count}) => '${count} 话',
-			'comicInfo.episodeFallback' => ({required Object index}) => '第${index}话',
-			'comicInfo.episodeLabel' => ({required Object index}) => '第${index}话',
+			'comicInfo.episodeFallback' => ({required Object index}) => '${index}',
+			'comicInfo.episodeLabel' => ({required Object index}) => '${index}',
 			'comicInfo.author' => '作者',
 			'comicInfo.tags' => '标签',
 			'comicInfo.works' => '作品',

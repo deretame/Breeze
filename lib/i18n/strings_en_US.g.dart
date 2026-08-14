@@ -552,8 +552,8 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get noChapters => 'No chapter information';
 	@override String get chapterList => 'Chapters';
 	@override String episodeCount({required Object count}) => '${count} Episodes';
-	@override String episodeFallback({required Object index}) => 'Ep. ${index}';
-	@override String episodeLabel({required Object index}) => 'Ep. ${index}';
+	@override String episodeFallback({required Object index}) => '${index}';
+	@override String episodeLabel({required Object index}) => '${index}';
 	@override String get author => 'Author';
 	@override String get tags => 'Tags';
 	@override String get works => 'Works';
@@ -1926,8 +1926,8 @@ extension on TranslationsEnUs {
 			'comicInfo.noChapters' => 'No chapter information',
 			'comicInfo.chapterList' => 'Chapters',
 			'comicInfo.episodeCount' => ({required Object count}) => '${count} Episodes',
-			'comicInfo.episodeFallback' => ({required Object index}) => 'Ep. ${index}',
-			'comicInfo.episodeLabel' => ({required Object index}) => 'Ep. ${index}',
+			'comicInfo.episodeFallback' => ({required Object index}) => '${index}',
+			'comicInfo.episodeLabel' => ({required Object index}) => '${index}',
 			'comicInfo.author' => 'Author',
 			'comicInfo.tags' => 'Tags',
 			'comicInfo.works' => 'Works',

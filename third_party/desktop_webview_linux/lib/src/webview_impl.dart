@@ -312,11 +312,11 @@ class WebviewImpl extends Webview {
 
   @override
   Future<List<WebviewCookie>> getAllCookies({bool allDomains = false}) async {
-    final List<Map<Object?, Object?>>? result = await channel
-        .invokeListMethod<Map<Object?, Object?>>('getAllCookies', {
-          'viewId': viewId,
-          'allDomains': allDomains,
-        });
+    final List<Map<Object?, Object?>>? result =
+        await channel.invokeListMethod<Map<Object?, Object?>>('getAllCookies', {
+      'viewId': viewId,
+      'allDomains': allDomains,
+    });
 
     return result
             ?.map((e) => WebviewCookie.fromJson(Map<String, dynamic>.from(e)))

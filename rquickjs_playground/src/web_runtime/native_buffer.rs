@@ -139,6 +139,31 @@ pub fn native_buffer_take_raw(id: u64) -> Option<Vec<u8>> {
     pool.remove(&id).map(|entry| entry.bytes)
 }
 
+/// 快速版 take：直接把 bytes 做成 ArrayBuffer（零拷贝，JS_NewArrayBuffer 复用 Vec 内存）。
+///
+/// 为什么要单独加：`native_buffer_take_raw` 返回 `Vec<u8>`，经 rquickjs 的
+/// IntoJs 转成 JS 时非常慢（实测 5MB 要 ~5s，疑似先转普通数组再装箱）。
+/// 这里用 rquickjs::ArrayBuffer::new 直接拿 Vec 的指针建 ArrayBuffer，毫秒级。
+pub fn native_buffer_take_typed<'js>(
+    ctx: rquickjs::Ctx<'js>,
+    id: u64,
+) -> rquickjs::Result<rquickjs::ArrayBuffer<'js>> {
+    let bytes = {
+        let mut pool = native_pool()
+            .lock()
+            .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
+        pool.remove(&id).map(|entry| entry.bytes)
+    };
+    match bytes {
+        Some(bytes) => rquickjs::ArrayBuffer::new(ctx, bytes),
+        None => Err(rquickjs::Error::new_from_js_message(
+            "native buffer",
+            "take_typed",
+            "buffer id does not exist",
+        )),
+    }
+}
+
 pub fn native_buffer_free(id: u64) -> String {
     let mut pool = native_pool()
         .lock()

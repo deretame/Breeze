@@ -1,5 +1,6 @@
 pub mod compat;
 pub mod fetch;
+pub mod fetch_timeout;
 pub mod fs;
 pub mod native;
 pub mod runtime;

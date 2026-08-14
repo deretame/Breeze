@@ -60,12 +60,13 @@ pub use self::bridge::{
 };
 pub use self::http::{
     BuildHttpClientOptions, HttpClientConfig, build_http_client, build_http_client_ex,
-    configure_http_client, current_http_client_config, http_request_cancel, http_request_promise,
-    set_worker_http_config,
+    configure_http_client, current_http_client_config, http_promise_cancel_senders_len,
+    http_request_cancel, http_request_promise, set_worker_http_config,
 };
 pub use self::native_buffer::{
     native_buffer_free, native_buffer_put, native_buffer_put_binary, native_buffer_put_raw,
-    native_buffer_take, native_buffer_take_raw, native_exec, native_exec_chain,
+    native_buffer_take, native_buffer_take_raw, native_buffer_take_typed, native_exec,
+    native_exec_chain,
 };
 pub use self::state::{
     fetch_state_can_clone, fetch_state_register, fetch_state_take_offloaded,
@@ -222,6 +223,10 @@ pub fn install_host_bindings(
     globals.set(
         "__native_buffer_take_raw",
         Func::from(native_buffer_take_raw),
+    )?;
+    globals.set(
+        "__native_buffer_take_typed",
+        Func::from(native_buffer_take_typed),
     )?;
     globals.set("__native_buffer_free", Func::from(native_buffer_free))?;
     globals.set("__native_exec", Func::from(native_exec))?;

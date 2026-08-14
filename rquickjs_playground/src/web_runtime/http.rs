@@ -39,6 +39,14 @@ fn http_promise_cancel_senders() -> &'static Mutex<HashMap<u64, oneshot::Sender<
     HTTP_PROMISE_CANCEL_SENDERS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+/// 当前挂起的 HTTP 取消 sender 数量（用于诊断/测试确认正常完成后被清理）。
+pub fn http_promise_cancel_senders_len() -> usize {
+    http_promise_cancel_senders()
+        .lock()
+        .map(|m| m.len())
+        .unwrap_or(0)
+}
+
 pub(crate) fn http_io_sem() -> &'static Arc<Semaphore> {
     HTTP_IO_SEM.get_or_init(|| Arc::new(Semaphore::new(HTTP_MAX_IN_FLIGHT)))
 }
@@ -355,7 +363,16 @@ pub fn http_request_promise(
         senders.insert(id, cancel_tx);
     }
 
-    let future = async move {
+    // 实际 HTTP 请求放进独立 tokio 任务，由 tokio 的 I/O 驱动直接轮询，
+    // 不经过 rquickjs 的 Spawner（那会被 JS 事件泵以固定节奏轮询，导致
+    // 分块到达的大响应体逐块慢读）。JS 面只等一个 oneshot 结果。
+    // 注意：任务跑在独立多线程 runtime 的线程上，那里没有 QJS worker 的
+    // thread-local 配置，必须把当前 worker 配置带过去，否则内网拦截/代理
+    // 设置会不一致。
+    let work_cfg = worker_http_config();
+    let cleanup_id = id;
+    let work = async move {
+        set_worker_http_config(work_cfg);
         let sem = Arc::clone(http_io_sem());
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
             Ok(Ok(permit)) => permit,
@@ -384,10 +401,32 @@ pub fn http_request_promise(
 
         drop(permit);
 
+        // 请求已结束（成功、失败或被取消），从 map 移除取消 sender，
+        // 否则每个完成的请求都会在 http_promise_cancel_senders 里留下
+        // 一个永远不会被删除的悬空 sender，长会话内存持续增长。
+        http_promise_cancel_senders()
+            .lock()
+            .expect(&crate::tr!("failed-to-lock-http-promise-cancel-senders"))
+            .remove(&cleanup_id);
+
         match result {
             Ok(payload) => payload,
             Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
         }
+    };
+    let (result_tx, result_rx) = oneshot::channel::<String>();
+    http_worker_runtime().spawn(async move {
+        let _ = result_tx.send(work.await);
+    });
+
+    // JS 面只等一个 oneshot 结果，不再逐块轮询。
+    let future = async move {
+        result_rx
+            .await
+            .unwrap_or_else(|_| {
+                json!({ "ok": false, "error": crate::tr!("request-execution-cancelled") })
+                    .to_string()
+            })
     };
 
     let promise = Promise::wrap_future(&ctx, future)?;
@@ -412,6 +451,23 @@ pub fn http_request_cancel(id: u64) -> String {
         false
     };
     json!({ "ok": true, "canceled": existed }).to_string()
+}
+
+/// 专门跑 HTTP 请求的多线程 tokio runtime。
+///
+/// 为什么必须独立 runtime：QJS worker 用的是 current_thread 单线程 runtime，
+/// 它的事件循环（pump_jobs）以固定节奏轮询 JS 任务，HTTP 响应体分块到达时
+/// 无法被及时驱动（实测每块 ~50-80ms），几 MB 的 body 会拖到数秒甚至超时。
+/// 用一个多线程 runtime 跑 HTTP，body 读取由 tokio 的 I/O 直接驱动，和直连一致。
+fn http_worker_runtime() -> &'static tokio::runtime::Runtime {
+    static HTTP_WORKER_RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+    HTTP_WORKER_RT.get_or_init(|| {
+        tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(2)
+            .enable_all()
+            .build()
+            .expect(&crate::tr!("failed-to-create-http-worker-runtime"))
+    })
 }
 
 async fn http_request_inner_async(

@@ -69,6 +69,17 @@
   }
 
   async function take(id) {
+    // 快速路径：直接返回零拷贝 ArrayBuffer（rquickjs::ArrayBuffer::new，
+    // 复用 Vec 内存），避免 Vec<u8> -> JS 的慢转换（5MB 实测 ~5s）。
+    if (typeof globalThis.__native_buffer_take_typed === "function") {
+      try {
+        const ab = globalThis.__native_buffer_take_typed(Number(id));
+        if (ab instanceof ArrayBuffer) {
+          return new Uint8Array(ab);
+        }
+      } catch (_) {
+      }
+    }
     if (typeof globalThis.__native_buffer_take_raw === "function") {
       try {
         const raw = globalThis.__native_buffer_take_raw(Number(id));

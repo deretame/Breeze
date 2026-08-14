@@ -24,7 +24,7 @@
 
 - **Dart/Flutter 应用**：`lib/`
 - **Rust FFI 库**：`rust/`（crate 名 `windcore`）
-- **QuickJS 运行时封装**：`rquickjs_playground/`
+- **QuickJS 运行时封装**：`rust/rquickjs_playground/`（独立子 crate，可整体抽离）
 - **Windows 安装器前端**：`windows-installer/`（SvelteKit + Tauri v2）
 - **构建/发布脚本**：`script/`
 - **CI/CD**：`.github/workflows/`
@@ -93,8 +93,8 @@
 │   ├── src/memory/             # 内存统计
 │   ├── src/qjs/                # QuickJS runtime 管理
 │   ├── build.rs                # 编译时下载内置插件 bundle
-│   └── Cargo.toml
-├── rquickjs_playground/        # QuickJS 宿主运行时封装 crate
+│   ├── Cargo.toml
+│   └── rquickjs_playground/    # QuickJS 宿主运行时封装 crate（独立子 crate）
 ├── windows-installer/          # Windows 安装器（SvelteKit + Tauri v2）
 ├── script/                     # 构建与代码生成脚本
 │   ├── android_build_utils.py

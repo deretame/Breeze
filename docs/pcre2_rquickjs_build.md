@@ -129,23 +129,23 @@ PCRE2_SYS_STATIC=1 cargo build
 作为 git submodule：
 
 ```bash
-cd rquickjs_playground
+cd rust/rquickjs_playground
 git submodule add https://github.com/PCRE2Project/pcre2.git pcre2
 git submodule update --init --recursive
 ```
 
-或者直接把某个版本的 PCRE2 源码复制到 `rquickjs_playground/pcre2/`。
+或者直接把某个版本的 PCRE2 源码复制到 `rust/rquickjs_playground/pcre2/`。
 
 ### 6.2 添加 build 依赖
 
 ```toml
-# rquickjs_playground/Cargo.toml
+# rust/rquickjs_playground/Cargo.toml
 [build-dependencies]
 cc = "1.2"
 bindgen = "0.71"   # 如果需要自动生成绑定
 ```
 
-### 6.3 新建 `rquickjs_playground/build.rs`
+### 6.3 新建 `rust/rquickjs_playground/build.rs`
 
 ```rust
 use std::env;
@@ -251,7 +251,7 @@ pub fn compile_pattern(pattern: &str) {
 ### 6.5 构建
 
 ```bash
-cd rquickjs_playground
+cd rust/rquickjs_playground
 cargo build
 ```
 

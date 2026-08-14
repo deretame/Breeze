@@ -52,7 +52,7 @@ zhconv = "0.4.1"
 lazy_static = "1.5.0"
 flate2 = "1.1.9"
 zstd = "0.13.3"
-rquickjs_playground = { path = "../rquickjs_playground" }
+rquickjs_playground = { path = "rquickjs_playground" }
 chrono = "0.4.45"
 iana-time-zone = "0.1.61"
 sys-locale = "0.3.2"

@@ -150,7 +150,8 @@ Future<void> main() async {
       'fmt',
     ], workingDirectory: '$projectRoot${Platform.pathSeparator}rust');
     final rquickjsPlaygroundDir = Directory(
-      '$projectRoot${Platform.pathSeparator}rquickjs_playground',
+      '$projectRoot${Platform.pathSeparator}rust'
+      '${Platform.pathSeparator}rquickjs_playground',
     );
     if (await rquickjsPlaygroundDir.exists()) {
       await _runCommand('cargo', [

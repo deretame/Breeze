@@ -4,16 +4,19 @@ import 'dart:convert';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
+import 'package:zephyr/network/http/plugin/qjs_backend.dart';
 import 'package:zephyr/service/update/check_update.dart';
 import 'package:zephyr/src/rust/api/localization.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 void _register(
   String functionName,
   FutureOr<String> Function(String) dartCallback,
 ) {
-  registerFunction(functionName: functionName, dartCallback: dartCallback);
+  qjsBackendRegisterFunction(
+    functionName,
+    (input) async => dartCallback(input),
+  );
 }
 
 void registerDartTools() {

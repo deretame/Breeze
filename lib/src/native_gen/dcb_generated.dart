@@ -7,63 +7,79 @@ import 'dart:typed_data';
 
 import 'package:dart_cpp_bridge/dart_cpp_bridge.dart';
 
-import 'api/bridge_api.dart';
+import 'package:zephyr/src/native_gen/api/bridge_api.dart';
 
-void _writeDataClass_WindDownloadProgress(ByteWriter w, WindDownloadProgress v) {
+void _writeDataClassWindDownloadProgress(ByteWriter w, WindDownloadProgress v) {
   w.i64(v.received);
   w.i64(v.total);
 }
 
-WindDownloadProgress _readDataClass_WindDownloadProgress(ByteReader _r) {
-  return WindDownloadProgress(
-    received: _r.i64(),
-    total: _r.i64(),
-  );
+WindDownloadProgress _readDataClassWindDownloadProgress(ByteReader r) {
+  return WindDownloadProgress(received: r.i64(), total: r.i64());
 }
-void _writeDataClass_WindFetchInit(ByteWriter w, WindFetchInit v) {
+
+void _writeDataClassWindFetchInit(ByteWriter w, WindFetchInit v) {
   w.str(v.method);
   w.u32(v.headers.length);
-  v.headers.forEach((final _k, final _v) {
-    w.str(_k);
-    w.str(_v);
+  v.headers.forEach((final k, final v) {
+    w.str(k);
+    w.str(v);
   });
   w.u8vec(v.body);
   w.i64(v.timeoutMs);
-  if (v.followRedirects == null) { w.u8(0); } else { w.u8(1);
+  if (v.followRedirects == null) {
+    w.u8(0);
+  } else {
+    w.u8(1);
     w.u8(v.followRedirects! ? 1 : 0);
   }
 }
 
-WindFetchInit _readDataClass_WindFetchInit(ByteReader _r) {
+WindFetchInit _readDataClassWindFetchInit(ByteReader r) {
   return WindFetchInit(
-    method: _r.str(),
-    headers: (() { final _n = _r.u32(); final _result = <String, String>{}; for (var _i = 0; _i < _n; _i++) { _result[_r.str()] = _r.str(); } return _result; })(),
-    body: _r.u8vec(),
-    timeoutMs: _r.i64(),
-    followRedirects: ((_r.u8() != 0) ? _r.u8() != 0 : null),
+    method: r.str(),
+    headers: (() {
+      final n = r.u32();
+      final result = <String, String>{};
+      for (var i = 0; i < n; i++) {
+        result[r.str()] = r.str();
+      }
+      return result;
+    })(),
+    body: r.u8vec(),
+    timeoutMs: r.i64(),
+    followRedirects: ((r.u8() != 0) ? r.u8() != 0 : null),
   );
 }
-void _writeDataClass_WindFetchResponse(ByteWriter w, WindFetchResponse v) {
+
+void _writeDataClassWindFetchResponse(ByteWriter w, WindFetchResponse v) {
   w.i32(v.status);
   w.str(v.statusText);
   w.u32(v.headers.length);
-  v.headers.forEach((final _k, final _v) {
-    w.str(_k);
-    w.str(_v);
+  v.headers.forEach((final k, final v) {
+    w.str(k);
+    w.str(v);
   });
   w.u8vec(v.body);
   w.str(v.url);
   w.u8(v.redirected ? 1 : 0);
 }
 
-WindFetchResponse _readDataClass_WindFetchResponse(ByteReader _r) {
+WindFetchResponse _readDataClassWindFetchResponse(ByteReader r) {
   return WindFetchResponse(
-    status: _r.i32(),
-    statusText: _r.str(),
-    headers: (() { final _n = _r.u32(); final _result = <String, String>{}; for (var _i = 0; _i < _n; _i++) { _result[_r.str()] = _r.str(); } return _result; })(),
-    body: _r.u8vec(),
-    url: _r.str(),
-    redirected: _r.u8() != 0,
+    status: r.i32(),
+    statusText: r.str(),
+    headers: (() {
+      final n = r.u32();
+      final result = <String, String>{};
+      for (var i = 0; i < n; i++) {
+        result[r.str()] = r.str();
+      }
+      return result;
+    })(),
+    body: r.u8vec(),
+    url: r.str(),
+    redirected: r.u8() != 0,
   );
 }
 
@@ -80,7 +96,9 @@ final class BridgeApiImpl {
     if (i == null) throw StateError('DcbLib.init() must be called first');
     return i;
   }
-  static void initSingleton(DartCppBridge bridge) => _instance = BridgeApiImpl._(bridge);
+
+  static void initSingleton(DartCppBridge bridge) =>
+      _instance = BridgeApiImpl._(bridge);
   static void disposeSingleton() => _instance = null;
 
   static const int heavyComputeId = 117270329;
@@ -90,11 +108,13 @@ final class BridgeApiImpl {
   static const int qjsBuildRuntimeId = 381890690;
   static const int qjsSetSocks5ProxyId = 614503869;
   static const int antiObfuscationPictureId = 673703455;
+  static const int qjsRegisterFunctionId = 760810845;
   static const int qjsIsInitializedId = 915368852;
   static const int qjsDropRuntimeId = 1096426791;
   static const int addId = 1130012286;
   static const int qjsTaskCallId = 1159358141;
   static const int fetchGreetingId = 1278131711;
+  static const int qjsUnregisterFunctionId = 1340509605;
   static const int qjsSetTlsVerifyEnabledId = 1461330420;
   static const int qjsReplaceBundleId = 1679656109;
   static const int qjsCurrentBundleId = 1714687961;
@@ -104,177 +124,293 @@ final class BridgeApiImpl {
   static const int windHttpClientAliveCountId = 2058390274;
 
   Future<String> heavyCompute(int input) async {
-    final _payload = ByteWriter();
-    _payload.i32(input);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(heavyComputeId, _payloadBytes);
-    return ByteReader(_bytes).str();
+    final payload = ByteWriter();
+    payload.i32(input);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(heavyComputeId, payloadBytes);
+    return ByteReader(bytes).str();
   }
 
   Future<String> qjsDebugSnapshot(String runtimeName) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(qjsDebugSnapshotId, _payloadBytes);
-    return ByteReader(_bytes).str();
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      qjsDebugSnapshotId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).str();
   }
 
   Future<bool> qjsClearBundle(String runtimeName) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(qjsClearBundleId, _payloadBytes);
-    return ByteReader(_bytes).u8() != 0;
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      qjsClearBundleId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).u8() != 0;
   }
 
   void qjsSetHttpProxy(String proxy) {
-    final _payload = ByteWriter();
-    _payload.str(proxy);
-    final _payloadBytes = _payload.takeBytes();
-    bridge.invokeSyncMethod(qjsSetHttpProxyId, _payloadBytes);
+    final payload = ByteWriter();
+    payload.str(proxy);
+    final payloadBytes = payload.takeBytes();
+    bridge.invokeSyncMethod(qjsSetHttpProxyId, payloadBytes);
   }
 
-  Future<void> qjsBuildRuntime(String runtimeName, String bundleName, String bundleJs) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    _payload.str(bundleName);
-    _payload.str(bundleJs);
-    final _payloadBytes = _payload.takeBytes();
-    await bridge.invokeAsyncMethod(qjsBuildRuntimeId, _payloadBytes);
+  Future<void> qjsBuildRuntime(
+    String runtimeName,
+    String bundleName,
+    String bundleJs,
+  ) async {
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    payload.str(bundleName);
+    payload.str(bundleJs);
+    final payloadBytes = payload.takeBytes();
+    await bridge.invokeAsyncMethod(qjsBuildRuntimeId, payloadBytes);
   }
 
   void qjsSetSocks5Proxy(String proxy) {
-    final _payload = ByteWriter();
-    _payload.str(proxy);
-    final _payloadBytes = _payload.takeBytes();
-    bridge.invokeSyncMethod(qjsSetSocks5ProxyId, _payloadBytes);
+    final payload = ByteWriter();
+    payload.str(proxy);
+    final payloadBytes = payload.takeBytes();
+    bridge.invokeSyncMethod(qjsSetSocks5ProxyId, payloadBytes);
   }
 
-  Future<void> antiObfuscationPicture(Pointer<Uint8> imgData, int imgDataLen, int chapterId, String url, String fileName) async {
-    final _payload = ByteWriter();
-    _payload.u64(imgData.address);
-    _payload.i32(imgDataLen);
-    _payload.i32(chapterId);
-    _payload.str(url);
-    _payload.str(fileName);
-    final _payloadBytes = _payload.takeBytes();
-    await bridge.invokeAsyncMethod(antiObfuscationPictureId, _payloadBytes);
+  Future<void> antiObfuscationPicture(
+    Pointer<Uint8> imgData,
+    int imgDataLen,
+    int chapterId,
+    String url,
+    String fileName,
+  ) async {
+    final payload = ByteWriter();
+    payload.u64(imgData.address);
+    payload.i32(imgDataLen);
+    payload.i32(chapterId);
+    payload.str(url);
+    payload.str(fileName);
+    final payloadBytes = payload.takeBytes();
+    await bridge.invokeAsyncMethod(antiObfuscationPictureId, payloadBytes);
+  }
+
+  bool qjsRegisterFunction(
+    String functionName,
+    Future<String> Function(String) callback,
+  ) {
+    Future<Uint8List> callbackWrapper(Uint8List argBytes) async {
+      final r = ByteReader(argBytes);
+      final a0 = r.str();
+      final res = await callback(a0);
+      final w = ByteWriter();
+      w.str(res);
+      return w.takeBytes();
+    }
+
+    final callbackId = bridge.registerDartFn(callbackWrapper);
+    try {
+      final payload = ByteWriter();
+      payload.str(functionName);
+      payload.u64(callbackId);
+      final payloadBytes = payload.takeBytes();
+      final bytes = bridge.invokeSyncMethod(
+        qjsRegisterFunctionId,
+        payloadBytes,
+      );
+      return ByteReader(bytes).u8() != 0;
+    } finally {
+      // BRIDGE_PERSIST: callback not unregistered; caller manages lifecycle.
+    }
   }
 
   Future<bool> qjsIsInitialized(String runtimeName) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(qjsIsInitializedId, _payloadBytes);
-    return ByteReader(_bytes).u8() != 0;
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      qjsIsInitializedId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).u8() != 0;
   }
 
   Future<bool> qjsDropRuntime(String runtimeName) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(qjsDropRuntimeId, _payloadBytes);
-    return ByteReader(_bytes).u8() != 0;
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      qjsDropRuntimeId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).u8() != 0;
   }
 
   int add(int a, int b) {
-    final _payload = ByteWriter();
-    _payload.i32(a);
-    _payload.i32(b);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = bridge.invokeSyncMethod(addId, _payloadBytes);
-    return ByteReader(_bytes).i32();
+    final payload = ByteWriter();
+    payload.i32(a);
+    payload.i32(b);
+    final payloadBytes = payload.takeBytes();
+    final bytes = bridge.invokeSyncMethod(addId, payloadBytes);
+    return ByteReader(bytes).i32();
   }
 
-  Future<Uint8List> qjsTaskCall(String runtimeName, String taskGroupKey, bool isOnce, String? bundleJs, String fnPath, String argsJson) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    _payload.str(taskGroupKey);
-    _payload.u8(isOnce ? 1 : 0);
-    if (bundleJs == null) { _payload.u8(0); } else { _payload.u8(1);
-      _payload.str(bundleJs);
+  Future<Uint8List> qjsTaskCall(
+    String runtimeName,
+    String taskGroupKey,
+    bool isOnce,
+    String? bundleJs,
+    String fnPath,
+    String argsJson,
+  ) async {
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    payload.str(taskGroupKey);
+    payload.u8(isOnce ? 1 : 0);
+    if (bundleJs == null) {
+      payload.u8(0);
+    } else {
+      payload.u8(1);
+      payload.str(bundleJs);
     }
-    _payload.str(fnPath);
-    _payload.str(argsJson);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(qjsTaskCallId, _payloadBytes);
-    return (() { final _r = ByteReader(_bytes); return _r.u8vec(); })();
+    payload.str(fnPath);
+    payload.str(argsJson);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(qjsTaskCallId, payloadBytes);
+    return (() {
+      final r = ByteReader(bytes);
+      return r.u8vec();
+    })();
   }
 
   Future<String> fetchGreeting(String name) async {
-    final _payload = ByteWriter();
-    _payload.str(name);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(fetchGreetingId, _payloadBytes);
-    return ByteReader(_bytes).str();
+    final payload = ByteWriter();
+    payload.str(name);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(fetchGreetingId, payloadBytes);
+    return ByteReader(bytes).str();
+  }
+
+  bool qjsUnregisterFunction(String functionName) {
+    final payload = ByteWriter();
+    payload.str(functionName);
+    final payloadBytes = payload.takeBytes();
+    final bytes = bridge.invokeSyncMethod(
+      qjsUnregisterFunctionId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).u8() != 0;
   }
 
   void qjsSetTlsVerifyEnabled(bool enabled) {
-    final _payload = ByteWriter();
-    _payload.u8(enabled ? 1 : 0);
-    final _payloadBytes = _payload.takeBytes();
-    bridge.invokeSyncMethod(qjsSetTlsVerifyEnabledId, _payloadBytes);
+    final payload = ByteWriter();
+    payload.u8(enabled ? 1 : 0);
+    final payloadBytes = payload.takeBytes();
+    bridge.invokeSyncMethod(qjsSetTlsVerifyEnabledId, payloadBytes);
   }
 
-  Future<void> qjsReplaceBundle(String runtimeName, String bundleName, String bundleJs) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    _payload.str(bundleName);
-    _payload.str(bundleJs);
-    final _payloadBytes = _payload.takeBytes();
-    await bridge.invokeAsyncMethod(qjsReplaceBundleId, _payloadBytes);
+  Future<void> qjsReplaceBundle(
+    String runtimeName,
+    String bundleName,
+    String bundleJs,
+  ) async {
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    payload.str(bundleName);
+    payload.str(bundleJs);
+    final payloadBytes = payload.takeBytes();
+    await bridge.invokeAsyncMethod(qjsReplaceBundleId, payloadBytes);
   }
 
   Future<String> qjsCurrentBundle(String runtimeName) async {
-    final _payload = ByteWriter();
-    _payload.str(runtimeName);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(qjsCurrentBundleId, _payloadBytes);
-    return ByteReader(_bytes).str();
+    final payload = ByteWriter();
+    payload.str(runtimeName);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      qjsCurrentBundleId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).str();
   }
 
-  WindHttpClient windHttpClientNewWithDefaultHeaders(Map<String, String> defaultHeaders, int timeoutMs, bool followRedirects, String proxy, bool tlsVerify, String userAgent) {
-    final _payload = ByteWriter();
-    _payload.u32(defaultHeaders.length);
-    defaultHeaders.forEach((final _k, final _v) {
-      _payload.str(_k);
-      _payload.str(_v);
+  WindHttpClient windHttpClientNewWithDefaultHeaders(
+    Map<String, String> defaultHeaders,
+    int timeoutMs,
+    bool followRedirects,
+    String proxy,
+    bool tlsVerify,
+    String userAgent,
+  ) {
+    final payload = ByteWriter();
+    payload.u32(defaultHeaders.length);
+    defaultHeaders.forEach((final k, final v) {
+      payload.str(k);
+      payload.str(v);
     });
-    _payload.i64(timeoutMs);
-    _payload.u8(followRedirects ? 1 : 0);
-    _payload.str(proxy);
-    _payload.u8(tlsVerify ? 1 : 0);
-    _payload.str(userAgent);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = bridge.invokeSyncMethod(windHttpClientNewWithDefaultHeadersId, _payloadBytes);
-    return WindHttpClient.fromHandle(bridge: bridge, handle: ByteReader(_bytes).u64());
+    payload.i64(timeoutMs);
+    payload.u8(followRedirects ? 1 : 0);
+    payload.str(proxy);
+    payload.u8(tlsVerify ? 1 : 0);
+    payload.str(userAgent);
+    final payloadBytes = payload.takeBytes();
+    final bytes = bridge.invokeSyncMethod(
+      windHttpClientNewWithDefaultHeadersId,
+      payloadBytes,
+    );
+    return WindHttpClient.fromHandle(
+      bridge: bridge,
+      handle: ByteReader(bytes).u64(),
+    );
   }
 
-  Future<WindFetchResponse> windHttpClientFetch(WindHttpClient self, String url, WindFetchInit init) async {
+  Future<WindFetchResponse> windHttpClientFetch(
+    WindHttpClient self,
+    String url,
+    WindFetchInit init,
+  ) async {
     self.ensureAlive();
-    final _payload = ByteWriter();
-    _payload.u64(self.handle);
-    _payload.str(url);
-    _writeDataClass_WindFetchInit(_payload, init);
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = await bridge.invokeAsyncMethod(windHttpClientFetchId, _payloadBytes);
-    return _readDataClass_WindFetchResponse(ByteReader(_bytes));
+    final payload = ByteWriter();
+    payload.u64(self.handle);
+    payload.str(url);
+    _writeDataClassWindFetchInit(payload, init);
+    final payloadBytes = payload.takeBytes();
+    final bytes = await bridge.invokeAsyncMethod(
+      windHttpClientFetchId,
+      payloadBytes,
+    );
+    return _readDataClassWindFetchResponse(ByteReader(bytes));
   }
 
-  Future<void> windHttpClientDownload(WindHttpClient self, String url, String savePath, WindFetchInit init, StreamController<WindDownloadProgress>? progress) async {
+  Future<void> windHttpClientDownload(
+    WindHttpClient self,
+    String url,
+    String savePath,
+    WindFetchInit init,
+    StreamController<WindDownloadProgress>? progress,
+  ) async {
     self.ensureAlive();
-    final _payload = ByteWriter();
-    _payload.u64(self.handle);
-    _payload.str(url);
-    _payload.str(savePath);
-    _writeDataClass_WindFetchInit(_payload, init);
-    await bridge.invokeAsyncMethodWithStream<WindDownloadProgress>(windHttpClientDownloadId, _payload, progress, (final _r) => _readDataClass_WindDownloadProgress(_r));
+    final payload = ByteWriter();
+    payload.u64(self.handle);
+    payload.str(url);
+    payload.str(savePath);
+    _writeDataClassWindFetchInit(payload, init);
+    await bridge.invokeAsyncMethodWithStream<WindDownloadProgress>(
+      windHttpClientDownloadId,
+      payload,
+      progress,
+      (final r) => _readDataClassWindDownloadProgress(r),
+    );
   }
 
   int windHttpClientAliveCount() {
-    final _payload = ByteWriter();
-    final _payloadBytes = _payload.takeBytes();
-    final _bytes = bridge.invokeSyncMethod(windHttpClientAliveCountId, _payloadBytes);
-    return ByteReader(_bytes).i32();
+    final payload = ByteWriter();
+    final payloadBytes = payload.takeBytes();
+    final bytes = bridge.invokeSyncMethod(
+      windHttpClientAliveCountId,
+      payloadBytes,
+    );
+    return ByteReader(bytes).i32();
   }
 }

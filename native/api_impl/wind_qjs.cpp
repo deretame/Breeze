@@ -12,21 +12,22 @@
 // 已知简化（docs/cpp_plugin_runtime_design.md 后续补全）：
 //   - task_group_key 仅保留签名，组取消协议未实现；
 //   - 代理/TLS 配置仅对新建实例生效（HostRuntime 无运行时改配消息）；
-//   - 无 bridge 路由 / Dart 回调 / 日志转发 / 错误 i18n。
-#include "bridge_api.h"
-
-#include "dart_cpp_bridge/runtime.hpp"
-
-#include <qjsbind/host_runtime.hpp>
-
+//   - Dart 回调无超时保护（Rust 版有 REGISTERED_DART_CALLBACK_TIMEOUT）；
+//   - 无日志转发 / 错误 i18n。
+#include <expected>
 #include <fetch/types.hpp>
 #include <glaze/glaze.hpp>
 #include <log.hpp>
-
-#include <expected>
 #include <mutex>
+#include <qjsbind/dynamic_call.hpp>
+#include <qjsbind/host_runtime.hpp>
 #include <stdexcept>
+#include <thread>
+#include <tuple>
 #include <utility>
+
+#include "bridge_api.h"
+#include "dart_cpp_bridge/runtime.hpp"
 
 namespace {
 
@@ -34,7 +35,7 @@ namespace {
 
 struct WindQjsEntry {
   std::shared_ptr<qjs::HostRuntime> host;
-  std::string bundle_name; // "" = 无常驻 bundle
+  std::string bundle_name;  // "" = 无常驻 bundle
 };
 
 std::mutex g_mu;
@@ -57,12 +58,11 @@ fetch::Options make_fetch_options() {
       proxy = g_socks5_proxy;
     } else if (!g_http_proxy.empty()) {
       proxy = g_http_proxy;
-      opt.tls.verify = false; // 对齐 Rust：设置 http 代理强制关 TLS 校验
+      opt.tls.verify = false;  // 对齐 Rust：设置 http 代理强制关 TLS 校验
     }
   }
   if (!proxy.empty()) {
-    if (auto p = fetch::Proxy::parse(proxy))
-      opt.proxy = *p;
+    if (auto p = fetch::Proxy::parse(proxy)) opt.proxy = *p;
   }
   return opt;
 }
@@ -96,18 +96,15 @@ std::string wind_cache_op(qjs::Ctx cx, const std::string& op,
     m[key] = a;
     return {};
   }
-  if (op == "set_if_absent")
-    return m.emplace(key, a).second ? "true" : "false";
+  if (op == "set_if_absent") return m.emplace(key, a).second ? "true" : "false";
   if (op == "compare_and_set") {
     auto it = m.find(key);
     const std::string cur = it == m.end() ? std::string() : it->second;
-    if (cur != b)
-      return "false";
+    if (cur != b) return "false";
     m[key] = a;
     return "true";
   }
-  if (op == "delete")
-    return m.erase(key) > 0 ? "true" : "false";
+  if (op == "delete") return m.erase(key) > 0 ? "true" : "false";
   throw std::runtime_error("unknown cache op: " + op);
 }
 
@@ -130,6 +127,10 @@ std::string wind_config_op(qjs::Ctx cx, const std::string& op,
 // ---- 每实例宿主 API 安装（console + bridge 路由）----
 
 void install_wind_apis(qjs::Context& ctx) {
+  // dyn 动态调用（call/callSync 全局 + host 表）：Dart 回调路由的载体，
+  // 幂等（重复 install 仅覆盖全局函数）。
+  qjs::dyn::install_dynamic_call(ctx);
+
   auto global = ctx.globals();
   global.set("__wind_log", [](qjs::Ctx cx, qjs::Value lv, qjs::Value msg) {
     qjs::Context c(cx.ctx);
@@ -146,6 +147,13 @@ void install_wind_apis(qjs::Context& ctx) {
   });
   global.set("__wind_cache_op", wind_cache_op);
   global.set("__wind_config_op", wind_config_op);
+  // bridge.call/callSync 优先查 dyn 表（Dart 回调注册），未注册才落静态路由。
+  global.set("__wind_dyn_has", [](qjs::Ctx cx, const std::string& name) {
+    const auto& reg = qjs::dyn::Registry::instance();
+    const auto& id = qjs::runtime_of(cx.ctx).id();
+    return reg.find_async(id, name).has_value() ||
+           reg.find_sync(id, name).has_value();
+  });
   // console / bridge 路由 polyfill。bridge 路由同步实现（cache/config/opencc
   // 都是本地操作），call 包一层 Promise 对齐 kit 的异步约定。
   // opencc.convert / runtime.gc 复用 runtime_api polyfill 已装的同名全局。
@@ -185,7 +193,8 @@ globalThis.bridge = (() => {
     'runtime.gc': () => { try { globalThis.runtime.gc(); } catch {} },
     // TODO: 任务组取消协议（本期恒 false）
     'runtime.is_task_group_cancelled': (key) => false,
-    // TODO: 接 Dart 侧 ObjectBox（当前为内存 stub，见 wind_qjs.cpp）
+    // 以下为内存 stub 兜底：Dart 侧经 qjsRegisterFunction 注册同名路由后
+    // 优先走 Dart（__wind_dyn_has 判定，见 bridge.call/callSync）。
     'save_plugin_config': (key, value) => {
       __wind_config_op('save', String(key), String(value ?? ''));
     },
@@ -193,7 +202,6 @@ globalThis.bridge = (() => {
       const r = __wind_config_op('load', String(key), '');
       return r === '' ? (fb ?? '') : r;
     },
-    // TODO: 接 Dart 回调（当前仅记日志 / 返回占位值）
     'flutter.showToast': (msg) => {
       try { globalThis.__wind_log('info', '[toast] ' + String(msg)); } catch {}
     },
@@ -232,11 +240,14 @@ globalThis.bridge = (() => {
   };
   return {
     call: (name, ...args) => {
+      // Dart 回调路由（dyn 表）优先；未注册落静态路由
+      if (__wind_dyn_has(name)) return globalThis.call(name, ...args);
       const r = routes[name];
       if (!r) return Promise.reject(new Error('bridge route not found: ' + name));
       try { return Promise.resolve(r(...args)); } catch (e) { return Promise.reject(e); }
     },
     callSync: (name, ...args) => {
+      if (__wind_dyn_has(name)) return globalThis.callSync(name, ...args);
       const r = routes[name];
       if (!r) throw new Error('bridge route not found: ' + name);
       return r(...args);
@@ -259,17 +270,16 @@ std::string json_quote(const std::string& s) {
   return glz::write_json(s).value_or("\"\"");
 }
 
-} // namespace
+}  // namespace
 
 stdexec::task<void> qjs_build_runtime(std::string runtime_name,
                                       std::string bundle_name,
                                       std::string bundle_js) {
-  if (find_host(runtime_name))
-    co_return;
+  if (find_host(runtime_name)) co_return;
 
-  const std::string source =
-      bundle_js.empty() ? std::string("module.exports = {};")
-                        : std::move(bundle_js);
+  const std::string source = bundle_js.empty()
+                                 ? std::string("module.exports = {};")
+                                 : std::move(bundle_js);
   // init 会阻塞等待实例线程就绪握手（含 bundle 编译验证），丢到 blocking pool
   auto init_res = co_await dcb::spawn_blocking(
       [runtime_name, source]() mutable
@@ -281,12 +291,10 @@ stdexec::task<void> qjs_build_runtime(std::string runtime_name,
         opt.register_all = [](qjs::Context& c) { install_wind_apis(c); };
         auto host = std::make_shared<qjs::HostRuntime>(std::move(opt));
         auto r = host->init(runtime_name, std::move(source));
-        if (!r)
-          return std::unexpected(std::move(r.error().message));
+        if (!r) return std::unexpected(std::move(r.error().message));
         return host;
       });
-  if (!init_res)
-    throw std::runtime_error(std::move(init_res.error()));
+  if (!init_res) throw std::runtime_error(std::move(init_res.error()));
 
   std::lock_guard lock(g_mu);
   auto [it, inserted] = g_runtimes.try_emplace(runtime_name);
@@ -306,8 +314,7 @@ stdexec::task<bool> qjs_drop_runtime(std::string runtime_name) {
   {
     std::lock_guard lock(g_mu);
     auto it = g_runtimes.find(runtime_name);
-    if (it == g_runtimes.end())
-      co_return false;
+    if (it == g_runtimes.end()) co_return false;
     host = std::move(it->second.host);
     g_runtimes.erase(it);
   }
@@ -324,11 +331,9 @@ stdexec::task<void> qjs_replace_bundle(std::string runtime_name,
   if (!host)
     throw std::runtime_error("qjs runtime not initialized: " + runtime_name);
   auto receipt = host->reload(runtime_name, std::move(bundle_js));
-  if (!receipt)
-    throw std::runtime_error(receipt.error().message);
+  if (!receipt) throw std::runtime_error(receipt.error().message);
   auto r = co_await receipt->wait();
-  if (!r)
-    throw std::runtime_error(r.error().message);
+  if (!r) throw std::runtime_error(r.error().message);
   std::lock_guard lock(g_mu);
   if (auto it = g_runtimes.find(runtime_name); it != g_runtimes.end())
     it->second.bundle_name = std::move(bundle_name);
@@ -336,14 +341,11 @@ stdexec::task<void> qjs_replace_bundle(std::string runtime_name,
 
 stdexec::task<bool> qjs_clear_bundle(std::string runtime_name) {
   auto host = find_host(runtime_name);
-  if (!host)
-    co_return false;
+  if (!host) co_return false;
   auto receipt = host->reload(runtime_name, "module.exports = {};");
-  if (!receipt)
-    throw std::runtime_error(receipt.error().message);
+  if (!receipt) throw std::runtime_error(receipt.error().message);
   auto r = co_await receipt->wait();
-  if (!r)
-    throw std::runtime_error(r.error().message);
+  if (!r) throw std::runtime_error(r.error().message);
   std::lock_guard lock(g_mu);
   if (auto it = g_runtimes.find(runtime_name); it != g_runtimes.end())
     it->second.bundle_name.clear();
@@ -362,7 +364,7 @@ stdexec::task<std::vector<std::uint8_t>> qjs_task_call(
     std::string runtime_name, std::string task_group_key, bool is_once,
     std::optional<std::string> bundle_js, std::string fn_path,
     std::string args_json) {
-  (void)task_group_key; // 组取消协议本期未实现（仅签名对齐 Rust）
+  (void)task_group_key;  // 组取消协议本期未实现（仅签名对齐 Rust）
   auto host = find_host(runtime_name);
   if (!host)
     throw std::runtime_error("qjs runtime not initialized: " + runtime_name);
@@ -373,11 +375,9 @@ stdexec::task<std::vector<std::uint8_t>> qjs_task_call(
 
   auto handle = host->call(runtime_name, std::move(fn_path),
                            std::move(args_json), std::move(bundle));
-  if (!handle)
-    throw std::runtime_error(handle.error().message);
+  if (!handle) throw std::runtime_error(handle.error().message);
   auto res = co_await handle->wait();
-  if (!res)
-    throw std::runtime_error(res.error().message);
+  if (!res) throw std::runtime_error(res.error().message);
   co_return std::vector<std::uint8_t>(res->begin(), res->end());
 }
 
@@ -393,7 +393,7 @@ void qjs_set_http_proxy(std::string proxy) {
   std::lock_guard lock(g_cfg_mu);
   g_http_proxy = std::move(proxy);
   if (!g_http_proxy.empty())
-    g_tls_verify = false; // 对齐 Rust：设置 http 代理强制关 TLS 校验
+    g_tls_verify = false;  // 对齐 Rust：设置 http 代理强制关 TLS 校验
 }
 
 void qjs_set_socks5_proxy(std::string proxy) {
@@ -404,4 +404,76 @@ void qjs_set_socks5_proxy(std::string proxy) {
 void qjs_set_tls_verify_enabled(bool enabled) {
   std::lock_guard lock(g_cfg_mu);
   g_tls_verify = enabled;
+}
+
+// ---- Dart 回调（register_function）----
+// 对齐 Rust：handler 输入 "[runtime, ...args]" JSON 文本；Dart 返回空串 →
+// JS null，非空 → JS 字符串。sync/async 两张 dyn 全局表都注册：
+// bridge.call 走 async（协程 co_await DartFn sender，JS 线程不阻塞），
+// bridge.callSync 走 sync（JS 线程 dcb::sync_wait 阻塞等 Dart 回复——
+// 回复经 dcb io 线程投递，无自死锁）。
+// TODO: Rust 版有 REGISTERED_DART_CALLBACK_TIMEOUT 超时保护，本期未加。
+
+namespace {
+
+// "[a,b,c]" + runtime → "[\"rt\",a,b,c]"
+// host_id 是 qjs::Runtime 的 id（"host:" + 实例名，见 host_runtime.hpp），
+// 传给 Dart 前剥掉前缀，对齐 Rust 的 runtime 名语义。
+std::string build_dart_fn_input(std::string_view runtime,
+                                std::string_view args_json) {
+  constexpr std::string_view kHostPrefix = "host:";
+  if (runtime.starts_with(kHostPrefix))
+    runtime.remove_prefix(kHostPrefix.size());
+  std::string out = "[";
+  out += json_quote(std::string(runtime));
+  if (args_json.size() > 2) {  // 去掉 "[]" 的壳后非空
+    out += ",";
+    out += args_json.substr(1, args_json.size() - 2);
+  }
+  out += "]";
+  return out;
+}
+
+// Dart 返回串 → dyn handler 的 JSON 输出（resolve_json / JS_ParseJSON 解析）
+std::string dart_fn_output_json(const std::string& out) {
+  return out.empty() ? std::string("null") : json_quote(out);
+}
+
+}  // namespace
+
+bool qjs_register_function(std::string function_name,
+                           dcb::DartFn<std::string(std::string)> callback) {
+  if (!callback) return false;
+
+  QLOG_INFO("[dartfn] register({}) tid={}", function_name,
+            std::hash<std::thread::id>{}(std::this_thread::get_id()));
+  qjs::dyn::register_global_async(
+      function_name,
+      [callback](std::string host_id, std::string /*name*/,
+                 std::string json_args) -> std_exec::task<std::string> {
+        QLOG_INFO("[dartfn] handler invoke tid={}",
+                  std::hash<std::thread::id>{}(std::this_thread::get_id()));
+        const std::string input = build_dart_fn_input(host_id, json_args);
+        co_return dart_fn_output_json(co_await callback(input));
+      });
+  qjs::dyn::register_global(
+      function_name,
+      [callback](std::string_view host_id, std::string_view /*name*/,
+                 std::string_view json_args) -> std::string {
+        const std::string input = build_dart_fn_input(host_id, json_args);
+        auto out = dcb::sync_wait(callback(input));
+        if (!out)
+          throw std::runtime_error("DartFn cancelled: sync_wait stopped");
+        return dart_fn_output_json(std::get<0>(std::move(*out)));
+      });
+  return true;
+}
+
+bool qjs_unregister_function(std::string function_name) {
+  const auto& reg = qjs::dyn::Registry::instance();
+  // dyn 表是全局的：任一 host id 都能查到全局表项，用空 id 直查全局即可
+  const bool existed = reg.find_async("", function_name).has_value() ||
+                       reg.find_sync("", function_name).has_value();
+  qjs::dyn::unregister_global(function_name);
+  return existed;
 }

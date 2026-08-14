@@ -123,8 +123,8 @@ BRIDGE_SYNC void qjs_set_tls_verify_enabled(bool enabled);
 
 ## 6. 后续补全清单（本期不做，按优先级）
 
-1. bridge 路由：`cache.*` / `opencc.convert` / `runtime.*` / gzip + 白名单与大小限制。
-2. Dart 回调通路（`register_function` → dcb DartFn，生成器可能需补支持）：`save_plugin_config` / `load_plugin_config` / `dart.getAppVersion` / `dart.getLocaleInfo` / `flutter.showToast`。
+1. ~~bridge 路由：`cache.*` / `opencc.convert` / `runtime.*`~~（已做，见 `install_wind_apis` polyfill）+ 白名单与大小限制。
+2. ~~Dart 回调通路（`register_function` → dcb DartFn）~~（已做：`qjs_register_function`/`qjs_unregister_function`，dyn 全局表 + bridge.call/callSync 优先于内建 stub；尚缺 Rust 版的回调超时保护）。
 3. 任务组取消协议（TTL 取消组 + `runtime.is_task_group_cancelled`）。
 4. 日志 HTTP 转发、错误消息 i18n。
 5. fetch 并发上限/超时/SSRF 对齐 Rust 参数。

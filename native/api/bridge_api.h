@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dart_cpp_bridge/annotate.h"
+#include "dart_cpp_bridge/dart_fn.hpp"
 #include "dart_cpp_bridge/stream_sink.hpp"
 
 #include <stdexec/execution.hpp>
@@ -128,9 +129,8 @@ private:
 
 // ============================================================
 // 插件 QJS 运行时（qjs::HostRuntime 桥接，替代原 Rust rquickjs 路径）
-// 最小可用版：初始化 / 任务调用 / 销毁 / 替换 / debug。
-// bridge 路由（cache.*/opencc.convert）、Dart 回调、组取消等见
-// docs/cpp_plugin_runtime_design.md 后续补全清单。
+// 最小可用版：初始化 / 任务调用 / 销毁 / 替换 / debug / Dart 回调注册。
+// 组取消等见 docs/cpp_plugin_runtime_design.md 后续补全清单。
 // ============================================================
 
 /// 建 runtime（重复调用幂等）。bundle_js 为空 = 建空 runtime（无插件函数）。
@@ -179,6 +179,22 @@ stdexec::task<std::vector<std::uint8_t>> qjs_task_call(
 /// 实例诊断快照（pretty JSON）。→ Dart: Future<String>
 BRIDGE_ASYNC
 stdexec::task<std::string> qjs_debug_snapshot(std::string runtime_name);
+
+/// 注册 Dart 回调为 JS bridge 路由（对齐 Rust register_function）。
+/// JS 侧 bridge.call / bridge.callSync 均可触达（dyn 全局表，所有实例共享）。
+/// handler 输入是 "[runtime, ...args]" JSON 文本；Dart 返回字符串，
+/// 空串 → JS null，非空 → JS 字符串（对齐 Rust 的返回约定）。
+/// 与内建静态路由同名时 Dart 注册优先（如 save_plugin_config 持久化版
+/// 覆盖内存 stub）。BRIDGE_PERSIST：Dart 闭包持久保留，允许反复调用。
+/// → Dart: bool qjsRegisterFunction(String functionName, Future<String> Function(String) callback)
+BRIDGE_SYNC
+BRIDGE_PERSIST
+bool qjs_register_function(std::string function_name,
+                           dcb::DartFn<std::string(std::string)> callback);
+
+/// 注销已注册的 Dart 回调路由（不存在返回 false）。→ Dart: bool
+BRIDGE_SYNC
+bool qjs_unregister_function(std::string function_name);
 
 /// 进程级 fetch 配置（仅对之后新建的 runtime 实例生效）。
 /// 空串 = 清除/直连。设置 http 代理会强制关闭 TLS 校验（对齐 Rust 行为）。

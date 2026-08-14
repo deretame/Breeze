@@ -96,6 +96,26 @@ void qjsBackendSetTlsVerify(bool enabled) {
   if (useCppQjsRuntime) native.qjsSetTlsVerifyEnabled(enabled: enabled);
 }
 
+/// 注册 Dart 回调为 JS bridge 路由（对齐 Rust registerFunction）。
+/// C++ 端 bridge.call（异步）/ bridge.callSync（同步）均可触达；
+/// 与内建内存 stub 同名时 Dart 注册优先。
+void qjsBackendRegisterFunction(
+  String functionName,
+  Future<String> Function(String) dartCallback,
+) {
+  if (useCppQjsRuntime) {
+    native.qjsRegisterFunction(
+      functionName: functionName,
+      callback: dartCallback,
+    );
+    return;
+  }
+  rust_qjs.registerFunction(
+    functionName: functionName,
+    dartCallback: dartCallback,
+  );
+}
+
 /// once 调用（独立 runtime + 热重载语义，用于 fetchPluginInfo 等场景）。
 /// C++ 端要求 runtime 已存在：缺失时先带 bundle 建实例，随后调用走
 /// debug 屏障 + 源码哈希跳过（与 Rust once 池的缓存语义对应）。

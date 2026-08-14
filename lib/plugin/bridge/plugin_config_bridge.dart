@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_backend.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
 
 String onSavePluginConfig(String name, String key, String value) {
   final box = objectbox.pluginConfigBox;
@@ -84,7 +84,10 @@ void _register(
   String functionName,
   FutureOr<String> Function(String) dartCallback,
 ) {
-  registerFunction(functionName: functionName, dartCallback: dartCallback);
+  qjsBackendRegisterFunction(
+    functionName,
+    (input) async => dartCallback(input),
+  );
 }
 
 void registerPersistentCallbacks() {

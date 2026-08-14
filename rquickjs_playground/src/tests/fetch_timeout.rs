@@ -12,9 +12,7 @@
 //! 均为本机 127.0.0.1 慢速服务器，不依赖外网。
 
 use crate::tests::run_async_script;
-use crate::web_runtime::{
-    BuildHttpClientOptions, HttpClientConfig, build_http_client_ex,
-};
+use crate::web_runtime::{BuildHttpClientOptions, HttpClientConfig, build_http_client_ex};
 use serde_json::Value;
 use std::sync::mpsc;
 use std::thread;
@@ -67,7 +65,7 @@ fn spawn_delay_server() -> (String, mpsc::Sender<()>, thread::JoinHandle<()>) {
             }
             // 小轮询间隔，避免给请求带来最多 200ms 的额外延迟
             match server.recv_timeout(Duration::from_millis(5)) {
-                Ok(Some(mut request)) => {
+                Ok(Some(request)) => {
                     count += 1;
                     let url = request.url().to_string();
                     eprintln!("[srv] {addr_log} ACCEPT #{count} url={url}");
@@ -75,7 +73,10 @@ fn spawn_delay_server() -> (String, mpsc::Sender<()>, thread::JoinHandle<()>) {
                         thread::sleep(Duration::from_millis(ms));
                         let body = format!(r#"{{"ok":true,"ms":{}}}"#, ms);
                         let r = request.respond(Response::from_string(body).with_status_code(200));
-                        eprintln!("[srv] {addr_log} RESP #{count} delay={ms}ms -> {:?}", r.is_ok());
+                        eprintln!(
+                            "[srv] {addr_log} RESP #{count} delay={ms}ms -> {:?}",
+                            r.is_ok()
+                        );
                         continue;
                     }
                     if let Some(ms) = parse_path_num(&url, "/redirect/") {
@@ -85,7 +86,10 @@ fn spawn_delay_server() -> (String, mpsc::Sender<()>, thread::JoinHandle<()>) {
                                 .expect("location header"),
                         );
                         let r = request.respond(resp);
-                        eprintln!("[srv] {addr_log} RESP #{count} redirect->delay/{ms} -> {:?}", r.is_ok());
+                        eprintln!(
+                            "[srv] {addr_log} RESP #{count} redirect->delay/{ms} -> {:?}",
+                            r.is_ok()
+                        );
                         continue;
                     }
                     if let Some(size) = parse_path_num(&url, "/large/") {
@@ -118,11 +122,13 @@ fn spawn_delay_server() -> (String, mpsc::Sender<()>, thread::JoinHandle<()>) {
                                 chunk: chunk.max(1) as usize,
                                 delay: Duration::from_millis(delay),
                             };
-                            let headers = vec![Header::from_bytes(
-                                b"Content-Type".as_slice(),
-                                b"application/octet-stream".as_slice(),
-                            )
-                            .expect("ct header")];
+                            let headers = vec![
+                                Header::from_bytes(
+                                    b"Content-Type".as_slice(),
+                                    b"application/octet-stream".as_slice(),
+                                )
+                                .expect("ct header"),
+                            ];
                             let resp = Response::new(
                                 tiny_http::StatusCode(200),
                                 headers,
@@ -137,9 +143,8 @@ fn spawn_delay_server() -> (String, mpsc::Sender<()>, thread::JoinHandle<()>) {
                             continue;
                         }
                     }
-                    let _ = request.respond(
-                        Response::from_string(r#"{"ok":true}"#).with_status_code(200),
-                    );
+                    let _ = request
+                        .respond(Response::from_string(r#"{"ok":true}"#).with_status_code(200));
                 }
                 Ok(None) => {
                     // tiny_http 的 recv_timeout 超时返回 Ok(None) 表示「无新请求」，
@@ -523,11 +528,17 @@ fn redirect_slow_target_timeout_accounting() {
     // JS 侧同样：timeout 1500 成功、1000 超时 → 重定向口径两边一致
     let v_ok = js_fetch(&url, 1500, 0);
     println!("[js redirect] timeout=1500 -> {v_ok}");
-    assert_eq!(v_ok["ok"], true, "JS 跟随重定向 timeout=1500 应成功: {v_ok}");
+    assert_eq!(
+        v_ok["ok"], true,
+        "JS 跟随重定向 timeout=1500 应成功: {v_ok}"
+    );
 
     let v_timeout = js_fetch(&url, 1000, 0);
     println!("[js redirect] timeout=1000 -> {v_timeout}");
-    assert_eq!(v_timeout["ok"], false, "JS 跟随重定向 timeout=1000 应超时: {v_timeout}");
+    assert_eq!(
+        v_timeout["ok"], false,
+        "JS 跟随重定向 timeout=1000 应超时: {v_timeout}"
+    );
 
     shutdown(handle, tx);
 }
@@ -595,7 +606,6 @@ fn pre_delay_effect_on_fetch_latency() {
     shutdown(handle, tx);
 }
 
-
 // ---------- 测试 10：DNS 预检分支（localhost 主机名 vs 127.0.0.1 IP 字面量） ----------
 // `ensure_http_target_allowed` 对非 IP 字面量的主机名会执行 `lookup_host` DNS 解析，
 // 对 IP 字面量直接跳过。对比两种 URL 的 JS fetch 耗时，量化 DNS 分支的开销。
@@ -638,9 +648,8 @@ fn real_dns_lookup_timing() {
     ];
     for (host, port) in hosts {
         let start = Instant::now();
-        let result = rt.block_on(async move {
-            tokio::net::lookup_host((host.to_owned(), port)).await
-        });
+        let result =
+            rt.block_on(async move { tokio::net::lookup_host((host.to_owned(), port)).await });
         let elapsed = start.elapsed();
         match result {
             Ok(addrs) => {
@@ -658,7 +667,6 @@ fn real_dns_lookup_timing() {
         }
     }
 }
-
 
 // 说明：tiny_http 服务器是单线程的，请求会按到达顺序串行处理，
 // 因此这里用小延迟（50ms×20=1000ms < 2000ms 超时），验证 JS 运行时本身
@@ -687,7 +695,10 @@ fn concurrent_requests_no_semaphore_timeout() {
     let result = run_async_script(&script).expect("concurrent script");
     println!("[concurrent 20 x delay50] {result}");
     let v: Value = serde_json::from_str(&result).expect("parse concurrent");
-    assert_eq!(v["okCount"], 20, "并发请求不应因运行时串行化/信号量排队而超时: {v}");
+    assert_eq!(
+        v["okCount"], 20,
+        "并发请求不应因运行时串行化/信号量排队而超时: {v}"
+    );
     let max_elapsed = v["maxElapsed"].as_u64().unwrap_or(0);
     assert!(max_elapsed < 2000, "并发耗时异常: {v}");
 
@@ -708,9 +719,7 @@ fn trickle_body_js_vs_direct() {
     let v = js_fetch_no_timeout(&url, 0);
     println!(
         "[trickle 5MB/64KB/10ms] direct={:?} js={}ms ok={}",
-        direct,
-        v["totalMs"],
-        v["ok"]
+        direct, v["totalMs"], v["ok"]
     );
     assert_eq!(v["ok"], true, "JS trickle body 应成功: {v}");
 
@@ -726,7 +735,6 @@ fn trickle_body_js_vs_direct() {
     shutdown(handle, tx);
 }
 
-
 // ---------- 测试 17：请求正常完成后 cancel sender 被清理 ----------
 // 防止 http_promise_cancel_senders 无限增长（之前每次请求都留一个悬空 sender）。
 #[test]
@@ -741,9 +749,7 @@ fn cancel_senders_are_cleaned_up_after_completion() {
         assert_eq!(v["ok"], true, "{v}");
     }
     let after = crate::web_runtime::http_promise_cancel_senders_len();
-    println!(
-        "[cancel-senders] before={before} after={after}（请求完成后不应增长）"
-    );
+    println!("[cancel-senders] before={before} after={after}（请求完成后不应增长）");
     assert_eq!(
         after, before,
         "取消 sender 未在请求完成后清理: before={before} after={after}"
@@ -751,7 +757,6 @@ fn cancel_senders_are_cleaned_up_after_completion() {
 
     shutdown(handle, tx);
 }
-
 
 // 服务器延迟 2s，fetch 100ms 后 abort。验证：
 // 1. JS promise 快速被取消（不会等满 2s）——即"不获取结果"的行为保住了。
@@ -790,14 +795,10 @@ fn cancel_aborts_fetch_promptly() {
     let v: Value = serde_json::from_str(&result).expect("parse cancel");
     let elapsed = v["elapsed"].as_u64().unwrap_or(0);
     // 取消后应快速返回（<1s），而不是等满服务器 2s 延迟
-    assert!(
-        elapsed < 1000,
-        "取消后应快速返回，elapsed={elapsed}ms: {v}"
-    );
+    assert!(elapsed < 1000, "取消后应快速返回，elapsed={elapsed}ms: {v}");
 
     shutdown(handle, tx);
 }
-
 
 // 修复前：`__native_buffer_take_raw` 返回 Vec<u8> 经 rquickjs 慢转换，
 // 5MB 实测 ~5s。修复后走 `__native_buffer_take_typed`（零拷贝 ArrayBuffer），
@@ -836,7 +837,6 @@ fn native_take_large_buffer_is_fast() {
         "native.take 大 buffer 过慢: {ms}ms isArray={is_array}"
     );
 }
-
 
 // 直接请求用户提供的真实 hath.network 图片，关键变量：Referer 头。
 // 怀疑：插件/重定向路径丢失了 Referer，hath.network 没 Referer 就挂起 → 超时。
@@ -888,7 +888,11 @@ fn js_fetch_real(url: &str, referer: Option<&str>, timeout_ms: u64) -> Value {
     serde_json::from_str(&result).expect("failed to parse result")
 }
 
-fn direct_get_real(url: &str, referer: Option<&str>, timeout_ms: u64) -> Result<(Duration, u64, u16), String> {
+fn direct_get_real(
+    url: &str,
+    referer: Option<&str>,
+    timeout_ms: u64,
+) -> Result<(Duration, u64, u16), String> {
     let rt = tokio::runtime::Runtime::new().map_err(|e| e.to_string())?;
     rt.block_on(async {
         let client = build_http_client_ex(
@@ -909,7 +913,10 @@ fn direct_get_real(url: &str, referer: Option<&str>, timeout_ms: u64) -> Result<
         let start = Instant::now();
         let resp = req.send().await.map_err(|e| format!("send failed: {e}"))?;
         let status = resp.status().as_u16();
-        let bytes = resp.bytes().await.map_err(|e| format!("body failed: {e}"))?;
+        let bytes = resp
+            .bytes()
+            .await
+            .map_err(|e| format!("body failed: {e}"))?;
         let len = bytes.len() as u64;
         Ok((start.elapsed(), len, status))
     })
@@ -960,13 +967,19 @@ fn real_hath_url_referer_on_off() {
     println!("--- 直接 reqwest ---");
     match direct_get_real(REAL_HATH_URL, Some(REAL_REFERER), 15_000) {
         Ok((elapsed, len, status)) => {
-            println!("[direct 带Referer]  OK status={status} len={len} in {:?}", elapsed);
+            println!(
+                "[direct 带Referer]  OK status={status} len={len} in {:?}",
+                elapsed
+            );
         }
         Err(e) => println!("[direct 带Referer]  ERR {e}"),
     }
     match direct_get_real(REAL_HATH_URL, None, 15_000) {
         Ok((elapsed, len, status)) => {
-            println!("[direct 不带Referer] OK status={status} len={len} in {:?}", elapsed);
+            println!(
+                "[direct 不带Referer] OK status={status} len={len} in {:?}",
+                elapsed
+            );
         }
         Err(e) => println!("[direct 不带Referer] ERR {e}"),
     }
@@ -1001,8 +1014,8 @@ fn real_hath_url_current_thread_runtime() {
     // 步骤 2：build_http_client（同 JS 运行时全局配置）
     rt.block_on(async {
         let start = Instant::now();
-        let client = crate::build_http_client(&crate::current_http_client_config())
-            .expect("build client");
+        let client =
+            crate::build_http_client(&crate::current_http_client_config()).expect("build client");
         println!("[ct] build_http_client OK in {:?}", start.elapsed());
 
         // 步骤 3：发送请求

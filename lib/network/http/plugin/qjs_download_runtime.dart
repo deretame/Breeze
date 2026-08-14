@@ -1,14 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:async';
 
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/qjs.dart';
-import 'package:zephyr/src/rust/api/simple.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/src/rust/qjs.dart';
+import 'package:zephyr/type/pipe.dart';
 
 final Map<String, Set<String>> _trackedRuntimesByGroup = {};
 final Set<String> _runtimeInitDone = <String>{};
@@ -34,7 +34,8 @@ void _trackRuntime({
   required String taskGroupKey,
   required String runtimeName,
 }) {
-  (_trackedRuntimesByGroup[_buildTaskGroupId(pluginId, taskGroupKey)] ??= <String>{})
+  (_trackedRuntimesByGroup[_buildTaskGroupId(pluginId, taskGroupKey)] ??=
+          <String>{})
       .add(runtimeName);
 }
 
@@ -151,7 +152,9 @@ Future<Uint8List> _runQjsTask({
   }
 
   final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
-  final debugBundleUrl = useCallOnce ? loadQjsDebugBundleUrl(resolvedPluginId) : null;
+  final debugBundleUrl = useCallOnce
+      ? loadQjsDebugBundleUrl(resolvedPluginId)
+      : null;
   final bundleJs = useCallOnce && debugBundleUrl == null
       ? await loadQjsBundleJs(resolvedPluginId)
       : null;
@@ -194,15 +197,12 @@ Future<Uint8List> _runQjsTask({
   unawaited(
     waitFuture.then<void>((_) {}).catchError((_) {}).whenComplete(untrackOnce),
   );
-  try {
-    return taskGroupKey != null && taskGroupKey.isNotEmpty
-        ? raceWithDownloadCancel(taskGroupKey, waitFuture)
-        : waitFuture;
-  } finally {
-    if (taskGroupKey == null || taskGroupKey.isEmpty) {
-      untrackOnce();
-    }
-  }
+  // 注意：不要在 try/finally 里 return Future（会触发
+  // unawaited_return_in_try_block）。untrack 已由上面的 whenComplete 在
+  // future 完成时统一处理；空 taskGroupKey 时 untrackOnce 本身也是 no-op。
+  return taskGroupKey != null && taskGroupKey.isNotEmpty
+      ? raceWithDownloadCancel(taskGroupKey, waitFuture)
+      : waitFuture;
 }
 
 /// 调用插件函数,返回 JSON 字符串。

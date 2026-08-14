@@ -421,12 +421,9 @@ pub fn http_request_promise(
 
     // JS 面只等一个 oneshot 结果，不再逐块轮询。
     let future = async move {
-        result_rx
-            .await
-            .unwrap_or_else(|_| {
-                json!({ "ok": false, "error": crate::tr!("request-execution-cancelled") })
-                    .to_string()
-            })
+        result_rx.await.unwrap_or_else(|_| {
+            json!({ "ok": false, "error": crate::tr!("request-execution-cancelled") }).to_string()
+        })
     };
 
     let promise = Promise::wrap_future(&ctx, future)?;

@@ -9,7 +9,6 @@ use std::marker::PhantomData;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
-use std::time::Duration;
 use tokio::sync::mpsc as tokio_mpsc;
 use tokio::sync::{OnceCell, oneshot};
 
@@ -861,55 +860,38 @@ impl AsyncHostRuntime {
 
                 let _ = init_tx.send(Ok(()));
 
-                let mut running = true;
-                while running {
-                    while let Ok(signal) = rx.try_recv() {
-                        running = handle_worker_signal(
-                            signal,
-                            &mut host,
-                            runtime_id,
-                            &states_for_worker,
-                            &waiters_for_worker,
-                        )
-                        .await;
-                        if !running {
-                            break;
-                        }
-                    }
-
-                    if !running {
-                        break;
-                    }
-
-                    match host.pump_jobs(2048).await {
-                        Ok(jobs) if jobs > 0 => continue,
-                        Ok(_) => {}
-                        Err(err) => {
-                            fail_all_active_tasks(&states_for_worker, &waiters_for_worker, err);
-                            break;
-                        }
-                    }
-
-                    if !running {
-                        break;
-                    }
-
-                    // 50ms watchdog：防止某些异步路径漏发信号导致工作线程睡死。
-                    // 漫画/图片请求本身耗时较长，50ms 的兜底延迟对用户体验几乎无影响，
-                    // 同时能显著降低空闲时的线程唤醒频率。
-                    match tokio::time::timeout(Duration::from_millis(50), rx.recv()).await {
-                        Ok(Some(signal)) => {
-                            running = handle_worker_signal(
+                // AsyncRuntime::drive() 负责驱动 QuickJS 自身的异步任务，并通过内部 waker
+                // 在任务有进展时唤醒；worker channel 只负责处理真正到达的外部事件。
+                let mut qjs_driver = std::pin::pin!(host.runtime.drive());
+                loop {
+                    tokio::select! {
+                        biased;
+                        signal = rx.recv() => {
+                            let Some(signal) = signal else {
+                                break;
+                            };
+                            if !handle_worker_signal(
                                 signal,
                                 &mut host,
                                 runtime_id,
                                 &states_for_worker,
                                 &waiters_for_worker,
                             )
-                            .await;
+                            .await
+                            {
+                                break;
+                            }
+
+                            // 外部事件通过 context.with() 注入 JS 回调后，可能产生新的 QuickJS
+                            // job；这个入口不会自动唤醒 drive()，所以只在收到事件后补一次 job drain。
+                            if let Err(err) = host.pump_jobs(2048).await {
+                                fail_all_active_tasks(&states_for_worker, &waiters_for_worker, err);
+                                break;
+                            }
                         }
-                        Ok(None) => break,
-                        Err(_elapsed) => {}
+                        _ = &mut qjs_driver => {
+                            break;
+                        }
                     }
                 }
             });

@@ -219,12 +219,13 @@ class FolderShelfSelectAll extends FolderShelfEvent {
 }
 
 class FolderShelfMoveSelected extends FolderShelfEvent {
-  const FolderShelfMoveSelected(this.targetPaths);
+  const FolderShelfMoveSelected(this.targetPaths, {this.sourceFolderPaths});
 
   final Set<String> targetPaths;
+  final Set<String>? sourceFolderPaths;
 
   @override
-  List<Object?> get props => [targetPaths];
+  List<Object?> get props => [targetPaths, sourceFolderPaths];
 }
 
 class FolderShelfCopySelected extends FolderShelfEvent {
@@ -471,13 +472,15 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
   ) async {
     try {
       final targetPaths = event.targetPaths;
-      if (state.selectedFolderPaths.isNotEmpty && targetPaths.length > 1) {
+      final sourceFolderPaths =
+          event.sourceFolderPaths ?? state.selectedFolderPaths;
+      if (sourceFolderPaths.isNotEmpty && targetPaths.length > 1) {
         throw StateError(t.bookshelf.moveFoldersOnlyOneTarget);
       }
       for (final targetPath in targetPaths) {
-        if (state.selectedFolderPaths.isNotEmpty) {
+        if (sourceFolderPaths.isNotEmpty) {
           ComicFolderService.batchMoveFolders(
-            state.selectedFolderPaths,
+            sourceFolderPaths,
             targetPath,
             _folderType,
           );

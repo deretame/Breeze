@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -273,64 +274,59 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           ),
         ),
         Flexible(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            reverse: true,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.select_all),
-                  tooltip: t.common.selectAll,
-                  onPressed: () => context.read<FolderShelfBloc>().add(
-                    const FolderShelfSelectAll(),
-                  ),
+          child: _SelectionActionStrip(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.select_all),
+                tooltip: t.common.selectAll,
+                onPressed: () => context.read<FolderShelfBloc>().add(
+                  const FolderShelfSelectAll(),
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.drive_file_move_outline),
+                tooltip: t.bookshelf.moveTo,
+                onPressed: state.hasSelection
+                    ? () => _showTargetFolderDialog(
+                        context,
+                        onConfirmed: (targets) {
+                          context.read<FolderShelfBloc>().add(
+                            FolderShelfMoveSelected(targets),
+                          );
+                        },
+                      )
+                    : null,
+              ),
+              IconButton(
+                icon: const Icon(Icons.folder_copy_outlined),
+                tooltip: t.bookshelf.copyTo,
+                onPressed: state.hasSelection
+                    ? () => _showTargetFolderDialog(
+                        context,
+                        onConfirmed: (targets) {
+                          context.read<FolderShelfBloc>().add(
+                            FolderShelfCopySelected(targets),
+                          );
+                        },
+                      )
+                    : null,
+              ),
+              if (state.mode == ShelfPageMode.download)
                 IconButton(
-                  icon: const Icon(Icons.drive_file_move_outline),
-                  tooltip: t.bookshelf.moveTo,
+                  icon: const Icon(Icons.file_upload_outlined),
+                  tooltip: t.bookshelf.batchExport,
                   onPressed: state.hasSelection
-                      ? () => _showTargetFolderDialog(
-                          context,
-                          onConfirmed: (targets) {
-                            context.read<FolderShelfBloc>().add(
-                              FolderShelfMoveSelected(targets),
-                            );
-                          },
-                        )
+                      ? () => _batchExportSelected(context, state)
                       : null,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.folder_copy_outlined),
-                  tooltip: t.bookshelf.copyTo,
-                  onPressed: state.hasSelection
-                      ? () => _showTargetFolderDialog(
-                          context,
-                          onConfirmed: (targets) {
-                            context.read<FolderShelfBloc>().add(
-                              FolderShelfCopySelected(targets),
-                            );
-                          },
-                        )
-                      : null,
-                ),
-                if (state.mode == ShelfPageMode.download)
-                  IconButton(
-                    icon: const Icon(Icons.file_upload_outlined),
-                    tooltip: t.bookshelf.batchExport,
-                    onPressed: state.hasSelection
-                        ? () => _batchExportSelected(context, state)
-                        : null,
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: t.common.delete,
-                  onPressed: state.hasSelection
-                      ? () => _confirmDeleteSelected(context)
-                      : null,
-                ),
-              ],
-            ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: t.common.delete,
+                onPressed: state.hasSelection
+                    ? () => _confirmDeleteSelected(context)
+                    : null,
+              ),
+            ],
           ),
         ),
       ],
@@ -555,6 +551,11 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           title: Text(t.common.rename),
         ),
         FluentPopupMenuItem(
+          value: 'move',
+          leading: const Icon(Icons.drive_file_move_outline),
+          title: Text(t.bookshelf.moveTo),
+        ),
+        FluentPopupMenuItem(
           value: 'delete',
           leading: const Icon(Icons.delete_outline),
           title: Text(t.common.delete),
@@ -568,6 +569,21 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             );
           case 'rename':
             _showRenameFolderDialog(context, folder, folderPath);
+          case 'move':
+            unawaited(
+              _showTargetFolderDialog(
+                context,
+                selectedFolderPaths: {folderPath},
+                onConfirmed: (targets) {
+                  context.read<FolderShelfBloc>().add(
+                    FolderShelfMoveSelected(
+                      targets,
+                      sourceFolderPaths: {folderPath},
+                    ),
+                  );
+                },
+              ),
+            );
           case 'delete':
             _confirmDeleteSingleFolder(context, folderPath);
         }
@@ -741,11 +757,93 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   }
 }
 
+class _SelectionActionStrip extends StatefulWidget {
+  const _SelectionActionStrip({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  State<_SelectionActionStrip> createState() => _SelectionActionStripState();
+}
+
+class _SelectionActionStripState extends State<_SelectionActionStrip> {
+  static const _scrollHintWidth = 32.0;
+
+  final _scrollController = ScrollController();
+  bool _hasOverflow = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scheduleOverflowCheck() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final hasOverflow = _scrollController.position.maxScrollExtent > 0.5;
+      if (hasOverflow != _hasOverflow) {
+        setState(() => _hasOverflow = hasOverflow);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _scheduleOverflowCheck();
+    final surface = Theme.of(context).colorScheme.surface;
+
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: _hasOverflow ? _scrollHintWidth : 0,
+          ),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            reverse: true,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: widget.children,
+            ),
+          ),
+        ),
+        if (_hasOverflow)
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              child: SizedBox(
+                width: _scrollHintWidth,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [surface, surface.withValues(alpha: 0)],
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.swipe_left, size: 20),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 Future<void> _showTargetFolderDialog(
   BuildContext context, {
+  Set<String>? selectedFolderPaths,
   required ValueChanged<Set<String>> onConfirmed,
 }) async {
   final state = context.read<FolderShelfBloc>().state;
+  final sourceFolderPaths = selectedFolderPaths ?? state.selectedFolderPaths;
   final allFolders = ComicFolderService.listAllFolders(
     _folderTypeOf(state.mode),
   );
@@ -761,7 +859,7 @@ Future<void> _showTargetFolderDialog(
 
   // 排除当前所在文件夹（仅自身）、被选中的文件夹及其子树
   final forbiddenSyncIds = <String>{};
-  for (final path in state.selectedFolderPaths) {
+  for (final path in sourceFolderPaths) {
     final folder = allFolders.firstWhereOrNull(
       (f) => pathMap[f.syncId] == path,
     );

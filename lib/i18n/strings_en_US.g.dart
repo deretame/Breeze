@@ -644,6 +644,11 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get webtoonScrollDistance => 'Webtoon scroll distance';
 	@override String get webtoonScrollInterval => 'Webtoon scroll interval';
 	@override String get singlePageScrollInterval => 'Single page scroll interval';
+	@override String get preload => 'Preload';
+	@override String get preloadImageCount => 'Preloaded image count';
+	@override String get preloadImageCountSubtitle => 'Download images after the current reading position in advance';
+	@override String get preloadChapterCount => 'Preloaded chapter count';
+	@override String get preloadChapterCountSubtitle => 'Load following chapter information in advance';
 	@override String get background => 'Background';
 	@override String get auto => 'Auto';
 	@override String get black => 'Black';
@@ -2014,12 +2019,17 @@ extension on TranslationsEnUs {
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
 			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
 			'reader.singlePageScrollInterval' => 'Single page scroll interval',
+			'reader.preload' => 'Preload',
+			'reader.preloadImageCount' => 'Preloaded image count',
+			'reader.preloadImageCountSubtitle' => 'Download images after the current reading position in advance',
+			'reader.preloadChapterCount' => 'Preloaded chapter count',
+			_ => null,
+		} ?? switch (path) {
+			'reader.preloadChapterCountSubtitle' => 'Load following chapter information in advance',
 			'reader.background' => 'Background',
 			'reader.auto' => 'Auto',
 			'reader.black' => 'Black',
 			'reader.white' => 'White',
-			_ => null,
-		} ?? switch (path) {
 			'reader.grey' => 'Grey',
 			'reader.readingExperience' => 'Reading experience',
 			'reader.disableAnimation' => 'Disable page animation',
@@ -2527,13 +2537,13 @@ extension on TranslationsEnUs {
 			'comicFollow.updateChannelDesc' => 'Pushed when followed comics have new chapters',
 			'comicFollow.updateTitle' => 'Follow update',
 			'comicFollow.updateBodySingle' => '1 followed comic has updates',
+			_ => null,
+		} ?? switch (path) {
 			'comicFollow.updateBodyMultiple' => ({required Object count}) => '${count} followed comics have updates',
 			'changelog.title' => 'Changelog',
 			'changelog.loadFailed' => 'Load failed',
 			'changelog.loadFailedWithError' => ({required Object error}) => 'Load failed: ${error}',
 			'changelog.cannotOpenLink' => ({required Object url}) => 'Cannot open link: ${url}',
-			_ => null,
-		} ?? switch (path) {
 			'changelog.checkNetwork' => 'Load failed, please check network',
 			'changelog.retry' => 'Retry',
 			'changelog.empty' => 'No changelog',

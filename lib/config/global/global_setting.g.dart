@@ -301,6 +301,8 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
           (json['autoScrollPageIntervalMs'] as num?)?.toInt() ?? 3000,
       autoScrollColumnDistancePercent:
           (json['autoScrollColumnDistancePercent'] as num?)?.toInt() ?? 72,
+      preloadImageCount: (json['preloadImageCount'] as num?)?.toInt() ?? 3,
+      preloadChapterCount: (json['preloadChapterCount'] as num?)?.toInt() ?? 1,
       doublePageMode: json['doublePageMode'] as bool? ?? false,
       doublePageLeadingBlank: json['doublePageLeadingBlank'] as bool? ?? false,
       sidePaddingEnabled: json['sidePaddingEnabled'] as bool? ?? false,
@@ -353,6 +355,8 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'autoScrollColumnIntervalMs': instance.autoScrollColumnIntervalMs,
   'autoScrollPageIntervalMs': instance.autoScrollPageIntervalMs,
   'autoScrollColumnDistancePercent': instance.autoScrollColumnDistancePercent,
+  'preloadImageCount': instance.preloadImageCount,
+  'preloadChapterCount': instance.preloadChapterCount,
   'doublePageMode': instance.doublePageMode,
   'doublePageLeadingBlank': instance.doublePageLeadingBlank,
   'sidePaddingEnabled': instance.sidePaddingEnabled,

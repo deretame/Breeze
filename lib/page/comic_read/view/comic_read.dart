@@ -14,6 +14,7 @@ import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_state.dart';
+import 'package:zephyr/page/comic_read/controller/reader_image_prefetch_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
@@ -159,6 +160,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   late final ReaderSystemUiController _systemUiController; // 系统 UI 控制器
   late final ReaderLifecycleController _lifecycleController; // 生命周期控制器
   late final ReaderInputController _inputController; // 输入控制器
+  final _imagePrefetchController = ReaderImagePrefetchController();
   NormalComicEpInfo epInfo = NormalComicEpInfo(); // 通用漫画章节信息
   NormalComicEpInfo _initialEpInfo = NormalComicEpInfo();
   late final ListObserverController observerController; // 列表观察控制器
@@ -203,6 +205,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     unawaited(_lifecycleController.dispose());
     _volumeKeyPageTurnSubscription?.cancel();
     _inputController.dispose();
+    _imagePrefetchController.dispose();
     _volumeController.dispose();
     _pageController.dispose();
     _transformationController.dispose();
@@ -272,6 +275,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 buildAutoReadControl: (_) => _autoReadControlWidget(),
                 onReady: (innerContext, readSetting, readMode) {
                   _syncAutoRead(readSetting: readSetting, readMode: readMode);
+                  _prefetchImagesAroundSlot(
+                    context.read<ReaderCubit>().state.currentSlot,
+                    readSetting,
+                  );
                   _imageSizeContext = innerContext;
                   _historyController.markLoaded();
                   unawaited(

@@ -66,10 +66,12 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
           onUserScrollActiveChanged: (active) => _isUserScrollActive = active,
           onGlobalSlotChanged: seamlessEnabled
               ? (globalSlot) async {
+                  _prefetchImagesAroundSlot(globalSlot, readSetting);
                   final result = await seamlessCubit.onGlobalSlotObserved(
                     globalSlot,
                     readSetting,
                   );
+                  _prefetchImagesAroundSlot(globalSlot, readSetting);
                   if (result.targetGlobalSlot != null && mounted) {
                     await _jumpToGlobalSlot(
                       result.targetGlobalSlot!,
@@ -77,7 +79,8 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
                     );
                   }
                 }
-              : (_) {},
+              : (globalSlot) =>
+                    _prefetchImagesAroundSlot(globalSlot, readSetting),
           onTransitionAction: seamlessEnabled
               ? (nextOrder) async {
                   final result = await seamlessCubit.onTransitionAction(
@@ -126,10 +129,12 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
       haveNext: canLoadNext,
       onGlobalSlotChanged: seamlessEnabled
           ? (globalSlot) async {
+              _prefetchImagesAroundSlot(globalSlot, readSetting);
               final result = await seamlessCubit.onGlobalSlotObserved(
                 globalSlot,
                 readSetting,
               );
+              _prefetchImagesAroundSlot(globalSlot, readSetting);
               if (result.targetGlobalSlot != null && mounted) {
                 await _jumpToGlobalSlot(
                   result.targetGlobalSlot!,
@@ -137,7 +142,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
                 );
               }
             }
-          : (_) {},
+          : (globalSlot) => _prefetchImagesAroundSlot(globalSlot, readSetting),
       onEdgePrevious: seamlessEnabled
           ? () async {
               final result = await seamlessCubit.triggerBoundary(

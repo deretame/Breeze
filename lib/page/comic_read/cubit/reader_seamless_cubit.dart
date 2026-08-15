@@ -109,6 +109,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
             ),
       ),
     );
+    unawaited(_prefetchNextChaptersIfNeeded(readSetting.preloadChapterCount));
   }
 
   // ==================== 公共查询接口 ====================
@@ -135,6 +136,49 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   int get currentChapterStartSlot => state.currentChapterStartSlot;
 
   int get currentChapterSlotCount => state.currentChapterSlotCount;
+
+  /// 返回当前槽位之后需要提前缓存的图片条目，按显示顺序排列。
+  ///
+  /// 这里按显示槽位遍历而不是直接按 entry 下标切片，兼容双页模式和章节
+  /// 过渡卡片，避免把“预加载数量”误算成槽位数量。
+  List<ReadModeEntry> resolveImageEntriesForPrefetch({
+    required int globalSlot,
+    required ReadSettingState readSetting,
+    required int count,
+  }) {
+    if (count <= 0) return const <ReadModeEntry>[];
+
+    final entries = isColumnReadMode(readSetting.readMode)
+        ? buildColumnEntries(readSetting)
+        : buildRowEntries(readSetting);
+    if (entries.isEmpty) return const <ReadModeEntry>[];
+
+    final result = <ReadModeEntry>[];
+    _forEachDisplaySlot(
+      entryCount: entries.length,
+      enableDoublePage: readSetting.doublePageMode,
+      insertLeadingBlank: _insertLeadingBlank(readSetting),
+      isTransitionAt: (entryIndex) =>
+          entries[entryIndex].type == ReadModeEntryType.transition,
+      onSlot: (slotIndex, primaryEntryIndex, secondaryEntryIndex) {
+        if (slotIndex <= globalSlot || result.length >= count) return;
+
+        void addImageEntry(int entryIndex) {
+          if (result.length >= count) return;
+          final entry = entries[entryIndex];
+          if (entry.type == ReadModeEntryType.image) {
+            result.add(entry);
+          }
+        }
+
+        addImageEntry(primaryEntryIndex);
+        if (secondaryEntryIndex != null) {
+          addImageEntry(secondaryEntryIndex);
+        }
+      },
+    );
+    return result;
+  }
 
   UnifiedComicChapterRef? chapterRefByOrder(int order) {
     final chapters = _catalogChapters();
@@ -567,7 +611,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     }
 
     if (remainToEnd <= _nextPrefetchThreshold && canLoadNextChapter()) {
-      await _prefetchNextChapterIfNeeded();
+      await _prefetchNextChaptersIfNeeded(readSetting.preloadChapterCount);
     }
     return const SeamlessBoundaryResult();
   }
@@ -618,7 +662,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         readSetting: readSetting,
       );
     } else {
-      await _prefetchNextChapterIfNeeded();
+      await _prefetchNextChaptersIfNeeded(readSetting.preloadChapterCount);
       return const SeamlessBoundaryResult();
     }
   }
@@ -639,10 +683,18 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
 
   // ==================== 内部：章节加载 ====================
 
-  Future<void> _prefetchNextChapterIfNeeded() async {
-    final nextOrder = _resolveAdjacentChapterOrder(previous: false);
-    if (nextOrder == null) return;
-    await _prefetchChapterByOrderIfNeeded(nextOrder);
+  Future<void> _prefetchNextChaptersIfNeeded(int requestedCount) async {
+    if (state.loadedChapters.isEmpty || isClosed) return;
+
+    final count = requestedCount.clamp(1, 3).toInt();
+    var anchorOrder = state.loadedChapters.last.order;
+    for (var i = 0; i < count; i++) {
+      if (isClosed) return;
+      final nextOrder = _nextOrderOf(anchorOrder);
+      if (nextOrder == null) return;
+      await _prefetchChapterByOrderIfNeeded(nextOrder);
+      anchorOrder = nextOrder;
+    }
   }
 
   Future<void> _prefetchChapterByOrderIfNeeded(int order) async {
@@ -719,6 +771,9 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       final previousTotalSlots = resolveTotalSlots(readSetting);
       if (!_isOrderLoaded(targetOrder)) {
         _addLoadedChapter(order: targetOrder, epInfo: chapterInfo);
+        unawaited(
+          _prefetchNextChaptersIfNeeded(readSetting.preloadChapterCount),
+        );
       }
 
       _ensureEdgeTransitionsVisible();

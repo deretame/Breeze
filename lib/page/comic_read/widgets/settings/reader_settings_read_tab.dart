@@ -19,6 +19,8 @@ class _ReaderSettingsReadTab extends StatelessWidget {
           const SizedBox(height: 18),
           const _AutoReadSection(),
           const SizedBox(height: 18),
+          const _PreloadSection(),
+          const SizedBox(height: 18),
           const _ReadExperienceSection(),
         ],
       ),
@@ -262,6 +264,44 @@ class _AutoReadSection extends StatelessWidget {
               );
             },
           ),
+      ],
+    );
+  }
+}
+
+class _PreloadSection extends StatelessWidget {
+  const _PreloadSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final readSetting = context.watch<GlobalSettingCubit>().state.readSetting;
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+
+    return _SettingsSection(
+      title: t.reader.preload,
+      children: [
+        _SettingsDropdownTile(
+          title: t.reader.preloadImageCount,
+          subtitle: t.reader.preloadImageCountSubtitle,
+          value: readSetting.preloadImageCount.clamp(2, 10).toInt(),
+          values: List<int>.generate(9, (index) => index + 2),
+          onChanged: (value) {
+            globalSettingCubit.updateReadSetting(
+              (current) => current.copyWith(preloadImageCount: value),
+            );
+          },
+        ),
+        _SettingsDropdownTile(
+          title: t.reader.preloadChapterCount,
+          subtitle: t.reader.preloadChapterCountSubtitle,
+          value: readSetting.preloadChapterCount.clamp(1, 3).toInt(),
+          values: List<int>.generate(3, (index) => index + 1),
+          onChanged: (value) {
+            globalSettingCubit.updateReadSetting(
+              (current) => current.copyWith(preloadChapterCount: value),
+            );
+          },
+        ),
       ],
     );
   }

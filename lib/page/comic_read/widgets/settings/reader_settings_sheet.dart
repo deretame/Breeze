@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/widgets/fluent_dropdown.dart';
 
 part 'reader_settings_gesture_tab.dart';
 part 'reader_settings_info_tab.dart';
@@ -293,6 +294,55 @@ class _SettingsSwitchTile extends StatelessWidget {
         trailing: Switch.adaptive(
           thumbIcon: _thumbIcon,
           value: value,
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsDropdownTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final int value;
+  final List<int> values;
+  final ValueChanged<int> onChanged;
+
+  const _SettingsDropdownTile({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.values,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+        ),
+      ),
+      child: ListTile(
+        dense: true,
+        visualDensity: VisualDensity.compact,
+        contentPadding: const EdgeInsets.only(left: 12, right: 8),
+        title: Text(title),
+        subtitle: Text(
+          subtitle,
+          style: context.theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: FluentDropdown<int>(
+          value: value,
+          displayValue: value.toString(),
+          items: {for (final option in values) option: option.toString()},
           onChanged: onChanged,
         ),
       ),

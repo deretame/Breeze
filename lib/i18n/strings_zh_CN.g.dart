@@ -1666,6 +1666,21 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '单页式滚动间隔'
 	String get singlePageScrollInterval => '单页式滚动间隔';
 
+	/// zh-CN: '预加载'
+	String get preload => '预加载';
+
+	/// zh-CN: '预加载图片数量'
+	String get preloadImageCount => '预加载图片数量';
+
+	/// zh-CN: '提前下载当前阅读位置之后的图片'
+	String get preloadImageCountSubtitle => '提前下载当前阅读位置之后的图片';
+
+	/// zh-CN: '预加载章节数量'
+	String get preloadChapterCount => '预加载章节数量';
+
+	/// zh-CN: '提前加载后续章节信息'
+	String get preloadChapterCountSubtitle => '提前加载后续章节信息';
+
 	/// zh-CN: '阅读背景'
 	String get background => '阅读背景';
 
@@ -4254,11 +4269,16 @@ extension on Translations {
 			'reader.webtoonScrollDistance' => '条漫滚动距离',
 			'reader.webtoonScrollInterval' => '条漫滚动间隔',
 			'reader.singlePageScrollInterval' => '单页式滚动间隔',
+			'reader.preload' => '预加载',
+			'reader.preloadImageCount' => '预加载图片数量',
+			'reader.preloadImageCountSubtitle' => '提前下载当前阅读位置之后的图片',
+			_ => null,
+		} ?? switch (path) {
+			'reader.preloadChapterCount' => '预加载章节数量',
+			'reader.preloadChapterCountSubtitle' => '提前加载后续章节信息',
 			'reader.background' => '阅读背景',
 			'reader.auto' => '自动',
 			'reader.black' => '黑色',
-			_ => null,
-		} ?? switch (path) {
 			'reader.white' => '白色',
 			'reader.grey' => '灰色',
 			'reader.readingExperience' => '阅读体验',
@@ -4766,13 +4786,13 @@ extension on Translations {
 			'comicFollow.updateChannelName' => '漫画更新提醒',
 			'comicFollow.updateChannelDesc' => '追更漫画检测到新章节时推送',
 			'comicFollow.updateTitle' => '追更更新',
+			_ => null,
+		} ?? switch (path) {
 			'comicFollow.updateBodySingle' => '有 1 部追更漫画更新了',
 			'comicFollow.updateBodyMultiple' => ({required Object count}) => '有 ${count} 部追更漫画更新了',
 			'changelog.title' => '更新日志',
 			'changelog.loadFailed' => '加载失败',
 			'changelog.loadFailedWithError' => ({required Object error}) => '加载失败: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'changelog.cannotOpenLink' => ({required Object url}) => '无法打开链接: ${url}',
 			'changelog.checkNetwork' => '加载失败，请检查网络',
 			'changelog.retry' => '重试',

@@ -1,6 +1,23 @@
 part of '../comic_read.dart';
 
 extension _ComicReadViewPart on _ComicReadPageState {
+  void _prefetchImagesAroundSlot(int globalSlot, ReadSettingState readSetting) {
+    final seamlessCubit = context.read<ReaderSeamlessCubit>();
+    final entries = seamlessCubit.resolveImageEntriesForPrefetch(
+      globalSlot: globalSlot,
+      readSetting: readSetting,
+      count: readSetting.preloadImageCount.clamp(2, 10).toInt(),
+    );
+    unawaited(
+      _imagePrefetchController.prefetch(
+        entries: entries,
+        comicId: comicId,
+        from: widget.from,
+        count: entries.length,
+      ),
+    );
+  }
+
   Widget _comicReadAppBar() {
     final cubit = context.read<ReaderCubit>();
     return ComicReadAppBar(

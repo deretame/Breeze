@@ -105,3 +105,18 @@ pnpm --dir cs_web format:check
 pnpm --dir cs_web lint
 pnpm --dir cs_web build
 ```
+
+### 端到端冒烟测试
+
+服务端构建完成、独立前端构建完成，并且当前机器可以访问插件目录和 CDN 时，运行：
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\script\test_cs_server.ps1
+```
+
+这份测试会使用和 Flutter 本体 `PluginInstallService` 相同的云端目录、CDN 顺序、
+`.cjs.br` Brotli 解码和 `.cjs` 回退逻辑，实际下载一个云端插件并安装到临时服务端，
+然后覆盖服务端连通性、HTML 直出、认证/注销、错误状态、SQLite 用户隔离、账号设置、
+插件配置 revision、真实插件 `getInfo`/搜索、QuickJS 语义接口、二进制调用、服务端下载
+任务、manifest、图片资源、ETag、取消边界和跨用户访问控制。测试数据只写入临时目录，
+测试结束后会清理，不会改动 `cs_server/data` 或安装真实插件到开发环境。

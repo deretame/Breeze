@@ -5,6 +5,8 @@ use serde_json::Value;
 
 use crate::db::Database;
 
+mod cache;
+
 #[derive(Clone, Debug)]
 pub struct PluginRuntimeCapabilities {
     pub quickjs: bool,
@@ -36,6 +38,7 @@ pub struct PluginRuntimeService {
 impl PluginRuntimeService {
     pub fn new(database: Database) -> anyhow::Result<Self> {
         register_config_routes(database)?;
+        cache::register_cache_routes()?;
         Ok(Self {
             options: runtime_options(),
             runtimes: Mutex::new(HashMap::new()),

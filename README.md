@@ -207,8 +207,8 @@ AltStore 是目前最稳定且对新手友好的 iOS 侧载工具，支持通过
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=deretame/Breeze&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=deretame/Breeze&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=deretame/Breeze&type=Date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=deretame/Breeze&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=deretame/Breeze&type=Date" />
+    <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=deretame/Breeze&type=Date" />
   </picture>
 </p>

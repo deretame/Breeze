@@ -108,3 +108,8 @@ third_party/ncnn-src/
 # Native bridge generated files
 compile_commands.json
 native/generated/ir.json
+
+# CS server/frontend local artifacts
+/cs_server/data/
+/cs_server/target/
+/cs_web/dist/

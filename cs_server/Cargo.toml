@@ -1,0 +1,39 @@
+[package]
+name = "breeze_cs_server"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+anyhow = "1.0.102"
+axum = "0.8.9"
+reqwest = { version = "0.13.4", default-features = false, features = [
+    "http2",
+    "json",
+    "stream",
+    "charset",
+    "gzip",
+    "brotli",
+    "deflate",
+    "zstd",
+    "cookies",
+    "multipart",
+    "rustls",
+    "system-proxy",
+    "socks",
+] }
+rusqlite = { version = "0.37.0", features = ["bundled"] }
+rquickjs_playground = { path = "../rust/rquickjs_playground" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = [
+    "macros",
+    "net",
+    "rt-multi-thread",
+    "signal",
+    "sync",
+    "time",
+] }
+tower-http = { version = "0.6.6", features = ["cors", "fs", "trace"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }

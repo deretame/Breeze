@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/network/http/plugin/unauthorized_payload.dart';
 import 'package:zephyr/util/event/event.dart';
@@ -30,6 +31,14 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
   final argsJson = jsonEncode(payload);
   final runtime = runtimeName ?? resolvedPluginId;
   try {
+    if (CsRuntimeContext.I.isCsMode) {
+      final remote = await CsRuntimeContext.I.invokePlugin(
+        pluginId: resolvedPluginId,
+        function: resolvedFnPath,
+        payload: payload,
+      );
+      return _normalizePluginSourceFields(remote, resolvedPluginId);
+    }
     final raw = await _invokeQjs(
       pluginId: resolvedPluginId,
       runtimeName: runtime,

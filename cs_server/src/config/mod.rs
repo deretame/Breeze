@@ -10,7 +10,10 @@ pub struct ServerConfig {
     pub port: u16,
     pub data_dir: PathBuf,
     pub web_root: PathBuf,
+    pub plugin_root: PathBuf,
     pub server_download_enabled: bool,
+    pub registration_enabled: bool,
+    pub session_ttl_days: u64,
     pub cors_origin: Option<HeaderValue>,
     pub http_proxy: Option<String>,
     pub socks5_proxy: Option<String>,
@@ -20,11 +23,14 @@ pub struct ServerConfig {
 
 impl ServerConfig {
     pub fn from_env() -> anyhow::Result<Self> {
-        let host = parse_env("BREEZE_SERVER_HOST", "127.0.0.1")?.parse()?;
+        let host: IpAddr = parse_env("BREEZE_SERVER_HOST", "127.0.0.1")?.parse()?;
         let port = parse_env("BREEZE_SERVER_PORT", "8787")?.parse()?;
         let data_dir = PathBuf::from(parse_env("BREEZE_DATA_DIR", "cs_server/data")?);
         let web_root = PathBuf::from(parse_env("BREEZE_WEB_ROOT", "cs_web/dist")?);
+        let plugin_root = PathBuf::from(parse_env("BREEZE_PLUGIN_ROOT", "cs_server/plugins")?);
         let server_download_enabled = parse_bool_env("BREEZE_SERVER_DOWNLOAD", false)?;
+        let registration_enabled = parse_bool_env("BREEZE_ALLOW_REGISTRATION", host.is_loopback())?;
+        let session_ttl_days = parse_env("BREEZE_SESSION_TTL_DAYS", "30")?.parse()?;
         let cors_origin = parse_optional_header("BREEZE_CORS_ORIGIN")?;
         let http_proxy = parse_optional_string("BREEZE_HTTP_PROXY");
         let socks5_proxy = parse_optional_string("BREEZE_SOCKS5_PROXY");
@@ -40,7 +46,10 @@ impl ServerConfig {
             port,
             data_dir,
             web_root,
+            plugin_root,
             server_download_enabled,
+            registration_enabled,
+            session_ttl_days,
             cors_origin,
             http_proxy,
             socks5_proxy,

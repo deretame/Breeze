@@ -6,6 +6,7 @@ publish = false
 
 [dependencies]
 anyhow = "1.0.102"
+argon2 = "0.5.3"
 axum = "0.8.9"
 reqwest = { version = "0.13.4", default-features = false, features = [
     "http2",
@@ -26,6 +27,7 @@ rusqlite = { version = "0.37.0", features = ["bundled"] }
 rquickjs_playground = { path = "../rust/rquickjs_playground" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
+sha2 = "0.10.9"
 tokio = { version = "1.52.3", features = [
     "macros",
     "net",
@@ -37,3 +39,4 @@ tokio = { version = "1.52.3", features = [
 tower-http = { version = "0.6.6", features = ["cors", "fs", "trace"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }
+uuid = { version = "1.18.1", features = ["v4"] }

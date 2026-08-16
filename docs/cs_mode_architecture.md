@@ -1,6 +1,6 @@
 # Breeze CS 模式兼容架构设计
 
-> 状态：架构方案与首批基础实现。当前已落地 `cs_server`、`cs_web`、SQLite 迁移和基础能力接口；业务数据、完整插件调用、下载队列和 Flutter 客户端接入按后续阶段继续实现。
+> 状态：架构方案与 CS 基础实现。当前已落地 `cs_server`、SQLite v2、用户会话、账号设置、收藏/历史/追更 API、用户隔离 QuickJS 调用边界，以及 Flutter 侧的 CS Service/Repository 抽象；服务端下载和 Flutter 启动协调器按后续阶段继续实现。`cs_web` 暂停扩展。
 >
 > 目标：在保留现有纯本地模式的前提下，增加可选的 Client/Server（CS）模式。用户可以继续把 Breeze 当作现在的本地应用使用，也可以在设置中连接一个 Breeze 服务端，将指定能力切换到服务端。
 
@@ -558,6 +558,11 @@ CS 服务端默认开启 TLS 校验。即使现有 Flutter 应用为了兼容图
 
 - `LocalLibraryRepository`、`LocalPluginGateway`、`LocalDownloadRepository`；
 - `RemoteLibraryRepository`、`RemotePluginGateway`、`RemoteDownloadRepository`。
+
+当前首批 Flutter 边界已放在 `lib/cs/`：`CsApiClient` 负责 CS HTTP Service，
+`CsModeService`/`CsModeCubit` 负责连接配置和模式状态，`ModeAwareLibraryRepository`
+与 `ModeAwarePluginGateway` 负责选择本地或远程实现。统一插件调用入口和图片字节调用
+已预留 CS dispatch；没有有效的 CS 模式时继续使用原有本地 QuickJS 链路。
 
 ### 10.2 迁移直接 ObjectBox 访问
 

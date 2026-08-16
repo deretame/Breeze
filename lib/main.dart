@@ -24,6 +24,7 @@ import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
+import 'package:zephyr/cs/application/cs_mode_cubit.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -149,7 +150,8 @@ Future<void> main(List<String> args) async {
 
     try {
       // 2. 执行业务初始化
-      final (globalSettingCubit, pluginRegistryCubit) = await _initServices();
+      final (globalSettingCubit, pluginRegistryCubit, csModeCubit) =
+          await _initServices();
 
       final comicFollowCubit = ComicFollowCubit();
 
@@ -158,6 +160,7 @@ Future<void> main(List<String> args) async {
           providers: [
             BlocProvider.value(value: globalSettingCubit),
             BlocProvider.value(value: pluginRegistryCubit),
+            BlocProvider.value(value: csModeCubit),
             BlocProvider.value(value: comicFollowCubit),
           ],
           child: const MyApp(),
@@ -208,7 +211,8 @@ Future<void> main(List<String> args) async {
     },
     appRunner: () async {
       try {
-        final (globalSettingCubit, pluginRegistryCubit) = await _initServices();
+        final (globalSettingCubit, pluginRegistryCubit, csModeCubit) =
+            await _initServices();
         final comicFollowCubit = ComicFollowCubit();
 
         await addArchitectureTagsToSentry();
@@ -219,6 +223,7 @@ Future<void> main(List<String> args) async {
               providers: [
                 BlocProvider.value(value: globalSettingCubit),
                 BlocProvider.value(value: pluginRegistryCubit),
+                BlocProvider.value(value: csModeCubit),
                 BlocProvider.value(value: comicFollowCubit),
               ],
               child: MyApp(),
@@ -232,7 +237,8 @@ Future<void> main(List<String> args) async {
   );
 }
 
-Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
+Future<(GlobalSettingCubit, PluginRegistryCubit, CsModeCubit)>
+_initServices() async {
   // 初始化rust
   await initRustLib();
 
@@ -306,6 +312,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   await FontProfileController.instance.init();
 
   final pluginRegistryCubit = PluginRegistryCubit();
+  final csModeCubit = CsModeCubit();
+  await csModeCubit.init();
 
   if (globalSettingCubit.state.needCleanCache) {
     await clearCache(await getCachePath());
@@ -350,7 +358,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   setTlsVerifyEnabled(enabled: false);
 
-  return (globalSettingCubit, pluginRegistryCubit);
+  return (globalSettingCubit, pluginRegistryCubit, csModeCubit);
 }
 
 Future<void> _tryApplyHttpProxyFromEnv() async {

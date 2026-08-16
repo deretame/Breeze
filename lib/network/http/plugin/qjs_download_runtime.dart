@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/plugin/utils/qjs_task_bytes_handle.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
@@ -233,13 +234,22 @@ Future<Uint8List> executeQjsFetchImageBytes({
   required String argsJson,
   String? runtimeName,
   String? taskGroupKey,
-}) => _runQjsTask(
-  pluginId: pluginId,
-  fnPath: fnPath,
-  argsJson: argsJson,
-  runtimeName: runtimeName,
-  taskGroupKey: taskGroupKey,
-);
+}) {
+  if (CsRuntimeContext.I.isCsMode) {
+    return CsRuntimeContext.I.invokePluginBytes(
+      pluginId: pluginId,
+      function: fnPath,
+      argsJson: argsJson,
+    );
+  }
+  return _runQjsTask(
+    pluginId: pluginId,
+    fnPath: fnPath,
+    argsJson: argsJson,
+    runtimeName: runtimeName,
+    taskGroupKey: taskGroupKey,
+  );
+}
 
 bool _shouldUseQjsCallOnce(String pluginId) {
   // return true;

@@ -33,7 +33,8 @@ async fn main() -> anyhow::Result<()> {
     let http_client = rquickjs_playground::build_http_client(&http_config)
         .context("failed to build the shared reqwest client")?;
 
-    let state = AppState::new(config.clone(), database, http_config, http_client);
+    let state = AppState::new(config.clone(), database, http_config, http_client)
+        .context("failed to initialize CS application state")?;
     let router = http::build_router(state.clone());
     let listener = TcpListener::bind(config.bind_addr())
         .await

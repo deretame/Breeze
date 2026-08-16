@@ -1,4 +1,14 @@
-use axum::{Json, Router, extract::State, routing::get};
+pub mod auth;
+mod error;
+mod library;
+mod plugin_api;
+mod settings;
+
+use axum::{
+    Json, Router,
+    extract::State,
+    routing::{get, post},
+};
 use serde::Serialize;
 
 use crate::app_state::AppState;
@@ -8,6 +18,17 @@ pub fn router() -> Router<AppState> {
         .route("/health", get(health))
         .route("/capabilities", get(capabilities))
         .route("/plugins", get(plugins))
+        .route("/plugins/{plugin_id}/invoke", post(plugin_api::invoke))
+        .route(
+            "/plugins/{plugin_id}/invoke-bytes",
+            post(plugin_api::invoke_bytes),
+        )
+        .nest("/auth", auth::router())
+        .route(
+            "/settings/account",
+            get(settings::get_account_settings).patch(settings::update_account_settings),
+        )
+        .nest("/library", library::router())
 }
 
 async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
@@ -29,9 +50,13 @@ async fn capabilities(State(state): State<AppState>) -> Json<CapabilitiesRespons
         server_download: state.config.server_download_enabled,
         browser_frontend: state.config.web_frontend_enabled(),
         plugin_runtime: PluginRuntimeCapabilityResponse {
-            quickjs: state.plugin_runtime.quickjs,
-            filesystem: state.plugin_runtime.filesystem,
-            cancellation: state.plugin_runtime.cancellation,
+            quickjs: state.plugin_capabilities.quickjs,
+            filesystem: state.plugin_capabilities.filesystem,
+            cancellation: state.plugin_capabilities.cancellation,
+        },
+        authentication: AuthenticationCapabilityResponse {
+            bearer_sessions: true,
+            registration: state.config.registration_enabled,
         },
         http: HttpCapabilityResponse {
             shared_reqwest_client: true,
@@ -74,6 +99,7 @@ struct CapabilitiesResponse {
     server_download: bool,
     browser_frontend: bool,
     plugin_runtime: PluginRuntimeCapabilityResponse,
+    authentication: AuthenticationCapabilityResponse,
     http: HttpCapabilityResponse,
 }
 
@@ -82,6 +108,12 @@ struct PluginRuntimeCapabilityResponse {
     quickjs: bool,
     filesystem: bool,
     cancellation: bool,
+}
+
+#[derive(Serialize)]
+struct AuthenticationCapabilityResponse {
+    bearer_sessions: bool,
+    registration: bool,
 }
 
 #[derive(Serialize)]

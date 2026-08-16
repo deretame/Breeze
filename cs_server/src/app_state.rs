@@ -12,7 +12,8 @@ pub struct AppState {
     #[allow(dead_code)]
     pub http_client: Client,
     pub http_config: rquickjs_playground::HttpClientConfig,
-    pub plugin_runtime: crate::plugin::PluginRuntimeCapabilities,
+    pub plugin_capabilities: crate::plugin::PluginRuntimeCapabilities,
+    pub plugin_runtime: Arc<crate::plugin::PluginRuntimeService>,
 }
 
 impl AppState {
@@ -21,13 +22,14 @@ impl AppState {
         database: Database,
         http_config: rquickjs_playground::HttpClientConfig,
         http_client: Client,
-    ) -> Self {
-        Self {
+    ) -> anyhow::Result<Self> {
+        Ok(Self {
             config,
             database,
             http_client,
             http_config,
-            plugin_runtime: crate::plugin::PluginRuntimeCapabilities::default(),
-        }
+            plugin_capabilities: crate::plugin::PluginRuntimeCapabilities::default(),
+            plugin_runtime: Arc::new(crate::plugin::PluginRuntimeService::new()),
+        })
     }
 }

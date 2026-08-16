@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:zephyr/cs/data/cs_api_client.dart';
 import 'package:zephyr/cs/domain/cs_connection_settings.dart';
+import 'package:zephyr/cs/data/cs_plugin_bridge_channel.dart';
 
 /// 给现有插件调用链提供一个不依赖 Flutter UI 的 CS dispatch 点。
 ///
@@ -15,6 +17,8 @@ class CsRuntimeContext {
 
   CsConnectionSettings _settings = const CsConnectionSettings();
   CsApiClient? _client;
+  final CsPluginBridgeChannel _bridgeChannel = CsPluginBridgeChannel();
+  String? _bridgeConnectionKey;
 
   /// 一旦选择 CS 模式就不静默回退到本地插件；未登录时由服务端返回 401，
   /// 由上层连接流程处理重新登录。
@@ -33,6 +37,33 @@ class CsRuntimeContext {
             accessToken: settings.accessToken,
           )
         : null;
+    _updateBridgeChannel(settings);
+  }
+
+  void _updateBridgeChannel(CsConnectionSettings settings) {
+    final accessToken = settings.accessToken?.trim();
+    final shouldConnect =
+        settings.isCsMode &&
+        settings.hasServer &&
+        accessToken != null &&
+        accessToken.isNotEmpty;
+    if (!shouldConnect) {
+      if (_bridgeConnectionKey != null) {
+        _bridgeConnectionKey = null;
+        unawaited(_bridgeChannel.close());
+      }
+      return;
+    }
+
+    final connectionKey = '${settings.serverUrl}\n$accessToken';
+    if (_bridgeConnectionKey == connectionKey) return;
+    _bridgeConnectionKey = connectionKey;
+    unawaited(
+      _bridgeChannel.connect(
+        serverUrl: settings.serverUrl,
+        accessToken: accessToken,
+      ),
+    );
   }
 
   Future<Map<String, dynamic>> invokePlugin({

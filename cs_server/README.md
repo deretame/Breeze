@@ -60,6 +60,7 @@ SQLite 使用 `rusqlite` 的 `bundled` feature，构建时嵌入官方 SQLite C 
 - `GET/PATCH /api/v1/settings/account`：按用户保存账号级设置，并用 revision 防止覆盖；
 - `GET/POST/DELETE /api/v1/library/{favorites|history|follows}`：按用户读写业务记录；
 - `GET/PATCH /api/v1/plugins/{pluginId}/config`：按用户保存插件配置，并用 revision 防止覆盖；
+- `GET /api/v1/ws?access_token={token}`：认证后的插件宿主回调 WebSocket；
 - `POST /api/v1/plugins/{pluginId}/invoke`：在用户隔离、无文件系统权限的 QuickJS runtime 中调用插件；
 - `POST /api/v1/plugins/{pluginId}/invoke-bytes`：调用返回图片等二进制数据的插件函数；
 - `POST /api/v1/plugins/{pluginId}/search`：调用插件搜索漫画；
@@ -75,6 +76,38 @@ SQLite 使用 `rusqlite` 的 `bundled` feature，构建时嵌入官方 SQLite C 
 服务端下载只有在 `BREEZE_SERVER_DOWNLOAD=true` 时才接受任务；任务会把图片保存到服务端私有资产目录，
 并通过用户隔离的 manifest 和 asset API 提供给客户端。插件登录挑战、数据导入导出和更细的权限管理仍属于后续增强项。
 本阶段不改变 Flutter 原有纯本地模式。
+
+### 插件宿主回调 WebSocket
+
+HTTP 是漫画业务请求的主通道，WebSocket 只负责把服务端 QuickJS 插件运行时需要的
+Flutter 宿主能力回传给当前用户的客户端。客户端可以通过 query 参数或 `Authorization: Bearer`
+请求头携带会话 token：
+
+```text
+GET /api/v1/ws?access_token=<session-token>
+```
+
+当前协议是 JSON request/response：
+
+```json
+{
+  "type": "bridge.request",
+  "requestId": "...",
+  "method": "dart.getLocaleInfo",
+  "args": ["runtime-name"]
+}
+```
+
+客户端使用相同的 `requestId` 返回 `bridge.response`，成功时填写 `ok: true` 和 `result`，
+失败时填写 `ok: false` 和 `error`。目前转发的注册函数是：
+
+- `dart.getAppVersion`
+- `dart.getLocaleInfo`
+- `flutter.showToast`
+
+Flutter 客户端在 CS 模式启用且拥有有效会话 token 时会自动连接该通道；WebSocket 暂时不可用时，
+HTTP 请求仍可使用，但调用上述宿主函数的插件操作会得到明确的 bridge 错误。未来独立 Web 前端
+可以复用同一协议实现浏览器侧的本地化信息和通知展示。
 
 ### 安装插件 bundle
 
@@ -117,6 +150,6 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\script\test_cs_server.ps1
 这份测试会使用和 Flutter 本体 `PluginInstallService` 相同的云端目录、CDN 顺序、
 `.cjs.br` Brotli 解码和 `.cjs` 回退逻辑，实际下载一个云端插件并安装到临时服务端，
 然后覆盖服务端连通性、HTML 直出、认证/注销、错误状态、SQLite 用户隔离、账号设置、
-插件配置 revision、真实插件 `getInfo`/搜索、QuickJS 语义接口、二进制调用、服务端下载
+插件配置 revision、WebSocket 宿主回调、真实插件 `getInfo`/搜索、QuickJS 语义接口、二进制调用、服务端下载
 任务、manifest、图片资源、ETag、取消边界和跨用户访问控制。测试数据只写入临时目录，
 测试结束后会清理，不会改动 `cs_server/data` 或安装真实插件到开发环境。

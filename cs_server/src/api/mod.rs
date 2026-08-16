@@ -1,7 +1,7 @@
 mod admin;
 pub mod auth;
 mod downloads;
-mod error;
+pub(crate) mod error;
 mod library;
 mod plugin_api;
 mod plugin_config;
@@ -20,6 +20,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/health", get(health))
         .route("/capabilities", get(capabilities))
+        .route("/ws", get(crate::websocket::upgrade))
         .route("/plugins", get(plugins))
         .route("/plugins/{plugin_id}", get(plugin_api::plugin_detail))
         .route("/plugins/{plugin_id}/invoke", post(plugin_api::invoke))

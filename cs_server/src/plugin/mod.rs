@@ -36,9 +36,13 @@ pub struct PluginRuntimeService {
 }
 
 impl PluginRuntimeService {
-    pub fn new(database: Database) -> anyhow::Result<Self> {
+    pub fn new(
+        database: Database,
+        websocket_hub: std::sync::Arc<crate::websocket::WebSocketHub>,
+    ) -> anyhow::Result<Self> {
         register_config_routes(database)?;
         cache::register_cache_routes()?;
+        websocket_hub.register_bridge_routes()?;
         Ok(Self {
             options: runtime_options(),
             runtimes: Mutex::new(HashMap::new()),
@@ -206,6 +210,8 @@ fn runtime_scope(runtime: &str) -> anyhow::Result<(String, String)> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use crate::db::Database;
     use serde_json::json;
 
@@ -213,8 +219,11 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn invokes_a_bundle_in_a_user_scoped_runtime() {
-        let service =
-            PluginRuntimeService::new(test_database()).expect("service should initialize");
+        let service = PluginRuntimeService::new(
+            test_database(),
+            Arc::new(crate::websocket::WebSocketHub::default()),
+        )
+        .expect("service should initialize");
         let source = r#"
             module.exports = {
               echo: async (value) => ({ value }),

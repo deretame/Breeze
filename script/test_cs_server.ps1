@@ -25,6 +25,7 @@ $TempRoot = Join-Path ([IO.Path]::GetTempPath()) ('breeze-cs-smoke-' + [Guid]::N
 $ServerProcess = $null
 $ServerStdout = $null
 $ServerStderr = $null
+$TestWebSocket = $null
 $Passed = 0
 $Completed = $false
 
@@ -79,7 +80,11 @@ function Invoke-Api {
             Headers = $response.Headers
         }
     } catch {
-        $httpResponse = $_.Exception.Response
+        $exception = $_.Exception
+        $httpResponse = $null
+        if ($exception.PSObject.Properties.Name -contains 'Response') {
+            $httpResponse = $exception.Response
+        }
         if ($null -eq $httpResponse) {
             throw
         }
@@ -109,6 +114,112 @@ function Invoke-Api {
             Body = $errorBody
             Headers = $responseHeaders
         }
+    }
+}
+
+function Open-TestWebSocket([string]$Url) {
+    $socket = [Net.WebSockets.ClientWebSocket]::new()
+    $socket.ConnectAsync(
+        [Uri]$Url,
+        [Threading.CancellationToken]::None
+    ).GetAwaiter().GetResult() | Out-Null
+    return $socket
+}
+
+function Receive-TestWebSocketText([Net.WebSockets.ClientWebSocket]$Socket) {
+    $buffer = [byte[]]::new(4096)
+    $stream = [IO.MemoryStream]::new()
+    try {
+        do {
+            $result = $Socket.ReceiveAsync(
+                [ArraySegment[byte]]::new($buffer),
+                [Threading.CancellationToken]::None
+            ).GetAwaiter().GetResult()
+            if ($result.MessageType -eq [Net.WebSockets.WebSocketMessageType]::Close) {
+                throw '测试 WebSocket 被服务端关闭'
+            }
+            $stream.Write($buffer, 0, $result.Count)
+        } while (-not $result.EndOfMessage)
+        return [Text.Encoding]::UTF8.GetString($stream.ToArray())
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+function Send-TestWebSocketJson(
+    [Net.WebSockets.ClientWebSocket]$Socket,
+    [hashtable]$Payload
+) {
+    $bytes = [Text.Encoding]::UTF8.GetBytes(($Payload | ConvertTo-Json -Compress -Depth 10))
+    $Socket.SendAsync(
+        [ArraySegment[byte]]::new($bytes),
+        [Net.WebSockets.WebSocketMessageType]::Text,
+        $true,
+        [Threading.CancellationToken]::None
+    ).GetAwaiter().GetResult() | Out-Null
+}
+
+function Start-AsyncPluginInvoke(
+    [string]$PluginId,
+    [string]$Function,
+    [hashtable]$Headers
+) {
+    $client = [Net.Http.HttpClient]::new()
+    $request = [Net.Http.HttpRequestMessage]::new(
+        [Net.Http.HttpMethod]::Post,
+        "$BaseUrl/api/v1/plugins/$([Uri]::EscapeDataString($PluginId))/invoke"
+    )
+    foreach ($header in $Headers.GetEnumerator()) {
+        if ($header.Key -eq 'Authorization') {
+            $request.Headers.TryAddWithoutValidation($header.Key, $header.Value) | Out-Null
+        } else {
+            $request.Headers.TryAddWithoutValidation($header.Key, $header.Value) | Out-Null
+        }
+    }
+    $body = @{ function = $Function; args = @() } | ConvertTo-Json -Compress -Depth 5
+    $request.Content = [Net.Http.StringContent]::new(
+        $body,
+        [Text.Encoding]::UTF8,
+        'application/json'
+    )
+    return [pscustomobject]@{
+        Client = $client
+        Request = $request
+        Task = $client.SendAsync($request)
+    }
+}
+
+function Invoke-PluginThroughTestWebSocket(
+    [string]$PluginId,
+    [string]$Function,
+    [hashtable]$Headers,
+    [string]$ExpectedBridgeMethod,
+    [string]$BridgeResult
+) {
+    $pending = Start-AsyncPluginInvoke -PluginId $PluginId -Function $Function -Headers $Headers
+    try {
+        $bridgeRequest = Convert-JsonBody (Receive-TestWebSocketText $TestWebSocket)
+        Assert-True ($bridgeRequest.type -eq 'bridge.request') 'WebSocket 应收到 bridge.request'
+        Assert-True ($bridgeRequest.method -eq $ExpectedBridgeMethod) "WebSocket bridge method 应为 $ExpectedBridgeMethod"
+        Assert-True (@($bridgeRequest.args).Count -ge 1) 'WebSocket bridge args 应包含 runtime'
+        Send-TestWebSocketJson -Socket $TestWebSocket -Payload @{
+            type = 'bridge.response'
+            requestId = [string]$bridgeRequest.requestId
+            ok = $true
+            result = $BridgeResult
+        }
+        $httpResponse = $pending.Task.GetAwaiter().GetResult()
+        $body = $httpResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+        $response = [pscustomobject]@{
+            Status = [int]$httpResponse.StatusCode
+            Body = $body
+            Headers = @{}
+        }
+        Assert-Status $response 200 "WebSocket bridge 后的插件调用 $Function"
+        return Convert-JsonBody $body
+    } finally {
+        $pending.Request.Dispose()
+        $pending.Client.Dispose()
     }
 }
 
@@ -335,6 +446,10 @@ try {
 module.exports = {
   getInfo: async () => ({ uuid: "cs-smoke", name: "CS Smoke", version: "1.0.0", icon: "", description: "test" }),
   echo: async (value) => ({ value }),
+  getLocaleInfo: async () => await bridge.call("dart.getLocaleInfo"),
+  getAppVersion: async () => await bridge.call("dart.getAppVersion"),
+  showToast: async () => { await bridge.call("flutter.showToast", { message: "CS bridge toast", level: "info" }); return { ok: true }; },
+  configRoundTrip: async () => { await bridge.call("save_plugin_config", "bridge-key", "bridge-value"); return JSON.parse(await bridge.call("load_plugin_config", "bridge-key", "fallback")); },
   searchComic: async (request) => ({ data: { comics: [{ id: "comic-1", title: request.keyword || "smoke" }] } }),
   getComicDetail: async (request) => ({ data: { comic: { id: request.comicId, title: "Smoke Comic", chapters: [{ id: "chapter-1", title: "Chapter 1" }] } } }),
   getChapter: async (request) => ({ data: { chapter: { id: request.chapterId, pages: [{ url: "https://example.invalid/smoke", name: "1" }] } } }),
@@ -346,6 +461,39 @@ module.exports = {
     } | ConvertTo-Json -Compress -Depth 4
     $installSmoke = Invoke-Api -Method PUT -Url "$BaseUrl/api/v1/admin/plugins/cs-smoke" -Headers @{ 'X-Breeze-Admin-Token' = $AdminToken } -Body $installBody
     Assert-Status $installSmoke 200 '安装确定性下载测试插件'
+
+    $webSocketBaseUrl = $BaseUrl -replace '^http://', 'ws://' -replace '^https://', 'wss://'
+    $TestWebSocket = Open-TestWebSocket "$webSocketBaseUrl/api/v1/ws?access_token=$([Uri]::EscapeDataString($tokenA))"
+    Pass '用户 A WebSocket bridge 连通'
+    $localeBridgeResult = Invoke-PluginThroughTestWebSocket `
+        -PluginId 'cs-smoke' `
+        -Function 'getLocaleInfo' `
+        -Headers $authA `
+        -ExpectedBridgeMethod 'dart.getLocaleInfo' `
+        -BridgeResult '{"language":"zh","locale":"zh-CN","timezoneName":"Asia/Shanghai"}'
+    Assert-True ([string]$localeBridgeResult -like '*language*') '插件应收到 WebSocket 返回的本地化信息'
+    Pass 'dart.getLocaleInfo 通过 WebSocket 往返'
+    $versionBridgeResult = Invoke-PluginThroughTestWebSocket `
+        -PluginId 'cs-smoke' `
+        -Function 'getAppVersion' `
+        -Headers $authA `
+        -ExpectedBridgeMethod 'dart.getAppVersion' `
+        -BridgeResult '"test-app-version"'
+    Assert-True (-not [string]::IsNullOrWhiteSpace([string]$versionBridgeResult)) '插件应收到 WebSocket 返回的应用版本'
+    Pass 'dart.getAppVersion 通过 WebSocket 往返'
+    $toastBridgeResult = Invoke-PluginThroughTestWebSocket `
+        -PluginId 'cs-smoke' `
+        -Function 'showToast' `
+        -Headers $authA `
+        -ExpectedBridgeMethod 'flutter.showToast' `
+        -BridgeResult ''
+    Assert-True (([string]($toastBridgeResult | ConvertTo-Json -Compress -Depth 5)).Contains('ok')) '插件通知调用应返回成功'
+    Pass 'flutter.showToast 通过 WebSocket 往返'
+
+    $configBridge = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authA -Body (@{ function = 'configRoundTrip'; args = @() } | ConvertTo-Json -Compress)
+    Assert-Status $configBridge 200 '插件配置 bridge 调用'
+    Assert-True ((Convert-JsonBody $configBridge.Body).value -eq 'bridge-value') '插件配置 bridge 应支持保存后读取'
+    Pass 'load_plugin_config/save_plugin_config 由服务端 SQLite 处理'
 
     $realInstallBody = @{ version = $realPlugin.Version; bundle = $realPlugin.Bundle; enabled = $true } | ConvertTo-Json -Compress -Depth 4
     $installReal = Invoke-Api -Method PUT -Url "$BaseUrl/api/v1/admin/plugins/$($realPlugin.Uuid)" -Headers @{ 'X-Breeze-Admin-Token' = $AdminToken } -Body $realInstallBody
@@ -481,6 +629,14 @@ module.exports = {
     $Completed = $true
     Write-Host "`nCS server smoke test 完成：$Passed 项断言全部通过。" -ForegroundColor Green
 } finally {
+    if ($null -ne $TestWebSocket) {
+        try {
+            $TestWebSocket.Abort()
+            $TestWebSocket.Dispose()
+        } catch {
+            Write-Host "[WARN] 停止测试 WebSocket 失败: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
     Stop-TestServer
     if (-not $Completed -and $null -ne $ServerStderr) {
         try {

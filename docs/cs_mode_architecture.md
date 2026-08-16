@@ -1,6 +1,6 @@
 # Breeze CS 模式兼容架构设计
 
-> 状态：CS 架构与第一版端到端实现。当前已落地 `cs_server`、SQLite v3、用户会话、账号设置、收藏/历史/追更 API、按用户隔离的 QuickJS 调用边界、插件配置、插件语义接口、可选服务端下载、Flutter 侧 CS Service/Repository 抽象，以及独立的 React `cs_web` 前端。Flutter 原有纯本地模式仍保留；插件登录挑战、数据导入导出和更细的权限管理属于后续增强项。
+> 状态：CS 架构与第一版端到端实现。当前已落地 `cs_server`、SQLite v3、用户会话、账号设置、收藏/历史/追更 API、按用户隔离的 QuickJS 调用边界、插件配置、插件语义接口、可选服务端下载、Flutter 侧 CS Service/Repository 抽象、认证 WebSocket 宿主回调通道，以及独立的 React `cs_web` 前端。Flutter 原有纯本地模式仍保留；插件登录挑战、数据导入导出和更细的权限管理属于后续增强项。
 >
 > 目标：在保留现有纯本地模式的前提下，增加可选的 Client/Server（CS）模式。用户可以继续把 Breeze 当作现在的本地应用使用，也可以在设置中连接一个 Breeze 服务端，将指定能力切换到服务端。
 
@@ -453,7 +453,7 @@ CS 服务端默认开启 TLS 校验。即使现有 Flutter 应用为了兼容图
 - `POST /api/v1/plugins/{pluginId}/comic/{comicId}/chapter`
 - `POST /api/v1/plugins/{pluginId}/comic/{comicId}/read`
 - `GET /api/v1/plugins/{pluginId}/assets/{assetToken}`
-- `GET /api/v1/events` 或 WebSocket 事件通道
+- `GET /api/v1/ws?access_token={token}`：认证后的插件宿主回调 WebSocket
 
 统一调用请求至少应包含：
 
@@ -479,12 +479,19 @@ CS 服务端默认开启 TLS 校验。即使现有 Flutter 应用为了兼容图
 - 支持按请求取消；
 - 插件运行失败不能拖垮整个服务端进程。
 
-当前客户端的 `dart.getLocaleInfo`、`flutter.showToast` 等宿主回调不能原样迁移：
+当前客户端在 `lib/plugin/bridge` 注册的宿主回调按职责分开处理：
 
-- 语言、时区作为请求上下文传给服务端；
-- Toast 等 UI 行为转成通知/提示事件，由客户端显示；
-- `load_plugin_config` / `save_plugin_config` 改由服务端插件配置仓储实现；
+- `dart.getAppVersion`、`dart.getLocaleInfo` 和 `flutter.showToast` 通过认证 WebSocket 在服务端插件运行时与 Flutter 客户端之间 request/response；
+- `flutter.showToast` 由 Flutter 客户端收到请求后继续使用现有通知实现，不把 UI 行为伪造为服务端结果；
+- `load_plugin_config` / `save_plugin_config` 由服务端插件配置仓储实现，并继续按用户和插件隔离；
+- WebSocket 断开时不阻塞普通 HTTP 请求，但依赖宿主回调的插件调用会返回可识别的 bridge 错误；
 - 插件需要文件系统时，改成受限的插件私有 KV/文件存储 API，不能直接获得服务端根目录。
+
+WebSocket 消息格式固定为 JSON。服务端发送 `bridge.request`，至少包含 `requestId`、`method`
+和 `args`；客户端使用相同 `requestId` 返回 `bridge.response`，成功返回 `ok: true` 与 `result`，
+失败返回 `ok: false` 与 `error`。Flutter 客户端在 CS 模式启用并完成登录后自动连接
+`/api/v1/ws`。独立 Web 前端尚未实现，但服务端已经保留相同的浏览器可用协议；浏览器后续只需
+实现这三个回调即可。
 
 ### 8.2 插件包管理
 

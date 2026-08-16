@@ -16,63 +16,73 @@ void _register(
   registerFunction(functionName: functionName, dartCallback: dartCallback);
 }
 
+Future<String> getDartAppVersionPayload() async {
+  return jsonEncode(await getAppVersion());
+}
+
+Future<String> getDartLocaleInfoPayload() async {
+  final appLocale = LocaleSettings.currentLocale;
+  final info = await SystemLocaleService.getInfo();
+  final timeZoneIANA = info.timeZoneName;
+
+  return jsonEncode({
+    'language': appLocale.languageCode,
+    'locale': formatLocaleBcp47(
+      locale: I18nHelper.toFlutterLocale(appLocale).toLanguageTag(),
+    ),
+    'systemLocale': info.rawLocale,
+    'timezoneOffset': info.formattedTimeZone,
+    'timezoneOffsetMinutes': info.timeZoneOffset.inMinutes,
+    'timezoneName': timeZoneIANA,
+    'timeZone': timeZoneIANA,
+    'timeZoneIANA': timeZoneIANA,
+  });
+}
+
+Future<String> handleFlutterShowToastPayload(String data) async {
+  final args = jsonDecode(data) as List<dynamic>;
+  final payload = args[1];
+  final json = payload is String
+      ? jsonDecode(payload) as Map<String, dynamic>
+      : payload as Map<String, dynamic>;
+  final message = json['message'] as String? ?? '';
+  final title = json['title'] as String?;
+  final level = json['level'] as String? ?? 'info';
+
+  final int? customSeconds = json['seconds'] as int?;
+  final Duration duration = Duration(
+    seconds: customSeconds ?? (level == 'error' ? 5 : 2),
+  );
+
+  switch (level) {
+    case 'info':
+      showInfoToast(message, title: title, duration: duration);
+      break;
+    case 'success':
+      showSuccessToast(message, title: title, duration: duration);
+      break;
+    case 'warning':
+      showWarningToast(message, title: title, duration: duration);
+      break;
+    case 'error':
+      showErrorToast(message, title: title, duration: duration);
+      break;
+    default:
+      showInfoToast(message, title: title, duration: duration);
+      break;
+  }
+
+  return '';
+}
+
 void registerDartTools() {
   _register("dart.getAppVersion", (_) async {
-    return jsonEncode(await getAppVersion());
+    return getDartAppVersionPayload();
   });
 
   _register('dart.getLocaleInfo', (_) async {
-    final appLocale = LocaleSettings.currentLocale;
-    final info = await SystemLocaleService.getInfo();
-    final timeZoneIANA = info.timeZoneName;
-
-    return jsonEncode({
-      'language': appLocale.languageCode,
-      'locale': formatLocaleBcp47(
-        locale: I18nHelper.toFlutterLocale(appLocale).toLanguageTag(),
-      ),
-      'systemLocale': info.rawLocale,
-      'timezoneOffset': info.formattedTimeZone,
-      'timezoneOffsetMinutes': info.timeZoneOffset.inMinutes,
-      'timezoneName': timeZoneIANA,
-      'timeZone': timeZoneIANA,
-      'timeZoneIANA': timeZoneIANA,
-    });
+    return getDartLocaleInfoPayload();
   });
 
-  _register('flutter.showToast', (String data) async {
-    final args = jsonDecode(data) as List<dynamic>;
-    final payload = args[1];
-    final json = payload is String
-        ? jsonDecode(payload) as Map<String, dynamic>
-        : payload as Map<String, dynamic>;
-    final message = json['message'] as String? ?? '';
-    final title = json['title'] as String?;
-    final level = json['level'] as String? ?? 'info';
-
-    final int? customSeconds = json['seconds'] as int?;
-    final Duration duration = Duration(
-      seconds: customSeconds ?? (level == 'error' ? 5 : 2),
-    );
-
-    switch (level) {
-      case 'info':
-        showInfoToast(message, title: title, duration: duration);
-        break;
-      case 'success':
-        showSuccessToast(message, title: title, duration: duration);
-        break;
-      case 'warning':
-        showWarningToast(message, title: title, duration: duration);
-        break;
-      case 'error':
-        showErrorToast(message, title: title, duration: duration);
-        break;
-      default:
-        showInfoToast(message, title: title, duration: duration);
-        break;
-    }
-
-    return '';
-  });
+  _register('flutter.showToast', handleFlutterShowToastPayload);
 }

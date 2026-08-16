@@ -6,11 +6,16 @@ use flutter_rust_bridge::frb;
 use rquickjs_playground::{configure_http_client, current_http_client_config};
 use std::sync::Once;
 use std::sync::atomic::Ordering;
+use tokio::sync::Semaphore;
 use xxhash_rust::xxh3::xxh3_128;
 
 static ENABLE_STACKTRACE: Once = Once::new();
 static ENABLE_LOG: Once = Once::new();
 static INIT_ONCE: Once = Once::new();
+
+const MAX_ANTI_OBFUSCATION_CONCURRENCY: usize = 4;
+static ANTI_OBFUSCATION_SEMAPHORE: Semaphore =
+    Semaphore::const_new(MAX_ANTI_OBFUSCATION_CONCURRENCY);
 
 #[frb(init)]
 pub fn init_app() {
@@ -53,8 +58,18 @@ pub async fn sleep_test() -> Result<String> {
 pub async fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
     // 反混淆是 CPU 密集的阻塞操作（图像解码/分块重排/webp 编码/落盘），
     // 放到进程级全局 runtime 的阻塞线程池上执行，避免占用 FRB 的线程。
+    // 在提交阻塞任务前限流，避免多个章节同时处理时占满 CPU 造成主机卡顿。
+    let permit = ANTI_OBFUSCATION_SEMAPHORE
+        .acquire()
+        .await
+        .map_err(|err| anyhow!("anti-obfuscation limiter closed: {err}"))?;
+
     rquickjs_playground::global_handle()
-        .spawn_blocking(move || decode::segmentation_picture_to_disk(image_info))
+        .spawn_blocking(move || {
+            // 许可必须覆盖整个阻塞任务的生命周期，而不是只覆盖任务提交过程。
+            let _permit = permit;
+            decode::segmentation_picture_to_disk(image_info)
+        })
         .await
         .map_err(|err| anyhow!("anti-obfuscation task failed: {err}"))?
 }

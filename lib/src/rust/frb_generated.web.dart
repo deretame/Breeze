@@ -213,9 +213,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QjsRuntimeBundleBuild dco_decode_qjs_runtime_bundle_build(dynamic raw);
 
   @protected
-  QjsTaskBytes dco_decode_qjs_task_bytes(dynamic raw);
-
-  @protected
   (String, String) dco_decode_record_string_string(dynamic raw);
 
   @protected
@@ -427,9 +424,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QjsRuntimeBundleBuild sse_decode_qjs_runtime_bundle_build(
     SseDeserializer deserializer,
   );
-
-  @protected
-  QjsTaskBytes sse_decode_qjs_task_bytes(SseDeserializer deserializer);
 
   @protected
   (String, String) sse_decode_record_string_string(
@@ -692,9 +686,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     QjsRuntimeBundleBuild self,
     SseSerializer serializer,
   );
-
-  @protected
-  void sse_encode_qjs_task_bytes(QjsTaskBytes self, SseSerializer serializer);
 
   @protected
   void sse_encode_record_string_string(

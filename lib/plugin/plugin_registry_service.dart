@@ -12,7 +12,6 @@ import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
-import 'package:zephyr/plugin/utils/qjs_task_bytes_handle.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -193,20 +192,15 @@ class PluginRegistryService {
 
     final onceRuntimeName = 'plugin_info_${uuid.replaceAll('-', '_')}';
     final bundleJs = await _resolveBundleJs(plugin);
-    final handle = wrapQjsTaskBytes(await qjsTaskCall(
+    final bytes = await qjsTaskCall(
       runtimeName: onceRuntimeName,
       taskGroupKey: '',
       isOnce: true,
       bundleJs: bundleJs,
       fnPath: 'getInfo',
       argsJson: '{}',
-    ));
-    final String raw;
-    try {
-      raw = handle.utf8Decode();
-    } finally {
-      handle.free(); // 幂等：utf8Decode 已释放，这里兜底异常路径
-    }
+    );
+    final raw = utf8.decode(bytes, allowMalformed: true);
     final decoded = requireJsonMap(jsonDecode(raw));
     _pluginInfoCache[uuid] = decoded;
     await updateLoadResult(uuid, success: true, error: null);

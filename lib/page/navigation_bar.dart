@@ -117,6 +117,9 @@ class _NavigationBarState extends State<NavigationBar> {
   @override
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    // 开关仅在 Android 展示；同时限制实际行为，避免同步设置后影响其他平台。
+    final backPressExitEnabled =
+        Platform.isAndroid && globalSettingState.backPressExitEnabled;
     final pageList = _buildPageList(globalSettingState.oldPageRollbackEnabled);
     final navBarItems = _navBarItems(globalSettingState.oldPageRollbackEnabled);
     final navRailDestinations = _navRailDestinations(
@@ -147,7 +150,7 @@ class _NavigationBarState extends State<NavigationBar> {
             return _buildMobileLayout(
               pageList: pageList,
               navBarItems: navBarItems,
-              backPressExitEnabled: globalSettingState.backPressExitEnabled,
+              backPressExitEnabled: backPressExitEnabled,
             );
           }
         },
@@ -160,13 +163,16 @@ class _NavigationBarState extends State<NavigationBar> {
     required List<PersistentBottomNavBarItem> navBarItems,
     required bool backPressExitEnabled,
   }) {
-    final tabView = PersistentTabView(
+    return PersistentTabView(
       context,
       controller: _controller,
       screens: pageList,
       items: navBarItems,
       backgroundColor: context.backgroundColor,
+      // 由组件自身的 PopScope 接收返回事件。此前把 PopScope 包在组件外层，
+      // 容易被每个 tab 的内部 Navigator 先消费，导致开关看起来没有效果。
       handleAndroidBackButtonPress: !backPressExitEnabled,
+      onWillPop: backPressExitEnabled ? _handleExitOnBack : null,
       resizeToAvoidBottomInset: false,
       hideNavigationBarWhenKeyboardAppears: false,
       stateManagement: true,
@@ -177,29 +183,22 @@ class _NavigationBarState extends State<NavigationBar> {
         });
       },
     );
-    if (!backPressExitEnabled) {
-      return tabView;
+  }
+
+  Future<bool> _handleExitOnBack(BuildContext? _) async {
+    // 子页面仍由 PersistentTabView 的内部 Navigator 正常返回；只有当前 tab
+    // 已无子页面时才会调用这里。
+    if (_controller.index != 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      _controller.jumpToTab(0);
+      return false;
     }
-    // 开启"返回键退出"后：非第一个 tab 先切回第一个 tab，
-    // 已在第一个 tab 时尝试弹出根导航栈，已无可弹页面则退出应用
-    return PopScope<Object?>(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        if (_controller.index != 0) {
-          setState(() {
-            _selectedIndex = 0;
-          });
-          _controller.jumpToTab(0);
-          return;
-        }
-        final canPop = await appRouter.maybePop();
-        if (!canPop && Platform.isAndroid) {
-          SystemNavigator.pop();
-        }
-      },
-      child: tabView,
-    );
+
+    await SystemNavigator.pop();
+    // 已由系统关闭 Activity，不再让组件继续 pop 根路由。
+    return false;
   }
 
   // 平板布局 (使用 NavigationRail)

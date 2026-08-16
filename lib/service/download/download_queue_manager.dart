@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -470,12 +471,24 @@ bool _isTaskGoneOrCompleted(String comicId) {
 
 /// 启动一个下载任务。
 ///
-/// 所有平台都会把任务写入数据库，由 [DownloadQueueManager] 统一调度。
-/// Android 端会确保前台服务在跑（若保活已开启则复用），前台服务本身不管理下载逻辑。
+/// 本地模式和 CS 客户端下载模式会写入本地数据库，由 [DownloadQueueManager] 调度。
+/// CS 服务端下载模式只创建远程任务，不写入本地下载任务表；Android 前台服务也不会启动。
 Future<void> startDownloadTask(DownloadTaskJson task) async {
   logger.d(
     'startDownloadTask: comicId=${task.comicId}, comicName=${task.comicName}',
   );
+
+  if (CsRuntimeContext.I.isServerDownload) {
+    await CsRuntimeContext.I.createServerDownload(
+      pluginId: task.from,
+      comicId: task.comicId,
+      chapterIds: task.chapterRefs
+          .map((chapter) => chapter.chapterId)
+          .where((chapterId) => chapterId.trim().isNotEmpty)
+          .toList(),
+    );
+    return;
+  }
 
   DownloadQueueManager.instance.addTask(task);
 

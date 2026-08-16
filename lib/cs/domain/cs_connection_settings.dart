@@ -4,8 +4,8 @@ enum CsDownloadMode { client, server }
 
 /// CS 连接与运行模式配置。
 ///
-/// 服务地址、模式和下载归属属于设备级配置；访问令牌只在内存中的
-/// [CsModeService] / [CsApiClient] 中保留，不写入普通配置存储。
+/// 服务地址、模式和下载归属属于设备级配置；访问令牌不进入普通 JSON 配置，
+/// 由 [CsConnectionStore] 通过系统安全存储恢复到内存中的 [CsModeService]。
 class CsConnectionSettings {
   const CsConnectionSettings({
     this.mode = CsRunMode.local,
@@ -22,7 +22,7 @@ class CsConnectionSettings {
   final CsDownloadMode downloadMode;
   final int? lastServerRevision;
 
-  /// 运行时会话令牌，不参与 [toJson] 持久化。
+  /// 运行时会话令牌，不参与普通 [toJson] 持久化。
   final String? accessToken;
 
   bool get isCsMode => mode == CsRunMode.cs;

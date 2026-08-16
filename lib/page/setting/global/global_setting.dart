@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/cs/cs.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
@@ -77,6 +78,21 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             title: t.settings.contentAndNetwork,
             subtitle: '${t.settings.maskedKeywords} · ${t.settings.proxy}',
             onTap: () => _openSubPage(const ContentNetworkSettingRoute()),
+          ),
+          const Divider(height: 1, thickness: 0.3),
+          BlocBuilder<CsModeCubit, CsConnectionSettings>(
+            builder: (context, csSettings) {
+              final mode = csSettings.isCsMode ? '已启用 CS' : '当前为本地模式';
+              final server = csSettings.hasServer
+                  ? csSettings.serverUrl
+                  : '未配置服务端';
+              return settingCategoryTile(
+                icon: Icons.devices_other_outlined,
+                title: 'CS 模式',
+                subtitle: '$mode · $server',
+                onTap: () => showCsModeSettingsDialog(context),
+              );
+            },
           ),
           const Divider(height: 1, thickness: 0.3),
           settingCategoryTile(

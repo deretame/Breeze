@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/cs/cs.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
@@ -17,6 +18,9 @@ class BookshelfPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (context.watch<CsModeCubit>().state.isCsMode) {
+      return const CsRemoteShelfPage();
+    }
     final bookshelfSetting = context
         .read<GlobalSettingCubit>()
         .state

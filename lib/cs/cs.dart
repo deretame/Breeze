@@ -9,3 +9,4 @@ export 'domain/cs_connection_settings.dart';
 export 'domain/cs_library_record.dart';
 export 'domain/library_repository.dart';
 export 'domain/plugin_gateway.dart';
+export 'presentation/cs_mode_settings_dialog.dart';

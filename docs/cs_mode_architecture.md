@@ -1,6 +1,6 @@
 # Breeze CS 模式兼容架构设计
 
-> 状态：架构方案与 CS 基础实现。当前已落地 `cs_server`、SQLite v2、用户会话、账号设置、收藏/历史/追更 API、用户隔离 QuickJS 调用边界，以及 Flutter 侧的 CS Service/Repository 抽象；服务端下载和 Flutter 启动协调器按后续阶段继续实现。`cs_web` 暂停扩展。
+> 状态：CS 架构与第一版端到端实现。当前已落地 `cs_server`、SQLite v3、用户会话、账号设置、收藏/历史/追更 API、按用户隔离的 QuickJS 调用边界、插件配置、插件语义接口、可选服务端下载、Flutter 侧 CS Service/Repository 抽象，以及独立的 React `cs_web` 前端。Flutter 原有纯本地模式仍保留；插件登录挑战、数据导入导出和更细的权限管理属于后续增强项。
 >
 > 目标：在保留现有纯本地模式的前提下，增加可选的 Client/Server（CS）模式。用户可以继续把 Breeze 当作现在的本地应用使用，也可以在设置中连接一个 Breeze 服务端，将指定能力切换到服务端。
 
@@ -46,7 +46,7 @@ Breeze/
 │     ├─ plugin/
 │     ├─ download/
 │     └─ storage/
-├─ cs_web/                            # 预留：独立浏览器前端工程，不是 Flutter Web
+├─ cs_web/                            # 独立浏览器前端工程，不是 Flutter Web
 │  ├─ package.json                    # pnpm 脚本和 packageManager 版本
 │  ├─ pnpm-lock.yaml
 │  ├─ eslint.config.*                 # ESLint 配置
@@ -59,7 +59,7 @@ Breeze/
 
 `cs_server` 是放在 Breeze 项目根目录下的独立 Cargo package，不要求把整个 Flutter 工程改成 Cargo workspace。服务端通过 path dependency 直接依赖 `rust/rquickjs_playground`，保留单独的 `Cargo.lock` 和服务端构建入口。
 
-`cs_web` 只是未来浏览器前端的预留位置。它应当是独立的 HTML/CSS/JavaScript 前端工程，但不能把当前 Flutter 项目编译成 Flutter Web 来替代它。浏览器前端和 Flutter 客户端都只消费同一套版本化服务端 API。
+`cs_web` 是独立的 HTML/CSS/JavaScript 前端工程，不能把当前 Flutter 项目编译成 Flutter Web 来替代它。浏览器前端和 Flutter 客户端都只消费同一套版本化服务端 API。当前第一版已经覆盖登录、总览、漫画搜索、详情、阅读器、书架、下载任务和连接设置，并由 `cs_server` 直接托管静态资源。
 
 本方案为 `cs_web` 选择以下技术栈：
 
@@ -69,6 +69,40 @@ Breeze/
 - pnpm：唯一的前端包管理器，提交 `pnpm-lock.yaml`，不使用 npm 或 yarn 维护依赖。
 
 这只是独立浏览器前端的实现选择，不会影响 Flutter 客户端和 Rust 服务端的技术栈。
+
+### `cs_web` 状态管理与 UI 组件
+
+从长期可维护性、多人协作和 CS 场景的服务端数据特征考虑，状态管理采用：
+
+- **Redux Toolkit**：管理跨页面的客户端状态，例如登录会话、CS/本地运行模式、阅读器设置、下载任务展示状态和筛选条件。使用现代 Redux 写法，不直接采用传统 Redux 的手写 action/reducer 模式；
+- **RTK Query**：管理服务端状态，例如漫画列表、插件调用结果、收藏、历史、追更、分页、缓存、请求去重和失效刷新。服务端数据不应全部手动复制到普通 Redux slice 中；
+- React 组件自身的 `useState`：只承载弹窗开关、输入框内容等短生命周期的局部 UI 状态。
+
+因此，推荐的组合为 `@reduxjs/toolkit`（包含 RTK Query）+ React Router，而不是额外引入多个互相重叠的状态管理方案。参考：[Redux Toolkit 官方文档](https://redux.js.org/redux-toolkit/overview/)。
+
+UI 组件采用 **shadcn/ui + Radix UI + Tailwind CSS**：
+
+- shadcn/ui 不是封装后只能通过 npm API 使用的黑盒组件库，而是将组件源码加入 `cs_web`，由项目自己持有和修改；
+- Radix UI 提供可访问性和交互基础，减少自行实现 Dialog、Popover、Dropdown、Tooltip 等基础行为的风险；
+- Tailwind CSS 负责样式、响应式布局和设计 token，方便形成 Breeze 自己的视觉规范；
+- 该组合适合阅读器、书架、漫画卡片和图片浏览等需要高度定制的界面，也能降低未来被第三方组件库主题绑定的风险。
+
+组件目录建议按以下边界组织：
+
+```text
+cs_web/src/
+├─ components/
+│  ├─ ui/          # shadcn/ui 基础组件，只负责通用交互和样式
+│  ├─ breeze/      # Breeze 通用业务组件
+│  └─ reader/      # 阅读器专用组件
+├─ features/      # 按业务领域组织页面、slice 和用例
+├─ services/      # RTK Query API、认证和服务端请求定义
+└─ app/            # Redux store、路由和应用级初始化
+```
+
+`components/ui` 中的组件源码由本项目负责维护；引入新组件时优先通过 shadcn/ui 添加，再按 Breeze 的设计 token 和交互要求调整。业务代码不应直接在各处修改基础组件的内部实现，而应在 `components/breeze` 或 `components/reader` 中进行组合和封装。
+
+如果未来更看重开箱即用和完整后台控件，也可以评估 MUI；但 MUI 的 Material Design 风格和组件主题约束更明显，本项目暂不将其作为默认方案。参考：[shadcn/ui 官方文档](https://ui.shadcn.com/docs) 和 [MUI 官方文档](https://mui.com/material-ui/)。
 
 ### `cs_web` 前端工程规范
 
@@ -649,7 +683,7 @@ CS 服务端默认开启 TLS 校验。即使现有 Flutter 应用为了兼容图
 
 ## 14. 分阶段实施计划
 
-### 阶段 0：协议和边界确认
+### 阶段 0：协议和边界确认（已完成）
 
 - 确认账号模型、服务端部署方式和数据库选型；
 - 确认设置的账号级/设备级拆分；
@@ -659,48 +693,47 @@ CS 服务端默认开启 TLS 校验。即使现有 Flutter 应用为了兼容图
 - 定义 API 错误码、版本、幂等键和 revision；
 - 为现有实体整理迁移字段映射。
 
-### 阶段 1：客户端模式框架和服务端基础
+### 阶段 1：客户端模式框架和服务端基础（核心已完成）
 
 - 增加 CS 连接配置、登录、健康检查和能力发现；
 - 增加 Repository/PluginGateway/DownloadGateway 接口；
 - 让现有本地实现先通过 Local 实现接入；
-- 实现服务端账号、设置、revision 和导入导出骨架；
+- 实现服务端账号、设置、revision 和业务记录 API；导入导出仍沿用现有本地备份流程，尚未做服务端迁移向导；
 - 预留 `/api/v1`、`/media` 和静态前端资源路由；
 - 让服务端在没有 Nginx 的情况下可以直接返回一个最小 HTML/静态资源目录；
 - 初始化独立 `cs_web` 工程，并通过 pnpm 完成 lint、format 和构建脚本；
 - 保证本地模式回归行为不变。
 
-### 阶段 2：业务数据库服务端化
+### 阶段 2：业务数据库服务端化（核心记录已完成，复杂本地实体待迁移）
 
 - 迁移收藏、历史、追更、文件夹和链接；
 - 迁移插件列表、启用状态、插件配置和插件元数据；
-- 将页面、Bloc 和书架服务从直接 Box 访问改为 Repository；
+- Flutter 书架、收藏、历史的主链路已根据 CS 模式走服务端 Repository；文件夹、链接、下载 manifest 等复杂本地实体仍保留本地实现；
 - 增加服务端写入后的缓存更新和断线重试；
 - 暂时保留下载功能在客户端。
 
-### 阶段 3：服务端插件运行时
+### 阶段 3：服务端插件运行时（核心已完成）
 
 - 服务端加载内置插件并实现 QuickJS 宿主能力；
 - 完成搜索、详情、章节、阅读、图片和设置接口；
-- 完成插件登录挑战和每用户配置隔离；
+- 已完成每用户配置隔离；插件登录挑战 UI/挑战型插件流程仍待补齐；
 - 客户端 CS 模式不再初始化本地插件 runtime；
 - 增加插件运行时资源限制和取消测试。
 
-### 阶段 4：CS + 客户端下载
+### 阶段 4：CS + 客户端下载（已保留本地下载队列）
 
 - 客户端继续使用本地下载队列；
 - 图片改通过服务端代理/token 获取；
 - 明确下载相关数据仍为本地例外；
 - 验证下载取消、失败重试、断网恢复和阅读本地文件。
 
-### 阶段 5：CS + 服务端下载
+### 阶段 5：CS + 服务端下载（基础链路已完成）
 
 - 实现服务端任务队列、Worker、文件存储和事件推送；
 - 实现远程 manifest 和图片阅读；
-- 增加服务端下载任务迁移、取消、重试和清理；
-- 完成服务端下载与客户端下载两种模式之间的迁移向导。
+- 已增加服务端下载任务、取消、远程 manifest、私有资产读取和 Flutter/Web 任务展示；重试、清理、事件推送和两种下载模式之间的迁移向导仍待补齐；
 
-### 阶段 6：迁移、回退和发布
+### 阶段 6：迁移、回退和发布（后续）
 
 - 完成本地数据迁移向导；
 - 完成 CS 到本地回退；

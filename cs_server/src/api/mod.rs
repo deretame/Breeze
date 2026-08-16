@@ -1,7 +1,10 @@
+mod admin;
 pub mod auth;
+mod downloads;
 mod error;
 mod library;
 mod plugin_api;
+mod plugin_config;
 mod settings;
 
 use axum::{
@@ -18,11 +21,31 @@ pub fn router() -> Router<AppState> {
         .route("/health", get(health))
         .route("/capabilities", get(capabilities))
         .route("/plugins", get(plugins))
+        .route("/plugins/{plugin_id}", get(plugin_api::plugin_detail))
         .route("/plugins/{plugin_id}/invoke", post(plugin_api::invoke))
         .route(
             "/plugins/{plugin_id}/invoke-bytes",
             post(plugin_api::invoke_bytes),
         )
+        .route(
+            "/plugins/{plugin_id}/config",
+            get(plugin_config::get).patch(plugin_config::update),
+        )
+        .route("/plugins/{plugin_id}/search", post(plugin_api::search))
+        .route(
+            "/plugins/{plugin_id}/comic/{comic_id}/detail",
+            post(plugin_api::detail),
+        )
+        .route(
+            "/plugins/{plugin_id}/comic/{comic_id}/chapter/{chapter_id}",
+            post(plugin_api::chapter),
+        )
+        .route(
+            "/plugins/{plugin_id}/comic/{comic_id}/read",
+            post(plugin_api::read),
+        )
+        .nest("/admin", admin::router())
+        .nest("/downloads", downloads::router())
         .nest("/auth", auth::router())
         .route(
             "/settings/account",

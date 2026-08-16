@@ -20,6 +20,11 @@ class CsRuntimeContext {
   /// 由上层连接流程处理重新登录。
   bool get isCsMode => _settings.isCsMode;
 
+  bool get isServerDownload =>
+      isCsMode && _settings.downloadMode == CsDownloadMode.server;
+
+  CsApiClient? get client => isCsMode ? _client : null;
+
   void update(CsConnectionSettings settings) {
     _settings = settings;
     _client = settings.hasServer
@@ -64,5 +69,32 @@ class CsRuntimeContext {
       function: function,
       args: args,
     );
+  }
+
+  Future<CsDownloadTask> createServerDownload({
+    required String pluginId,
+    required String comicId,
+    required List<String> chapterIds,
+    Map<String, dynamic> options = const {},
+  }) {
+    final activeClient = client;
+    if (activeClient == null ||
+        _settings.downloadMode != CsDownloadMode.server) {
+      throw StateError('服务端下载未启用');
+    }
+    return activeClient.createServerDownload(
+      pluginId: pluginId,
+      comicId: comicId,
+      chapterIds: chapterIds,
+      options: options,
+    );
+  }
+
+  Future<List<CsDownloadTask>> serverDownloads() {
+    final activeClient = client;
+    if (activeClient == null) {
+      throw StateError('CS runtime is not active');
+    }
+    return activeClient.listServerDownloads();
   }
 }

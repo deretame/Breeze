@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:zephyr/cs/cs.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -19,6 +20,16 @@ Future<bool> isLocalComicCollected({
 }) async {
   final pluginId = (from).trim();
   final key = '$pluginId:$comicId';
+  if (CsRuntimeContext.I.isCsMode) {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) {
+      throw StateError('CS 会话未登录');
+    }
+    final records = await client.listLibrary('favorites');
+    return records.any(
+      (record) => record.uniqueKey == key && !record.isDeleted,
+    );
+  }
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
       .build()
@@ -39,6 +50,31 @@ Future<bool> toggleLocalComicFavorite({
   final pluginId = (from).trim();
   final key = '$pluginId:${comicInfo.id}';
   final now = DateTime.now().toUtc();
+  if (CsRuntimeContext.I.isCsMode) {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) {
+      throw StateError('CS 会话未登录');
+    }
+    final records = await client.listLibrary('favorites', includeDeleted: true);
+    final existing = records
+        .where((record) => record.uniqueKey == key)
+        .firstOrNull;
+    if (existing != null && !existing.isDeleted) {
+      await client.deleteLibrary('favorites', key);
+      return false;
+    }
+    await client.saveLibrary(
+      'favorites',
+      CsLibraryRecord(
+        uniqueKey: key,
+        source: pluginId,
+        comicId: comicInfo.id,
+        payload: Map<String, dynamic>.from(normalInfo.toJson()),
+        updatedAt: now.toIso8601String(),
+      ),
+    );
+    return true;
+  }
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
       .build()

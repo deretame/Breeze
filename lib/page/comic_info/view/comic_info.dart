@@ -278,12 +278,14 @@ class _ComicInfoState extends State<_ComicInfo>
               _currentInfo = state.allInfo;
               _isCloudCollected = state.allInfo?.isFavourite ?? false;
               _syncLocalCollectStatus(state.allInfo!);
-              initHistory(
-                context,
-                widget.comicId,
-                widget.from,
-                widget.pluginId,
-                chapters: state.allInfo!.eps,
+              unawaited(
+                initHistory(
+                  context,
+                  widget.comicId,
+                  widget.from,
+                  widget.pluginId,
+                  chapters: state.allInfo!.eps,
+                ),
               );
               return _infoView(state.allInfo!);
           }

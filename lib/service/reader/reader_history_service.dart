@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:worker_manager/worker_manager.dart';
+import 'package:zephyr/cs/cs.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -42,6 +43,7 @@ class ReaderHistoryService {
   String? _comicId;
   normal.ComicInfo? _comicInfo;
   UnifiedComicHistory? _history;
+  int? _remoteLastPageIndex;
   Timer? _timer;
   DateTime? _lastUpdateTime;
   bool _isInserting = false;
@@ -58,6 +60,23 @@ class ReaderHistoryService {
     _comicId = comicId;
     _comicInfo = _resolveNormalComicInfo(comicInfo);
     _isLoading = true;
+    _remoteLastPageIndex = null;
+
+    if (CsRuntimeContext.I.isCsMode) {
+      final client = CsRuntimeContext.I.client;
+      if (client == null) {
+        throw StateError('CS 会话未登录');
+      }
+      final key = '$source:$comicId';
+      final records = await client.listLibrary('history', includeDeleted: true);
+      final record = records.where((item) => item.uniqueKey == key).firstOrNull;
+      if (record != null && !record.isDeleted) {
+        _remoteLastPageIndex =
+            (record.payload['pageIndex'] as num?)?.toInt() ?? 0;
+      }
+      _history = null;
+      return;
+    }
 
     final query = objectbox.unifiedHistoryBox
         .query(UnifiedComicHistory_.uniqueKey.equals('$source:$comicId'))
@@ -70,7 +89,7 @@ class ReaderHistoryService {
   }
 
   /// 上次加载到的历史页码，未加载或为 null 时返回 0。
-  int get lastPageIndex => _history?.pageIndex ?? 0;
+  int get lastPageIndex => _remoteLastPageIndex ?? _history?.pageIndex ?? 0;
 
   /// 标记数据加载完成，可以开始写入。
   void markLoaded() => _isLoading = false;
@@ -93,7 +112,8 @@ class ReaderHistoryService {
     if (_isLoading || _comicInfo == null) return;
     if (_isInserting) return;
     if (_lastUpdateTime != null &&
-        DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
+        DateTime.now().difference(_lastUpdateTime!).inMilliseconds <
+            (CsRuntimeContext.I.isCsMode ? 2000 : 100)) {
       return;
     }
 
@@ -109,6 +129,30 @@ class ReaderHistoryService {
     _isInserting = true;
     try {
       final timestamp = DateTime.now().toUtc();
+      if (CsRuntimeContext.I.isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 会话未登录');
+        }
+        await client.saveLibrary(
+          'history',
+          CsLibraryRecord(
+            uniqueKey: '${_source ?? ''}:${_comicId ?? ''}',
+            source: _source ?? '',
+            comicId: _comicId ?? '',
+            payload: {
+              'normalInfo': _serializeComicInfoForWorker(_comicInfo!),
+              'chapterId': snapshot.epInfo.epId,
+              'chapterTitle': snapshot.epInfo.epName,
+              'chapterOrder': snapshot.chapterOrder,
+              'pageIndex': snapshot.pageIndex,
+            },
+            updatedAt: timestamp.toIso8601String(),
+          ),
+        );
+        _remoteLastPageIndex = snapshot.pageIndex;
+        return;
+      }
       final payload = <String, dynamic>{
         'dbRootPath': p.dirname(objectbox.store.directoryPath),
         'source': _source,

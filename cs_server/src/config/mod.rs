@@ -14,6 +14,7 @@ pub struct ServerConfig {
     pub server_download_enabled: bool,
     pub registration_enabled: bool,
     pub session_ttl_days: u64,
+    pub admin_token: Option<String>,
     pub cors_origin: Option<HeaderValue>,
     pub http_proxy: Option<String>,
     pub socks5_proxy: Option<String>,
@@ -31,6 +32,7 @@ impl ServerConfig {
         let server_download_enabled = parse_bool_env("BREEZE_SERVER_DOWNLOAD", false)?;
         let registration_enabled = parse_bool_env("BREEZE_ALLOW_REGISTRATION", host.is_loopback())?;
         let session_ttl_days = parse_env("BREEZE_SESSION_TTL_DAYS", "30")?.parse()?;
+        let admin_token = parse_optional_string("BREEZE_ADMIN_TOKEN");
         let cors_origin = parse_optional_header("BREEZE_CORS_ORIGIN")?;
         let http_proxy = parse_optional_string("BREEZE_HTTP_PROXY");
         let socks5_proxy = parse_optional_string("BREEZE_SOCKS5_PROXY");
@@ -50,6 +52,7 @@ impl ServerConfig {
             server_download_enabled,
             registration_enabled,
             session_ttl_days,
+            admin_token,
             cors_origin,
             http_proxy,
             socks5_proxy,
@@ -64,6 +67,10 @@ impl ServerConfig {
 
     pub fn web_frontend_enabled(&self) -> bool {
         self.web_root.join("index.html").is_file()
+    }
+
+    pub fn asset_root(&self) -> PathBuf {
+        self.data_dir.join("assets")
     }
 
     pub fn http_client_config(&self) -> rquickjs_playground::HttpClientConfig {

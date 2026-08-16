@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cs/cs.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/donwload_task/bloc/dowload_task_bloc.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -12,9 +13,115 @@ class DownloadTaskPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final csSettings = context.watch<CsModeCubit>().state;
+    if (csSettings.isCsMode &&
+        csSettings.downloadMode == CsDownloadMode.server) {
+      return const _CsServerDownloadTaskView();
+    }
     return BlocProvider(
       create: (_) => DowloadTaskBloc()..add(DowloadTaskEvent.started()),
       child: const _DownloadTaskView(),
+    );
+  }
+}
+
+class _CsServerDownloadTaskView extends StatefulWidget {
+  const _CsServerDownloadTaskView();
+
+  @override
+  State<_CsServerDownloadTaskView> createState() =>
+      _CsServerDownloadTaskViewState();
+}
+
+class _CsServerDownloadTaskViewState extends State<_CsServerDownloadTaskView> {
+  late Future<List<CsDownloadTask>> _tasks;
+
+  @override
+  void initState() {
+    super.initState();
+    _tasks = CsRuntimeContext.I.serverDownloads();
+  }
+
+  Future<void> _reload() async {
+    setState(() {
+      _tasks = CsRuntimeContext.I.serverDownloads();
+    });
+    await _tasks;
+  }
+
+  Future<void> _cancel(CsDownloadTask task) async {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) return;
+    await client.cancelServerDownload(task.taskId);
+    await _reload();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t.download.title),
+        actions: [
+          IconButton(
+            onPressed: _reload,
+            icon: const Icon(Icons.refresh),
+            tooltip: '刷新',
+          ),
+        ],
+      ),
+      body: FutureBuilder<List<CsDownloadTask>>(
+        future: _tasks,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('服务端下载读取失败：${snapshot.error}'));
+          }
+          final tasks = snapshot.data ?? const <CsDownloadTask>[];
+          if (tasks.isEmpty) {
+            return Center(child: Text(t.download.noTasks));
+          }
+          return RefreshIndicator(
+            onRefresh: _reload,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                final isActive = switch (task.status) {
+                  'completed' || 'failed' || 'cancelled' => false,
+                  _ => true,
+                };
+                final title =
+                    task.payload['comic_id'] as String? ?? task.taskId;
+                final plugin = task.payload['plugin_id'] as String? ?? '';
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: ListTile(
+                    leading: CircularProgressIndicator(
+                      value: task.progress / 100,
+                    ),
+                    title: Text(title),
+                    subtitle: Text(
+                      '$plugin · ${task.status} · ${task.progress}%',
+                    ),
+                    trailing: isActive
+                        ? IconButton(
+                            onPressed: () => _cancel(task),
+                            icon: const Icon(Icons.cancel_outlined),
+                          )
+                        : null,
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

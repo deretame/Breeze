@@ -46,6 +46,89 @@ class CsSession {
   }
 }
 
+class CsPluginRecord {
+  const CsPluginRecord({
+    required this.pluginId,
+    required this.version,
+    required this.bundleHash,
+    required this.enabled,
+    required this.updatedAt,
+  });
+
+  final String pluginId;
+  final String version;
+  final String bundleHash;
+  final bool enabled;
+  final String updatedAt;
+
+  factory CsPluginRecord.fromJson(Map<String, dynamic> json) {
+    return CsPluginRecord(
+      pluginId: json['plugin_id'] as String? ?? '',
+      version: json['version'] as String? ?? '',
+      bundleHash: json['bundle_hash'] as String? ?? '',
+      enabled: json['enabled'] == true,
+      updatedAt: json['updated_at'] as String? ?? '',
+    );
+  }
+}
+
+class CsPluginConfig {
+  const CsPluginConfig({
+    required this.pluginId,
+    required this.config,
+    required this.revision,
+    required this.updatedAt,
+  });
+
+  final String pluginId;
+  final Map<String, dynamic> config;
+  final int revision;
+  final String updatedAt;
+
+  factory CsPluginConfig.fromJson(Map<String, dynamic> json) {
+    final config = json['config'];
+    if (config is! Map) {
+      throw const FormatException('CS plugin config must be an object');
+    }
+    return CsPluginConfig(
+      pluginId: json['plugin_id'] as String? ?? '',
+      config: Map<String, dynamic>.from(config),
+      revision: (json['revision'] as num?)?.toInt() ?? 0,
+      updatedAt: json['updated_at'] as String? ?? '',
+    );
+  }
+}
+
+class CsDownloadTask {
+  const CsDownloadTask({
+    required this.taskId,
+    required this.status,
+    required this.progress,
+    required this.payload,
+    required this.updatedAt,
+    this.error,
+  });
+
+  final String taskId;
+  final String status;
+  final int progress;
+  final Map<String, dynamic> payload;
+  final String updatedAt;
+  final String? error;
+
+  factory CsDownloadTask.fromJson(Map<String, dynamic> json) {
+    final payload = json['payload'];
+    return CsDownloadTask(
+      taskId: json['task_id'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      progress: (json['progress'] as num?)?.toInt() ?? 0,
+      payload: payload is Map ? Map<String, dynamic>.from(payload) : const {},
+      updatedAt: json['updated_at'] as String? ?? '',
+      error: json['error'] as String?,
+    );
+  }
+}
+
 class CsApiClient {
   CsApiClient({required String baseUrl, this.accessToken, WindHttp? httpClient})
     : _baseUrl = _normalizeBaseUrl(baseUrl),
@@ -58,6 +141,20 @@ class CsApiClient {
   Future<Map<String, dynamic>> health() => _get('/api/v1/health');
 
   Future<Map<String, dynamic>> capabilities() => _get('/api/v1/capabilities');
+
+  Future<List<CsPluginRecord>> plugins() async {
+    final json = await _get('/api/v1/plugins');
+    final items = json['items'];
+    if (items is! List) {
+      throw const FormatException('CS plugin response has no items');
+    }
+    return items
+        .map(
+          (item) =>
+              CsPluginRecord.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
+        .toList();
+  }
 
   Future<CsSession> register({
     required String username,
@@ -142,6 +239,132 @@ class CsApiClient {
 
   Future<void> deleteLibrary(String kind, String uniqueKey) async {
     await _delete('/api/v1/library/$kind/${Uri.encodeComponent(uniqueKey)}');
+  }
+
+  Future<CsPluginConfig> pluginConfig(String pluginId) async {
+    final json = await _get(
+      '/api/v1/plugins/${Uri.encodeComponent(pluginId)}/config',
+    );
+    return CsPluginConfig.fromJson(json);
+  }
+
+  Future<CsPluginConfig> updatePluginConfig(
+    String pluginId,
+    Map<String, dynamic> config, {
+    int? expectedRevision,
+  }) async {
+    final json = await _patch(
+      '/api/v1/plugins/${Uri.encodeComponent(pluginId)}/config',
+      {'config': config, 'expected_revision': expectedRevision},
+    );
+    return CsPluginConfig.fromJson(json);
+  }
+
+  Future<Map<String, dynamic>> searchPlugin({
+    required String pluginId,
+    required String keyword,
+    int page = 1,
+    Map<String, dynamic> extern = const {},
+  }) {
+    return _post('/api/v1/plugins/${Uri.encodeComponent(pluginId)}/search', {
+      'core': {'keyword': keyword, 'page': page},
+      'extern': extern,
+    });
+  }
+
+  Future<Map<String, dynamic>> getPluginDetail({
+    required String pluginId,
+    required String comicId,
+    Map<String, dynamic> extern = const {},
+  }) {
+    return _post(
+      '/api/v1/plugins/${Uri.encodeComponent(pluginId)}/comic/${Uri.encodeComponent(comicId)}/detail',
+      {'core': {}, 'extern': extern},
+    );
+  }
+
+  Future<Map<String, dynamic>> getPluginChapter({
+    required String pluginId,
+    required String comicId,
+    required String chapterId,
+    Map<String, dynamic> extern = const {},
+  }) {
+    return _post(
+      '/api/v1/plugins/${Uri.encodeComponent(pluginId)}/comic/${Uri.encodeComponent(comicId)}/chapter/${Uri.encodeComponent(chapterId)}',
+      {'core': {}, 'extern': extern},
+    );
+  }
+
+  Future<Map<String, dynamic>> getPluginReadSnapshot({
+    required String pluginId,
+    required String comicId,
+    String? chapterId,
+    Map<String, dynamic> extern = const {},
+  }) {
+    return _post(
+      '/api/v1/plugins/${Uri.encodeComponent(pluginId)}/comic/${Uri.encodeComponent(comicId)}/read',
+      {
+        'core': {
+          if (chapterId != null && chapterId.trim().isNotEmpty)
+            'chapterId': chapterId,
+        },
+        'extern': extern,
+      },
+    );
+  }
+
+  Future<CsDownloadTask> createServerDownload({
+    required String pluginId,
+    required String comicId,
+    required List<String> chapterIds,
+    Map<String, dynamic> options = const {},
+  }) async {
+    final json = await _post('/api/v1/downloads/tasks', {
+      'plugin_id': pluginId,
+      'comic_id': comicId,
+      'chapter_ids': chapterIds,
+      'options': options,
+    });
+    return CsDownloadTask.fromJson(json);
+  }
+
+  Future<List<CsDownloadTask>> listServerDownloads() async {
+    final json = await _get('/api/v1/downloads/tasks');
+    final items = json['items'];
+    if (items is! List) {
+      throw const FormatException('CS download response has no items');
+    }
+    return items
+        .map(
+          (item) =>
+              CsDownloadTask.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
+        .toList();
+  }
+
+  Future<CsDownloadTask> cancelServerDownload(String taskId) async {
+    final json = await _post(
+      '/api/v1/downloads/tasks/${Uri.encodeComponent(taskId)}/cancel',
+      const {},
+    );
+    return CsDownloadTask.fromJson(json);
+  }
+
+  Future<Map<String, dynamic>> serverDownloadManifest(String comicKey) {
+    return _get(
+      '/api/v1/downloads/comics/${Uri.encodeComponent(comicKey)}/manifest',
+    );
+  }
+
+  Future<Uint8List> serverAsset(String assetId) async {
+    final response = await _httpClient.fetch(
+      _url('/api/v1/downloads/assets/${Uri.encodeComponent(assetId)}'),
+      headers: _headers(),
+    );
+    if (!response.ok) {
+      _decodeAny(response);
+    }
+    return response.body;
   }
 
   Future<Map<String, dynamic>> invokePlugin({

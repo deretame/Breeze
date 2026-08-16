@@ -23,13 +23,14 @@ impl AppState {
         http_config: rquickjs_playground::HttpClientConfig,
         http_client: Client,
     ) -> anyhow::Result<Self> {
+        let plugin_runtime = Arc::new(crate::plugin::PluginRuntimeService::new(database.clone())?);
         Ok(Self {
             config,
             database,
             http_client,
             http_config,
             plugin_capabilities: crate::plugin::PluginRuntimeCapabilities::default(),
-            plugin_runtime: Arc::new(crate::plugin::PluginRuntimeService::new()),
+            plugin_runtime,
         })
     }
 }

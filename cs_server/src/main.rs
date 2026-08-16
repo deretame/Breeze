@@ -45,6 +45,8 @@ async fn main() -> anyhow::Result<()> {
         data_dir = %config.data_dir.display(),
         web_root = %config.web_root.display(),
         web_frontend = config.web_frontend_enabled(),
+        admin_token_configured = config.admin_token.is_some(),
+        server_download = config.server_download_enabled,
         "Breeze CS server started"
     );
 

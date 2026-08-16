@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_linux
   dynamic_color
   file_selector_linux
+  flutter_secure_storage_linux
   objectbox_flutter_libs
   open_file_linux
   screen_retriever_linux

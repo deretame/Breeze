@@ -5,8 +5,7 @@ import 'package:zephyr/cs/domain/cs_connection_settings.dart';
 
 /// 将 CS 模式服务接入现有 Bloc 状态树。
 ///
-/// 当前只负责暴露连接状态，具体的插件初始化、Repository 注入和下载队列
-/// 切换由后续启动协调器完成，避免在这一阶段改变本地模式行为。
+/// 当前负责暴露连接状态、登录和下载归属选择；本地插件及本地下载队列仍由原有路径维护。
 class CsModeCubit extends Cubit<CsConnectionSettings> {
   CsModeCubit({CsModeService? service})
     : _service = service ?? CsModeService(),
@@ -35,8 +34,25 @@ class CsModeCubit extends Cubit<CsConnectionSettings> {
     emit(_service.settings);
   }
 
-  void attachSession({required String userId, required String accessToken}) {
-    _service.attachSession(userId: userId, accessToken: accessToken);
+  Future<void> login({
+    required String username,
+    required String password,
+    bool register = false,
+  }) async {
+    await _service.login(
+      username: username,
+      password: password,
+      register: register,
+    );
+    CsRuntimeContext.I.update(_service.settings);
+    emit(_service.settings);
+  }
+
+  Future<void> attachSession({
+    required String userId,
+    required String accessToken,
+  }) async {
+    await _service.attachSession(userId: userId, accessToken: accessToken);
     CsRuntimeContext.I.update(_service.settings);
     emit(_service.settings);
   }

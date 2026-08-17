@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/cs/data/cs_api_client.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
@@ -24,7 +25,10 @@ class CloudPluginCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final manifest = item.manifest;
-    final localState = serverPlugin == null && manifest.uuid.isNotEmpty
+    final localState =
+        !CsRuntimeContext.I.isCsMode &&
+            serverPlugin == null &&
+            manifest.uuid.isNotEmpty
         ? PluginRegistryService.I.getByUuid(manifest.uuid)
         : null;
     final isInstalled =

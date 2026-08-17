@@ -167,7 +167,8 @@ function Send-TestWebSocketJson(
 function Start-AsyncPluginInvoke(
     [string]$PluginId,
     [string]$Function,
-    [hashtable]$Headers
+    [hashtable]$Headers,
+    [string]$TaskGroupKey = ''
 ) {
     $client = [Net.Http.HttpClient]::new()
     $request = [Net.Http.HttpRequestMessage]::new(
@@ -181,7 +182,12 @@ function Start-AsyncPluginInvoke(
             $request.Headers.TryAddWithoutValidation($header.Key, $header.Value) | Out-Null
         }
     }
-    $body = @{ function = $Function; args = @() } | ConvertTo-Json -Compress -Depth 5
+    $bodyMap = @{ function = $Function; args = @() }
+    if (-not [string]::IsNullOrWhiteSpace($TaskGroupKey)) {
+        $bodyMap.taskGroupKey = $TaskGroupKey
+        $bodyMap.args = @($TaskGroupKey)
+    }
+    $body = $bodyMap | ConvertTo-Json -Compress -Depth 5
     $request.Content = [Net.Http.StringContent]::new(
         $body,
         [Text.Encoding]::UTF8,
@@ -456,7 +462,8 @@ module.exports = {
   getLocaleInfo: async () => await bridge.call("dart.getLocaleInfo"),
   getAppVersion: async () => await bridge.call("dart.getAppVersion"),
   showToast: async () => { await bridge.call("flutter.showToast", { message: "CS bridge toast", level: "info" }); return { ok: true }; },
-  configRoundTrip: async () => { await bridge.call("save_plugin_config", "bridge-key", "bridge-value"); return JSON.parse(await bridge.call("load_plugin_config", "bridge-key", "fallback")); },
+  configRoundTrip: async () => { await bridge.call("save_plugin_config", "auth.token", "server-login-state"); return JSON.parse(await bridge.call("load_plugin_config", "auth.token", "fallback")); },
+  waitForCancel: async (taskGroupKey) => { while (!(await bridge.call("runtime.is_task_group_cancelled", taskGroupKey))) { await new Promise(resolve => setTimeout(resolve, 10)); } return { cancelled: true }; },
   searchComic: async (request) => ({ data: { comics: [{ id: "comic-1", title: request.keyword || "smoke" }] } }),
   getComicDetail: async (request) => ({ data: { comic: { id: request.comicId, title: "Smoke Comic", chapters: [{ id: "chapter-1", title: "Chapter 1" }] } } }),
   getChapter: async (request) => ({ data: { chapter: { id: request.chapterId, pages: [{ url: "https://example.invalid/smoke", name: "1" }] } } }),
@@ -468,6 +475,17 @@ module.exports = {
     } | ConvertTo-Json -Compress -Depth 4
     $installSmoke = Invoke-Api -Method PUT -Url "$BaseUrl/api/v1/admin/plugins/cs-smoke" -Headers @{ 'X-Breeze-Admin-Token' = $AdminToken } -Body $installBody
     Assert-Status $installSmoke 200 '安装确定性下载测试插件'
+    $smokeBundle = [string](ConvertFrom-Json $installBody).bundle
+    $smokeBundleBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($smokeBundle))
+    foreach ($userAuth in @($authA, $authB)) {
+        $installForUser = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/install-bundle" -Headers $userAuth -Body (@{
+            file_name = 'cs-smoke.cjs'
+            bundle_base64 = $smokeBundleBase64
+            expected_plugin_id = 'cs-smoke'
+        } | ConvertTo-Json -Compress)
+        Assert-Status $installForUser 200 '为用户安装确定性测试插件'
+    }
+    Pass '插件安装关联到用户而不是仅写入全局插件表'
 
     $webSocketBaseUrl = $BaseUrl -replace '^http://', 'ws://' -replace '^https://', 'wss://'
     $TestWebSocket = Open-TestWebSocket "$webSocketBaseUrl/api/v1/ws?access_token=$([Uri]::EscapeDataString($tokenA))"
@@ -499,8 +517,8 @@ module.exports = {
 
     $configBridge = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authA -Body (@{ function = 'configRoundTrip'; args = @() } | ConvertTo-Json -Compress)
     Assert-Status $configBridge 200 '插件配置 bridge 调用'
-    Assert-True ((Convert-JsonBody $configBridge.Body).value -eq 'bridge-value') '插件配置 bridge 应支持保存后读取'
-    Pass 'load_plugin_config/save_plugin_config 由服务端 SQLite 处理'
+    Assert-True ((Convert-JsonBody $configBridge.Body).value -eq 'server-login-state') '插件配置 bridge 应支持保存后读取'
+    Pass 'load_plugin_config/save_plugin_config 由服务端 SQLite 保存插件登录态'
 
     $serverCatalogResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins/catalog"
     Assert-Status $serverCatalogResponse 200 '服务端读取真实插件目录'
@@ -514,17 +532,34 @@ module.exports = {
     $installRealBody = @{ plugin_id = $realPlugin.Uuid } | ConvertTo-Json -Compress
     $installReal = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/catalog/install" -Headers $authA -Body $installRealBody
     Assert-Status $installReal 200 "服务端下载并安装真实插件 $($realPlugin.Name)"
-    $pluginsResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins"
+    $pluginsResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins" -Headers $authA
     Assert-Status $pluginsResponse 200 '读取已安装插件列表'
     $plugins = Convert-JsonBody $pluginsResponse.Body
     Assert-True ((@($plugins.items) | Where-Object plugin_id -eq 'cs-smoke').Count -eq 1) '已安装列表应包含 cs-smoke'
     Assert-True ((@($plugins.items) | Where-Object plugin_id -eq $realPlugin.Uuid).Count -eq 1) '已安装列表应包含真实插件'
     Pass 'SQLite 插件目录持久化正确'
 
-    $smokeDetail = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins/cs-smoke"
+    $smokeDetail = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins/cs-smoke" -Headers $authA
     Assert-Status $smokeDetail 200 '读取插件详情'
-    Assert-True ((Convert-JsonBody $smokeDetail.Body).bundle_hash.Length -eq 64) '插件 bundle hash 应为 SHA-256'
+    $smokeDetailJson = Convert-JsonBody $smokeDetail.Body
+    Assert-True ($smokeDetailJson.bundle_hash.Length -eq 64) '插件 bundle hash 应为 SHA-256'
+    Assert-True ($smokeDetailJson.name -eq 'CS Smoke') '插件详情名称应由服务端 getInfo 提供'
     Pass '插件详情和 hash 正确'
+
+    $pluginsBResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins" -Headers $authB
+    Assert-Status $pluginsBResponse 200 '读取用户 B 插件列表'
+    $pluginsB = Convert-JsonBody $pluginsBResponse.Body
+    $pluginsBSmoke = @($pluginsB.items | Where-Object plugin_id -eq 'cs-smoke')
+    $pluginsBReal = @($pluginsB.items | Where-Object plugin_id -eq $realPlugin.Uuid)
+    Assert-True ($pluginsBSmoke.Count -eq 1) '用户 B 应看到自己安装的插件'
+    Assert-True ($pluginsBReal.Count -eq 0) '用户 B 不应看到用户 A 的插件'
+    $disableSmoke = Invoke-Api -Method PATCH -Url "$BaseUrl/api/v1/plugins/cs-smoke" -Headers $authA -Body (@{ enabled = $false; debug = $false; debug_url = '' } | ConvertTo-Json -Compress)
+    Assert-Status $disableSmoke 200 '修改用户 A 插件启用状态'
+    $disabledInvoke = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authA -Body (@{ function = 'echo'; args = @('disabled') } | ConvertTo-Json -Compress)
+    Assert-Status $disabledInvoke 409 '禁用插件后不能调用'
+    $enableSmoke = Invoke-Api -Method PATCH -Url "$BaseUrl/api/v1/plugins/cs-smoke" -Headers $authA -Body (@{ enabled = $true } | ConvertTo-Json -Compress)
+    Assert-Status $enableSmoke 200 '恢复用户 A 插件启用状态'
+    Pass '插件启用状态按用户保存并影响调用权限'
 
     $invalidInvoke = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authA -Body (@{ function = ''; args = @{} } | ConvertTo-Json -Compress)
     Assert-Status $invalidInvoke 400 '插件调用参数校验'
@@ -532,6 +567,18 @@ module.exports = {
     Assert-Status $echo 200 'QuickJS JSON 插件调用'
     Assert-True ((Convert-JsonBody $echo.Body).value -eq 'hello') 'echo 应返回 hello'
     Pass 'QuickJS 用户运行时调用正确'
+
+    $cancelGroup = 'cs-smoke-cancel-' + [Guid]::NewGuid().ToString('N')
+    $cancelPending = Start-AsyncPluginInvoke -PluginId 'cs-smoke' -Function 'waitForCancel' -Headers $authA -TaskGroupKey $cancelGroup
+    Start-Sleep -Milliseconds 150
+    $cancelResponse = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/cancel" -Headers $authA -Body (@{ taskGroupKey = $cancelGroup } | ConvertTo-Json -Compress)
+    Assert-Status $cancelResponse 200 '取消插件任务组'
+    Assert-True ($cancelPending.Task.Wait(5000)) '取消后的插件调用应在 5 秒内结束'
+    $cancelHttp = $cancelPending.Task.GetAwaiter().GetResult()
+    Assert-True ([int]$cancelHttp.StatusCode -eq 500) '被取消的插件调用应返回服务端错误而不是挂起'
+    $cancelPending.Request.Dispose()
+    $cancelPending.Client.Dispose()
+    Pass '通用 CS 插件调用支持任务组取消'
 
     $realInfo = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/$($realPlugin.Uuid)/invoke" -Headers $authA -Body (@{ function = 'getInfo'; args = @() } | ConvertTo-Json -Compress)
     Assert-Status $realInfo 200 '真实插件 getInfo 调用'
@@ -568,6 +615,12 @@ module.exports = {
     Assert-True ((Convert-JsonBody $configB.Body).revision -eq 0) '用户 B 插件配置不能看到用户 A 的 revision'
     Pass '插件配置按用户隔离且有乐观锁'
 
+    $deleteBPlugin = Invoke-Api -Method DELETE -Url "$BaseUrl/api/v1/plugins/cs-smoke" -Headers $authB
+    Assert-Status $deleteBPlugin 204 '卸载用户 B 插件'
+    $deletedBInvoke = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authB -Body (@{ function = 'echo'; args = @('deleted') } | ConvertTo-Json -Compress)
+    Assert-Status $deletedBInvoke 404 '卸载后用户 B 不能调用插件'
+    Pass '插件卸载只移除当前用户关联'
+
     $settingsBefore = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/settings/account" -Headers $authA
     Assert-Status $settingsBefore 200 '读取账号设置'
     $settingsRevision = (Convert-JsonBody $settingsBefore.Body).revision
@@ -592,12 +645,26 @@ module.exports = {
     }
     Pass '收藏/历史/关注三类 SQLite 业务数据均按用户隔离'
 
+    $migrationExport = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/migrations/export?include_downloads=false" -Headers $authA
+    Assert-Status $migrationExport 200 '导出用户迁移快照（不含下载）'
+    $migrationData = Convert-JsonBody $migrationExport.Body
+    Assert-True ($migrationData.schema_version -eq 1) '迁移快照 schema_version 应为 1'
+    Assert-True ($migrationData.include_downloads -eq $false) '不含下载的迁移快照标记应正确'
+    Assert-True ($migrationData.data.account_settings.csMode -eq $true) '迁移快照应包含用户账号设置'
+    Pass '服务端迁移快照导出基础数据正确'
+
     $downloadInvalid = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/downloads/tasks" -Headers $authA -Body (@{ plugin_id = 'cs-smoke'; comic_id = 'comic-1'; chapter_ids = @(); options = @{} } | ConvertTo-Json -Compress -Depth 5)
     Assert-Status $downloadInvalid 400 '下载任务参数校验'
     $downloadCreate = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/downloads/tasks" -Headers $authA -Body (@{ plugin_id = 'cs-smoke'; comic_id = 'comic-1'; chapter_ids = @('chapter-1'); options = @{} } | ConvertTo-Json -Compress -Depth 5)
     Assert-Status $downloadCreate 200 '创建服务端下载任务'
     $taskId = [string](Convert-JsonBody $downloadCreate.Body).task_id
     Assert-True (-not [string]::IsNullOrWhiteSpace($taskId)) '下载任务 ID 不能为空'
+    $downloadEvent = Convert-JsonBody (Receive-TestWebSocketText $TestWebSocket)
+    Assert-True ($downloadEvent.type -eq 'event') '服务端主动通知应使用 event 消息类型'
+    Assert-True ($downloadEvent.topic -eq 'downloads.status') '下载创建应通过 WebSocket 推送 downloads.status'
+    Assert-True ([string]$downloadEvent.payload.task_id -eq $taskId) '下载事件应关联新建任务'
+    Assert-True (-not [string]::IsNullOrWhiteSpace([string]$downloadEvent.occurredAt)) '下载事件应包含服务端时间戳'
+    Pass '服务端下载状态通过 WebSocket 事件推送'
 
     $task = $null
     for ($attempt = 0; $attempt -lt 100; $attempt++) {
@@ -624,6 +691,14 @@ module.exports = {
     Assert-True ([int]([string]$assetWebResponse.Headers['content-length']) -eq $assetBytes.Length) '图片资源 content-length 应正确'
     Assert-True (-not [string]::IsNullOrWhiteSpace([string]$assetWebResponse.Headers['etag'])) '图片资源应返回 ETag'
     Pass '服务端图片资源、长度和 ETag 正确'
+
+    $migrationExportWithDownloads = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/migrations/export?include_downloads=true" -Headers $authA
+    Assert-Status $migrationExportWithDownloads 200 '导出用户迁移快照（含下载）'
+    $migrationWithDownloads = Convert-JsonBody $migrationExportWithDownloads.Body
+    Assert-True (@($migrationWithDownloads.data.downloads).Count -eq 1) '迁移快照应包含下载记录'
+    Assert-True (@($migrationWithDownloads.data.download_assets).Count -eq 1) '迁移快照应包含下载资源索引'
+    Assert-True ([string]$migrationWithDownloads.data.download_assets[0].asset_id -eq $assetId) '下载资源索引应指向 manifest 资源'
+    Pass '服务端迁移快照导出下载记录和资源索引正确'
 
     $assetOtherUser = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/downloads/assets/$assetId" -Headers $authB
     Assert-Status $assetOtherUser 404 '其他用户不能读取下载资源'

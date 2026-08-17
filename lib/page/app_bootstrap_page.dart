@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart' as app_router;
+import 'package:zephyr/cs/application/cs_mode_cubit.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
@@ -76,33 +77,36 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
 
     final stopwatch = Stopwatch()..start();
 
-    registerPersistentCallbacks();
-
-    registerDartTools();
-
-    initRustFunctions();
+    final isCsMode = context.read<CsModeCubit>().state.isCsMode;
+    if (!isCsMode) {
+      registerPersistentCallbacks();
+      registerDartTools();
+      initRustFunctions();
+    }
 
     ForegroundTaskService.instance.listenEvents();
 
-    if (mounted) await ensureCompatibleMigration(context);
+    if (!isCsMode) {
+      if (mounted) await ensureCompatibleMigration(context);
 
-    updateStatus(t.appBootstrap.initializing);
-    await PluginRegistryService.I.init();
-    await PluginRegistryService.I.warmupPluginInfos();
-    PluginCloudUpdateService.I.scheduleSilentCloudUpdate(
-      delay: const Duration(minutes: 1),
-    );
-    unawaited(() async {
-      try {
-        await PluginRegistryService.I.initializeActivePluginRuntimes();
-      } catch (e, st) {
-        logger.w(
-          'Background plugin runtime init failed',
-          error: e,
-          stackTrace: st,
-        );
-      }
-    }());
+      updateStatus(t.appBootstrap.initializing);
+      await PluginRegistryService.I.init();
+      await PluginRegistryService.I.warmupPluginInfos();
+      PluginCloudUpdateService.I.scheduleSilentCloudUpdate(
+        delay: const Duration(minutes: 1),
+      );
+      unawaited(() async {
+        try {
+          await PluginRegistryService.I.initializeActivePluginRuntimes();
+        } catch (e, st) {
+          logger.w(
+            'Background plugin runtime init failed',
+            error: e,
+            stackTrace: st,
+          );
+        }
+      }());
+    }
 
     stopwatch.stop();
     final int delayTime = (200 - stopwatch.elapsedMilliseconds).clamp(0, 200);

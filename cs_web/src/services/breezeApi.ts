@@ -13,7 +13,6 @@ export type Health = {
   status: string;
   service: string;
   version: string;
-  db_schema_version: number;
   web_frontend: boolean;
   server_download: boolean;
 };

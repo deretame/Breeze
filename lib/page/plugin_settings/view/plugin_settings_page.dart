@@ -19,6 +19,8 @@ import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/event/webview_observe_bus.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/cs/data/cs_api_client.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -77,6 +79,49 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
   bool _externalLoginPolling = false;
   Timer? _externalCookiePollTimer;
   ExternalChromiumLoginSession? _externalChromiumSession;
+  CsPluginRecord? _serverPlugin;
+  bool _serverPluginLoading = false;
+
+  bool get _isCsMode => CsRuntimeContext.I.isCsMode;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isCsMode) {
+      unawaited(_loadServerPlugin());
+    }
+  }
+
+  Future<void> _loadServerPlugin() async {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) {
+      return;
+    }
+    setState(() => _serverPluginLoading = true);
+    try {
+      final plugin = await client.pluginDetail(widget.pluginUuid);
+      if (!mounted) return;
+      setState(() => _serverPlugin = plugin);
+    } catch (error) {
+      debugPrint('[PluginSettings] server plugin load failed: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _serverPluginLoading = false);
+      }
+    }
+  }
+
+  Future<CsPluginRecord?> _refreshServerPlugin() async {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) {
+      throw StateError('CS 服务端连接尚未建立');
+    }
+    final plugin = await client.pluginDetail(widget.pluginUuid);
+    if (mounted) {
+      setState(() => _serverPlugin = plugin);
+    }
+    return plugin;
+  }
 
   @override
   void dispose() {
@@ -438,20 +483,31 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final pluginState = context
+    final localPluginState = context
         .watch<PluginRegistryCubit>()
         .state[widget.pluginUuid];
-    final debugEnabled = pluginState?.debug ?? false;
-    final debugUrl = pluginState?.debugUrl ?? '';
-    final deleted = pluginState?.isDeleted == true;
-    final pluginVersion = pluginState?.version ?? '';
+    final serverPlugin = _serverPlugin;
+    final debugEnabled = _isCsMode
+        ? serverPlugin?.debug ?? false
+        : localPluginState?.debug ?? false;
+    final debugUrl = _isCsMode
+        ? serverPlugin?.debugUrl ?? ''
+        : localPluginState?.debugUrl ?? '';
+    final deleted = _isCsMode
+        ? !_serverPluginLoading && serverPlugin == null
+        : localPluginState?.isDeleted == true;
+    final pluginVersion = _isCsMode
+        ? serverPlugin?.version ?? ''
+        : localPluginState?.version ?? '';
+    final displayName =
+        _isCsMode && serverPlugin?.name.trim().isNotEmpty == true
+        ? serverPlugin!.name
+        : widget.pluginDisplayName;
     final state = context.watch<PluginSettingsCubit>().state;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          t.plugin.pluginSettingsTitle(name: widget.pluginDisplayName),
-        ),
+        title: Text(t.plugin.pluginSettingsTitle(name: displayName)),
         centerTitle: false,
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -490,6 +546,18 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
   Future<void> _syncPlugin() async {
     showInfoToast(t.plugin.syncing);
     try {
+      if (_isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        await client.installCatalogPlugin(widget.pluginUuid);
+        await _refreshServerPlugin();
+        if (mounted) {
+          showSuccessToast(t.plugin.syncSuccess);
+        }
+        return;
+      }
       final updated = await PluginCloudUpdateService.I
           .syncPluginFromSelfChannel(widget.pluginUuid);
       if (!mounted) {
@@ -550,6 +618,23 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
 
     showInfoToast(t.plugin.updating);
     try {
+      if (_isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final installed = await client.installPluginFromUrl(
+          resolvedUrl,
+          expectedPluginId: widget.pluginUuid,
+        );
+        if (installed.pluginId != widget.pluginUuid) {
+          throw StateError('服务端返回的插件 ID 不匹配');
+        }
+        await _refreshServerPlugin();
+        if (!mounted) return;
+        showSuccessToast(t.plugin.updateSuccess);
+        return;
+      }
       final message = await PluginInstallService.I.installFromNetworkUrl(
         resolvedUrl,
         expectedUuid: widget.pluginUuid,
@@ -608,6 +693,24 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       }
       showInfoToast(t.plugin.updating);
       final bytes = await file.readAsBytes();
+      if (_isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final installed = await client.installPluginBundle(
+          bytes,
+          fileName: file.name,
+          expectedPluginId: widget.pluginUuid,
+        );
+        if (installed.pluginId != widget.pluginUuid) {
+          throw StateError('服务端返回的插件 ID 不匹配');
+        }
+        await _refreshServerPlugin();
+        if (!mounted) return;
+        showSuccessToast(t.plugin.updateSuccess);
+        return;
+      }
       final message = await PluginInstallService.I.installFromLocalBytes(
         bytes,
         fileName: file.name,
@@ -627,6 +730,27 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     required bool enabled,
     required String url,
   }) async {
+    if (_isCsMode) {
+      try {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        await client.updatePluginState(
+          widget.pluginUuid,
+          debug: enabled,
+          debugUrl: url,
+        );
+        await _refreshServerPlugin();
+        if (!mounted) return;
+        showSuccessToast(t.plugin.debugConfigUpdated);
+      } catch (error) {
+        if (mounted) {
+          showErrorToast(t.plugin.updateFailed(error: error.toString()));
+        }
+      }
+      return;
+    }
     await PluginRegistryService.I.updateDebugConfig(
       widget.pluginUuid,
       debug: enabled,
@@ -658,7 +782,15 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       return;
     }
     try {
-      await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
+      if (_isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        await client.deletePlugin(widget.pluginUuid);
+      } else {
+        await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
+      }
     } catch (e) {
       if (!mounted) {
         return;
@@ -720,7 +852,21 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     }
 
     if (persist && key.isNotEmpty) {
-      await savePluginConfigValue(widget.pluginRuntimeName, key, value);
+      if (_isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final current = await client.pluginConfig(widget.pluginUuid);
+        final config = Map<String, dynamic>.from(current.config)..[key] = value;
+        await client.updatePluginConfig(
+          widget.pluginUuid,
+          config,
+          expectedRevision: current.revision,
+        );
+      } else {
+        await savePluginConfigValue(widget.pluginRuntimeName, key, value);
+      }
     }
 
     await _saveFieldState(key, value, showToast: !startedWebLogin);

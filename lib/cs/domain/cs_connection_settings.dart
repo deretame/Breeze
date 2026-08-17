@@ -9,17 +9,26 @@ enum CsDownloadMode { client, server }
 class CsConnectionSettings {
   const CsConnectionSettings({
     this.mode = CsRunMode.local,
+    this.pendingMode,
     this.serverUrl = '',
     this.userId,
     this.downloadMode = CsDownloadMode.client,
+    this.downloadDataMigrated = false,
     this.lastServerRevision,
     this.accessToken,
   });
 
   final CsRunMode mode;
+  final CsRunMode? pendingMode;
   final String serverUrl;
   final String? userId;
   final CsDownloadMode downloadMode;
+
+  /// 进入 CS 时是否把已有本地下载迁移到了服务端。
+  ///
+  /// 它和 [downloadMode] 不同：[downloadMode] 表示后续新下载放在哪里，
+  /// 此字段用于关闭 CS 时决定是否用远端下载覆盖本地文件。
+  final bool downloadDataMigrated;
   final int? lastServerRevision;
 
   /// 运行时会话令牌，不参与普通 [toJson] 持久化。
@@ -27,14 +36,19 @@ class CsConnectionSettings {
 
   bool get isCsMode => mode == CsRunMode.cs;
 
+  bool get hasPendingMode => pendingMode != null;
+
   bool get hasServer => serverUrl.trim().isNotEmpty;
 
   CsConnectionSettings copyWith({
     CsRunMode? mode,
+    CsRunMode? pendingMode,
+    bool clearPendingMode = false,
     String? serverUrl,
     String? userId,
     bool clearUserId = false,
     CsDownloadMode? downloadMode,
+    bool? downloadDataMigrated,
     int? lastServerRevision,
     bool clearLastServerRevision = false,
     String? accessToken,
@@ -42,9 +56,11 @@ class CsConnectionSettings {
   }) {
     return CsConnectionSettings(
       mode: mode ?? this.mode,
+      pendingMode: clearPendingMode ? null : pendingMode ?? this.pendingMode,
       serverUrl: serverUrl ?? this.serverUrl,
       userId: clearUserId ? null : userId ?? this.userId,
       downloadMode: downloadMode ?? this.downloadMode,
+      downloadDataMigrated: downloadDataMigrated ?? this.downloadDataMigrated,
       lastServerRevision: clearLastServerRevision
           ? null
           : lastServerRevision ?? this.lastServerRevision,
@@ -55,9 +71,11 @@ class CsConnectionSettings {
   Map<String, dynamic> toJson() {
     return {
       'mode': mode.name,
+      'pendingMode': pendingMode?.name,
       'serverUrl': serverUrl,
       'userId': userId,
       'downloadMode': downloadMode.name,
+      'downloadDataMigrated': downloadDataMigrated,
       'lastServerRevision': lastServerRevision,
     };
   }
@@ -65,6 +83,7 @@ class CsConnectionSettings {
   factory CsConnectionSettings.fromJson(Map<String, dynamic> json) {
     return CsConnectionSettings(
       mode: _enumValue(json['mode'], CsRunMode.values, CsRunMode.local),
+      pendingMode: _nullableEnumValue(json['pendingMode'], CsRunMode.values),
       serverUrl: (json['serverUrl'] as String? ?? '').trim(),
       userId: (json['userId'] as String?)?.trim().nullIfEmpty,
       downloadMode: _enumValue(
@@ -72,6 +91,7 @@ class CsConnectionSettings {
         CsDownloadMode.values,
         CsDownloadMode.client,
       ),
+      downloadDataMigrated: json['downloadDataMigrated'] as bool? ?? false,
       lastServerRevision: (json['lastServerRevision'] as num?)?.toInt(),
     );
   }
@@ -86,6 +106,14 @@ class CsConnectionSettings {
       if (item.name == name) return item;
     }
     return fallback;
+  }
+
+  static T? _nullableEnumValue<T extends Enum>(Object? value, List<T> values) {
+    final name = value is String ? value : null;
+    for (final item in values) {
+      if (item.name == name) return item;
+    }
+    return null;
   }
 }
 

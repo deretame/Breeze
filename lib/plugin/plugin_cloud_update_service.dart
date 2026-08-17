@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/plugin/models/cloud_plugin_manifest_internal.dart';
@@ -22,6 +23,9 @@ class PluginCloudUpdateService {
   void scheduleSilentCloudUpdate({
     Duration delay = const Duration(minutes: 5),
   }) {
+    if (CsRuntimeContext.I.isCsMode) {
+      return;
+    }
     if (_silentCloudUpdateScheduled) {
       return;
     }
@@ -33,6 +37,9 @@ class PluginCloudUpdateService {
   }
 
   Future<void> runSilentCloudUpdateOnce() async {
+    if (CsRuntimeContext.I.isCsMode) {
+      return;
+    }
     if (_silentCloudUpdateRunning) {
       return;
     }
@@ -51,6 +58,9 @@ class PluginCloudUpdateService {
   /// - 不在列表中的插件：只走自身 npmName / updateUrl
   /// 两条路径互不回退。
   Future<void> silentUpdateFromCloud() async {
+    if (CsRuntimeContext.I.isCsMode) {
+      return;
+    }
     final localPlugins = PluginRegistryService.I.snapshot.values
         .where((item) => !item.isDeleted)
         .toList();
@@ -127,6 +137,9 @@ class PluginCloudUpdateService {
   ///
   /// 返回是否实际下载并应用了新版本。
   Future<bool> syncPluginFromSelfChannel(String uuid) async {
+    if (CsRuntimeContext.I.isCsMode) {
+      return false;
+    }
     final local = PluginRegistryService.I.getByUuid(uuid);
     if (local == null || local.isDeleted) {
       throw StateError('插件不存在或已删除');

@@ -10,6 +10,7 @@ argon2 = "0.5.3"
 axum = { version = "0.8.9", features = ["ws"] }
 brotli = "8.0.4"
 base64 = "0.22.1"
+ferrous-opencc = { version = "0.4.0", features = ["japanese-conversion"] }
 reqwest = { version = "0.13.4", default-features = false, features = [
     "http2",
     "json",

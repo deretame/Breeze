@@ -17,7 +17,7 @@ describe('HomePage', () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = input instanceof Request ? input.url : String(input);
       if (url.endsWith('/health')) {
-        return new Response(JSON.stringify({ status: 'ok', db_schema_version: 3 }), {
+        return new Response(JSON.stringify({ status: 'ok' }), {
           headers: { 'content-type': 'application/json' },
         });
       }
@@ -96,7 +96,7 @@ describe('HomePage', () => {
 
     expect(await screen.findByText('本地示例图源')).toBeInTheDocument();
     expect(screen.queryByText('disabled')).not.toBeInTheDocument();
-    expect(screen.getByText('SQLite schema')).toBeInTheDocument();
+    expect(screen.getByText('SQLite')).toBeInTheDocument();
     expect(screen.getByText('已开启')).toBeInTheDocument();
     expect(await screen.findByText('真实插件源示例')).toBeInTheDocument();
 

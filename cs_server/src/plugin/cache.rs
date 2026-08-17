@@ -5,9 +5,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Result, anyhow};
 use serde_json::{Value, json};
 
-use rquickjs_playground::{
-    register_bridge_route_async_handler, register_bridge_route_sync_handler,
-};
+use rquickjs_playground::register_bridge_route_sync_handler;
 
 const CACHE_VALUE_MAX_BYTES: usize = 500 * 1024;
 const CACHE_TTL: Duration = Duration::from_secs(30 * 60);
@@ -148,9 +146,6 @@ pub fn register_cache_routes() -> Result<()> {
         cache_delete(&runtime, &args)
     })?;
 
-    // 服务端 runtime 自身负责生命周期管理；向插件提供与本体兼容的成功响应。
-    register_bridge_route_async_handler("runtime.gc", |_, _| async { Ok(json!(true)) })?;
-    register_bridge_route_sync_handler("runtime.is_task_group_cancelled", |_, _| Ok(json!(false)))?;
     Ok(())
 }
 

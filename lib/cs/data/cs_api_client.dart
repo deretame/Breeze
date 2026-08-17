@@ -10,11 +10,13 @@ class CsApiException implements Exception {
     required this.status,
     required this.code,
     required this.message,
+    this.details,
   });
 
   final int status;
   final String code;
   final String message;
+  final Map<String, dynamic>? details;
 
   @override
   String toString() => 'CsApiException($status, $code): $message';
@@ -50,24 +52,37 @@ class CsSession {
 class CsPluginRecord {
   const CsPluginRecord({
     required this.pluginId,
+    required this.name,
+    required this.info,
     required this.version,
     required this.bundleHash,
     required this.enabled,
+    required this.debug,
+    required this.debugUrl,
     required this.updatedAt,
   });
 
   final String pluginId;
+  final String name;
+  final Map<String, dynamic> info;
   final String version;
   final String bundleHash;
   final bool enabled;
+  final bool debug;
+  final String? debugUrl;
   final String updatedAt;
 
   factory CsPluginRecord.fromJson(Map<String, dynamic> json) {
+    final rawInfo = json['info'];
     return CsPluginRecord(
       pluginId: json['plugin_id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      info: rawInfo is Map ? Map<String, dynamic>.from(rawInfo) : const {},
       version: json['version'] as String? ?? '',
       bundleHash: json['bundle_hash'] as String? ?? '',
       enabled: json['enabled'] == true,
+      debug: json['debug'] == true,
+      debugUrl: json['debug_url'] as String?,
       updatedAt: json['updated_at'] as String? ?? '',
     );
   }
@@ -194,6 +209,22 @@ class CsDownloadTask {
   }
 }
 
+class CsMigrationImportResult {
+  const CsMigrationImportResult({required this.counts});
+
+  final Map<String, int> counts;
+
+  factory CsMigrationImportResult.fromJson(Map<String, dynamic> json) {
+    final rawCounts = json['counts'];
+    final counts = rawCounts is Map
+        ? rawCounts.map(
+            (key, value) => MapEntry(key.toString(), (value as num).toInt()),
+          )
+        : const <String, int>{};
+    return CsMigrationImportResult(counts: counts);
+  }
+}
+
 class CsApiClient {
   CsApiClient({required String baseUrl, this.accessToken, WindHttp? httpClient})
     : _baseUrl = _normalizeBaseUrl(baseUrl),
@@ -244,20 +275,58 @@ class CsApiClient {
     return CsPluginRecord.fromJson(json);
   }
 
-  Future<CsPluginRecord> installPluginFromUrl(String url) async {
-    final json = await _post('/api/v1/plugins/install-url', {'url': url});
+  Future<CsPluginRecord> installPluginFromUrl(
+    String url, {
+    String? expectedPluginId,
+  }) async {
+    final json = await _post('/api/v1/plugins/install-url', {
+      'url': url,
+      ...?(expectedPluginId == null
+          ? null
+          : {'expected_plugin_id': expectedPluginId}),
+    });
     return CsPluginRecord.fromJson(json);
   }
 
   Future<CsPluginRecord> installPluginBundle(
     Uint8List bytes, {
     required String fileName,
+    String? expectedPluginId,
   }) async {
     final json = await _post('/api/v1/plugins/install-bundle', {
       'file_name': fileName,
       'bundle_base64': base64Encode(bytes),
+      ...?(expectedPluginId == null
+          ? null
+          : {'expected_plugin_id': expectedPluginId}),
     });
     return CsPluginRecord.fromJson(json);
+  }
+
+  Future<CsPluginRecord> pluginDetail(String pluginId) async {
+    final json = await _get('/api/v1/plugins/${Uri.encodeComponent(pluginId)}');
+    return CsPluginRecord.fromJson(json);
+  }
+
+  Future<CsPluginRecord> updatePluginState(
+    String pluginId, {
+    bool? enabled,
+    bool? debug,
+    String? debugUrl,
+  }) async {
+    final json = await _patch(
+      '/api/v1/plugins/${Uri.encodeComponent(pluginId)}',
+      {
+        ...?(enabled == null ? null : {'enabled': enabled}),
+        ...?(debug == null ? null : {'debug': debug}),
+        ...?(debugUrl == null ? null : {'debug_url': debugUrl}),
+      },
+    );
+    return CsPluginRecord.fromJson(json);
+  }
+
+  Future<void> deletePlugin(String pluginId) {
+    return _delete('/api/v1/plugins/${Uri.encodeComponent(pluginId)}');
   }
 
   Future<CsSession> register({
@@ -306,6 +375,42 @@ class CsApiClient {
       'settings': settings,
       'expected_revision': expectedRevision,
     });
+  }
+
+  Future<CsMigrationImportResult> importMigrationSnapshot(
+    Map<String, dynamic> snapshot,
+  ) async {
+    final json = await _post('/api/v1/migrations/import', {
+      'snapshot': snapshot,
+    });
+    return CsMigrationImportResult.fromJson(json);
+  }
+
+  Future<Map<String, dynamic>> exportMigrationSnapshot({
+    required bool includeDownloads,
+  }) {
+    return _get(
+      '/api/v1/migrations/export',
+      query: {'include_downloads': includeDownloads ? 'true' : 'false'},
+    );
+  }
+
+  Future<Map<String, dynamic>> uploadMigrationAsset({
+    required String comicUniqueKey,
+    required String relativePath,
+    required String mediaType,
+    required Uint8List bytes,
+  }) {
+    return _postBytes(
+      '/api/v1/migrations/assets',
+      bytes,
+      query: {
+        'comic_key': comicUniqueKey,
+        'path': relativePath,
+        'media_type': mediaType,
+      },
+      headers: {'Content-Type': mediaType},
+    );
   }
 
   Future<List<CsLibraryRecord>> listLibrary(
@@ -475,12 +580,19 @@ class CsApiClient {
     required String pluginId,
     required String function,
     required List<dynamic> args,
+    String? taskGroupKey,
   }) async {
     final response = await _httpClient.fetch(
       _url('/api/v1/plugins/${Uri.encodeComponent(pluginId)}/invoke'),
       method: 'POST',
       headers: _headers(),
-      body: {'function': function, 'args': args},
+      body: {
+        'function': function,
+        'args': args,
+        ...?(taskGroupKey == null
+            ? null
+            : <String, dynamic>{'taskGroupKey': taskGroupKey}),
+      },
     );
     final value = _decodeAny(response);
     if (value is! Map) {
@@ -493,17 +605,33 @@ class CsApiClient {
     required String pluginId,
     required String function,
     required List<dynamic> args,
+    String? taskGroupKey,
   }) async {
     final response = await _httpClient.fetch(
       _url('/api/v1/plugins/${Uri.encodeComponent(pluginId)}/invoke-bytes'),
       method: 'POST',
       headers: _headers(),
-      body: {'function': function, 'args': args},
+      body: {
+        'function': function,
+        'args': args,
+        ...?(taskGroupKey == null
+            ? null
+            : <String, dynamic>{'taskGroupKey': taskGroupKey}),
+      },
     );
     if (!response.ok) {
       _decodeAny(response);
     }
     return response.body;
+  }
+
+  Future<void> cancelPluginTaskGroup({
+    required String pluginId,
+    required String taskGroupKey,
+  }) async {
+    await _post('/api/v1/plugins/${Uri.encodeComponent(pluginId)}/cancel', {
+      'taskGroupKey': taskGroupKey,
+    });
   }
 
   Future<Map<String, dynamic>> _get(
@@ -528,6 +656,22 @@ class CsApiClient {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> _postBytes(
+    String path,
+    Uint8List body, {
+    Map<String, dynamic>? query,
+    Map<String, String>? headers,
+  }) async {
+    final response = await _httpClient.fetch(
+      _url(path),
+      method: 'POST',
+      headers: {..._headers(), ...?headers},
+      query: query,
+      body: body,
+    );
+    return _decode(response);
+  }
+
   Future<Map<String, dynamic>> _patch(String path, Object body) async {
     final response = await _httpClient.fetch(
       _url(path),
@@ -544,7 +688,9 @@ class CsApiClient {
       method: 'DELETE',
       headers: _headers(),
     );
-    _decodeAny(response);
+    if (response.status != 204) {
+      _decodeAny(response);
+    }
   }
 
   Map<String, String> _headers() {
@@ -578,6 +724,9 @@ class CsApiClient {
         status: response.status,
         code: map['code'] as String? ?? 'http_error',
         message: map['message'] as String? ?? 'CS 请求失败',
+        details: map['details'] is Map
+            ? Map<String, dynamic>.from(map['details'] as Map)
+            : null,
       );
     }
     return decoded;

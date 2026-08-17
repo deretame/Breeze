@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
+import 'package:zephyr/cs/data/cs_api_client.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -88,6 +90,17 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     _emitToggling();
 
     try {
+      if (CsRuntimeContext.I.isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final plugin = await client.updatePluginState(uuid, enabled: enabled);
+        final plugins = Map<String, PluginRuntimeState>.from(state.plugins)
+          ..[uuid] = _toRuntimeState(plugin);
+        emit(state.copyWith(plugins: plugins));
+        return;
+      }
       await _service.setEnabled(uuid, enabled);
     } catch (e) {
       showErrorToast(
@@ -129,6 +142,10 @@ class DiscoverCubit extends Cubit<DiscoverState> {
   }
 
   void _syncPluginsAndLoad() {
+    if (CsRuntimeContext.I.isCsMode) {
+      unawaited(_loadServerPlugins());
+      return;
+    }
     final snapshot = _service.snapshot;
     final visibleEntries =
         snapshot.entries.where((e) => !e.value.isDeleted).toList()
@@ -186,10 +203,9 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     _loadingUuids.add(uuid);
 
     try {
-      final data = await _service.fetchPluginInfo(
-        uuid: uuid,
-        runtimeName: uuid,
-      );
+      final data = CsRuntimeContext.I.isCsMode
+          ? await _loadServerPluginInfo(uuid)
+          : await _service.fetchPluginInfo(uuid: uuid, runtimeName: uuid);
       if (!isClosed) {
         final infoStates = Map<String, DiscoverPluginInfoState>.from(
           state.infoStates,
@@ -213,6 +229,60 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     } finally {
       _loadingUuids.remove(uuid);
     }
+  }
+
+  Future<void> _loadServerPlugins() async {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) {
+      return;
+    }
+    try {
+      final records = await client.plugins();
+      final plugins = <String, PluginRuntimeState>{};
+      final infoStates = <String, DiscoverPluginInfoState>{};
+      for (final record in records) {
+        plugins[record.pluginId] = _toRuntimeState(record);
+        infoStates[record.pluginId] = DiscoverPluginInfoState(
+          loading: false,
+          data: record.info.isEmpty ? null : record.info,
+        );
+      }
+      if (isClosed) return;
+      emit(state.copyWith(plugins: plugins, infoStates: infoStates));
+    } catch (error) {
+      if (!isClosed) {
+        emit(state.copyWith(infoStates: const {}));
+      }
+      showErrorToast(t.discover.pluginInfoLoadFailed(error: error));
+    }
+  }
+
+  Future<Map<String, dynamic>> _loadServerPluginInfo(String uuid) async {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) {
+      throw StateError('CS 服务端连接尚未建立');
+    }
+    final record = await client.pluginDetail(uuid);
+    return record.info;
+  }
+
+  PluginRuntimeState _toRuntimeState(CsPluginRecord record) {
+    final now = DateTime.now().toUtc();
+    final updatedAt = DateTime.tryParse(record.updatedAt) ?? now;
+    return PluginRuntimeState(
+      uuid: record.pluginId,
+      version: record.version,
+      originScript: '',
+      isEnabled: record.enabled,
+      isDeleted: false,
+      debug: record.debug,
+      debugUrl: record.debugUrl,
+      lastLoadSuccess: true,
+      lastLoadError: null,
+      insertedAt: updatedAt,
+      updatedAt: updatedAt,
+      deletedAt: null,
+    );
   }
 
   String _pluginInfoCacheKey(PluginRuntimeState state) {

@@ -5,10 +5,25 @@ import 'package:zephyr/cs/application/cs_mode_cubit.dart';
 import 'package:zephyr/cs/domain/cs_connection_settings.dart';
 
 Future<void> showCsModeSettingsDialog(BuildContext context) async {
-  await showDialog<void>(
+  final requestedMode = await showDialog<CsRunMode>(
     context: context,
     builder: (_) => const _CsModeSettingsDialog(),
   );
+  if (requestedMode != null && context.mounted) {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(requestedMode == CsRunMode.cs ? 'CS 模式已启用' : '已请求关闭 CS 模式'),
+        content: const Text('配置将在重启应用后完整生效。'),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CsModeSettingsDialog extends StatefulWidget {
@@ -65,8 +80,40 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
         password: password,
         register: _register,
       );
-      await cubit.setMode(CsRunMode.cs);
-      if (mounted) Navigator.of(context).pop();
+      if (!mounted) return;
+
+      final migrateData = await _askMigrationChoice(
+        context,
+        title: '迁移本地数据',
+        content:
+            '是否将本地收藏、历史、追更、文件夹、插件和设置迁移到服务端？\n\n'
+            '选择不迁移时，本地数据会保留且不会上传。',
+        acceptLabel: '迁移数据',
+        rejectLabel: '暂不迁移',
+      );
+      if (migrateData == null) return;
+
+      var migrateDownloads = false;
+      if (migrateData) {
+        if (!mounted) return;
+        final downloadChoice = await _askMigrationChoice(
+          context,
+          title: '迁移下载数据',
+          content:
+              '是否将已下载漫画的记录和文件迁移到服务端？\n\n'
+              '不迁移时，下载仍保存并使用当前设备上的本地文件。',
+          acceptLabel: '迁移下载',
+          rejectLabel: '保留本地下载',
+        );
+        if (downloadChoice == null) return;
+        migrateDownloads = downloadChoice;
+      }
+
+      await cubit.enableCsMode(
+        migrateData: migrateData,
+        migrateDownloads: migrateDownloads,
+      );
+      if (mounted) Navigator.of(context).pop(CsRunMode.cs);
     } on Object catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {
@@ -75,10 +122,27 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
   }
 
   Future<void> _switchToLocal() async {
+    final settings = context.read<CsModeCubit>().state;
+    final overwriteRemoteData = await _askMigrationChoice(
+      context,
+      title: '关闭 CS 模式',
+      content: settings.downloadDataMigrated
+          ? '是否使用服务端数据覆盖本地数据？\n\n'
+                '这会覆盖本地收藏、历史、追更、文件夹、插件、插件配置和设置，'
+                '并按照进入 CS 模式时的选择覆盖已迁移的下载漫画文件。'
+          : '是否使用服务端数据覆盖本地数据？\n\n'
+                '这会覆盖本地收藏、历史、追更、文件夹、插件、插件配置和设置。\n'
+                '本地下载未迁移到服务端，因此会保留本地下载文件。',
+      acceptLabel: '覆盖本地数据',
+      rejectLabel: '保留本地数据',
+    );
+    if (overwriteRemoteData == null || !mounted) return;
     setState(() => _busy = true);
     try {
-      await context.read<CsModeCubit>().setMode(CsRunMode.local);
-      if (mounted) Navigator.of(context).pop();
+      await context.read<CsModeCubit>().closeCsMode(
+        overwriteRemoteData: overwriteRemoteData,
+      );
+      if (mounted) Navigator.of(context).pop(CsRunMode.local);
     } on Object catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {
@@ -153,6 +217,11 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
                   alignment: Alignment.centerLeft,
                   child: Text('当前已连接到 CS 服务端'),
                 ),
+              if (settings.pendingMode == CsRunMode.cs)
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('CS 模式将在重启应用后生效'),
+                ),
               if (_error != null) ...[
                 const SizedBox(height: 8),
                 Align(
@@ -189,4 +258,31 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
       ],
     );
   }
+}
+
+Future<bool?> _askMigrationChoice(
+  BuildContext context, {
+  required String title,
+  required String content,
+  required String acceptLabel,
+  required String rejectLabel,
+}) {
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      title: Text(title),
+      content: Text(content),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(rejectLabel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(acceptLabel),
+        ),
+      ],
+    ),
+  );
 }

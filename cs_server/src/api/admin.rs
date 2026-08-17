@@ -1,9 +1,8 @@
 use axum::{Json, Router, extract::State, http::HeaderMap, routing::put};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 use crate::app_state::AppState;
-use crate::plugin_store::MAX_BUNDLE_BYTES;
+use crate::plugin_store::{MAX_BUNDLE_BYTES, store_plugin_bundle};
 
 use super::{auth::now_millis, error::ApiError};
 
@@ -65,27 +64,37 @@ pub(crate) async fn install_bundle(
     }
 
     tokio::fs::create_dir_all(&state.config.plugin_root).await?;
-    let filename = format!("{plugin_id}.cjs");
+    let (storage_key, bundle_hash) = store_plugin_bundle(&state.config.plugin_root, bundle).await?;
     let root = std::fs::canonicalize(&state.config.plugin_root)?;
-    let target = root.join(&filename);
-    if !target.starts_with(&root) {
+    let object_path = root.join(&storage_key);
+    if !object_path.starts_with(&root) {
         return Err(ApiError::Forbidden);
     }
-    let temporary = root.join(format!(".{plugin_id}.{}.tmp", uuid::Uuid::new_v4()));
-    tokio::fs::write(&temporary, bundle.as_bytes()).await?;
-    tokio::fs::rename(&temporary, &target).await?;
-
-    let mut hasher = Sha256::new();
-    hasher.update(bundle.as_bytes());
-    let bundle_hash = format!("{:x}", hasher.finalize());
+    let compressed_size = tokio::fs::metadata(&object_path).await?.len() as i64;
     let record = state.database.upsert_plugin(
         plugin_id,
         version.trim(),
-        &filename,
+        &storage_key,
         &bundle_hash,
         enabled,
         &now_millis(),
     )?;
+    state.database.upsert_plugin_object(
+        &bundle_hash,
+        "brotli",
+        bundle.len() as i64,
+        compressed_size,
+        &storage_key,
+        &now_millis(),
+    )?;
+    for orphan in state.database.remove_unreferenced_plugin_objects()? {
+        let orphan_path = root.join(&orphan);
+        if orphan_path.starts_with(&root) {
+            if let Err(error) = tokio::fs::remove_file(&orphan_path).await {
+                tracing::warn!(path = %orphan_path.display(), ?error, "删除未引用插件对象失败");
+            }
+        }
+    }
     Ok(InstallPluginResponse {
         plugin_id: record.plugin_id,
         version: record.version,

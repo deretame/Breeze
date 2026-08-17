@@ -5,6 +5,7 @@ mod db;
 mod http;
 mod plugin;
 mod plugin_store;
+mod plugin_update;
 mod websocket;
 
 use std::sync::Arc;
@@ -37,6 +38,9 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::new(config.clone(), database, http_config, http_client)
         .context("failed to initialize CS application state")?;
+    let plugin_update_task = tokio::spawn(crate::plugin_update::run(state.clone()));
+    let plugin_runtime_reaper =
+        tokio::spawn(crate::plugin::run_reaper(state.plugin_runtime.clone()));
     let router = http::build_router(state.clone());
     let listener = TcpListener::bind(config.bind_addr())
         .await
@@ -56,6 +60,8 @@ async fn main() -> anyhow::Result<()> {
         .with_graceful_shutdown(shutdown_signal())
         .await
         .context("CS server stopped unexpectedly")?;
+    plugin_update_task.abort();
+    plugin_runtime_reaper.abort();
 
     Ok(())
 }

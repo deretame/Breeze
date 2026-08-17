@@ -25,6 +25,8 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cs/application/cs_mode_cubit.dart';
+import 'package:zephyr/cs/data/cs_migration_exporter.dart';
+import 'package:zephyr/cs/data/cs_migration_importer.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -312,8 +314,14 @@ _initServices() async {
   await FontProfileController.instance.init();
 
   final pluginRegistryCubit = PluginRegistryCubit();
-  final csModeCubit = CsModeCubit();
+  final csModeCubit = CsModeCubit(
+    migrationExporter: CsMigrationExporter(objectbox),
+    migrationImporter: CsMigrationImporter(objectbox),
+  );
   await csModeCubit.init();
+  if (csModeCubit.state.isCsMode) {
+    await pluginRegistryCubit.refreshFromServer();
+  }
 
   if (globalSettingCubit.state.needCleanCache) {
     await clearCache(await getCachePath());

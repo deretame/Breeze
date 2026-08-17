@@ -4,6 +4,29 @@ import 'dart:io';
 
 import 'package:zephyr/plugin/bridge/dart_tools_bridge.dart';
 
+class CsRealtimeEvent {
+  const CsRealtimeEvent({
+    required this.eventId,
+    required this.topic,
+    required this.occurredAt,
+    required this.payload,
+  });
+
+  final String eventId;
+  final String topic;
+  final String occurredAt;
+  final dynamic payload;
+
+  factory CsRealtimeEvent.fromJson(Map<String, dynamic> json) {
+    return CsRealtimeEvent(
+      eventId: json['eventId']?.toString() ?? '',
+      topic: json['topic']?.toString() ?? '',
+      occurredAt: json['occurredAt']?.toString() ?? '',
+      payload: json['payload'],
+    );
+  }
+}
+
 /// Exposes the Flutter-only plugin callbacks to a CS server runtime.
 ///
 /// The server sends `bridge.request` messages after a plugin calls one of the
@@ -12,6 +35,10 @@ import 'package:zephyr/plugin/bridge/dart_tools_bridge.dart';
 class CsPluginBridgeChannel {
   WebSocket? _socket;
   StreamSubscription<Object?>? _subscription;
+  final StreamController<CsRealtimeEvent> _events =
+      StreamController<CsRealtimeEvent>.broadcast();
+
+  Stream<CsRealtimeEvent> get events => _events.stream;
 
   Future<void> connect({
     required String serverUrl,
@@ -62,6 +89,10 @@ class CsPluginBridgeChannel {
       if (decoded is! Map) return;
       request = Map<String, dynamic>.from(decoded);
     } on Object {
+      return;
+    }
+    if (request['type'] == 'event') {
+      _events.add(CsRealtimeEvent.fromJson(request));
       return;
     }
     if (request['type'] != 'bridge.request') return;

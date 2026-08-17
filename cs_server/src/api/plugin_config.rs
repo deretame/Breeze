@@ -26,7 +26,7 @@ pub async fn get(
     axum::extract::Path(plugin_id): axum::extract::Path<String>,
 ) -> Result<Json<PluginConfigResponse>, ApiError> {
     let user = current_user(&state, &headers)?;
-    ensure_plugin(&state, &plugin_id)?;
+    ensure_plugin(&state, &user.id, &plugin_id)?;
     let record = state.database.plugin_config(&user.id, &plugin_id)?;
     Ok(Json(to_response(&plugin_id, record)?))
 }
@@ -38,7 +38,7 @@ pub async fn update(
     Json(request): Json<UpdatePluginConfigRequest>,
 ) -> Result<Json<PluginConfigResponse>, ApiError> {
     let user = current_user(&state, &headers)?;
-    ensure_plugin(&state, &plugin_id)?;
+    ensure_plugin(&state, &user.id, &plugin_id)?;
     if !request.config.is_object() {
         return Err(ApiError::BadRequest("插件配置必须是 JSON 对象".to_owned()));
     }
@@ -60,8 +60,12 @@ pub async fn update(
     Ok(Json(to_response(&plugin_id, record)?))
 }
 
-fn ensure_plugin(state: &AppState, plugin_id: &str) -> Result<(), ApiError> {
-    if state.database.find_plugin(plugin_id)?.is_none() {
+fn ensure_plugin(state: &AppState, user_id: &str, plugin_id: &str) -> Result<(), ApiError> {
+    if state
+        .database
+        .find_user_plugin(user_id, plugin_id)?
+        .is_none()
+    {
         return Err(ApiError::NotFound);
     }
     Ok(())

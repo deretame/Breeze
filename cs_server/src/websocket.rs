@@ -70,6 +70,34 @@ fn bearer_token(headers: &HeaderMap) -> Option<&str> {
 }
 
 impl WebSocketHub {
+    pub fn publish_event(&self, user_id: &str, topic: &str, payload: Value) {
+        self.send_event(self.clients_for(user_id), topic, payload);
+    }
+
+    pub fn publish_event_to_all(&self, topic: &str, payload: Value) {
+        let clients = self
+            .clients
+            .lock()
+            .ok()
+            .map(|clients| clients.values().flatten().cloned().collect())
+            .unwrap_or_default();
+        self.send_event(clients, topic, payload);
+    }
+
+    fn send_event(&self, clients: Vec<Arc<ClientConnection>>, topic: &str, payload: Value) {
+        let event = json!({
+            "type": "event",
+            "eventId": Uuid::new_v4().to_string(),
+            "topic": topic,
+            "occurredAt": crate::api::auth::now_millis(),
+            "payload": payload,
+        })
+        .to_string();
+        for client in clients {
+            let _ = client.sender.send(Message::text(event.clone()));
+        }
+    }
+
     async fn serve(self: Arc<Self>, user_id: String, socket: WebSocket) {
         let (mut sink, mut stream) = socket.split();
         let (sender, mut outgoing) = mpsc::unbounded_channel();

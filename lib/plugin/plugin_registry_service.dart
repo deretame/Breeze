@@ -42,6 +42,17 @@ class PluginRegistryService {
   Map<String, dynamic>? getCachedPluginInfo(String uuid) =>
       _pluginInfoCache[uuid];
 
+  /// 仅供 CS 模式注入服务端返回的展示元数据。
+  ///
+  /// 这里不写 ObjectBox，也不创建本地运行时；CS 模式下本地 registry
+  /// 不能成为插件管理或插件执行的来源。
+  void setExternalPluginInfo(String uuid, Map<String, dynamic> info) {
+    if (uuid.trim().isEmpty || info.isEmpty) {
+      return;
+    }
+    _pluginInfoCache[uuid] = Map<String, dynamic>.from(info);
+  }
+
   Future<void> init() async {
     _objectbox = objectbox;
     await refreshFromDb();
@@ -193,14 +204,16 @@ class PluginRegistryService {
 
     final onceRuntimeName = 'plugin_info_${uuid.replaceAll('-', '_')}';
     final bundleJs = await _resolveBundleJs(plugin);
-    final handle = wrapQjsTaskBytes(await qjsTaskCall(
-      runtimeName: onceRuntimeName,
-      taskGroupKey: '',
-      isOnce: true,
-      bundleJs: bundleJs,
-      fnPath: 'getInfo',
-      argsJson: '{}',
-    ));
+    final handle = wrapQjsTaskBytes(
+      await qjsTaskCall(
+        runtimeName: onceRuntimeName,
+        taskGroupKey: '',
+        isOnce: true,
+        bundleJs: bundleJs,
+        fnPath: 'getInfo',
+        argsJson: '{}',
+      ),
+    );
     final String raw;
     try {
       raw = handle.utf8Decode();

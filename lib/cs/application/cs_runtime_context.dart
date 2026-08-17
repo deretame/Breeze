@@ -29,6 +29,8 @@ class CsRuntimeContext {
 
   CsApiClient? get client => isCsMode ? _client : null;
 
+  Stream<CsRealtimeEvent> get events => _bridgeChannel.events;
+
   void update(CsConnectionSettings settings) {
     _settings = settings;
     _client = settings.hasServer
@@ -70,6 +72,7 @@ class CsRuntimeContext {
     required String pluginId,
     required String function,
     required Map<String, dynamic> payload,
+    String? taskGroupKey,
   }) {
     final client = _client;
     if (!isCsMode || client == null) {
@@ -79,6 +82,7 @@ class CsRuntimeContext {
       pluginId: pluginId,
       function: function,
       args: [payload],
+      taskGroupKey: taskGroupKey,
     );
   }
 
@@ -86,6 +90,7 @@ class CsRuntimeContext {
     required String pluginId,
     required String function,
     required String argsJson,
+    String? taskGroupKey,
   }) {
     final client = _client;
     if (!isCsMode || client == null) {
@@ -99,6 +104,21 @@ class CsRuntimeContext {
       pluginId: pluginId,
       function: function,
       args: args,
+      taskGroupKey: taskGroupKey,
+    );
+  }
+
+  Future<void> cancelPluginTaskGroup({
+    required String pluginId,
+    required String taskGroupKey,
+  }) {
+    final client = _client;
+    if (!isCsMode || client == null) {
+      throw StateError('CS runtime is not active');
+    }
+    return client.cancelPluginTaskGroup(
+      pluginId: pluginId,
+      taskGroupKey: taskGroupKey,
     );
   }
 

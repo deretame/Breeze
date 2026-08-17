@@ -1,3 +1,5 @@
+use std::{future::Future, path::PathBuf, time::Duration};
+
 use axum::{
     Json, Router,
     body::Body,
@@ -16,8 +18,11 @@ use crate::{app_state::AppState, db::DownloadTaskRecord};
 use super::{
     auth::{current_user, now_millis},
     error::ApiError,
-    plugin_api::{invoke_bytes_for_user, invoke_json_for_user},
+    plugin_api::{invoke_bytes_for_user_with_task_group, invoke_json_for_user_with_task_group},
 };
+
+const DOWNLOAD_MAX_ATTEMPTS: usize = 3;
+const DOWNLOAD_RETRY_DELAY: Duration = Duration::from_millis(250);
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -69,7 +74,11 @@ async fn create_task(
     }
     let user = current_user(&state, &headers)?;
     validate_task_request(&request)?;
-    if state.database.find_plugin(&request.plugin_id)?.is_none() {
+    if state
+        .database
+        .find_user_plugin(&user.id, &request.plugin_id)?
+        .is_none()
+    {
         return Err(ApiError::NotFound);
     }
 
@@ -86,6 +95,16 @@ async fn create_task(
         &serde_json::to_string(&payload)?,
         &now_millis(),
     )?;
+    state.websocket_hub.publish_event(
+        &user.id,
+        "downloads.status",
+        json!({
+            "task_id": task_id,
+            "status": task.status,
+            "progress": task.progress,
+            "payload": payload,
+        }),
+    );
     let worker_state = state.clone();
     let worker_user_id = user.id;
     let worker_task_id = task_id.clone();
@@ -135,13 +154,14 @@ async fn cancel_task(
     if matches!(task.status.as_str(), "completed" | "failed" | "cancelled") {
         return Ok(Json(to_task_response(task)?));
     }
-    state.database.update_download_task(
+    state.plugin_runtime.cancel_task_group(&user.id, &task_id);
+    update_status(
+        &state,
         &user.id,
         &task_id,
         "cancelling",
         task.progress,
         None,
-        &now_millis(),
     )?;
     let task = state
         .database
@@ -194,24 +214,49 @@ async fn get_asset(
 }
 
 async fn run_task(state: AppState, user_id: String, task_id: String) {
-    let result = run_task_inner(state.clone(), &user_id, &task_id).await;
+    let mut artifacts = Vec::new();
+    let mut manifest_saved = false;
+    let result = run_task_inner(
+        &state,
+        &user_id,
+        &task_id,
+        &mut artifacts,
+        &mut manifest_saved,
+    )
+    .await;
     if let Err(error) = result {
         tracing::error!(%task_id, error = %error, "server download task failed");
-        if error.to_string() == "download task cancelled" {
-            return;
+        if is_download_cancelled(&state, &user_id, &task_id, &error) {
+            if let Ok(Some(task)) = state.database.find_download_task(&user_id, &task_id) {
+                if task.status != "cancelled" {
+                    let _ =
+                        update_status(&state, &user_id, &task_id, "cancelled", task.progress, None);
+                }
+            }
+        } else {
+            let _ = update_status(
+                &state,
+                &user_id,
+                &task_id,
+                "failed",
+                0,
+                Some(&error.to_string()),
+            );
         }
-        let _ = state.database.update_download_task(
-            &user_id,
-            &task_id,
-            "failed",
-            0,
-            Some(&error.to_string()),
-            &now_millis(),
-        );
+        if !manifest_saved {
+            cleanup_artifacts(&state, &user_id, artifacts).await;
+        }
     }
+    state.plugin_runtime.clear_task_group(&user_id, &task_id);
 }
 
-async fn run_task_inner(state: AppState, user_id: &str, task_id: &str) -> anyhow::Result<()> {
+async fn run_task_inner(
+    state: &AppState,
+    user_id: &str,
+    task_id: &str,
+    artifacts: &mut Vec<DownloadArtifact>,
+    manifest_saved: &mut bool,
+) -> anyhow::Result<()> {
     let task = state
         .database
         .find_download_task(user_id, task_id)?
@@ -234,19 +279,24 @@ async fn run_task_inner(state: AppState, user_id: &str, task_id: &str) -> anyhow
             .as_str()
             .ok_or_else(|| anyhow::anyhow!("chapter id must be string"))?;
         check_not_cancelled(&state, user_id, task_id)?;
-        let snapshot = invoke_json_for_user(
-            &state,
-            user_id,
-            plugin_id,
-            "getReadSnapshot",
-            &json!([{
-                "comicId": comic_id,
-                "chapterId": chapter_id,
-                "extern": {}
-            }]),
-        )
-        .await
-        .map_err(|error| anyhow::anyhow!(error_message(error)))?;
+        let snapshot = retry_download_step(state, user_id, task_id, || async {
+            invoke_json_for_user_with_task_group(
+                state,
+                user_id,
+                plugin_id,
+                "getReadSnapshot",
+                &json!([{
+                    "comicId": comic_id,
+                    "chapterId": chapter_id,
+                    "extern": {},
+                    "taskGroupKey": task_id,
+                }]),
+                Some(task_id),
+            )
+            .await
+            .map_err(|error| anyhow::anyhow!(error_message(error)))
+        })
+        .await?;
         pages.extend(extract_pages(&snapshot, chapter_id));
     }
     if pages.is_empty() {
@@ -265,29 +315,39 @@ async fn run_task_inner(state: AppState, user_id: &str, task_id: &str) -> anyhow
             (index as i64 * 100 / total).min(99),
             None,
         )?;
-        let bytes = invoke_bytes_for_user(
-            &state,
-            user_id,
-            plugin_id,
-            "fetchImageBytes",
-            &json!([{
-                "url": page.url,
-                "timeoutMs": 30000,
-                "extern": page.extern_data
-            }]),
-        )
-        .await
-        .map_err(|error| anyhow::anyhow!(error_message(error)))?;
+        let page_url = page.url.clone();
+        let page_extern = page.extern_data.clone();
+        let bytes = retry_download_step(state, user_id, task_id, || async {
+            invoke_bytes_for_user_with_task_group(
+                state,
+                user_id,
+                plugin_id,
+                "fetchImageBytes",
+                &json!([{
+                    "url": page_url.clone(),
+                    "timeoutMs": 30000,
+                    "taskGroupKey": task_id,
+                    "extern": page_extern.clone(),
+                }]),
+                Some(task_id),
+            )
+            .await
+            .map_err(|error| anyhow::anyhow!(error_message(error)))
+        })
+        .await?;
         let asset_id = Uuid::new_v4().to_string();
         let storage_key = format!("{user_id}/{asset_id}.bin");
         let path = state.config.asset_root().join(&storage_key);
         if let Some(parent) = path.parent() {
             tokio::fs::create_dir_all(parent).await?;
         }
-        tokio::fs::write(&path, &bytes).await?;
+        if let Err(error) = tokio::fs::write(&path, &bytes).await {
+            let _ = tokio::fs::remove_file(&path).await;
+            return Err(error.into());
+        }
         let mut hasher = Sha256::new();
         hasher.update(&bytes);
-        state.database.create_asset(
+        if let Err(error) = state.database.create_asset(
             user_id,
             &asset_id,
             &storage_key,
@@ -295,7 +355,14 @@ async fn run_task_inner(state: AppState, user_id: &str, task_id: &str) -> anyhow
             bytes.len() as i64,
             &format!("{:x}", hasher.finalize()),
             &now_millis(),
-        )?;
+        ) {
+            let _ = tokio::fs::remove_file(&path).await;
+            return Err(error);
+        }
+        artifacts.push(DownloadArtifact {
+            asset_id: asset_id.clone(),
+            path,
+        });
         manifest_pages.push(json!({
             "asset_id": asset_id,
             "chapter_id": page.chapter_id,
@@ -315,6 +382,7 @@ async fn run_task_inner(state: AppState, user_id: &str, task_id: &str) -> anyhow
         }))?,
         &now_millis(),
     )?;
+    *manifest_saved = true;
     update_status(&state, user_id, task_id, "completed", 100, None)?;
     Ok(())
 }
@@ -325,6 +393,11 @@ struct DownloadPage {
     name: String,
     url: String,
     extern_data: Value,
+}
+
+struct DownloadArtifact {
+    asset_id: String,
+    path: PathBuf,
 }
 
 fn extract_pages(response: &Value, chapter_id: &str) -> Vec<DownloadPage> {
@@ -358,20 +431,107 @@ fn extract_pages(response: &Value, chapter_id: &str) -> Vec<DownloadPage> {
         .collect()
 }
 
+async fn retry_download_step<T, F, Fut>(
+    state: &AppState,
+    user_id: &str,
+    task_id: &str,
+    mut operation: F,
+) -> anyhow::Result<T>
+where
+    F: FnMut() -> Fut,
+    Fut: Future<Output = anyhow::Result<T>>,
+{
+    let mut last_error = None;
+    for attempt in 1..=DOWNLOAD_MAX_ATTEMPTS {
+        check_not_cancelled(state, user_id, task_id)?;
+        match operation().await {
+            Ok(value) => return Ok(value),
+            Err(error)
+                if is_retryable_download_error(&error) && attempt < DOWNLOAD_MAX_ATTEMPTS =>
+            {
+                tracing::warn!(
+                    task_id,
+                    attempt,
+                    error = %error,
+                    "download plugin step failed, retrying"
+                );
+                last_error = Some(error);
+                tokio::time::sleep(DOWNLOAD_RETRY_DELAY * attempt as u32).await;
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    Err(last_error.unwrap_or_else(|| anyhow::anyhow!("download step failed")))
+}
+
+fn is_retryable_download_error(error: &anyhow::Error) -> bool {
+    let text = error.to_string().to_ascii_lowercase();
+    if text.contains("cancel") || text.contains("unauthorized") {
+        return false;
+    }
+    [
+        "timeout",
+        "timed out",
+        "connection reset",
+        "connection refused",
+        "connection closed",
+        "network",
+        "fetch failed",
+        "502",
+        "503",
+        "504",
+        "408",
+        "429",
+    ]
+    .iter()
+    .any(|marker| text.contains(marker))
+}
+
+fn is_download_cancelled(
+    state: &AppState,
+    user_id: &str,
+    task_id: &str,
+    error: &anyhow::Error,
+) -> bool {
+    if error.to_string().contains("cancel") {
+        return true;
+    }
+    state
+        .database
+        .find_download_task(user_id, task_id)
+        .ok()
+        .flatten()
+        .is_some_and(|task| matches!(task.status.as_str(), "cancelling" | "cancelled"))
+}
+
+async fn cleanup_artifacts(state: &AppState, user_id: &str, artifacts: Vec<DownloadArtifact>) {
+    for artifact in artifacts {
+        if let Err(error) = tokio::fs::remove_file(&artifact.path).await
+            && error.kind() != std::io::ErrorKind::NotFound
+        {
+            tracing::warn!(
+                asset_id = %artifact.asset_id,
+                error = %error,
+                "failed to remove partial download asset"
+            );
+        }
+        if let Err(error) = state.database.delete_asset(user_id, &artifact.asset_id) {
+            tracing::warn!(
+                asset_id = %artifact.asset_id,
+                error = %error,
+                "failed to remove partial download asset record"
+            );
+        }
+    }
+}
+
 fn check_not_cancelled(state: &AppState, user_id: &str, task_id: &str) -> anyhow::Result<()> {
     let task = state
         .database
         .find_download_task(user_id, task_id)?
         .ok_or_else(|| anyhow::anyhow!("download task disappeared"))?;
     if task.status == "cancelling" {
-        state.database.update_download_task(
-            user_id,
-            task_id,
-            "cancelled",
-            task.progress,
-            None,
-            &now_millis(),
-        )?;
+        update_status(state, user_id, task_id, "cancelled", task.progress, None)?;
         anyhow::bail!("download task cancelled");
     }
     Ok(())
@@ -393,6 +553,20 @@ fn update_status(
         error,
         &now_millis(),
     )?;
+    let payload = json!({
+        "task_id": task_id,
+        "status": status,
+        "progress": progress,
+        "error": error,
+    });
+    state
+        .websocket_hub
+        .publish_event(user_id, "downloads.progress", payload.clone());
+    if matches!(status, "completed" | "failed" | "cancelled") {
+        state
+            .websocket_hub
+            .publish_event(user_id, "downloads.status", payload);
+    }
     Ok(())
 }
 
@@ -434,7 +608,58 @@ fn error_message(error: ApiError) -> String {
         ApiError::BadRequest(message) | ApiError::Conflict(message) => message,
         ApiError::Unauthorized => "需要登录".to_owned(),
         ApiError::Forbidden => "没有权限".to_owned(),
+        ApiError::PluginBrowserLoginUnsupported => "CS 模式不支持插件浏览器登录".to_owned(),
+        ApiError::PluginUnauthorized(details) => details
+            .get("message")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("插件登录已失效，请重新登录")
+            .to_owned(),
         ApiError::NotFound => "资源不存在".to_owned(),
         ApiError::Internal(error) => error.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::{extract_pages, is_retryable_download_error};
+
+    #[test]
+    fn extracts_pages_from_nested_chapter_payloads() {
+        let pages = extract_pages(
+            &json!({
+                "data": {
+                    "chapter": {
+                        "pages": [
+                            {"url": "https://example.test/1.jpg", "name": "001"},
+                            {"fileServer": "https://example.test/2.jpg", "extern": {"token": "x"}},
+                            {"url": ""}
+                        ]
+                    }
+                }
+            }),
+            "chapter-1",
+        );
+
+        assert_eq!(pages.len(), 2);
+        assert_eq!(pages[0].chapter_id, "chapter-1");
+        assert_eq!(pages[0].name, "001");
+        assert_eq!(pages[1].url, "https://example.test/2.jpg");
+        assert_eq!(pages[1].extern_data, json!({"token": "x"}));
+    }
+
+    #[test]
+    fn retries_network_failures_but_not_authentication_or_cancellation() {
+        assert!(is_retryable_download_error(&anyhow::anyhow!(
+            "request timed out"
+        )));
+        assert!(is_retryable_download_error(&anyhow::anyhow!("HTTP 503")));
+        assert!(!is_retryable_download_error(&anyhow::anyhow!(
+            "unauthorized"
+        )));
+        assert!(!is_retryable_download_error(&anyhow::anyhow!(
+            "download task cancelled"
+        )));
     }
 }

@@ -16,7 +16,7 @@ describe('AppShell', () => {
       'fetch',
       vi.fn(() =>
         Promise.resolve(
-          new Response(JSON.stringify({ status: 'ok', db_schema_version: 3 }), {
+          new Response(JSON.stringify({ status: 'ok' }), {
             headers: { 'content-type': 'application/json' },
           }),
         ),

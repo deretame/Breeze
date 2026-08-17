@@ -130,8 +130,8 @@ export function HomePage() {
             <div className="metric-grid">
               <div className="metric">
                 <Database size={17} />
-                <span>SQLite schema</span>
-                <strong>{health?.db_schema_version ?? '—'}</strong>
+                <span>SQLite</span>
+                <strong>已启用</strong>
               </div>
               <div className="metric">
                 <Cloud size={17} />

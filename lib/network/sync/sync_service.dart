@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
@@ -56,6 +57,9 @@ Future<void> autoSync(
   GlobalSettingCubit? globalSettingCubit,
   ComicFollowCubit? comicFollowCubit,
 }) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    return;
+  }
   final adapter = createSyncAdapter(state);
   if (adapter == null) {
     return;
@@ -86,6 +90,9 @@ Future<void> manualUploadToCloud({
   GlobalSettingCubit? globalSettingCubit,
   ComicFollowCubit? comicFollowCubit,
 }) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    return;
+  }
   final adapter = createSyncAdapter(state);
   if (adapter == null) {
     throw StateError('未配置同步服务，请先选择并配置 WebDAV 或 S3');
@@ -110,6 +117,9 @@ Future<void> manualDownloadFromCloud({
   GlobalSettingCubit? globalSettingCubit,
   ComicFollowCubit? comicFollowCubit,
 }) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    return;
+  }
   final adapter = createSyncAdapter(state);
   if (adapter == null) {
     throw StateError('未配置同步服务，请先选择并配置 WebDAV 或 S3');

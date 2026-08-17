@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,11 +37,33 @@ class _CsServerDownloadTaskView extends StatefulWidget {
 
 class _CsServerDownloadTaskViewState extends State<_CsServerDownloadTaskView> {
   late Future<List<CsDownloadTask>> _tasks;
+  StreamSubscription<CsRealtimeEvent>? _eventSubscription;
+  Timer? _eventReloadTimer;
 
   @override
   void initState() {
     super.initState();
     _tasks = CsRuntimeContext.I.serverDownloads();
+    _eventSubscription = CsRuntimeContext.I.events.listen(_handleRealtimeEvent);
+  }
+
+  @override
+  void dispose() {
+    _eventReloadTimer?.cancel();
+    unawaited(_eventSubscription?.cancel());
+    super.dispose();
+  }
+
+  void _handleRealtimeEvent(CsRealtimeEvent event) {
+    if (!event.topic.startsWith('downloads.')) {
+      return;
+    }
+    _eventReloadTimer?.cancel();
+    _eventReloadTimer = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) {
+        unawaited(_reload());
+      }
+    });
   }
 
   Future<void> _reload() async {

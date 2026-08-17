@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
@@ -70,7 +71,9 @@ Future<void> unifiedDownloadTask(
   }
 
   try {
-    await ensureQjsRuntimeReady(pluginId: pluginId);
+    if (!CsRuntimeContext.I.isCsMode) {
+      await ensureQjsRuntimeReady(pluginId: pluginId);
+    }
     await ensureTaskRunning();
     await preparePluginDownloadRuntime(
       from: from,

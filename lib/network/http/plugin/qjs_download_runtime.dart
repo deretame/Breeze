@@ -55,6 +55,9 @@ void _untrackRuntime({
 }
 
 Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    return;
+  }
   final normalizedPluginId = (pluginId).trim();
   final runtimeName = runtimeNameForPluginId(normalizedPluginId);
   final bundleName = runtimeName;
@@ -104,13 +107,15 @@ Future<void> _runRuntimeInitIfNeeded(String runtimeName) async {
     return;
   }
   try {
-    wrapQjsTaskBytes(await qjsTaskCall(
-      runtimeName: runtimeName,
-      taskGroupKey: '',
-      isOnce: false,
-      fnPath: 'init',
-      argsJson: '{}',
-    )).free();
+    wrapQjsTaskBytes(
+      await qjsTaskCall(
+        runtimeName: runtimeName,
+        taskGroupKey: '',
+        isOnce: false,
+        fnPath: 'init',
+        argsJson: '{}',
+      ),
+    ).free();
     _runtimeInitDone.add(runtimeName);
   } catch (e) {
     if (e.toString().contains('target is not function: init')) {
@@ -217,6 +222,22 @@ Future<String> executeQjsCall({
   String? runtimeName,
   String? taskGroupKey,
 }) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    final decoded = jsonDecode(argsJson);
+    final payload = decoded is Map
+        ? Map<String, dynamic>.from(decoded)
+        : <String, dynamic>{};
+    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
+      payload['taskGroupKey'] = taskGroupKey;
+    }
+    final result = await CsRuntimeContext.I.invokePlugin(
+      pluginId: pluginId,
+      function: fnPath,
+      payload: payload,
+      taskGroupKey: taskGroupKey,
+    );
+    return jsonEncode(result);
+  }
   final bytes = await _runQjsTask(
     pluginId: pluginId,
     fnPath: fnPath,
@@ -240,6 +261,7 @@ Future<Uint8List> executeQjsFetchImageBytes({
       pluginId: pluginId,
       function: fnPath,
       argsJson: argsJson,
+      taskGroupKey: taskGroupKey,
     );
   }
   return _runQjsTask(
@@ -252,6 +274,9 @@ Future<Uint8List> executeQjsFetchImageBytes({
 }
 
 bool _shouldUseQjsCallOnce(String pluginId) {
+  if (CsRuntimeContext.I.isCsMode) {
+    return false;
+  }
   // return true;
   final normalized = normalizePluginId(pluginId);
   final state = PluginRegistryService.I.getByUuid(normalized);
@@ -259,6 +284,9 @@ bool _shouldUseQjsCallOnce(String pluginId) {
 }
 
 String? loadQjsDebugBundleUrl(String pluginId) {
+  if (CsRuntimeContext.I.isCsMode) {
+    return null;
+  }
   final normalizedPluginId = normalizePluginId(pluginId);
   if (normalizedPluginId.isEmpty) {
     throw StateError('pluginId 不能为空');
@@ -278,6 +306,13 @@ Future<void> cancelTrackedQjsTasks({
   required String pluginId,
   required String taskGroupKey,
 }) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    await CsRuntimeContext.I.cancelPluginTaskGroup(
+      pluginId: pluginId,
+      taskGroupKey: taskGroupKey,
+    );
+    return;
+  }
   final normalizedPluginId = (pluginId).trim();
   final groupId = _buildTaskGroupId(normalizedPluginId, taskGroupKey);
   final runtimeNames = _trackedRuntimesByGroup.remove(groupId)?.toList() ?? [];
@@ -344,6 +379,9 @@ Future<void> cancelTrackedQjsTasks({
 }
 
 Future<String> loadQjsBundleJs(String pluginId) async {
+  if (CsRuntimeContext.I.isCsMode) {
+    throw StateError('CS 模式下插件 bundle 由服务端管理');
+  }
   final normalizedPluginId = normalizePluginId(pluginId);
   if (normalizedPluginId.isEmpty) {
     throw StateError('pluginId 不能为空');

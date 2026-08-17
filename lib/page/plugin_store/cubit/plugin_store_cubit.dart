@@ -123,7 +123,8 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        final record = await client.installCatalogPlugin(item.manifest.uuid);
+        await client.installCatalogPlugin(item.manifest.uuid);
+        final record = await client.pluginDetail(item.manifest.uuid);
         emit(
           state.copyWith(
             serverPlugins: {...state.serverPlugins, record.pluginId: record},
@@ -155,10 +156,11 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        final record = await client.installPluginBundle(
+        final installed = await client.installPluginBundle(
           Uint8List.fromList(bytes),
           fileName: fileName,
         );
+        final record = await client.pluginDetail(installed.pluginId);
         emit(
           state.copyWith(
             serverPlugins: {...state.serverPlugins, record.pluginId: record},
@@ -190,7 +192,8 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        final record = await client.installPluginFromUrl(rawUrl);
+        final installed = await client.installPluginFromUrl(rawUrl);
+        final record = await client.pluginDetail(installed.pluginId);
         emit(
           state.copyWith(
             serverPlugins: {...state.serverPlugins, record.pluginId: record},

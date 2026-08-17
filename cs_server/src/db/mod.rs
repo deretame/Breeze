@@ -4,8 +4,7 @@ use std::time::Duration;
 
 use anyhow::Context;
 use rusqlite::{Connection, OptionalExtension, params};
-
-const CURRENT_SCHEMA_VERSION: i64 = 3;
+use serde_json::Value;
 
 #[derive(Clone)]
 pub struct Database {
@@ -19,6 +18,18 @@ pub struct PluginRecord {
     pub bundle_path: String,
     pub bundle_hash: String,
     pub enabled: bool,
+    pub updated_at: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct UserPluginRecord {
+    pub plugin_id: String,
+    pub version: String,
+    pub bundle_path: String,
+    pub bundle_hash: String,
+    pub enabled: bool,
+    pub debug: bool,
+    pub debug_url: Option<String>,
     pub updated_at: String,
 }
 
@@ -98,6 +109,21 @@ pub struct AssetRecord {
     pub content_hash: String,
 }
 
+#[derive(Clone, Debug, Default, serde::Serialize)]
+pub struct MigrationImportCounts {
+    pub favorites: i64,
+    pub histories: i64,
+    pub follows: i64,
+    pub folders: i64,
+    pub links: i64,
+    pub plugins: i64,
+    pub plugin_configs: i64,
+    pub downloads: i64,
+    pub download_tasks: i64,
+    pub download_folders: i64,
+    pub download_folder_items: i64,
+}
+
 impl Database {
     pub fn open(data_dir: &Path) -> anyhow::Result<Self> {
         std::fs::create_dir_all(data_dir)
@@ -116,24 +142,11 @@ impl Database {
             .pragma_update(None, "journal_mode", "WAL")
             .context("failed to enable SQLite WAL mode")?;
 
-        migrate(&mut connection)?;
+        initialize_schema(&mut connection)?;
 
         Ok(Self {
             connection: Arc::new(Mutex::new(connection)),
         })
-    }
-
-    pub fn schema_version(&self) -> anyhow::Result<i64> {
-        let connection = self
-            .connection
-            .lock()
-            .map_err(|_| anyhow::anyhow!("SQLite connection lock poisoned"))?;
-        let version = connection.query_row(
-            "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
-            [],
-            |row| row.get(0),
-        )?;
-        Ok(version)
     }
 
     pub fn create_user(
@@ -350,6 +363,71 @@ impl Database {
         }))
     }
 
+    pub fn delete_plugin_config(&self, user_id: &str, plugin_id: &str) -> anyhow::Result<()> {
+        let connection = self.lock_connection()?;
+        connection.execute(
+            "DELETE FROM plugin_configs WHERE user_id = ?1 AND plugin_id = ?2",
+            params![user_id, plugin_id],
+        )?;
+        Ok(())
+    }
+
+    pub fn upsert_plugin_object(
+        &self,
+        content_hash: &str,
+        compression: &str,
+        original_size: i64,
+        compressed_size: i64,
+        storage_key: &str,
+        created_at: &str,
+    ) -> anyhow::Result<()> {
+        let connection = self.lock_connection()?;
+        connection.execute(
+            "INSERT INTO plugin_objects(
+                content_hash, compression, original_size, compressed_size, storage_key, created_at
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(content_hash) DO UPDATE SET
+               compression = excluded.compression,
+               original_size = excluded.original_size,
+               compressed_size = excluded.compressed_size,
+               storage_key = excluded.storage_key",
+            params![
+                content_hash,
+                compression,
+                original_size,
+                compressed_size,
+                storage_key,
+                created_at,
+            ],
+        )?;
+        Ok(())
+    }
+
+    pub fn remove_unreferenced_plugin_objects(&self) -> anyhow::Result<Vec<String>> {
+        let mut connection = self.lock_connection()?;
+        let transaction = connection.transaction()?;
+        let storage_keys = {
+            let mut statement = transaction.prepare(
+                "SELECT storage_key FROM plugin_objects
+                 WHERE content_hash NOT IN (
+                   SELECT DISTINCT bundle_hash FROM plugins
+                 )",
+            )?;
+            statement
+                .query_map([], |row| row.get::<_, String>(0))?
+                .collect::<Result<Vec<_>, _>>()?
+        };
+        transaction.execute(
+            "DELETE FROM plugin_objects
+             WHERE content_hash NOT IN (
+               SELECT DISTINCT bundle_hash FROM plugins
+             )",
+            [],
+        )?;
+        transaction.commit()?;
+        Ok(storage_keys)
+    }
+
     pub fn list_library_records(
         &self,
         user_id: &str,
@@ -465,6 +543,387 @@ impl Database {
         )? > 0)
     }
 
+    pub fn upsert_user_plugin(
+        &self,
+        user_id: &str,
+        plugin_id: &str,
+        enabled: bool,
+        debug: bool,
+        debug_url: Option<&str>,
+        updated_at: &str,
+    ) -> anyhow::Result<()> {
+        let connection = self.lock_connection()?;
+        connection.execute(
+            "INSERT INTO user_plugins(user_id, plugin_id, enabled, debug, debug_url, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(user_id, plugin_id) DO UPDATE SET
+               enabled = excluded.enabled,
+               debug = excluded.debug,
+               debug_url = excluded.debug_url,
+               updated_at = excluded.updated_at",
+            params![user_id, plugin_id, enabled, debug, debug_url, updated_at],
+        )?;
+        Ok(())
+    }
+
+    pub fn find_user_plugin(
+        &self,
+        user_id: &str,
+        plugin_id: &str,
+    ) -> anyhow::Result<Option<UserPluginRecord>> {
+        let connection = self.lock_connection()?;
+        connection
+            .query_row(
+                "SELECT p.plugin_id, p.version, p.bundle_path, p.bundle_hash,
+                        up.enabled, up.debug, up.debug_url, up.updated_at
+                 FROM user_plugins up
+                 JOIN plugins p ON p.plugin_id = up.plugin_id
+                 WHERE up.user_id = ?1 AND up.plugin_id = ?2",
+                params![user_id, plugin_id],
+                |row| {
+                    Ok(UserPluginRecord {
+                        plugin_id: row.get(0)?,
+                        version: row.get(1)?,
+                        bundle_path: row.get(2)?,
+                        bundle_hash: row.get(3)?,
+                        enabled: row.get::<_, i64>(4)? != 0,
+                        debug: row.get::<_, i64>(5)? != 0,
+                        debug_url: row.get(6)?,
+                        updated_at: row.get(7)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(Into::into)
+    }
+
+    pub fn remove_user_plugin(&self, user_id: &str, plugin_id: &str) -> anyhow::Result<bool> {
+        let connection = self.lock_connection()?;
+        Ok(connection.execute(
+            "DELETE FROM user_plugins WHERE user_id = ?1 AND plugin_id = ?2",
+            params![user_id, plugin_id],
+        )? > 0)
+    }
+
+    /// 将客户端迁移快照导入当前用户的服务端数据库。
+    ///
+    /// 该方法只做 upsert，不会清空服务端数据；所有业务表写入同一个事务，
+    /// 这样客户端重试时不会产生半份迁移结果。
+    pub fn import_migration_snapshot(
+        &self,
+        user_id: &str,
+        data: &Value,
+        include_downloads: bool,
+    ) -> anyhow::Result<MigrationImportCounts> {
+        let mut connection = self.lock_connection()?;
+        let transaction = connection.transaction()?;
+        let mut counts = MigrationImportCounts::default();
+
+        if let Some(settings) = data.get("account_settings") {
+            transaction.execute(
+                "INSERT INTO user_settings(user_id, settings_json, revision, updated_at)
+                 VALUES (?1, ?2, 1, ?3)
+                 ON CONFLICT(user_id) DO UPDATE SET
+                   settings_json = excluded.settings_json,
+                   revision = user_settings.revision + 1,
+                   updated_at = excluded.updated_at",
+                params![
+                    user_id,
+                    serde_json::to_string(settings)?,
+                    current_import_timestamp(),
+                ],
+            )?;
+        }
+
+        for item in array_field(data, "favorites") {
+            import_library_row(&transaction, user_id, "comic_favorites", item, true)?;
+            counts.favorites += 1;
+        }
+        for item in array_field(data, "histories") {
+            import_library_row(&transaction, user_id, "comic_histories", item, true)?;
+            counts.histories += 1;
+        }
+        for item in array_field(data, "follows") {
+            let Some(unique_key) = string_value(item, "uniqueKey") else {
+                continue;
+            };
+            let updated_at =
+                string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+            let deleted_at = deleted_timestamp(item, &updated_at);
+            transaction.execute(
+                "INSERT INTO comic_follows(user_id, unique_key, payload_json, updated_at, deleted_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5)
+                 ON CONFLICT(user_id, unique_key) DO UPDATE SET
+                   payload_json = excluded.payload_json,
+                   updated_at = excluded.updated_at,
+                   deleted_at = excluded.deleted_at",
+                params![
+                    user_id,
+                    unique_key,
+                    serde_json::to_string(item)?,
+                    updated_at,
+                    deleted_at,
+                ],
+            )?;
+            counts.follows += 1;
+        }
+        for item in array_field(data, "folders") {
+            let Some(sync_id) = string_value(item, "syncId") else {
+                continue;
+            };
+            let updated_at =
+                string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+            let deleted_at = item.get("deletedAt").and_then(value_as_string);
+            transaction.execute(
+                "INSERT INTO comic_folders(
+                   user_id, sync_id, parent_sync_id, type_data, unique_key,
+                   payload_json, updated_at, deleted_at
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+                 ON CONFLICT(user_id, sync_id) DO UPDATE SET
+                   parent_sync_id = excluded.parent_sync_id,
+                   type_data = excluded.type_data,
+                   unique_key = excluded.unique_key,
+                   payload_json = excluded.payload_json,
+                   updated_at = excluded.updated_at,
+                   deleted_at = excluded.deleted_at",
+                params![
+                    user_id,
+                    sync_id,
+                    item.get("parentSyncId").and_then(value_as_string),
+                    string_value(item, "typeData").unwrap_or_default(),
+                    string_value(item, "uniqueKey").unwrap_or_default(),
+                    serde_json::to_string(item)?,
+                    updated_at,
+                    deleted_at,
+                ],
+            )?;
+            counts.folders += 1;
+        }
+        for item in array_field(data, "links") {
+            let Some(unique_key) = string_value(item, "uniqueKey") else {
+                continue;
+            };
+            let updated_at =
+                string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+            let deleted_at = item.get("deletedAt").and_then(value_as_string);
+            transaction.execute(
+                "INSERT INTO comic_links(
+                   user_id, unique_key, comic_unique_key, folder_sync_id,
+                   type_data, payload_json, updated_at, deleted_at
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+                 ON CONFLICT(user_id, unique_key) DO UPDATE SET
+                   comic_unique_key = excluded.comic_unique_key,
+                   folder_sync_id = excluded.folder_sync_id,
+                   type_data = excluded.type_data,
+                   payload_json = excluded.payload_json,
+                   updated_at = excluded.updated_at,
+                   deleted_at = excluded.deleted_at",
+                params![
+                    user_id,
+                    unique_key,
+                    string_value(item, "comicUniqueKey").unwrap_or_default(),
+                    item.get("folderSyncId").and_then(value_as_string),
+                    string_value(item, "typeData").unwrap_or_default(),
+                    serde_json::to_string(item)?,
+                    updated_at,
+                    deleted_at,
+                ],
+            )?;
+            counts.links += 1;
+        }
+        for item in array_field(data, "plugin_configs") {
+            let Some(plugin_id) = string_value(item, "name") else {
+                continue;
+            };
+            let config_json = match item.get("config") {
+                Some(Value::String(value)) => value.clone(),
+                Some(value) => serde_json::to_string(value)?,
+                None => "{}".to_owned(),
+            };
+            transaction.execute(
+                "INSERT INTO plugin_configs(
+                   user_id, plugin_id, config_json, revision, updated_at
+                 )
+                 SELECT ?1, ?2, ?3, 1, ?4
+                 WHERE EXISTS (SELECT 1 FROM plugins WHERE plugin_id = ?2)
+                 ON CONFLICT(user_id, plugin_id) DO UPDATE SET
+                   config_json = excluded.config_json,
+                   revision = plugin_configs.revision + 1,
+                   updated_at = excluded.updated_at",
+                params![user_id, plugin_id, config_json, current_import_timestamp(),],
+            )?;
+            counts.plugin_configs += 1;
+        }
+
+        if include_downloads {
+            for item in array_field(data, "downloads") {
+                let Some(comic_key) = string_value(item, "uniqueKey") else {
+                    continue;
+                };
+                let updated_at =
+                    string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+                transaction.execute(
+                    "INSERT INTO download_manifests(
+                       user_id, comic_unique_key, manifest_json, updated_at
+                     ) VALUES (?1, ?2, ?3, ?4)
+                     ON CONFLICT(user_id, comic_unique_key) DO UPDATE SET
+                       manifest_json = excluded.manifest_json,
+                       updated_at = excluded.updated_at",
+                    params![user_id, comic_key, serde_json::to_string(item)?, updated_at,],
+                )?;
+                counts.downloads += 1;
+            }
+            for item in array_field(data, "download_tasks") {
+                let task_id = format!(
+                    "local:{}:{}",
+                    string_value(item, "comicId").unwrap_or_default(),
+                    value_as_string(item.get("id").unwrap_or(&Value::Null))
+                        .unwrap_or_else(|| uuid::Uuid::new_v4().to_string())
+                );
+                let status = string_value(item, "status").unwrap_or_else(|| {
+                    if item
+                        .get("isCompleted")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(false)
+                    {
+                        "completed".to_owned()
+                    } else {
+                        "queued".to_owned()
+                    }
+                });
+                let progress = if status == "completed" { 100 } else { 0 };
+                transaction.execute(
+                    "INSERT INTO download_tasks(
+                       user_id, task_id, status, progress, payload_json, error_text, updated_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, NULL, ?6)
+                     ON CONFLICT(user_id, task_id) DO UPDATE SET
+                       status = excluded.status,
+                       progress = excluded.progress,
+                       payload_json = excluded.payload_json,
+                       updated_at = excluded.updated_at",
+                    params![
+                        user_id,
+                        task_id,
+                        status,
+                        progress,
+                        serde_json::to_string(item)?,
+                        current_import_timestamp(),
+                    ],
+                )?;
+                counts.download_tasks += 1;
+            }
+            for item in array_field(data, "download_folders") {
+                let Some(folder_key) = string_value(item, "folderKey") else {
+                    continue;
+                };
+                let updated_at =
+                    string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+                let deleted_at = deleted_timestamp(item, &updated_at);
+                transaction.execute(
+                    "INSERT INTO download_folders(
+                       user_id, folder_key, payload_json, updated_at, deleted_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5)
+                     ON CONFLICT(user_id, folder_key) DO UPDATE SET
+                       payload_json = excluded.payload_json,
+                       updated_at = excluded.updated_at,
+                       deleted_at = excluded.deleted_at",
+                    params![
+                        user_id,
+                        folder_key,
+                        serde_json::to_string(item)?,
+                        updated_at,
+                        deleted_at,
+                    ],
+                )?;
+                counts.download_folders += 1;
+            }
+            for item in array_field(data, "download_folder_items") {
+                let Some(unique_key) = string_value(item, "uniqueKey") else {
+                    continue;
+                };
+                let updated_at =
+                    string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+                let deleted_at = deleted_timestamp(item, &updated_at);
+                transaction.execute(
+                    "INSERT INTO download_folder_items(
+                       user_id, unique_key, folder_key, download_unique_key,
+                       payload_json, updated_at, deleted_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                     ON CONFLICT(user_id, unique_key) DO UPDATE SET
+                       folder_key = excluded.folder_key,
+                       download_unique_key = excluded.download_unique_key,
+                       payload_json = excluded.payload_json,
+                       updated_at = excluded.updated_at,
+                       deleted_at = excluded.deleted_at",
+                    params![
+                        user_id,
+                        unique_key,
+                        string_value(item, "folderKey").unwrap_or_default(),
+                        string_value(item, "downloadUniqueKey").unwrap_or_default(),
+                        serde_json::to_string(item)?,
+                        updated_at,
+                        deleted_at,
+                    ],
+                )?;
+                counts.download_folder_items += 1;
+            }
+        }
+
+        transaction.commit()?;
+        Ok(counts)
+    }
+
+    pub fn append_migration_asset_page(
+        &self,
+        user_id: &str,
+        comic_unique_key: &str,
+        relative_path: &str,
+        asset_id: &str,
+        updated_at: &str,
+    ) -> anyhow::Result<()> {
+        let mut connection = self.lock_connection()?;
+        let transaction = connection.transaction()?;
+        let mut manifest = transaction
+            .query_row(
+                "SELECT manifest_json FROM download_manifests
+                 WHERE user_id = ?1 AND comic_unique_key = ?2",
+                params![user_id, comic_unique_key],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?
+            .and_then(|value| serde_json::from_str::<Value>(&value).ok())
+            .unwrap_or_else(|| serde_json::json!({}));
+        let object = manifest
+            .as_object_mut()
+            .ok_or_else(|| anyhow::anyhow!("migration manifest must be a JSON object"))?;
+        let pages = object
+            .entry("pages")
+            .or_insert_with(|| Value::Array(Vec::new()));
+        let pages = pages
+            .as_array_mut()
+            .ok_or_else(|| anyhow::anyhow!("migration manifest pages must be an array"))?;
+        pages.retain(|page| page.get("path").and_then(Value::as_str) != Some(relative_path));
+        pages.push(serde_json::json!({
+            "path": relative_path,
+            "asset_id": asset_id,
+        }));
+        transaction.execute(
+            "INSERT INTO download_manifests(user_id, comic_unique_key, manifest_json, updated_at)
+             VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(user_id, comic_unique_key) DO UPDATE SET
+               manifest_json = excluded.manifest_json,
+               updated_at = excluded.updated_at",
+            params![
+                user_id,
+                comic_unique_key,
+                serde_json::to_string(&manifest)?,
+                updated_at,
+            ],
+        )?;
+        transaction.commit()?;
+        Ok(())
+    }
+
     fn lock_connection(&self) -> anyhow::Result<std::sync::MutexGuard<'_, Connection>> {
         self.connection
             .lock()
@@ -494,6 +953,170 @@ impl Database {
             })?
             .collect::<Result<Vec<_>, _>>()?;
         Ok(records)
+    }
+
+    pub fn list_user_plugins(&self, user_id: &str) -> anyhow::Result<Vec<UserPluginRecord>> {
+        let connection = self.lock_connection()?;
+        let mut statement = connection.prepare(
+            "SELECT p.plugin_id, p.version, p.bundle_path, p.bundle_hash,
+                    up.enabled, up.debug, up.debug_url, up.updated_at
+             FROM user_plugins up
+             JOIN plugins p ON p.plugin_id = up.plugin_id
+             WHERE up.user_id = ?1
+             ORDER BY p.plugin_id",
+        )?;
+        let records = statement
+            .query_map([user_id], |row| {
+                Ok(UserPluginRecord {
+                    plugin_id: row.get(0)?,
+                    version: row.get(1)?,
+                    bundle_path: row.get(2)?,
+                    bundle_hash: row.get(3)?,
+                    enabled: row.get::<_, i64>(4)? != 0,
+                    debug: row.get::<_, i64>(5)? != 0,
+                    debug_url: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(records)
+    }
+
+    pub fn export_migration_data(
+        &self,
+        user_id: &str,
+        include_downloads: bool,
+    ) -> anyhow::Result<Value> {
+        let connection = self.lock_connection()?;
+        let account_settings = connection
+            .query_row(
+                "SELECT settings_json FROM user_settings WHERE user_id = ?1",
+                [user_id],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?
+            .and_then(|value| serde_json::from_str::<Value>(&value).ok())
+            .unwrap_or_else(|| Value::Object(serde_json::Map::new()));
+
+        let mut data = serde_json::Map::new();
+        data.insert("account_settings".to_owned(), account_settings);
+        data.insert(
+            "favorites".to_owned(),
+            query_payloads(&connection, "comic_favorites", user_id)?,
+        );
+        data.insert(
+            "histories".to_owned(),
+            query_payloads(&connection, "comic_histories", user_id)?,
+        );
+        data.insert(
+            "follows".to_owned(),
+            query_payloads(&connection, "comic_follows", user_id)?,
+        );
+        data.insert(
+            "folders".to_owned(),
+            query_payloads(&connection, "comic_folders", user_id)?,
+        );
+        data.insert(
+            "links".to_owned(),
+            query_payloads(&connection, "comic_links", user_id)?,
+        );
+
+        let mut plugin_configs = Vec::new();
+        let mut config_statement = connection.prepare(
+            "SELECT plugin_id, config_json FROM plugin_configs
+             WHERE user_id = ?1 ORDER BY plugin_id",
+        )?;
+        for row in config_statement.query_map([user_id], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })? {
+            let (plugin_id, config_json) = row?;
+            plugin_configs.push(serde_json::json!({
+                "id": 0,
+                "name": plugin_id,
+                "config": config_json,
+            }));
+        }
+        data.insert("plugin_configs".to_owned(), Value::Array(plugin_configs));
+
+        if include_downloads {
+            let mut downloads = Vec::new();
+            let mut download_assets = Vec::new();
+            let mut manifest_statement = connection.prepare(
+                "SELECT comic_unique_key, manifest_json FROM download_manifests
+                 WHERE user_id = ?1 ORDER BY comic_unique_key",
+            )?;
+            for row in manifest_statement.query_map([user_id], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })? {
+                let (comic_key, manifest_json) = row?;
+                let mut manifest = serde_json::from_str::<Value>(&manifest_json)?;
+                if let Some(pages) = manifest.get_mut("pages").and_then(Value::as_array_mut) {
+                    for (page_index, page) in pages.iter().enumerate() {
+                        let Some(asset_id) = page.get("asset_id").and_then(Value::as_str) else {
+                            continue;
+                        };
+                        let relative_path = page
+                            .get("path")
+                            .and_then(Value::as_str)
+                            .map(ToOwned::to_owned)
+                            .unwrap_or_else(|| {
+                                let chapter = page
+                                    .get("chapter_id")
+                                    .and_then(Value::as_str)
+                                    .filter(|value| !value.is_empty())
+                                    .unwrap_or("chapter");
+                                let chapter = chapter.replace(['/', '\\'], "_").replace("..", "_");
+                                format!("{chapter}/page-{page_index}.bin")
+                            });
+                        let Some((media_type, byte_size, content_hash)) = connection
+                            .query_row(
+                                "SELECT media_type, byte_size, content_hash FROM assets
+                                 WHERE user_id = ?1 AND asset_id = ?2",
+                                rusqlite::params![user_id, asset_id],
+                                |asset| {
+                                    Ok((
+                                        asset.get::<_, String>(0)?,
+                                        asset.get::<_, i64>(1)?,
+                                        asset.get::<_, String>(2)?,
+                                    ))
+                                },
+                            )
+                            .optional()?
+                        else {
+                            continue;
+                        };
+                        download_assets.push(serde_json::json!({
+                            "comic_key": comic_key,
+                            "relative_path": relative_path,
+                            "asset_id": asset_id,
+                            "media_type": media_type,
+                            "byte_size": byte_size,
+                            "content_hash": content_hash,
+                        }));
+                    }
+                    if let Some(object) = manifest.as_object_mut() {
+                        object.remove("pages");
+                    }
+                }
+                downloads.push(manifest);
+            }
+            data.insert("downloads".to_owned(), Value::Array(downloads));
+            data.insert("download_assets".to_owned(), Value::Array(download_assets));
+            data.insert(
+                "download_tasks".to_owned(),
+                query_payloads(&connection, "download_tasks", user_id)?,
+            );
+            data.insert(
+                "download_folders".to_owned(),
+                query_payloads(&connection, "download_folders", user_id)?,
+            );
+            data.insert(
+                "download_folder_items".to_owned(),
+                query_payloads(&connection, "download_folder_items", user_id)?,
+            );
+        }
+
+        Ok(Value::Object(data))
     }
 
     pub fn find_plugin(&self, plugin_id: &str) -> anyhow::Result<Option<PluginRecord>> {
@@ -703,6 +1326,14 @@ impl Database {
             .optional()
             .map_err(Into::into)
     }
+
+    pub fn delete_asset(&self, user_id: &str, asset_id: &str) -> anyhow::Result<bool> {
+        let connection = self.lock_connection()?;
+        Ok(connection.execute(
+            "DELETE FROM assets WHERE user_id = ?1 AND asset_id = ?2",
+            params![user_id, asset_id],
+        )? > 0)
+    }
 }
 
 fn user_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<UserRecord> {
@@ -725,198 +1356,291 @@ fn download_task_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<DownloadT
     })
 }
 
-fn migrate(connection: &mut Connection) -> anyhow::Result<()> {
-    connection.execute_batch(
-        "CREATE TABLE IF NOT EXISTS schema_migrations (
-            version INTEGER PRIMARY KEY,
-            applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );",
+fn array_field<'a>(value: &'a Value, key: &str) -> Vec<&'a Value> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(|items| items.iter().collect())
+        .unwrap_or_default()
+}
+
+fn query_payloads(
+    connection: &rusqlite::Connection,
+    table: &str,
+    user_id: &str,
+) -> anyhow::Result<Value> {
+    let sql = format!("SELECT payload_json FROM {table} WHERE user_id = ?1 ORDER BY updated_at");
+    let mut statement = connection.prepare(&sql)?;
+    let mut payloads = Vec::new();
+    for row in statement.query_map([user_id], |row| row.get::<_, String>(0))? {
+        let payload = row?;
+        payloads.push(serde_json::from_str(&payload)?);
+    }
+    Ok(Value::Array(payloads))
+}
+
+fn string_value(value: &Value, key: &str) -> Option<String> {
+    value.get(key).and_then(value_as_string)
+}
+
+fn value_as_string(value: &Value) -> Option<String> {
+    let result = match value {
+        Value::String(value) => value.clone(),
+        Value::Number(value) => value.to_string(),
+        Value::Bool(value) => value.to_string(),
+        _ => return None,
+    };
+    (!result.trim().is_empty()).then_some(result)
+}
+
+fn deleted_timestamp(value: &Value, updated_at: &str) -> Option<String> {
+    value
+        .get("deleted")
+        .and_then(Value::as_bool)
+        .filter(|deleted| *deleted)
+        .map(|_| updated_at.to_owned())
+}
+
+fn current_import_timestamp() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_millis().to_string())
+        .unwrap_or_else(|_| "0".to_owned())
+}
+
+fn import_library_row(
+    transaction: &rusqlite::Transaction<'_>,
+    user_id: &str,
+    table: &str,
+    item: &Value,
+    include_source: bool,
+) -> anyhow::Result<()> {
+    let Some(unique_key) = string_value(item, "uniqueKey") else {
+        return Ok(());
+    };
+    let source = if include_source {
+        string_value(item, "source").unwrap_or_default()
+    } else {
+        String::new()
+    };
+    let comic_id = if include_source {
+        string_value(item, "comicId").unwrap_or_default()
+    } else {
+        String::new()
+    };
+    let updated_at = string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+    let deleted_at = deleted_timestamp(item, &updated_at);
+    transaction.execute(
+        &format!(
+            "INSERT INTO {table}(
+               user_id, unique_key, source, comic_id, payload_json, updated_at, deleted_at
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(user_id, unique_key) DO UPDATE SET
+               source = excluded.source,
+               comic_id = excluded.comic_id,
+               payload_json = excluded.payload_json,
+               updated_at = excluded.updated_at,
+               deleted_at = excluded.deleted_at"
+        ),
+        params![
+            user_id,
+            unique_key,
+            source,
+            comic_id,
+            serde_json::to_string(item)?,
+            updated_at,
+            deleted_at,
+        ],
     )?;
+    Ok(())
+}
 
-    let version: i64 = connection.query_row(
-        "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
-        [],
-        |row| row.get(0),
-    )?;
-
-    if version < 1 {
-        let transaction = connection.transaction()?;
-        transaction.execute_batch(
-            "CREATE TABLE users (
-                id TEXT PRIMARY KEY NOT NULL,
-                username TEXT NOT NULL UNIQUE,
-                password_hash TEXT,
-                created_at TEXT NOT NULL
-            );
-
-            CREATE TABLE user_settings (
-                user_id TEXT PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                settings_json TEXT NOT NULL DEFAULT '{}',
-                revision INTEGER NOT NULL DEFAULT 0,
-                updated_at TEXT NOT NULL
-            );
-
-            CREATE TABLE plugins (
-                plugin_id TEXT PRIMARY KEY NOT NULL,
-                version TEXT NOT NULL,
-                bundle_path TEXT NOT NULL,
-                bundle_hash TEXT NOT NULL,
-                enabled INTEGER NOT NULL DEFAULT 1,
-                updated_at TEXT NOT NULL
-            );
-
-            CREATE TABLE user_plugins (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                plugin_id TEXT NOT NULL REFERENCES plugins(plugin_id) ON DELETE CASCADE,
-                enabled INTEGER NOT NULL DEFAULT 1,
-                debug INTEGER NOT NULL DEFAULT 0,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, plugin_id)
-            );
-
-            CREATE TABLE plugin_configs (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                plugin_id TEXT NOT NULL REFERENCES plugins(plugin_id) ON DELETE CASCADE,
-                config_json TEXT NOT NULL DEFAULT '{}',
-                revision INTEGER NOT NULL DEFAULT 0,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, plugin_id)
-            );
-
-            CREATE TABLE comic_favorites (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                unique_key TEXT NOT NULL,
-                source TEXT NOT NULL,
-                comic_id TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                deleted_at TEXT,
-                PRIMARY KEY (user_id, unique_key)
-            );
-
-            CREATE TABLE comic_histories (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                unique_key TEXT NOT NULL,
-                source TEXT NOT NULL,
-                comic_id TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                deleted_at TEXT,
-                PRIMARY KEY (user_id, unique_key)
-            );
-
-            CREATE TABLE comic_follows (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                unique_key TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                deleted_at TEXT,
-                PRIMARY KEY (user_id, unique_key)
-            );
-
-            CREATE TABLE comic_folders (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                sync_id TEXT NOT NULL,
-                parent_sync_id TEXT,
-                type_data TEXT NOT NULL,
-                unique_key TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                deleted_at TEXT,
-                PRIMARY KEY (user_id, sync_id)
-            );
-
-            CREATE TABLE comic_links (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                unique_key TEXT NOT NULL,
-                comic_unique_key TEXT NOT NULL,
-                folder_sync_id TEXT,
-                type_data TEXT NOT NULL,
-                payload_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                deleted_at TEXT,
-                PRIMARY KEY (user_id, unique_key)
-            );
-
-            CREATE TABLE download_tasks (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                task_id TEXT NOT NULL,
-                status TEXT NOT NULL,
-                progress INTEGER NOT NULL DEFAULT 0,
-                payload_json TEXT NOT NULL,
-                error_text TEXT,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, task_id)
-            );
-
-            CREATE TABLE download_manifests (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                comic_unique_key TEXT NOT NULL,
-                manifest_json TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, comic_unique_key)
-            );
-
-            CREATE TABLE assets (
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                asset_id TEXT NOT NULL,
-                storage_key TEXT NOT NULL,
-                media_type TEXT NOT NULL,
-                byte_size INTEGER NOT NULL,
-                content_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                PRIMARY KEY (user_id, asset_id)
-            );
-
-            CREATE TABLE server_meta (
-                key TEXT PRIMARY KEY NOT NULL,
-                value TEXT NOT NULL
-            );
-
-            INSERT INTO schema_migrations(version) VALUES (1);",
-        )?;
-        transaction.commit()?;
-    }
-
-    if version < 2 {
-        let transaction = connection.transaction()?;
-        transaction.execute_batch(
-            "CREATE TABLE sessions (
-                id TEXT PRIMARY KEY NOT NULL,
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                token_hash TEXT NOT NULL UNIQUE,
-                created_at TEXT NOT NULL,
-                expires_at TEXT NOT NULL
-            );
-
-            CREATE INDEX sessions_user_id_idx ON sessions(user_id);
-            CREATE INDEX sessions_expiry_idx ON sessions(expires_at);
-
-            INSERT INTO schema_migrations(version) VALUES (2);",
-        )?;
-        transaction.commit()?;
-    }
-
-    if version < 3 {
-        let transaction = connection.transaction()?;
-        transaction.execute_batch(
-            "CREATE INDEX IF NOT EXISTS plugin_configs_plugin_idx
-                ON plugin_configs(plugin_id);
-             CREATE INDEX IF NOT EXISTS download_tasks_status_idx
-                ON download_tasks(status, updated_at);
-             CREATE INDEX IF NOT EXISTS assets_user_created_idx
-                ON assets(user_id, created_at);
-             INSERT INTO schema_migrations(version) VALUES (3);",
-        )?;
-        transaction.commit()?;
-    }
-
-    if version > CURRENT_SCHEMA_VERSION {
-        anyhow::bail!(
-            "database schema version {version} is newer than server version {CURRENT_SCHEMA_VERSION}"
+fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
+    let transaction = connection.transaction()?;
+    transaction.execute_batch(
+        r#"
+        CREATE TABLE users (
+            id TEXT PRIMARY KEY NOT NULL,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT,
+            created_at TEXT NOT NULL
         );
-    }
 
+        CREATE TABLE user_settings (
+            user_id TEXT PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            settings_json TEXT NOT NULL DEFAULT '{}',
+            revision INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE plugins (
+            plugin_id TEXT PRIMARY KEY NOT NULL,
+            version TEXT NOT NULL,
+            bundle_path TEXT NOT NULL,
+            bundle_hash TEXT NOT NULL,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE user_plugins (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            plugin_id TEXT NOT NULL REFERENCES plugins(plugin_id) ON DELETE CASCADE,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            debug INTEGER NOT NULL DEFAULT 0,
+            debug_url TEXT,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, plugin_id)
+        );
+
+        CREATE TABLE plugin_configs (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            plugin_id TEXT NOT NULL REFERENCES plugins(plugin_id) ON DELETE CASCADE,
+            config_json TEXT NOT NULL DEFAULT '{}',
+            revision INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, plugin_id)
+        );
+
+        CREATE TABLE comic_favorites (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unique_key TEXT NOT NULL,
+            source TEXT NOT NULL,
+            comic_id TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, unique_key)
+        );
+
+        CREATE TABLE comic_histories (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unique_key TEXT NOT NULL,
+            source TEXT NOT NULL,
+            comic_id TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, unique_key)
+        );
+
+        CREATE TABLE comic_follows (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unique_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, unique_key)
+        );
+
+        CREATE TABLE comic_folders (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            sync_id TEXT NOT NULL,
+            parent_sync_id TEXT,
+            type_data TEXT NOT NULL,
+            unique_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, sync_id)
+        );
+
+        CREATE TABLE comic_links (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unique_key TEXT NOT NULL,
+            comic_unique_key TEXT NOT NULL,
+            folder_sync_id TEXT,
+            type_data TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, unique_key)
+        );
+
+        CREATE TABLE download_tasks (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            task_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            progress INTEGER NOT NULL DEFAULT 0,
+            payload_json TEXT NOT NULL,
+            error_text TEXT,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, task_id)
+        );
+
+        CREATE TABLE download_manifests (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            comic_unique_key TEXT NOT NULL,
+            manifest_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, comic_unique_key)
+        );
+
+        CREATE TABLE assets (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            asset_id TEXT NOT NULL,
+            storage_key TEXT NOT NULL,
+            media_type TEXT NOT NULL,
+            byte_size INTEGER NOT NULL,
+            content_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, asset_id)
+        );
+
+        CREATE TABLE server_meta (
+            key TEXT PRIMARY KEY NOT NULL,
+            value TEXT NOT NULL
+        );
+
+        CREATE TABLE sessions (
+            id TEXT PRIMARY KEY NOT NULL,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token_hash TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL
+        );
+
+        CREATE TABLE download_folders (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            folder_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, folder_key)
+        );
+
+        CREATE TABLE download_folder_items (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unique_key TEXT NOT NULL,
+            folder_key TEXT NOT NULL,
+            download_unique_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, unique_key)
+        );
+
+        CREATE TABLE plugin_objects (
+            content_hash TEXT PRIMARY KEY NOT NULL,
+            compression TEXT NOT NULL,
+            original_size INTEGER NOT NULL,
+            compressed_size INTEGER NOT NULL,
+            storage_key TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX plugin_configs_plugin_idx ON plugin_configs(plugin_id);
+        CREATE INDEX download_tasks_status_idx ON download_tasks(status, updated_at);
+        CREATE INDEX assets_user_created_idx ON assets(user_id, created_at);
+        CREATE INDEX sessions_user_id_idx ON sessions(user_id);
+        CREATE INDEX sessions_expiry_idx ON sessions(expires_at);
+        CREATE INDEX download_folder_items_folder_idx
+            ON download_folder_items(user_id, folder_key);
+        CREATE INDEX plugin_objects_storage_idx ON plugin_objects(storage_key);
+        "#,
+    )?;
+    transaction.commit()?;
     Ok(())
 }
 
@@ -924,10 +1648,12 @@ fn migrate(connection: &mut Connection) -> anyhow::Result<()> {
 mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    use super::Database;
+    use serde_json::{Value, json};
+
+    use super::{Database, LibraryKind};
 
     #[test]
-    fn opens_and_migrates_schema() {
+    fn opens_current_schema() {
         let suffix = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system clock should be after Unix epoch")
@@ -938,12 +1664,6 @@ mod tests {
         ));
 
         let database = Database::open(&data_dir).expect("database should open");
-        assert_eq!(
-            database
-                .schema_version()
-                .expect("schema should be readable"),
-            3
-        );
         assert!(
             database
                 .list_plugins()
@@ -973,6 +1693,135 @@ mod tests {
                 .len(),
             1
         );
+
+        database
+            .upsert_plugin("plugin-1", "1.0.0", "plugin-1.cjs", "hash", true, "2")
+            .expect("plugin should be written");
+        database
+            .upsert_plugin_object("hash", "brotli", 100, 40, "objects/hash.cjs.br", "3")
+            .expect("plugin object should be written");
+        database
+            .upsert_plugin_object(
+                "orphan-hash",
+                "brotli",
+                80,
+                30,
+                "objects/orphan.cjs.br",
+                "3",
+            )
+            .expect("orphan plugin object should be written");
+        assert_eq!(
+            database
+                .remove_unreferenced_plugin_objects()
+                .expect("orphan plugin objects should be collected"),
+            vec!["objects/orphan.cjs.br".to_owned()]
+        );
+        database
+            .upsert_user_plugin(&user.id, "plugin-1", true, false, None, "2")
+            .expect("user plugin should be written");
+        let counts = database
+            .import_migration_snapshot(
+                &user.id,
+                &json!({
+                    "account_settings": {"global": {"themeMode": "dark"}},
+                    "favorites": [{
+                        "uniqueKey": "source:comic-2",
+                        "source": "source",
+                        "comicId": "comic-2",
+                        "title": "migrated",
+                        "updatedAt": "3",
+                        "deleted": false
+                    }],
+                    "histories": [],
+                    "follows": [{
+                        "uniqueKey": "source:comic-3",
+                        "updatedAt": "4",
+                        "deleted": false
+                    }],
+                    "folders": [{
+                        "syncId": "folder-1",
+                        "uniqueKey": "folder-1",
+                        "typeData": "favorite",
+                        "updatedAt": "5"
+                    }],
+                    "links": [{
+                        "uniqueKey": "link-1",
+                        "comicUniqueKey": "source:comic-2",
+                        "typeData": "favorite",
+                        "updatedAt": "5"
+                    }],
+                    "plugin_configs": [{
+                        "name": "plugin-1",
+                        "config": "{\"token\":\"demo\"}"
+                    }],
+                    "downloads": [{
+                        "uniqueKey": "source:comic-4",
+                        "updatedAt": "6"
+                    }],
+                    "download_tasks": [{
+                        "id": 7,
+                        "comicId": "comic-4",
+                        "isCompleted": true,
+                        "status": "completed"
+                    }],
+                    "download_folders": [{"folderKey": "all"}],
+                    "download_folder_items": [{"uniqueKey": "item-1"}]
+                }),
+                true,
+            )
+            .expect("migration should import");
+        assert_eq!(counts.favorites, 1);
+        assert_eq!(counts.follows, 1);
+        assert_eq!(counts.folders, 1);
+        assert_eq!(counts.links, 1);
+        assert_eq!(counts.plugin_configs, 1);
+        assert_eq!(counts.downloads, 1);
+        assert_eq!(counts.download_tasks, 1);
+        assert_eq!(counts.download_folders, 1);
+        assert_eq!(counts.download_folder_items, 1);
+        assert_eq!(
+            database
+                .list_library_records(&user.id, LibraryKind::Favorites, false)
+                .expect("migrated favorite should be readable")
+                .len(),
+            2
+        );
+        database
+            .create_asset(
+                &user.id,
+                "asset-1",
+                "user-1/asset-1.bin",
+                "image/jpeg",
+                3,
+                "hash-1",
+                "7",
+            )
+            .expect("migration asset should be written");
+        database
+            .append_migration_asset_page(
+                &user.id,
+                "source:comic-4",
+                "chapter-1/page-1.jpg",
+                "asset-1",
+                "7",
+            )
+            .expect("migration asset should be linked");
+        let manifest = database
+            .find_manifest(&user.id, "source:comic-4")
+            .expect("manifest should be readable")
+            .expect("manifest should exist");
+        let manifest: Value = serde_json::from_str(&manifest).expect("manifest should be JSON");
+        assert_eq!(manifest["pages"][0]["asset_id"], "asset-1");
+
+        let exported = database
+            .export_migration_data(&user.id, true)
+            .expect("migration data should export");
+        assert_eq!(exported["favorites"].as_array().unwrap().len(), 2);
+        assert_eq!(exported["plugin_configs"][0]["name"], "plugin-1");
+        assert_eq!(exported["downloads"][0]["uniqueKey"], "source:comic-4");
+        assert_eq!(exported["download_assets"][0]["asset_id"], "asset-1");
+        assert_eq!(exported["download_folders"][0]["folderKey"], "all");
+        assert_eq!(exported["download_folder_items"][0]["uniqueKey"], "item-1");
 
         drop(database);
         std::fs::remove_dir_all(data_dir).expect("test database directory should be removable");

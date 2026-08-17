@@ -9,15 +9,18 @@ Vite 和 React Router，包管理器固定使用 pnpm。
 pnpm install
 pnpm format
 pnpm lint
+pnpm lint:fix
 pnpm format:check
 pnpm test
 pnpm build
 ```
 
 每次修改前端文件后，至少依次执行 `pnpm format`、`pnpm lint` 和 `pnpm test`。
+其中 `pnpm lint` 已包含 Tailwind CSS 类名检查、冲突检查、重复检查和顺序检查；需要
+自动修复时执行 `pnpm lint:fix`，再执行 `pnpm format`。
 生产构建输出到 `dist/`，可由 `cs_server` 直接提供。
 
-`pnpm test:watch` 可启动 Vitest 监听模式。目前共有 15 个测试文件、35 个测试，使用
+`pnpm test:watch` 可启动 Vitest 监听模式。目前共有 16 个测试文件、36 个测试，使用
 jsdom 和 Testing Library，覆盖：
 
 - 应用路由兜底、登录/注册/退出登录、会话持久化和 401 自动清理会话；

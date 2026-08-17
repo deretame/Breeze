@@ -6,7 +6,7 @@ import { breezeApi } from './breezeApi';
 
 describe('breezeApi', () => {
   it('attaches the current bearer token to protected requests', async () => {
-    const fetchMock = vi.fn(() =>
+    const fetchMock = vi.fn<typeof fetch>(() =>
       Promise.resolve(
         new Response(JSON.stringify({ items: [] }), {
           headers: { 'content-type': 'application/json' },

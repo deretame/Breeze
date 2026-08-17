@@ -35,7 +35,11 @@ export function Button({
   return (
     <button
       className={cn(
-        'breeze-button inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-50',
+        `
+          breeze-button inline-flex items-center justify-center gap-2 rounded-xl
+          font-semibold transition
+          disabled:cursor-not-allowed disabled:opacity-50
+        `,
         variants[variant],
         sizes[size],
         className,

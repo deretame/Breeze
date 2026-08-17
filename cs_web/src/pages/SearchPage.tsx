@@ -256,7 +256,10 @@ export function SearchPage() {
         </Card>
       )}
       <Card
-        className={`search-controls ${showSearchBar ? '' : 'search-controls-hidden'}`}
+        className={`
+          search-controls
+          ${showSearchBar ? '' : `search-controls-hidden`}
+        `}
       >
         <CardContent>
           <form className="search-form" onSubmit={submit}>

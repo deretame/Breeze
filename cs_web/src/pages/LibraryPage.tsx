@@ -55,7 +55,7 @@ export function LibraryPage() {
   }
 
   return (
-    <div className="content-shell library-shell">
+    <div className="content-shell">
       <div className="page-heading">
         <div>
           <p className="eyebrow">YOUR LIBRARY</p>

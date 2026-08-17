@@ -132,7 +132,7 @@ export function ReaderPage() {
 
   if (!user) {
     return (
-      <div className="reader-empty">
+      <div>
         <Card className="empty-state large">
           <b>登录后开始阅读</b>
           <Link to="/login">

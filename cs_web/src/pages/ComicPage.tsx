@@ -92,7 +92,7 @@ export function ComicPage() {
   }
 
   return (
-    <div className="content-shell comic-detail-shell">
+    <div className="content-shell">
       <button className="back-button" onClick={() => navigate(-1)} type="button">
         <ArrowLeft size={16} />
         返回搜索结果

@@ -74,7 +74,7 @@ export function HomePage() {
   }
 
   return (
-    <div className="content-shell home-shell">
+    <div className="content-shell">
       <section className="welcome-row">
         <div>
           <p className="eyebrow">BREEZE CS / OVERVIEW</p>
@@ -105,8 +105,24 @@ export function HomePage() {
               <CardTitle>服务端状态</CardTitle>
               <CardDescription>当前 Breeze CS 连接情况</CardDescription>
             </div>
-            <span className={healthError ? 'status-badge offline' : 'status-badge'}>
-              {healthError ? <WifiOff size={14} /> : <span className="status-pulse" />}
+            <span
+              className={
+                healthError
+                  ? 'status-badge offline'
+                  : `
+              status-badge
+            `
+              }
+            >
+              {healthError ? (
+                <WifiOff size={14} />
+              ) : (
+                <span
+                  className="
+                status-pulse
+              "
+                />
+              )}
               {healthError ? '离线' : health ? '在线' : '连接中'}
             </span>
           </CardHeader>

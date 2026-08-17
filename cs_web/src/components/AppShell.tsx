@@ -91,7 +91,15 @@ export function AppShell() {
             <span>连接设置</span>
           </NavLink>
           <div className="server-hint">
-            <span className={healthError ? 'status-pulse offline' : 'status-pulse'} />
+            <span
+              className={
+                healthError
+                  ? 'status-pulse offline'
+                  : `
+              status-pulse
+            `
+              }
+            />
             {healthLoading
               ? '正在连接 CS 服务…'
               : health?.status === 'ok'

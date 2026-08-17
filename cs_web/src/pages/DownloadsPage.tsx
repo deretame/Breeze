@@ -51,7 +51,7 @@ export function DownloadsPage() {
     );
 
   return (
-    <div className="content-shell downloads-shell">
+    <div className="content-shell">
       <div className="page-heading">
         <div>
           <p className="eyebrow">REMOTE DOWNLOADS</p>
@@ -84,7 +84,12 @@ export function DownloadsPage() {
                 );
                 return (
                   <div className="download-row" key={item.task_id}>
-                    <span className={`download-status ${item.status}`}>
+                    <span
+                      className={`
+                      download-status
+                      ${item.status}
+                    `}
+                    >
                       {statusIcon(item.status)}
                     </span>
                     <div className="download-info">

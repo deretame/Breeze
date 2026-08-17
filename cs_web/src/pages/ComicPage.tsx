@@ -11,6 +11,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { useAppSelector } from '../app/hooks';
+import { RemoteImage } from '../components/RemoteImage';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { normalizeDetail } from '../lib/content';
@@ -18,6 +19,8 @@ import {
   useCreateDownloadMutation,
   useDetailQuery,
   useSaveLibraryMutation,
+  usePluginCatalogQuery,
+  usePluginsQuery,
 } from '../services/breezeApi';
 
 export function ComicPage() {
@@ -26,6 +29,8 @@ export function ComicPage() {
   const user = useAppSelector((state) => state.auth.user);
   const [saved, setSaved] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const { data: catalogData } = usePluginCatalogQuery();
+  const { data: pluginData } = usePluginsQuery();
   const detailState = useDetailQuery(
     { pluginId, comicId },
     { skip: !user || !pluginId || !comicId },
@@ -36,6 +41,10 @@ export function ComicPage() {
     () => normalizeDetail(detailState.data ?? {}),
     [detailState.data],
   );
+  const pluginName =
+    pluginData?.items.find((item) => item.plugin_id === pluginId)?.name?.trim() ||
+    catalogData?.items.find((item) => item.manifest.uuid === pluginId)?.manifest.name ||
+    '当前图源';
 
   async function saveFavorite() {
     if (!user) return;
@@ -98,14 +107,20 @@ export function ComicPage() {
         <>
           <section className="comic-hero">
             <div className="detail-cover">
-              {comic.cover ? (
-                <img src={comic.cover} alt="" />
+              {comic.coverImage.url ? (
+                <RemoteImage
+                  pluginId={pluginId}
+                  page={comic.coverImage}
+                  alt={comic.title}
+                  className="detail-cover-image"
+                  fallback={<span>{comic.title.slice(0, 1)}</span>}
+                />
               ) : (
                 <span>{comic.title.slice(0, 1)}</span>
               )}
             </div>
             <div className="detail-copy">
-              <p className="eyebrow">{pluginId} / COMIC DETAIL</p>
+              <p className="eyebrow">{pluginName} / COMIC DETAIL</p>
               <h1>{comic.title}</h1>
               <p className="detail-description">{comic.description}</p>
               <div className="detail-meta">

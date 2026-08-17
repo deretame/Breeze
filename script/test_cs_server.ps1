@@ -2,14 +2,19 @@
 
 [CmdletBinding()]
 param(
-    [int]$Port = 18787
+    [int]$Port = 18787,
+    [string]$ServerBinaryOverride = ''
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$ServerBinary = Join-Path $Root 'cs_server\target\debug\breeze_cs_server.exe'
+$ServerBinary = if ([string]::IsNullOrWhiteSpace($ServerBinaryOverride)) {
+    Join-Path $Root 'cs_server\target\debug\breeze_cs_server.exe'
+} else {
+    (Resolve-Path $ServerBinaryOverride).Path
+}
 $WebRoot = Join-Path $Root 'cs_web\dist'
 $CloudPluginListUrl = 'https://api.windy-78.site/plugin-list'
 $CdnMirrors = @(
@@ -321,6 +326,7 @@ function Start-TestServer {
     $startInfo.EnvironmentVariables['BREEZE_PLUGIN_ROOT'] = (Join-Path $TempRoot 'plugins')
     $startInfo.EnvironmentVariables['BREEZE_WEB_ROOT'] = $WebRoot
     $startInfo.EnvironmentVariables['BREEZE_ADMIN_TOKEN'] = $AdminToken
+    $startInfo.EnvironmentVariables['BREEZE_ALLOW_PLUGIN_INSTALL'] = 'true'
     $startInfo.EnvironmentVariables['BREEZE_SERVER_DOWNLOAD'] = 'true'
     $startInfo.EnvironmentVariables['BREEZE_ALLOW_REGISTRATION'] = 'true'
     $startInfo.EnvironmentVariables['RUST_LOG'] = 'breeze_cs_server=warn'
@@ -407,6 +413,7 @@ try {
     Assert-True ($capabilities.plugin_runtime.quickjs -eq $true) 'QuickJS 能力应开启'
     Assert-True ($capabilities.plugin_runtime.filesystem -eq $false) '插件文件系统能力应关闭'
     Assert-True ($capabilities.http.shared_reqwest_client -eq $true) '共享 reqwest 能力应开启'
+    Assert-True ($capabilities.plugin_management -eq $true) '插件服务端管理能力应开启'
     Pass 'capabilities 内容正确'
 
     $webResponse = Invoke-Api -Method GET -Url "$BaseUrl/"
@@ -495,9 +502,18 @@ module.exports = {
     Assert-True ((Convert-JsonBody $configBridge.Body).value -eq 'bridge-value') '插件配置 bridge 应支持保存后读取'
     Pass 'load_plugin_config/save_plugin_config 由服务端 SQLite 处理'
 
-    $realInstallBody = @{ version = $realPlugin.Version; bundle = $realPlugin.Bundle; enabled = $true } | ConvertTo-Json -Compress -Depth 4
-    $installReal = Invoke-Api -Method PUT -Url "$BaseUrl/api/v1/admin/plugins/$($realPlugin.Uuid)" -Headers @{ 'X-Breeze-Admin-Token' = $AdminToken } -Body $realInstallBody
-    Assert-Status $installReal 200 "安装真实插件 $($realPlugin.Name)"
+    $serverCatalogResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins/catalog"
+    Assert-Status $serverCatalogResponse 200 '服务端读取真实插件目录'
+    $serverCatalog = Convert-JsonBody $serverCatalogResponse.Body
+    $serverCloudItem = @($serverCatalog.items) | Where-Object {
+        [string]$_.manifest.uuid -eq $realPlugin.Uuid
+    } | Select-Object -First 1
+    Assert-True ($null -ne $serverCloudItem) '服务端目录应包含待安装的真实插件'
+    Pass '服务端插件目录与本体真实源一致'
+
+    $installRealBody = @{ plugin_id = $realPlugin.Uuid } | ConvertTo-Json -Compress
+    $installReal = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/catalog/install" -Headers $authA -Body $installRealBody
+    Assert-Status $installReal 200 "服务端下载并安装真实插件 $($realPlugin.Name)"
     $pluginsResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins"
     Assert-Status $pluginsResponse 200 '读取已安装插件列表'
     $plugins = Convert-JsonBody $pluginsResponse.Body

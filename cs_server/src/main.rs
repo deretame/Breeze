@@ -4,6 +4,7 @@ mod config;
 mod db;
 mod http;
 mod plugin;
+mod plugin_store;
 mod websocket;
 
 use std::sync::Arc;

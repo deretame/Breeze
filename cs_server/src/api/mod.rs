@@ -5,6 +5,7 @@ pub(crate) mod error;
 mod library;
 mod plugin_api;
 mod plugin_config;
+mod plugin_store;
 mod settings;
 
 use axum::{
@@ -13,6 +14,7 @@ use axum::{
     routing::{get, post},
 };
 use serde::Serialize;
+use serde_json::Value;
 
 use crate::app_state::AppState;
 
@@ -21,6 +23,16 @@ pub fn router() -> Router<AppState> {
         .route("/health", get(health))
         .route("/capabilities", get(capabilities))
         .route("/ws", get(crate::websocket::upgrade))
+        .route("/plugins/catalog", get(plugin_store::catalog))
+        .route(
+            "/plugins/catalog/install",
+            post(plugin_store::install_catalog),
+        )
+        .route("/plugins/install-url", post(plugin_store::install_url))
+        .route(
+            "/plugins/install-bundle",
+            post(plugin_store::install_bundle),
+        )
         .route("/plugins", get(plugins))
         .route("/plugins/{plugin_id}", get(plugin_api::plugin_detail))
         .route("/plugins/{plugin_id}/invoke", post(plugin_api::invoke))
@@ -78,6 +90,7 @@ async fn capabilities(State(state): State<AppState>) -> Json<CapabilitiesRespons
             filesystem: state.plugin_capabilities.filesystem,
             cancellation: state.plugin_capabilities.cancellation,
         },
+        plugin_management: state.config.plugin_install_enabled,
         authentication: AuthenticationCapabilityResponse {
             bearer_sessions: true,
             registration: state.config.registration_enabled,
@@ -92,18 +105,28 @@ async fn capabilities(State(state): State<AppState>) -> Json<CapabilitiesRespons
 
 async fn plugins(State(state): State<AppState>) -> Json<PluginsResponse> {
     let records = state.database.list_plugins().unwrap_or_default();
-    Json(PluginsResponse {
-        items: records
-            .into_iter()
-            .map(|record| PluginResponse {
-                plugin_id: record.plugin_id,
-                version: record.version,
-                bundle_hash: record.bundle_hash,
-                enabled: record.enabled,
-                updated_at: record.updated_at,
-            })
-            .collect(),
-    })
+    let mut items = Vec::with_capacity(records.len());
+    for record in records {
+        let name = plugin_api::invoke_json_for_user(
+            &state,
+            "__plugin_catalog__",
+            &record.plugin_id,
+            "getInfo",
+            &Value::Array(Vec::new()),
+        )
+        .await
+        .ok()
+        .and_then(|value| value.get("name").and_then(Value::as_str).map(str::to_owned));
+        items.push(PluginResponse {
+            plugin_id: record.plugin_id,
+            name,
+            version: record.version,
+            bundle_hash: record.bundle_hash,
+            enabled: record.enabled,
+            updated_at: record.updated_at,
+        });
+    }
+    Json(PluginsResponse { items })
 }
 
 #[derive(Serialize)]
@@ -125,6 +148,7 @@ struct CapabilitiesResponse {
     plugin_runtime: PluginRuntimeCapabilityResponse,
     authentication: AuthenticationCapabilityResponse,
     http: HttpCapabilityResponse,
+    plugin_management: bool,
 }
 
 #[derive(Serialize)]
@@ -155,6 +179,7 @@ struct PluginsResponse {
 #[derive(Serialize)]
 struct PluginResponse {
     plugin_id: String,
+    name: Option<String>,
     version: String,
     bundle_hash: String,
     enabled: bool,

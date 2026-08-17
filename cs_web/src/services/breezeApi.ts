@@ -1,4 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import {
+  createApi,
+  fetchBaseQuery,
+  type BaseQueryFn,
+  type FetchArgs,
+  type FetchBaseQueryError,
+} from '@reduxjs/toolkit/query/react';
 
 import { clearSession, setSession, type AuthUser } from '../features/auth/authSlice';
 import type { RootState } from '../app/store';
@@ -15,6 +21,7 @@ export type Health = {
 export type Capabilities = {
   server_download: boolean;
   browser_frontend: boolean;
+  plugin_management: boolean;
   plugin_runtime: {
     quickjs: boolean;
     filesystem: boolean;
@@ -28,10 +35,29 @@ export type Capabilities = {
 
 export type Plugin = {
   plugin_id: string;
+  name?: string | null;
   version: string;
   bundle_hash: string;
   enabled: boolean;
   updated_at: string;
+};
+
+export type PluginCatalogItem = {
+  repo: string;
+  manifest: {
+    name: string;
+    uuid: string;
+    iconUrl: string;
+    describe: string;
+    version: string;
+    home: string;
+    npmName: string;
+    updateUrl: string;
+    creator: {
+      name: string;
+      describe: string;
+    };
+  };
 };
 
 export type Session = {
@@ -77,20 +103,53 @@ export type DownloadTask = {
   updated_at: string;
 };
 
+const apiBaseUrl =
+  typeof window === 'undefined'
+    ? '/api/v1'
+    : new URL('/api/v1', window.location.origin).toString();
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: apiBaseUrl,
+  timeout: 15_000,
+  prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as RootState).auth.token;
+    headers.set('accept', 'application/json');
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+
+const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions,
+) => {
+  const result = await rawBaseQuery(args, api, extraOptions);
+  const publicEndpoints = new Set([
+    'health',
+    'capabilities',
+    'plugins',
+    'login',
+    'register',
+  ]);
+  if (
+    result.error?.status === 401 &&
+    Boolean((api.getState() as RootState).auth.token) &&
+    !publicEndpoints.has(api.endpoint)
+  ) {
+    api.dispatch(clearSession());
+  }
+  return result;
+};
+
 export const breezeApi = createApi({
   reducerPath: 'breezeApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api/v1',
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      headers.set('accept', 'application/json');
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery,
   tagTypes: ['Health', 'Plugins', 'Library', 'Downloads'],
+  refetchOnReconnect: true,
+  keepUnusedDataFor: 30,
   endpoints: (builder) => ({
     health: builder.query<Health, void>({
       query: () => '/health',
@@ -104,18 +163,37 @@ export const breezeApi = createApi({
       query: () => '/plugins',
       providesTags: ['Plugins'],
     }),
+    pluginCatalog: builder.query<{ items: PluginCatalogItem[]; source: string }, void>({
+      query: () => '/plugins/catalog',
+    }),
+    installCatalogPlugin: builder.mutation<Plugin, { pluginId: string }>({
+      query: ({ pluginId }) => ({
+        url: '/plugins/catalog/install',
+        method: 'POST',
+        body: { plugin_id: pluginId },
+      }),
+      invalidatesTags: ['Plugins'],
+    }),
     register: builder.mutation<Session, { username: string; password: string }>({
       query: (body) => ({ url: '/auth/register', method: 'POST', body }),
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
-        dispatch(setSession({ token: data.access_token, user: data.user }));
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setSession({ token: data.access_token, user: data.user }));
+        } catch {
+          // The form owns the visible error state for a failed request.
+        }
       },
     }),
     login: builder.mutation<Session, { username: string; password: string }>({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
-        const { data } = await queryFulfilled;
-        dispatch(setSession({ token: data.access_token, user: data.user }));
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setSession({ token: data.access_token, user: data.user }));
+        } catch {
+          // The form owns the visible error state for a failed request.
+        }
       },
     }),
     logout: builder.mutation<{ logged_out: boolean }, void>({
@@ -190,10 +268,13 @@ export const {
   useHealthQuery,
   useCapabilitiesQuery,
   usePluginsQuery,
+  usePluginCatalogQuery,
+  useInstallCatalogPluginMutation,
   useRegisterMutation,
   useLoginMutation,
   useLogoutMutation,
   useSearchQuery,
+  useLazySearchQuery,
   useDetailQuery,
   useReadQuery,
   useLibraryQuery,

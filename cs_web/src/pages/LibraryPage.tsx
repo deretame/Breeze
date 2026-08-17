@@ -10,16 +10,32 @@ import {
 import { Link } from 'react-router-dom';
 
 import { useAppSelector } from '../app/hooks';
+import { RemoteImage } from '../components/RemoteImage';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { useLibraryQuery } from '../services/breezeApi';
+import { normalizeImage } from '../lib/content';
+import {
+  useLibraryQuery,
+  usePluginCatalogQuery,
+  usePluginsQuery,
+} from '../services/breezeApi';
 
 export function LibraryPage() {
   const user = useAppSelector((state) => state.auth.user);
   const favorites = useLibraryQuery('favorites', { skip: !user });
   const history = useLibraryQuery('history', { skip: !user });
+  const { data: catalogData } = usePluginCatalogQuery();
+  const { data: pluginData } = usePluginsQuery();
   const favoriteItems = favorites.data?.items ?? [];
   const historyItems = history.data?.items ?? [];
+  const sourceNames = new Map(
+    (catalogData?.items ?? [])
+      .filter((item) => item.manifest?.uuid && item.manifest.name)
+      .map((item) => [item.manifest.uuid, item.manifest.name]),
+  );
+  for (const plugin of pluginData?.items ?? []) {
+    if (plugin.name?.trim()) sourceNames.set(plugin.plugin_id, plugin.name.trim());
+  }
 
   if (!user) {
     return (
@@ -96,6 +112,8 @@ export function LibraryPage() {
           <div className="library-list">
             {favoriteItems.map((item) => {
               const payload = item.payload;
+              const cover = normalizeImage(payload.cover);
+              const sourceName = sourceNames.get(item.source) ?? '未命名图源';
               return (
                 <Link
                   className="library-row"
@@ -103,15 +121,23 @@ export function LibraryPage() {
                   to={`/comic/${encodeURIComponent(item.source)}/${encodeURIComponent(item.comic_id)}`}
                 >
                   <div className="library-thumb">
-                    {typeof payload.cover === 'string' ? (
-                      <img src={payload.cover} alt="" />
+                    {cover.url ? (
+                      <RemoteImage
+                        pluginId={item.source}
+                        page={cover}
+                        alt={String(payload.title ?? '漫画封面')}
+                        className="library-cover-image"
+                        fallback={
+                          <span>{String(payload.title ?? '漫').slice(0, 1)}</span>
+                        }
+                      />
                     ) : (
                       <span>{String(payload.title ?? '漫').slice(0, 1)}</span>
                     )}
                   </div>
                   <div>
                     <b>{String(payload.title ?? item.comic_id)}</b>
-                    <small>{item.source}</small>
+                    <small>{sourceName}</small>
                   </div>
                   <ArrowRight size={17} />
                 </Link>
@@ -145,9 +171,16 @@ export function LibraryPage() {
               >
                 <span className="history-dot" />
                 <div>
-                  <b>{String(item.payload.title ?? item.comic_id)}</b>
+                  <b>
+                    {String(
+                      item.payload.title ?? item.payload.comic_title ?? item.comic_id,
+                    )}
+                  </b>
                   <small>
-                    第 {String(item.payload.chapter_id ?? '—')} 话 · {item.source}
+                    {String(
+                      item.payload.chapter_name ?? item.payload.chapter_id ?? '—',
+                    )}{' '}
+                    · {sourceNames.get(item.source) ?? '未命名图源'}
                   </small>
                 </div>
                 <ArrowRight size={16} />

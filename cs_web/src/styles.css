@@ -106,6 +106,10 @@ a {
   background: var(--accent);
   box-shadow: 0 0 0 4px rgb(45 212 191 / 10%);
 }
+.status-pulse.offline {
+  background: #fb7185;
+  box-shadow: 0 0 0 4px rgb(251 113 133 / 10%);
+}
 .login-link {
   display: inline-flex;
   align-items: center;
@@ -449,6 +453,35 @@ a {
   margin-top: 4px;
   color: #718094;
   font-size: 11px;
+}
+.plugin-catalog-card {
+  align-items: flex-start;
+}
+.plugin-catalog-card .plugin-avatar {
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+.plugin-catalog-card .plugin-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.plugin-catalog-content {
+  min-width: 0;
+  flex: 1;
+}
+.plugin-catalog-content p {
+  display: -webkit-box;
+  margin: 7px 0 0;
+  overflow: hidden;
+  color: #718094;
+  font-size: 11px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.plugin-catalog-card > button {
+  flex: 0 0 auto;
 }
 .plugin-avatar {
   display: grid;
@@ -1281,6 +1314,214 @@ a {
   bottom: -250px;
   left: -160px;
   background: #8b5cf6;
+}
+.card {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.search-shell .page-heading {
+  margin-bottom: 0;
+}
+.search-controls {
+  position: sticky;
+  z-index: 15;
+  top: 84px;
+  margin-top: 24px;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.search-controls-hidden {
+  pointer-events: none;
+  opacity: 0.08;
+  transform: translateY(calc(-100% - 96px));
+}
+.search-virtual-list {
+  position: relative;
+  width: 100%;
+}
+.search-virtual-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+}
+.search-load-more {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #718093;
+  font-size: 12px;
+}
+.comic-cover-image,
+.detail-cover-image,
+.library-cover-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.reader-toolbar {
+  position: relative;
+}
+.reader-settings-panel {
+  position: absolute;
+  z-index: 25;
+  top: 54px;
+  right: max(22px, calc((100vw - 1180px) / 2));
+  width: min(280px, calc(100vw - 32px));
+  padding: 14px 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.reader-settings-panel > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--heading);
+}
+.reader-settings-panel button {
+  border: 0;
+  color: var(--accent);
+  background: transparent;
+}
+.reader-settings-panel p {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+.reader-settings-panel > button {
+  padding: 0;
+  font-size: 12px;
+}
+html.reader-sidebar-hidden .sidebar {
+  display: none;
+}
+html.reader-sidebar-hidden .main-content {
+  padding-left: 0;
+}
+:root {
+  --heading: #edf3f7;
+}
+html[data-theme='light'] {
+  --surface: #ffffff;
+  --surface-raised: #f7f9fc;
+  --border: rgb(15 23 42 / 12%);
+  --muted: #5b6b7d;
+  --heading: #132033;
+  color: #172235;
+  background: #f5f7fb;
+}
+html[data-theme='light'] body,
+html[data-theme='light'] .app-root {
+  background: #f5f7fb;
+}
+html[data-theme='light'] .app-root {
+  background:
+    radial-gradient(circle at 78% 0%, rgb(45 212 191 / 12%), transparent 29rem), #f5f7fb;
+}
+html[data-theme='light'] .topbar {
+  border-color: rgb(15 23 42 / 10%);
+  background: rgb(255 255 255 / 86%);
+}
+html[data-theme='light'] .brand,
+html[data-theme='light'] .welcome-row h1,
+html[data-theme='light'] .page-heading h1,
+html[data-theme='light'] .section-heading h2,
+html[data-theme='light'] .results-heading h2,
+html[data-theme='light'] .detail-copy h1,
+html[data-theme='light'] .auth-pitch h1 {
+  color: #142033;
+}
+html[data-theme='light'] .sidebar {
+  border-color: rgb(15 23 42 / 10%);
+  background: rgb(255 255 255 / 72%);
+}
+html[data-theme='light'] .nav-item,
+html[data-theme='light'] .user-chip,
+html[data-theme='light'] .quick-action,
+html[data-theme='light'] .plugin-card,
+html[data-theme='light'] .library-row,
+html[data-theme='light'] .history-row,
+html[data-theme='light'] .chapter-row {
+  color: #516174;
+}
+html[data-theme='light'] .nav-item:hover,
+html[data-theme='light'] .quick-action:hover,
+html[data-theme='light'] .chapter-row:hover,
+html[data-theme='light'] .library-row:hover,
+html[data-theme='light'] .history-row:hover {
+  color: #132033;
+  background: rgb(15 23 42 / 5%);
+}
+html[data-theme='light'] .nav-item.active {
+  color: #0f766e;
+  background: rgb(20 184 166 / 11%);
+}
+html[data-theme='light'] .card,
+html[data-theme='light'] .comic-card,
+html[data-theme='light'] .plugin-card,
+html[data-theme='light'] .library-row,
+html[data-theme='light'] .history-row {
+  border-color: rgb(15 23 42 / 11%);
+  background: #ffffff;
+  box-shadow: 0 16px 38px rgb(15 23 42 / 7%);
+}
+html[data-theme='light'] .search-input-wrap,
+html[data-theme='light'] .input-wrap {
+  border-color: rgb(15 23 42 / 12%);
+  color: #708094;
+  background: #f8fafc;
+}
+html[data-theme='light'] .search-input-wrap input,
+html[data-theme='light'] .input-wrap input {
+  color: #172235;
+}
+html[data-theme='light'] .search-form select,
+html[data-theme='light'] .settings-list select {
+  border-color: rgb(15 23 42 / 12%);
+  color: #334155;
+  background: #f8fafc;
+}
+html[data-theme='light'] .comic-card-body h3,
+html[data-theme='light'] .plugin-card b,
+html[data-theme='light'] .library-row b,
+html[data-theme='light'] .history-row b,
+html[data-theme='light'] .empty-state b,
+html[data-theme='light'] .notice-card b,
+html[data-theme='light'] .settings-list b {
+  color: #172235;
+}
+html[data-theme='light'] .reader-page {
+  background: #e9edf3;
+}
+html[data-theme='light'] .reader-toolbar {
+  border-color: rgb(15 23 42 / 11%);
+  background: rgb(255 255 255 / 88%);
+}
+html[data-theme='light'] .reader-title {
+  color: #26364c;
+}
+html[data-theme='light'] .reader-page-item img {
+  background: #ffffff;
+}
+html[data-theme='light'] .breeze-button.bg-white\/\[0\.07\] {
+  color: #334155;
+}
+html[data-theme='light'] .auth-page {
+  background:
+    radial-gradient(circle at 75% 20%, rgb(45 212 191 / 12%), transparent 30rem),
+    #f5f7fb;
+}
+html[data-theme='light'] .auth-pitch-copy,
+html[data-theme='light'] .auth-benefits,
+html[data-theme='light'] .auth-form label {
+  color: #5b6b7d;
+}
+html[data-theme='light'] .settings-control-row select {
+  max-width: 150px;
 }
 .spin {
   animation: spin 1.2s linear infinite;

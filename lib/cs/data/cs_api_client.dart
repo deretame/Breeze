@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:zephyr/network/http/wind_http.dart';
@@ -68,6 +69,70 @@ class CsPluginRecord {
       bundleHash: json['bundle_hash'] as String? ?? '',
       enabled: json['enabled'] == true,
       updatedAt: json['updated_at'] as String? ?? '',
+    );
+  }
+}
+
+class CsCloudPluginItem {
+  const CsCloudPluginItem({required this.repo, required this.manifest});
+
+  final String repo;
+  final CsCloudPluginManifest manifest;
+
+  factory CsCloudPluginItem.fromJson(Map<String, dynamic> json) {
+    final rawManifest = json['manifest'];
+    return CsCloudPluginItem(
+      repo: json['repo'] as String? ?? '',
+      manifest: CsCloudPluginManifest.fromJson(
+        rawManifest is Map
+            ? Map<String, dynamic>.from(rawManifest)
+            : const <String, dynamic>{},
+      ),
+    );
+  }
+}
+
+class CsCloudPluginManifest {
+  const CsCloudPluginManifest({
+    required this.name,
+    required this.uuid,
+    required this.iconUrl,
+    required this.creatorName,
+    required this.creatorDescribe,
+    required this.describe,
+    required this.version,
+    required this.home,
+    required this.updateUrl,
+    required this.npmName,
+  });
+
+  final String name;
+  final String uuid;
+  final String iconUrl;
+  final String creatorName;
+  final String creatorDescribe;
+  final String describe;
+  final String version;
+  final String home;
+  final String updateUrl;
+  final String npmName;
+
+  factory CsCloudPluginManifest.fromJson(Map<String, dynamic> json) {
+    final rawCreator = json['creator'];
+    final creator = rawCreator is Map
+        ? Map<String, dynamic>.from(rawCreator)
+        : const <String, dynamic>{};
+    return CsCloudPluginManifest(
+      name: json['name'] as String? ?? '',
+      uuid: json['uuid'] as String? ?? '',
+      iconUrl: json['iconUrl'] as String? ?? '',
+      creatorName: creator['name'] as String? ?? '',
+      creatorDescribe: creator['describe'] as String? ?? '',
+      describe: json['describe'] as String? ?? '',
+      version: json['version'] as String? ?? '',
+      home: json['home'] as String? ?? '',
+      updateUrl: json['updateUrl'] as String? ?? '',
+      npmName: json['npmName'] as String? ?? '',
     );
   }
 }
@@ -154,6 +219,45 @@ class CsApiClient {
               CsPluginRecord.fromJson(Map<String, dynamic>.from(item as Map)),
         )
         .toList();
+  }
+
+  Future<List<CsCloudPluginItem>> pluginCatalog() async {
+    final json = await _get('/api/v1/plugins/catalog');
+    final items = json['items'];
+    if (items is! List) {
+      throw const FormatException('CS plugin catalog response has no items');
+    }
+    return items
+        .map(
+          (item) => CsCloudPluginItem.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .where((item) => item.manifest.uuid.trim().isNotEmpty)
+        .toList();
+  }
+
+  Future<CsPluginRecord> installCatalogPlugin(String pluginId) async {
+    final json = await _post('/api/v1/plugins/catalog/install', {
+      'plugin_id': pluginId,
+    });
+    return CsPluginRecord.fromJson(json);
+  }
+
+  Future<CsPluginRecord> installPluginFromUrl(String url) async {
+    final json = await _post('/api/v1/plugins/install-url', {'url': url});
+    return CsPluginRecord.fromJson(json);
+  }
+
+  Future<CsPluginRecord> installPluginBundle(
+    Uint8List bytes, {
+    required String fileName,
+  }) async {
+    final json = await _post('/api/v1/plugins/install-bundle', {
+      'file_name': fileName,
+      'bundle_base64': base64Encode(bytes),
+    });
+    return CsPluginRecord.fromJson(json);
   }
 
   Future<CsSession> register({

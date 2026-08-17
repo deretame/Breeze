@@ -282,6 +282,8 @@ dependencies = [
  "anyhow",
  "argon2",
  "axum",
+ "base64",
+ "brotli",
  "futures-util",
  "reqwest",
  "rquickjs_playground",

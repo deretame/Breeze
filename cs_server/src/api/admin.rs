@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::app_state::AppState;
+use crate::plugin_store::MAX_BUNDLE_BYTES;
 
 use super::{auth::now_millis, error::ApiError};
 
@@ -19,11 +20,11 @@ struct InstallPluginRequest {
 }
 
 #[derive(Serialize)]
-struct InstallPluginResponse {
-    plugin_id: String,
-    version: String,
-    bundle_hash: String,
-    enabled: bool,
+pub(crate) struct InstallPluginResponse {
+    pub(crate) plugin_id: String,
+    pub(crate) version: String,
+    pub(crate) bundle_hash: String,
+    pub(crate) enabled: bool,
 }
 
 async fn install_plugin(
@@ -34,43 +35,63 @@ async fn install_plugin(
 ) -> Result<Json<InstallPluginResponse>, ApiError> {
     authorize(&state, &headers)?;
     validate_plugin_id(&plugin_id)?;
-    if request.version.trim().is_empty() || request.version.len() > 128 {
+    Ok(Json(
+        install_bundle(
+            &state,
+            &plugin_id,
+            &request.version,
+            &request.bundle,
+            request.enabled,
+        )
+        .await?,
+    ))
+}
+
+pub(crate) async fn install_bundle(
+    state: &AppState,
+    plugin_id: &str,
+    version: &str,
+    bundle: &str,
+    enabled: bool,
+) -> Result<InstallPluginResponse, ApiError> {
+    validate_plugin_id(plugin_id)?;
+    if version.trim().is_empty() || version.len() > 128 {
         return Err(ApiError::BadRequest("插件版本不合法".to_owned()));
     }
-    if request.bundle.is_empty() || request.bundle.len() > 8 * 1024 * 1024 {
+    if bundle.is_empty() || bundle.len() > MAX_BUNDLE_BYTES {
         return Err(ApiError::BadRequest(
             "插件 bundle 不能为空且不能超过 8 MiB".to_owned(),
         ));
     }
 
     tokio::fs::create_dir_all(&state.config.plugin_root).await?;
-    let filename = format!("{}.cjs", plugin_id);
+    let filename = format!("{plugin_id}.cjs");
     let root = std::fs::canonicalize(&state.config.plugin_root)?;
     let target = root.join(&filename);
     if !target.starts_with(&root) {
         return Err(ApiError::Forbidden);
     }
-    let temporary = root.join(format!(".{}.{}.tmp", plugin_id, uuid::Uuid::new_v4()));
-    tokio::fs::write(&temporary, request.bundle.as_bytes()).await?;
+    let temporary = root.join(format!(".{plugin_id}.{}.tmp", uuid::Uuid::new_v4()));
+    tokio::fs::write(&temporary, bundle.as_bytes()).await?;
     tokio::fs::rename(&temporary, &target).await?;
 
     let mut hasher = Sha256::new();
-    hasher.update(request.bundle.as_bytes());
+    hasher.update(bundle.as_bytes());
     let bundle_hash = format!("{:x}", hasher.finalize());
     let record = state.database.upsert_plugin(
-        &plugin_id,
-        request.version.trim(),
+        plugin_id,
+        version.trim(),
         &filename,
         &bundle_hash,
-        request.enabled,
+        enabled,
         &now_millis(),
     )?;
-    Ok(Json(InstallPluginResponse {
+    Ok(InstallPluginResponse {
         plugin_id: record.plugin_id,
         version: record.version,
         bundle_hash: record.bundle_hash,
         enabled: record.enabled,
-    }))
+    })
 }
 
 fn authorize(state: &AppState, headers: &HeaderMap) -> Result<(), ApiError> {
@@ -87,7 +108,7 @@ fn authorize(state: &AppState, headers: &HeaderMap) -> Result<(), ApiError> {
     Ok(())
 }
 
-fn validate_plugin_id(plugin_id: &str) -> Result<(), ApiError> {
+pub(crate) fn validate_plugin_id(plugin_id: &str) -> Result<(), ApiError> {
     if plugin_id.is_empty()
         || plugin_id.len() > 128
         || !plugin_id

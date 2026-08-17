@@ -8,6 +8,8 @@ publish = false
 anyhow = "1.0.102"
 argon2 = "0.5.3"
 axum = { version = "0.8.9", features = ["ws"] }
+brotli = "8.0.4"
+base64 = "0.22.1"
 reqwest = { version = "0.13.4", default-features = false, features = [
     "http2",
     "json",

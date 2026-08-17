@@ -11,6 +11,7 @@ pub struct ServerConfig {
     pub data_dir: PathBuf,
     pub web_root: PathBuf,
     pub plugin_root: PathBuf,
+    pub plugin_install_enabled: bool,
     pub server_download_enabled: bool,
     pub registration_enabled: bool,
     pub session_ttl_days: u64,
@@ -29,6 +30,8 @@ impl ServerConfig {
         let data_dir = PathBuf::from(parse_env("BREEZE_DATA_DIR", "cs_server/data")?);
         let web_root = PathBuf::from(parse_env("BREEZE_WEB_ROOT", "cs_web/dist")?);
         let plugin_root = PathBuf::from(parse_env("BREEZE_PLUGIN_ROOT", "cs_server/plugins")?);
+        let plugin_install_enabled =
+            parse_bool_env("BREEZE_ALLOW_PLUGIN_INSTALL", host.is_loopback())?;
         let server_download_enabled = parse_bool_env("BREEZE_SERVER_DOWNLOAD", false)?;
         let registration_enabled = parse_bool_env("BREEZE_ALLOW_REGISTRATION", host.is_loopback())?;
         let session_ttl_days = parse_env("BREEZE_SESSION_TTL_DAYS", "30")?.parse()?;
@@ -49,6 +52,7 @@ impl ServerConfig {
             data_dir,
             web_root,
             plugin_root,
+            plugin_install_enabled,
             server_download_enabled,
             registration_enabled,
             session_ttl_days,

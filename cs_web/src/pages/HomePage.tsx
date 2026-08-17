@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Cloud,
   Database,
+  Download,
   Library,
   Search,
   Sparkles,
@@ -24,6 +25,8 @@ import {
 import {
   useCapabilitiesQuery,
   useHealthQuery,
+  useInstallCatalogPluginMutation,
+  usePluginCatalogQuery,
   usePluginsQuery,
 } from '../services/breezeApi';
 
@@ -33,12 +36,41 @@ export function HomePage() {
   const { data: health, isError: healthError } = useHealthQuery();
   const { data: capabilities } = useCapabilitiesQuery();
   const { data: pluginData, isLoading: pluginsLoading } = usePluginsQuery();
+  const {
+    data: catalogData,
+    isError: catalogError,
+    isLoading: catalogLoading,
+  } = usePluginCatalogQuery();
+  const [installCatalogPlugin] = useInstallCatalogPluginMutation();
   const [keyword, setKeyword] = useState('');
+  const [installingPluginId, setInstallingPluginId] = useState<string | null>(null);
+  const [installMessage, setInstallMessage] = useState('');
   const plugins = pluginData?.items.filter((plugin) => plugin.enabled) ?? [];
+  const catalog = catalogData?.items ?? [];
+  const catalogNames = new Map(
+    catalog
+      .filter((item) => item.manifest?.uuid && item.manifest.name)
+      .map((item) => [item.manifest.uuid, item.manifest.name]),
+  );
+  const pluginManagementEnabled = capabilities?.plugin_management ?? true;
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (keyword.trim()) navigate(`/search?q=${encodeURIComponent(keyword.trim())}`);
+  }
+
+  async function installCatalogEntry(pluginId: string) {
+    if (!user || installingPluginId) return;
+    setInstallingPluginId(pluginId);
+    setInstallMessage('');
+    try {
+      await installCatalogPlugin({ pluginId }).unwrap();
+      setInstallMessage('插件已安装到服务端，可以开始搜索。');
+    } catch {
+      setInstallMessage('插件安装失败，请检查服务端插件安装权限和网络日志。');
+    } finally {
+      setInstallingPluginId(null);
+    }
   }
 
   return (
@@ -164,7 +196,11 @@ export function HomePage() {
                   {plugin.plugin_id.slice(0, 1).toUpperCase()}
                 </span>
                 <span>
-                  <b>{plugin.plugin_id}</b>
+                  <b>
+                    {plugin.name?.trim() ||
+                      catalogNames.get(plugin.plugin_id) ||
+                      '未命名图源'}
+                  </b>
                   <small>版本 {plugin.version}</small>
                 </span>
                 <ArrowUpRight size={16} />
@@ -172,6 +208,91 @@ export function HomePage() {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="section-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">PLUGIN STORE</p>
+            <h2>真实插件源</h2>
+          </div>
+          {catalogData?.source && (
+            <a
+              className="text-link"
+              href={catalogData.source}
+              target="_blank"
+              rel="noreferrer"
+            >
+              查看目录 <ArrowUpRight size={15} />
+            </a>
+          )}
+        </div>
+        {catalogLoading ? (
+          <div className="loading-line">正在读取真实插件目录…</div>
+        ) : catalogError ? (
+          <Card className="error-panel">
+            <p>真实插件目录暂时不可用，请检查服务端网络配置。</p>
+          </Card>
+        ) : catalog.length === 0 ? (
+          <Card className="empty-state">
+            <Sparkles size={20} />
+            <div>
+              <b>插件目录为空</b>
+              <p>服务端暂时没有从本体插件源读取到可安装插件。</p>
+            </div>
+          </Card>
+        ) : (
+          <div className="plugin-grid">
+            {catalog.map((item) => {
+              const manifest = item.manifest;
+              const installed = plugins.find(
+                (plugin) => plugin.plugin_id === manifest.uuid,
+              );
+              const title = manifest.name.trim() || item.repo;
+              return (
+                <article
+                  className="plugin-card plugin-catalog-card"
+                  key={manifest.uuid}
+                >
+                  <span className="plugin-avatar">
+                    {manifest.iconUrl ? (
+                      <img src={manifest.iconUrl} alt="" loading="lazy" />
+                    ) : (
+                      title.slice(0, 1).toUpperCase()
+                    )}
+                  </span>
+                  <span className="plugin-catalog-content">
+                    <b>{title}</b>
+                    <small>
+                      {installed
+                        ? `已安装 ${installed.version}`
+                        : `版本 ${manifest.version}`}
+                    </small>
+                    <p>{manifest.describe || item.repo}</p>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant={installed ? 'secondary' : 'primary'}
+                    disabled={
+                      !user || !pluginManagementEnabled || installingPluginId !== null
+                    }
+                    onClick={() => void installCatalogEntry(manifest.uuid)}
+                  >
+                    <Download size={14} />
+                    {!user
+                      ? '登录安装'
+                      : !pluginManagementEnabled
+                        ? '服务端未开启'
+                        : installed
+                          ? '更新'
+                          : '安装'}
+                  </Button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+        {installMessage && <p className="settings-note">{installMessage}</p>}
       </section>
     </div>
   );

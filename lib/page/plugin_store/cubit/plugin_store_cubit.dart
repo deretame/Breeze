@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
+import 'package:zephyr/cs/data/cs_api_client.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_install_service.dart';
@@ -16,6 +19,7 @@ class PluginStoreState {
     this.cloudLoading = false,
     this.cloudError = '',
     this.cloudPlugins = const <CloudPluginItem>[],
+    this.serverPlugins = const <String, CsPluginRecord>{},
   });
 
   final bool installing;
@@ -23,6 +27,7 @@ class PluginStoreState {
   final bool cloudLoading;
   final String cloudError;
   final List<CloudPluginItem> cloudPlugins;
+  final Map<String, CsPluginRecord> serverPlugins;
 
   PluginStoreState copyWith({
     bool? installing,
@@ -30,6 +35,7 @@ class PluginStoreState {
     bool? cloudLoading,
     String? cloudError,
     List<CloudPluginItem>? cloudPlugins,
+    Map<String, CsPluginRecord>? serverPlugins,
   }) {
     return PluginStoreState(
       installing: installing ?? this.installing,
@@ -37,6 +43,7 @@ class PluginStoreState {
       cloudLoading: cloudLoading ?? this.cloudLoading,
       cloudError: cloudError ?? this.cloudError,
       cloudPlugins: cloudPlugins ?? this.cloudPlugins,
+      serverPlugins: serverPlugins ?? this.serverPlugins,
     );
   }
 }
@@ -48,6 +55,33 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     emit(state.copyWith(cloudLoading: true, cloudError: ''));
 
     try {
+      if (CsRuntimeContext.I.isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final result = await Future.wait([
+          client.pluginCatalog(),
+          client.plugins(),
+        ]);
+        final cloudItems = (result[0] as List<CsCloudPluginItem>)
+            .map(_toCloudPluginItem)
+            .toList();
+        final serverPlugins = {
+          for (final plugin in result[1] as List<CsPluginRecord>)
+            plugin.pluginId: plugin,
+        };
+        emit(
+          state.copyWith(
+            cloudPlugins: cloudItems,
+            serverPlugins: serverPlugins,
+            cloudLoading: false,
+            cloudError: '',
+          ),
+        );
+        return;
+      }
+
       final payload = await fetchCloudPluginListWithCdnFallback();
       final decoded = jsonDecode(payload);
       final entries = asJsonList(decoded)
@@ -83,7 +117,22 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     _beginInstall(t.plugin.installingFromCloud(name: name));
 
     try {
-      final message = await PluginInstallService.I.installFromCloud(item);
+      final String message;
+      if (CsRuntimeContext.I.isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final record = await client.installCatalogPlugin(item.manifest.uuid);
+        emit(
+          state.copyWith(
+            serverPlugins: {...state.serverPlugins, record.pluginId: record},
+          ),
+        );
+        message = '服务端插件安装成功';
+      } else {
+        message = await PluginInstallService.I.installFromCloud(item);
+      }
       _reportInstallSuccess(message);
     } catch (e) {
       _reportInstallFailure(t.plugin.cloudDownloadFailed(error: e));
@@ -100,10 +149,28 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     _beginInstall(t.plugin.installingFromLocal);
 
     try {
-      final message = await PluginInstallService.I.installFromLocalBytes(
-        bytes,
-        fileName: fileName,
-      );
+      final String message;
+      if (CsRuntimeContext.I.isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final record = await client.installPluginBundle(
+          Uint8List.fromList(bytes),
+          fileName: fileName,
+        );
+        emit(
+          state.copyWith(
+            serverPlugins: {...state.serverPlugins, record.pluginId: record},
+          ),
+        );
+        message = '服务端插件安装成功';
+      } else {
+        message = await PluginInstallService.I.installFromLocalBytes(
+          bytes,
+          fileName: fileName,
+        );
+      }
       _reportInstallSuccess(message);
     } catch (e) {
       _reportInstallFailure(t.plugin.readLocalPluginFailed(error: e));
@@ -117,9 +184,22 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
     _beginInstall(t.plugin.installingFromNetwork);
 
     try {
-      final message = await PluginInstallService.I.installFromNetworkUrl(
-        rawUrl,
-      );
+      final String message;
+      if (CsRuntimeContext.I.isCsMode) {
+        final client = CsRuntimeContext.I.client;
+        if (client == null) {
+          throw StateError('CS 服务端连接尚未建立');
+        }
+        final record = await client.installPluginFromUrl(rawUrl);
+        emit(
+          state.copyWith(
+            serverPlugins: {...state.serverPlugins, record.pluginId: record},
+          ),
+        );
+        message = '服务端插件安装成功';
+      } else {
+        message = await PluginInstallService.I.installFromNetworkUrl(rawUrl);
+      }
       _reportInstallSuccess(message);
     } catch (e) {
       _reportInstallFailure(t.plugin.networkDownloadFailed(error: e));
@@ -138,5 +218,24 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
   void _reportInstallSuccess(String message) {
     emit(state.copyWith(installing: false, installMessage: ''));
     showSuccessToast(message);
+  }
+
+  static CloudPluginItem _toCloudPluginItem(CsCloudPluginItem item) {
+    final manifest = item.manifest;
+    return CloudPluginItem(
+      repo: item.repo,
+      manifest: CloudPluginManifest(
+        name: manifest.name,
+        uuid: manifest.uuid,
+        iconUrl: manifest.iconUrl,
+        creatorName: manifest.creatorName,
+        creatorDescribe: manifest.creatorDescribe,
+        describe: manifest.describe,
+        version: manifest.version,
+        home: manifest.home,
+        updateUrl: manifest.updateUrl,
+        npmName: manifest.npmName,
+      ),
+    );
   }
 }

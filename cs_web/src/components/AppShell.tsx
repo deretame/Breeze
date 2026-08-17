@@ -11,7 +11,7 @@ import {
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useAppSelector } from '../app/hooks';
-import { useLogoutMutation } from '../services/breezeApi';
+import { useHealthQuery, useLogoutMutation } from '../services/breezeApi';
 import { Button } from './ui/button';
 
 const links = [
@@ -25,6 +25,11 @@ export function AppShell() {
   const location = useLocation();
   const user = useAppSelector((state) => state.auth.user);
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const {
+    data: health,
+    isError: healthError,
+    isFetching: healthLoading,
+  } = useHealthQuery();
   const isReader = location.pathname.startsWith('/reader');
 
   return (
@@ -86,8 +91,12 @@ export function AppShell() {
             <span>连接设置</span>
           </NavLink>
           <div className="server-hint">
-            <span className="status-pulse" />
-            CS 服务在线时可用
+            <span className={healthError ? 'status-pulse offline' : 'status-pulse'} />
+            {healthLoading
+              ? '正在连接 CS 服务…'
+              : health?.status === 'ok'
+                ? 'CS 服务在线'
+                : 'CS 服务离线'}
           </div>
         </div>
       </aside>

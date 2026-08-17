@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/cs/data/cs_api_client.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -7,12 +8,14 @@ class CloudPluginCard extends StatelessWidget {
   const CloudPluginCard({
     super.key,
     required this.item,
+    this.serverPlugin,
     required this.installing,
     required this.onOpenHome,
     required this.onInstall,
   });
 
   final CloudPluginItem item;
+  final CsPluginRecord? serverPlugin;
   final bool installing;
   final ValueChanged<String> onOpenHome;
   final VoidCallback onInstall;
@@ -21,13 +24,16 @@ class CloudPluginCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final manifest = item.manifest;
-    final localState = manifest.uuid.isNotEmpty
+    final localState = serverPlugin == null && manifest.uuid.isNotEmpty
         ? PluginRegistryService.I.getByUuid(manifest.uuid)
         : null;
-    final isInstalled = localState != null && !localState.isDeleted;
+    final isInstalled =
+        serverPlugin != null || (localState != null && !localState.isDeleted);
     final isActive =
-        localState != null && localState.isEnabled && !localState.isDeleted;
-    final localVersion = localState?.version.trim() ?? '';
+        serverPlugin?.enabled == true ||
+        (localState != null && localState.isEnabled && !localState.isDeleted);
+    final localVersion =
+        serverPlugin?.version.trim() ?? localState?.version.trim() ?? '';
     final creatorText = manifest.creatorName.trim();
     final title = manifest.name.trim().isNotEmpty
         ? manifest.name.trim()

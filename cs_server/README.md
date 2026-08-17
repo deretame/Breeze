@@ -35,7 +35,8 @@ cargo run --manifest-path cs_server/Cargo.toml
 | `BREEZE_DATA_DIR` | `cs_server/data` | SQLite 数据目录 |
 | `BREEZE_WEB_ROOT` | `cs_web/dist` | 静态前端目录 |
 | `BREEZE_PLUGIN_ROOT` | `cs_server/plugins` | 已安装插件 bundle 的受限根目录 |
-| `BREEZE_ADMIN_TOKEN` | 未设置 | 插件安装管理令牌；未设置时禁用管理接口 |
+| `BREEZE_ALLOW_PLUGIN_INSTALL` | 回环地址默认开启 | 是否允许已登录客户端从真实插件目录安装/更新插件 |
+| `BREEZE_ADMIN_TOKEN` | 未设置 | 管理接口令牌；未设置时禁用 `/api/v1/admin/*` |
 | `BREEZE_SERVER_DOWNLOAD` | `false` | 是否声明支持服务端下载 |
 | `BREEZE_ALLOW_REGISTRATION` | 回环地址默认开启 | 是否允许注册新账号；非回环监听建议显式关闭 |
 | `BREEZE_SESSION_TTL_DAYS` | `30` | Bearer 会话有效期 |
@@ -54,6 +55,10 @@ SQLite 使用 `rusqlite` 的 `bundled` feature，构建时嵌入官方 SQLite C 
 - `GET /api/v1/health`：检查服务端和 SQLite schema 版本；
 - `GET /api/v1/capabilities`：查看浏览器前端、服务端下载、QuickJS 和 HTTP 能力；
 - `GET /api/v1/plugins`：读取服务端已安装插件清单；
+- `GET /api/v1/plugins/catalog`：由服务端通过共享 reqwest 客户端读取本体真实插件目录，并带 CDN/直连回退；
+- `POST /api/v1/plugins/catalog/install`：已登录用户请求服务端下载、校验并安装目录中的插件；
+- `POST /api/v1/plugins/install-url`：让服务端下载并安装 HTTPS 插件地址；
+- `POST /api/v1/plugins/install-bundle`：上传 bundle 到服务端，由服务端校验并安装；
 - `GET /api/v1/plugins/{pluginId}`：读取插件元信息；
 - `POST /api/v1/auth/register`、`POST /api/v1/auth/login`：创建账号并获得 Bearer 会话；
 - `POST /api/v1/auth/logout`、`GET /api/v1/auth/me`：注销并检查当前会话；
@@ -111,7 +116,9 @@ HTTP 请求仍可使用，但调用上述宿主函数的插件操作会得到明
 
 ### 安装插件 bundle
 
-服务端不自动从不受信任的网络地址执行插件。部署者需要通过管理令牌安装已经审核过的 bundle：
+插件目录、插件 bundle 下载、Brotli 解码、QuickJS `getInfo` 校验、文件落盘和 SQLite 登记全部在服务端完成，
+客户端不会在 CS 模式下执行本地插件安装逻辑。回环地址默认允许已登录用户安装本体真实插件目录中的条目；部署到非回环地址时，
+应显式关闭 `BREEZE_ALLOW_PLUGIN_INSTALL`，并使用管理令牌安装已经审核过的 bundle：
 
 ```powershell
 $headers = @{ 'X-Breeze-Admin-Token' = $env:BREEZE_ADMIN_TOKEN }
@@ -136,6 +143,7 @@ cargo check --manifest-path cs_server/Cargo.toml
 cargo test --manifest-path cs_server/Cargo.toml
 pnpm --dir cs_web format:check
 pnpm --dir cs_web lint
+pnpm --dir cs_web test
 pnpm --dir cs_web build
 ```
 

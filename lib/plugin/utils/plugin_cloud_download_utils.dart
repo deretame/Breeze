@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/plugin/bridge/qjs_plugin_gateway.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/json/json_value.dart';
 

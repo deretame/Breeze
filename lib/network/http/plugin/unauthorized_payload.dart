@@ -21,13 +21,17 @@ UnauthorizedPayload? parseUnauthorizedPayload(
   Object error, {
   required String fallbackPluginId,
 }) {
-  final text = (error as AnyhowException).message.trim().split('\n').first;
+  final text = switch (error) {
+    AnyhowException(message: final message) => message,
+    _ => error.toString(),
+  };
+  final firstLine = text.trim().split('\n').first;
   final regExp = RegExp(
     r'(?:bundle:.*?cjs\]|source:.*?cjs\])\s*(\{.*\})',
     dotAll: true,
   );
-  final match = regExp.firstMatch(text);
-  final jsonText = match != null ? match.group(1)! : text;
+  final match = regExp.firstMatch(firstLine);
+  final jsonText = match != null ? match.group(1)! : firstLine;
   try {
     final parsed = requireJsonMap(jsonDecode(jsonText));
     if (parsed['type']?.toString() != 'unauthorized') {

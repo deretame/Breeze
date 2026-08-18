@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/plugin/bridge/qjs_plugin_gateway.dart';
 
 @RoutePage()
 class QjsRuntimeDebugPage extends StatefulWidget {

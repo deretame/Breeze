@@ -5,14 +5,12 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/qjs.dart';
+import 'package:zephyr/plugin/bridge/qjs_plugin_gateway.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
@@ -577,10 +575,13 @@ class PluginRegistryService {
     // init 不需要等待结果，触发后即返回，避免阻塞安装/启用流程。
     Future(() async {
       try {
-        await callUnifiedComicPlugin(
-          pluginId: runtimeName,
+        // init 的返回值不参与插件协议，允许插件返回 null/undefined。
+        await qjsTaskCall(
+          runtimeName: runtimeName,
+          taskGroupKey: '',
+          isOnce: false,
           fnPath: 'init',
-          core: {},
+          argsJson: '{}',
         );
         _pluginInitDone.add(plugin.uuid);
         await updateLoadResult(plugin.uuid, success: true, error: null);

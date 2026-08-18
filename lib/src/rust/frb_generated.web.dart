@@ -23,7 +23,6 @@ import 'dart:convert';
 import 'decode/decode.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
-import 'qjs.dart';
 
 abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RustLibApiImplPlatform({
@@ -117,16 +116,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PackInfo dco_decode_box_autoadd_pack_info(dynamic raw);
 
   @protected
-  QjsRuntimeBuildRequest dco_decode_box_autoadd_qjs_runtime_build_request(
-    dynamic raw,
-  );
-
-  @protected
-  QjsRuntimeBundleBuild dco_decode_box_autoadd_qjs_runtime_bundle_build(
-    dynamic raw,
-  );
-
-  @protected
   BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
@@ -188,11 +177,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  QjsRuntimeBundleBuild? dco_decode_opt_box_autoadd_qjs_runtime_bundle_build(
-    dynamic raw,
-  );
-
-  @protected
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
@@ -200,17 +184,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PackInfo dco_decode_pack_info(dynamic raw);
-
-  @protected
-  QjsCancelTasksByGroupResult dco_decode_qjs_cancel_tasks_by_group_result(
-    dynamic raw,
-  );
-
-  @protected
-  QjsRuntimeBuildRequest dco_decode_qjs_runtime_build_request(dynamic raw);
-
-  @protected
-  QjsRuntimeBundleBuild dco_decode_qjs_runtime_bundle_build(dynamic raw);
 
   @protected
   (String, String) dco_decode_record_string_string(dynamic raw);
@@ -316,16 +289,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer);
 
   @protected
-  QjsRuntimeBuildRequest sse_decode_box_autoadd_qjs_runtime_build_request(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  QjsRuntimeBundleBuild sse_decode_box_autoadd_qjs_runtime_bundle_build(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
@@ -397,11 +360,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  QjsRuntimeBundleBuild? sse_decode_opt_box_autoadd_qjs_runtime_bundle_build(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
@@ -409,21 +367,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PackInfo sse_decode_pack_info(SseDeserializer deserializer);
-
-  @protected
-  QjsCancelTasksByGroupResult sse_decode_qjs_cancel_tasks_by_group_result(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  QjsRuntimeBuildRequest sse_decode_qjs_runtime_build_request(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  QjsRuntimeBundleBuild sse_decode_qjs_runtime_bundle_build(
-    SseDeserializer deserializer,
-  );
 
   @protected
   (String, String) sse_decode_record_string_string(
@@ -559,18 +502,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_qjs_runtime_build_request(
-    QjsRuntimeBuildRequest self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_qjs_runtime_bundle_build(
-    QjsRuntimeBundleBuild self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
@@ -652,12 +583,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_opt_box_autoadd_qjs_runtime_bundle_build(
-    QjsRuntimeBundleBuild? self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
@@ -668,24 +593,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_pack_info(PackInfo self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_qjs_cancel_tasks_by_group_result(
-    QjsCancelTasksByGroupResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_qjs_runtime_build_request(
-    QjsRuntimeBuildRequest self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_qjs_runtime_bundle_build(
-    QjsRuntimeBundleBuild self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_record_string_string(

@@ -1,72 +1,13 @@
 use anyhow::Result;
 use flutter_rust_bridge::{DartFnFuture, frb};
 
-pub use crate::qjs::{QjsCancelTasksByGroupResult, QjsRuntimeBuildRequest};
-
-#[frb]
-pub async fn qjs_replace_bundle(
-    runtime_name: String,
-    bundle_name: String,
-    bundle_js: String,
-) -> Result<()> {
-    crate::qjs::qjs_replace_bundle(runtime_name, bundle_name, bundle_js).await
-}
-
-/// 统一执行入口:调用插件 bundle 里的函数,返回原始字节。
+/// Flutter/Rust 插件调用的唯一 FRB 入口。
 ///
-/// `is_once=true` 用 `bundle_js`/`bundle_url` 走一次性 debug 池(不常驻);
-/// `false` 走常驻运行时里已加载的当前 bundle。
-/// 返回值为字节数组:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
-/// 否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
-/// 通过 FRB 按普通 `Uint8List` 传递，避免跨 FFI 共享 Rust 堆内存。
+/// 请求和响应均为版本化 CBOR envelope；插件运行时的具体操作在 Rust
+/// 网关内部转发到现有 QJS 实现，避免把每个运行时函数继续生成到 Dart。
 #[frb]
-pub async fn qjs_task_call(
-    runtime_name: String,
-    task_group_key: String,
-    is_once: bool,
-    bundle_js: Option<String>,
-    bundle_url: Option<String>,
-    fn_path: String,
-    args_json: String,
-) -> Result<Vec<u8>> {
-    crate::qjs::qjs_task_call(
-        runtime_name,
-        task_group_key,
-        is_once,
-        bundle_js,
-        bundle_url,
-        fn_path,
-        args_json,
-    )
-    .await
-}
-
-#[frb]
-pub async fn qjs_clear_bundle(runtime_name: String) -> Result<bool> {
-    crate::qjs::qjs_clear_bundle(runtime_name).await
-}
-
-#[frb]
-pub async fn qjs_current_bundle(runtime_name: String) -> Result<String> {
-    crate::qjs::qjs_current_bundle(runtime_name).await
-}
-
-#[frb]
-pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
-    crate::qjs::qjs_drop_runtime(runtime_name).await
-}
-
-#[frb]
-pub async fn qjs_cancel_tasks_by_group(
-    runtime_name: String,
-    task_group_key: String,
-) -> Result<QjsCancelTasksByGroupResult> {
-    crate::qjs::qjs_cancel_tasks_by_group(runtime_name, task_group_key).await
-}
-
-#[frb]
-pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
-    crate::qjs::qjs_debug_snapshot(runtime_name).await
+pub async fn plugin_gateway_call(request: Vec<u8>) -> Result<Vec<u8>> {
+    crate::plugin_gateway::plugin_gateway_call(request).await
 }
 
 #[frb(sync)]
@@ -135,16 +76,6 @@ pub fn set_log_http_forward(url: String) -> Result<()> {
 #[frb(sync)]
 pub fn get_js_bundle(name: String) -> Result<String> {
     crate::qjs::get_js_bundle(name)
-}
-
-#[frb]
-pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
-    crate::qjs::is_qjs_runtime_initialized(name).await
-}
-
-#[frb]
-pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
-    crate::qjs::build_qjs_runtime(request).await
 }
 
 #[frb(sync)]

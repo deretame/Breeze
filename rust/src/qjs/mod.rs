@@ -170,34 +170,34 @@ struct TrackedQjsTaskMeta {
 }
 
 #[derive(Debug, Clone)]
-pub struct QjsCancelTasksByGroupResult {
-    pub cancelled: i32,
-    pub not_found: i32,
-    pub failed_runtime_groups: Vec<String>,
+pub(crate) struct QjsCancelTasksByGroupResult {
+    pub(crate) cancelled: i32,
+    pub(crate) not_found: i32,
+    pub(crate) failed_runtime_groups: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
-pub struct QjsRuntimeBundleBuild {
-    pub bundle_name: String,
-    pub bundle_js: String,
+pub(crate) struct QjsRuntimeBundleBuild {
+    pub(crate) bundle_name: String,
+    pub(crate) bundle_js: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct QjsRuntimeBuildRequest {
-    pub runtime_name: String,
-    pub inject_filesystem: bool,
-    pub bundle: Option<QjsRuntimeBundleBuild>,
+pub(crate) struct QjsRuntimeBuildRequest {
+    pub(crate) runtime_name: String,
+    pub(crate) inject_filesystem: bool,
+    pub(crate) bundle: Option<QjsRuntimeBundleBuild>,
 }
 
 #[derive(Debug, Clone)]
-pub struct QjsRuntimeBuilder {
+pub(crate) struct QjsRuntimeBuilder {
     runtime_name: String,
     options: WebRuntimeOptions,
     bundle: Option<QjsRuntimeBundleBuild>,
 }
 
 impl QjsRuntimeBuilder {
-    pub fn new(runtime_name: impl Into<String>) -> Self {
+    pub(crate) fn new(runtime_name: impl Into<String>) -> Self {
         Self {
             runtime_name: runtime_name.into(),
             options: WebRuntimeOptions::default(),
@@ -205,25 +205,17 @@ impl QjsRuntimeBuilder {
         }
     }
 
-    pub fn filesystem(mut self, enabled: bool) -> Self {
+    pub(crate) fn filesystem(mut self, enabled: bool) -> Self {
         self.options.fs = enabled;
         self
     }
 
-    pub fn bundle(mut self, bundle_name: impl Into<String>, bundle_js: impl Into<String>) -> Self {
-        self.bundle = Some(QjsRuntimeBundleBuild {
-            bundle_name: bundle_name.into(),
-            bundle_js: bundle_js.into(),
-        });
-        self
-    }
-
-    pub fn with_bundle(mut self, bundle: QjsRuntimeBundleBuild) -> Self {
+    pub(crate) fn with_bundle(mut self, bundle: QjsRuntimeBundleBuild) -> Self {
         self.bundle = Some(bundle);
         self
     }
 
-    pub async fn build(self) -> Result<()> {
+    pub(crate) async fn build(self) -> Result<()> {
         let runtime_name = self.runtime_name.trim().to_string();
         if runtime_name.is_empty() {
             return Err(anyhow!(rquickjs_playground::tr!(
@@ -1147,7 +1139,7 @@ async fn wait_tracked_task_bytes(runtime_name: &str, task_id: u64) -> Result<Vec
     }
 }
 
-pub async fn qjs_replace_bundle(
+pub(crate) async fn qjs_replace_bundle(
     runtime_name: String,
     bundle_name: String,
     bundle_js: String,
@@ -1162,7 +1154,7 @@ pub async fn qjs_replace_bundle(
 /// - `is_once=false`:走常驻运行时里已加载的当前 bundle。
 /// - 返回值为原始字节:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
 ///   否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
-pub async fn qjs_task_call(
+pub(crate) async fn qjs_task_call(
     runtime_name: String,
     task_group_key: String,
     is_once: bool,
@@ -1209,7 +1201,7 @@ fn value_to_bytes(data: &Value) -> Result<Vec<u8>, String> {
     serde_json::to_vec(data).map_err(|e| format!("序列化结果为字节失败: {e}"))
 }
 
-pub async fn qjs_clear_bundle(runtime_name: String) -> Result<bool> {
+pub(crate) async fn qjs_clear_bundle(runtime_name: String) -> Result<bool> {
     let runtime = qjs_runtime(&runtime_name).await?;
     let Some(name) = current_bundle_name(&runtime).await? else {
         return Ok(false);
@@ -1220,13 +1212,13 @@ pub async fn qjs_clear_bundle(runtime_name: String) -> Result<bool> {
         .map_err(|err| anyhow!("清空当前 bundle 失败: {err}"))
 }
 
-pub async fn qjs_current_bundle(runtime_name: String) -> Result<String> {
+pub(crate) async fn qjs_current_bundle(runtime_name: String) -> Result<String> {
     let runtime = qjs_runtime(&runtime_name).await?;
     let current = current_bundle_name(&runtime).await?;
     serde_json::to_string(&current).context("序列化当前 bundle 信息失败")
 }
 
-pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
+pub(crate) async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
     if runtime_name.trim().is_empty() {
         return Err(anyhow!("runtime_name 不能为空"));
     }
@@ -1254,7 +1246,7 @@ pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
     Ok(runtime.is_some())
 }
 
-pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
+pub(crate) async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
     let runtime_name = runtime_name.trim().to_string();
     let runtime = {
         let map = qjs_runtime_map().read().await;
@@ -1351,7 +1343,7 @@ pub async fn qjs_debug_snapshot(runtime_name: String) -> Result<String> {
     .context("序列化 qjs 调试快照失败")
 }
 
-pub async fn qjs_cancel_tasks_by_group(
+pub(crate) async fn qjs_cancel_tasks_by_group(
     runtime_name: String,
     task_group_key: String,
 ) -> Result<QjsCancelTasksByGroupResult> {
@@ -1490,12 +1482,12 @@ pub fn get_js_bundle(name: String) -> Result<String> {
     }
 }
 
-pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
+pub(crate) async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
     let map = qjs_runtime_map().read().await;
     Ok(map.contains_key(&name))
 }
 
-pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
+pub(crate) async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
     let mut builder =
         QjsRuntimeBuilder::new(request.runtime_name).filesystem(request.inject_filesystem);
 

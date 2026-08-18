@@ -5,9 +5,8 @@ import 'dart:typed_data';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/plugin/bridge/qjs_plugin_gateway.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
-import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/type/pipe.dart';
 
 final Map<String, Set<String>> _trackedRuntimesByGroup = {};

@@ -4,63 +4,14 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import '../qjs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<void> qjsReplaceBundle({
-  required String runtimeName,
-  required String bundleName,
-  required String bundleJs,
-}) => RustLib.instance.api.crateApiQjsQjsReplaceBundle(
-  runtimeName: runtimeName,
-  bundleName: bundleName,
-  bundleJs: bundleJs,
-);
-
-/// 统一执行入口:调用插件 bundle 里的函数,返回原始字节。
+/// Flutter/Rust 插件调用的唯一 FRB 入口。
 ///
-/// `is_once=true` 用 `bundle_js`/`bundle_url` 走一次性 debug 池(不常驻);
-/// `false` 走常驻运行时里已加载的当前 bundle。
-/// 返回值为字节数组:JS 返回 `Uint8Array`/`ArrayBuffer` 时为真实字节,
-/// 否则为 JSON 序列化后的 UTF-8 字节,由调用方自行转换。
-/// 通过 FRB 按普通 `Uint8List` 传递，避免跨 FFI 共享 Rust 堆内存。
-Future<Uint8List> qjsTaskCall({
-  required String runtimeName,
-  required String taskGroupKey,
-  required bool isOnce,
-  String? bundleJs,
-  String? bundleUrl,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsTaskCall(
-  runtimeName: runtimeName,
-  taskGroupKey: taskGroupKey,
-  isOnce: isOnce,
-  bundleJs: bundleJs,
-  bundleUrl: bundleUrl,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
-
-Future<bool> qjsClearBundle({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsClearBundle(runtimeName: runtimeName);
-
-Future<String> qjsCurrentBundle({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsCurrentBundle(runtimeName: runtimeName);
-
-Future<bool> qjsDropRuntime({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsDropRuntime(runtimeName: runtimeName);
-
-Future<QjsCancelTasksByGroupResult> qjsCancelTasksByGroup({
-  required String runtimeName,
-  required String taskGroupKey,
-}) => RustLib.instance.api.crateApiQjsQjsCancelTasksByGroup(
-  runtimeName: runtimeName,
-  taskGroupKey: taskGroupKey,
-);
-
-Future<String> qjsDebugSnapshot({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsDebugSnapshot(runtimeName: runtimeName);
+/// 请求和响应均为版本化 CBOR envelope；插件运行时的具体操作在 Rust
+/// 网关内部转发到现有 QJS 实现，避免把每个运行时函数继续生成到 Dart。
+Future<Uint8List> pluginGatewayCall({required List<int> request}) =>
+    RustLib.instance.api.crateApiQjsPluginGatewayCall(request: request);
 
 void setHttpProxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
@@ -103,12 +54,6 @@ void setLogHttpForward({required String url}) =>
 
 String getJsBundle({required String name}) =>
     RustLib.instance.api.crateApiQjsGetJsBundle(name: name);
-
-Future<bool> isQjsRuntimeInitialized({required String name}) =>
-    RustLib.instance.api.crateApiQjsIsQjsRuntimeInitialized(name: name);
-
-Future<void> buildQjsRuntime({required QjsRuntimeBuildRequest request}) =>
-    RustLib.instance.api.crateApiQjsBuildQjsRuntime(request: request);
 
 void registerFunction({
   required String functionName,

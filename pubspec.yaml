@@ -25,6 +25,7 @@ dependencies:
   event_bus: ^2.0.1 # 事件: 全局事件总线
 
   # UI 组件与交互
+  material_ui: ^1.0.0
   dynamic_color: ^1.7.0 # UI: 动态取色
   loading_animation_widget: ^1.2.1 # UI: 加载动画合集
   photo_view: ^0.15.0 # UI: 图片缩放预览

@@ -37,10 +37,10 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
   late final TextEditingController _serverController;
   late final TextEditingController _usernameController;
   late final TextEditingController _passwordController;
-  late CsDownloadMode _downloadMode;
   bool _register = false;
   bool _busy = false;
   String? _error;
+  String? _migrationProgress;
 
   @override
   void initState() {
@@ -49,7 +49,6 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
     _serverController = TextEditingController(text: settings.serverUrl);
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
-    _downloadMode = settings.downloadMode;
   }
 
   @override
@@ -74,7 +73,7 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
     });
     try {
       final cubit = context.read<CsModeCubit>();
-      await cubit.configure(serverUrl: serverUrl, downloadMode: _downloadMode);
+      await cubit.configure(serverUrl: serverUrl);
       await cubit.login(
         username: username,
         password: password,
@@ -112,12 +111,22 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
       await cubit.enableCsMode(
         migrateData: migrateData,
         migrateDownloads: migrateDownloads,
+        onMigrationProgress: (message) {
+          if (mounted) {
+            setState(() => _migrationProgress = message);
+          }
+        },
       );
       if (mounted) Navigator.of(context).pop(CsRunMode.cs);
     } on Object catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _migrationProgress = null;
+        });
+      }
     }
   }
 
@@ -183,26 +192,9 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
                 autofillHints: const [AutofillHints.password],
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<CsDownloadMode>(
-                initialValue: _downloadMode,
-                decoration: const InputDecoration(labelText: '下载位置'),
-                items: const [
-                  DropdownMenuItem(
-                    value: CsDownloadMode.client,
-                    child: Text('客户端下载（保持本地文件）'),
-                  ),
-                  DropdownMenuItem(
-                    value: CsDownloadMode.server,
-                    child: Text('服务端下载（远程存储）'),
-                  ),
-                ],
-                onChanged: _busy
-                    ? null
-                    : (value) {
-                        if (value != null) {
-                          setState(() => _downloadMode = value);
-                        }
-                      },
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('下载位置将在迁移确认后确定：迁移下载使用服务端，保留本地下载使用客户端。'),
               ),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
@@ -230,6 +222,15 @@ class _CsModeSettingsDialogState extends State<_CsModeSettingsDialog> {
                     _error!,
                     style: TextStyle(color: ThemeData().colorScheme.error),
                   ),
+                ),
+              ],
+              if (_busy) ...[
+                const SizedBox(height: 12),
+                const LinearProgressIndicator(),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(_migrationProgress ?? '正在处理，请稍候…'),
                 ),
               ],
             ],

@@ -652,7 +652,7 @@ fn register_config_routes(database: Database) -> anyhow::Result<()> {
                 let (user_id, plugin_id) = runtime_scope(&runtime)?;
                 let key = args.first().and_then(Value::as_str).unwrap_or_default();
                 let fallback = args.get(1).cloned().unwrap_or(Value::Null);
-                let config = database.plugin_config(&user_id, &plugin_id)?;
+                let config = database.plugin_config(&user_id, &plugin_id).await?;
                 let object = serde_json::from_str::<Value>(&config.config_json)
                     .unwrap_or_else(|_| Value::Object(Default::default()));
                 let value = if key.is_empty() {
@@ -675,7 +675,7 @@ fn register_config_routes(database: Database) -> anyhow::Result<()> {
                 let (user_id, plugin_id) = runtime_scope(&runtime)?;
                 let key = args.first().and_then(Value::as_str).unwrap_or_default();
                 let value = args.get(1).cloned().unwrap_or(Value::Null);
-                let current = database.plugin_config(&user_id, &plugin_id)?;
+                let current = database.plugin_config(&user_id, &plugin_id).await?;
                 let mut object = serde_json::from_str::<Value>(&current.config_json)
                     .unwrap_or_else(|_| Value::Object(Default::default()));
                 if key.is_empty() {
@@ -701,7 +701,8 @@ fn register_config_routes(database: Database) -> anyhow::Result<()> {
                         &serde_json::to_string(&object)?,
                         Some(current.revision),
                         &crate::api::auth::now_millis(),
-                    )?
+                    )
+                    .await?
                     .ok_or_else(|| anyhow::anyhow!("plugin config revision changed"))?;
                 Ok(Value::String("{\"ok\":true}".to_owned()))
             }
@@ -746,17 +747,23 @@ mod tests {
         let _guard = runtime_test_guard();
         let database = test_database();
         database
-            .upsert_plugin(
-                "plugin-cancel",
-                "1.0.0",
-                "plugin-cancel.cjs",
-                "hash",
-                true,
-                "1",
-            )
+            .run_blocking(|database| {
+                database.upsert_plugin(
+                    "plugin-cancel",
+                    "1.0.0",
+                    "plugin-cancel.cjs",
+                    "hash",
+                    true,
+                    "1",
+                )
+            })
+            .await
             .expect("plugin should exist for config foreign key");
         database
-            .create_user("user-cancel", "cancel-user", "hash", "1")
+            .run_blocking(|database| {
+                database.create_user("user-cancel", "cancel-user", "hash", "1")
+            })
+            .await
             .expect("user should exist for config foreign key");
         let service = Arc::new(
             PluginRuntimeService::new(
@@ -804,10 +811,14 @@ mod tests {
         let _guard = runtime_test_guard();
         let database = test_database();
         database
-            .upsert_plugin("plugin-1", "1.0.0", "plugin-1.cjs", "hash", true, "1")
+            .run_blocking(|database| {
+                database.upsert_plugin("plugin-1", "1.0.0", "plugin-1.cjs", "hash", true, "1")
+            })
+            .await
             .expect("plugin should exist for config foreign key");
         database
-            .create_user("user-1", "alice", "hash", "1")
+            .run_blocking(|database| database.create_user("user-1", "alice", "hash", "1"))
+            .await
             .expect("user should exist for config foreign key");
         let service = PluginRuntimeService::new(
             database.clone(),
@@ -839,6 +850,7 @@ mod tests {
         assert_eq!(
             database
                 .plugin_config("user-1", "plugin-1")
+                .await
                 .expect("plugin config should be stored in SQLite")
                 .config_json,
             r#"{"auth.token":"server-login-state"}"#
@@ -856,6 +868,7 @@ mod tests {
         assert_eq!(
             database
                 .plugin_config("user-2", "plugin-1")
+                .await
                 .expect("other user config should remain isolated")
                 .config_json,
             "{}"

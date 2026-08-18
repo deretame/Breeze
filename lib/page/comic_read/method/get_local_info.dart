@@ -1,4 +1,5 @@
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart'
     show Doc;
@@ -32,14 +33,15 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
     throw StateError('pluginId 不能为空');
   }
 
-  final download = objectbox.unifiedDownloadBox
-      .query(
-        UnifiedComicDownload_.uniqueKey.equals('$resolvedPluginId:$comicId'),
-      )
-      .build()
-      .findFirst();
+  final uniqueKey = '$resolvedPluginId:$comicId';
+  final download = CsRuntimeContext.I.isServerDownload
+      ? await CsRuntimeContext.I.serverDownload(resolvedPluginId, comicId)
+      : objectbox.unifiedDownloadBox
+            .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
+            .build()
+            .findFirst();
   if (download == null) {
-    throw StateError('本地下载信息不存在: $resolvedPluginId:$comicId');
+    throw StateError('下载信息不存在: $uniqueKey');
   }
 
   final chapters = resolveDownloadChapters(download);

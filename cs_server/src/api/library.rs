@@ -63,11 +63,15 @@ async fn list(
     Path(kind): Path<String>,
     Query(query): Query<ListQuery>,
 ) -> Result<Json<LibraryListResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     let kind = parse_kind(&kind)?;
+    let user_id = user.id.clone();
     let items = state
         .database
-        .list_library_records(&user.id, kind, query.include_deleted)?
+        .run_blocking(move |database| {
+            database.list_library_records(&user_id, kind, query.include_deleted)
+        })
+        .await?
         .into_iter()
         .map(to_response)
         .collect::<Result<Vec<_>, _>>()?;
@@ -80,18 +84,29 @@ async fn upsert(
     Path(kind): Path<String>,
     Json(request): Json<UpsertRequest>,
 ) -> Result<Json<LibraryResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     let kind = parse_kind(&kind)?;
     validate_request(&request)?;
-    let record = state.database.upsert_library_record(
-        &user.id,
-        kind,
-        &request.unique_key,
-        &request.source,
-        &request.comic_id,
-        &serde_json::to_string(&request.payload)?,
-        &super::auth::now_millis(),
-    )?;
+    let user_id = user.id.clone();
+    let unique_key = request.unique_key.clone();
+    let source = request.source.clone();
+    let comic_id = request.comic_id.clone();
+    let payload_json = serde_json::to_string(&request.payload)?;
+    let updated_at = super::auth::now_millis();
+    let record = state
+        .database
+        .run_blocking(move |database| {
+            database.upsert_library_record(
+                &user_id,
+                kind,
+                &unique_key,
+                &source,
+                &comic_id,
+                &payload_json,
+                &updated_at,
+            )
+        })
+        .await?;
     Ok(Json(to_response(record)?))
 }
 
@@ -100,17 +115,20 @@ async fn remove(
     headers: HeaderMap,
     Path((kind, unique_key)): Path<(String, String)>,
 ) -> Result<Json<DeleteResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     let kind = parse_kind(&kind)?;
     if unique_key.is_empty() || unique_key.len() > 512 {
         return Err(ApiError::BadRequest("unique_key 长度不合法".to_owned()));
     }
-    let deleted = state.database.delete_library_record(
-        &user.id,
-        kind,
-        &unique_key,
-        &super::auth::now_millis(),
-    )?;
+    let user_id = user.id.clone();
+    let unique_key_for_database = unique_key.clone();
+    let deleted_at = super::auth::now_millis();
+    let deleted = state
+        .database
+        .run_blocking(move |database| {
+            database.delete_library_record(&user_id, kind, &unique_key_for_database, &deleted_at)
+        })
+        .await?;
     if !deleted {
         return Err(ApiError::NotFound);
     }

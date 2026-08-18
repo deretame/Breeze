@@ -24,27 +24,36 @@ cargo run --manifest-path cs_server/Cargo.toml
 默认监听 `127.0.0.1:8787`，会直接提供 `cs_web/dist` 中的 HTML、JavaScript 和 CSS，
 不需要 Nginx。没有前端构建产物时，API 仍然可以独立启动。
 
+服务端默认从 `cs_server/config.yaml` 读取配置；如果从 `cs_server` 目录启动，
+也可以直接使用其中的 `config.yaml`。需要指定其他配置文件时使用：
+
+```powershell
+cargo run --manifest-path cs_server/Cargo.toml -- --config .\path\to\config.yaml
+```
+
 ## 配置
 
-服务端通过环境变量配置：
+服务端使用带中文注释的 `cs_server/config.yaml` 配置，不再要求设置环境变量。
+路径配置使用相对于配置文件目录的路径，也可以直接填写绝对路径。复制部署时，
+请先复制这份配置并根据实际目录、监听地址和安全要求修改；不要把真实的管理令牌提交到公共仓库。
 
-| 变量 | 默认值 | 说明 |
+| 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
-| `BREEZE_SERVER_HOST` | `127.0.0.1` | 监听地址 |
-| `BREEZE_SERVER_PORT` | `8787` | 监听端口 |
-| `BREEZE_DATA_DIR` | `cs_server/data` | SQLite 数据目录 |
-| `BREEZE_WEB_ROOT` | `cs_web/dist` | 静态前端目录 |
-| `BREEZE_PLUGIN_ROOT` | `cs_server/plugins` | 已安装插件 bundle 的受限根目录 |
-| `BREEZE_ALLOW_PLUGIN_INSTALL` | 回环地址默认开启 | 是否允许已登录客户端从真实插件目录安装/更新插件；这是部署开关，不是插件权限系统 |
-| `BREEZE_ADMIN_TOKEN` | 未设置 | 管理接口令牌；未设置时禁用 `/api/v1/admin/*` |
-| `BREEZE_SERVER_DOWNLOAD` | `false` | 是否声明支持服务端下载 |
-| `BREEZE_ALLOW_REGISTRATION` | 回环地址默认开启 | 是否允许注册新账号；非回环监听建议显式关闭 |
-| `BREEZE_SESSION_TTL_DAYS` | `30` | Bearer 会话有效期 |
-| `BREEZE_CORS_ORIGIN` | 未设置 | 开发时允许的前端来源 |
-| `BREEZE_HTTP_PROXY` | 未设置 | 全局 HTTP 代理，与 SOCKS5 二选一 |
-| `BREEZE_SOCKS5_PROXY` | 未设置 | 全局 SOCKS5 代理，与 HTTP 二选一 |
-| `BREEZE_DISABLE_TLS_VERIFY` | `false` | 是否关闭 TLS 校验，默认开启 |
-| `BREEZE_ALLOW_PRIVATE_NETWORK` | `false` | 是否允许插件请求内网地址 |
+| `host` | `127.0.0.1` | 监听地址；非本机监听需要额外配置网络和认证保护 |
+| `port` | `8787` | 监听端口 |
+| `data_dir` | `data` | SQLite、下载资产等服务端数据目录 |
+| `web_root` | `../cs_web/dist` | 静态前端目录；不存在时仍可只启动 API |
+| `plugin_root` | `plugins` | 已安装插件 bundle 的受限根目录 |
+| `allow_plugin_install` | 回环地址默认开启 | 是否允许已登录用户从真实插件目录安装/更新插件；这是部署开关，不是插件权限系统 |
+| `admin_token` | `null` | 管理接口令牌；为 `null` 时禁用 `/api/v1/admin/*` |
+| `allow_registration` | 回环地址默认开启 | 是否允许注册新账号；非回环监听建议显式关闭 |
+| `session_ttl_days` | `30` | Bearer 会话有效期 |
+| `cors_origin` | `null` | 开发时允许的前端来源 |
+| `http_proxy` | `null` | 全局 HTTP 代理，与 SOCKS5 二选一 |
+| `socks5_proxy` | `null` | 全局 SOCKS5 代理，与 HTTP 二选一 |
+| `disable_tls_verify` | `false` | 是否关闭 TLS 校验，默认开启；仅在确有兼容需求时开启 |
+| `allow_private_network` | `false` | 是否允许插件请求内网地址 |
+| `log_filter` | `breeze_cs_server=info,tower_http=info` | 服务端日志过滤器 |
 
 SQLite 使用 `rusqlite` 的 `bundled` feature，构建时嵌入官方 SQLite C 实现。
 服务端所有主动 HTTP 请求的共享 `reqwest::Client` 与 QuickJS `fetch` 都从同一套
@@ -84,8 +93,9 @@ SQLite 使用 `rusqlite` 的 `bundled` feature，构建时嵌入官方 SQLite C 
 - `GET /api/v1/migrations/export?include_downloads=true|false`：导出当前用户数据，用于关闭 CS 时按选择覆盖本地；插件 bundle 随 JSON 返回，下载文件通过资产接口读取；
 - `/` 及其他非 API 路径：提供独立前端静态资源，并回退到 `index.html`。
 
-服务端下载只有在 `BREEZE_SERVER_DOWNLOAD=true` 时才接受任务；任务会把图片保存到服务端私有资产目录，
-并通过用户隔离的 manifest 和 asset API 提供给客户端。CS 模式获取插件设置时，服务端会过滤浏览器登录相关设置项；
+服务端默认支持下载任务；是否使用服务端下载由客户端在 CS 模式迁移和下载设置中决定，
+不需要在 `config.yaml` 中额外开启。任务会把图片保存到服务端私有资产目录，并通过用户隔离的 manifest 和 asset API 提供给客户端。
+如果用户选择不迁移下载，客户端仍可继续使用本地文件下载。CS 模式获取插件设置时，服务端会过滤浏览器登录相关设置项；
 下载任务的状态变化和插件自动更新结果会通过认证 WebSocket 推送，断线后客户端仍以 HTTP 返回的权威状态为准。
 插件 runtime 按用户和插件隔离，空闲超过 30 分钟会由后台任务回收；服务端下载对可重试的网络错误最多尝试三次，
 失败或取消会清理已写入的临时文件及 SQLite 资产记录，只有 manifest 成功保存的资产才会保留。缓存仍是进程内缓存，
@@ -177,10 +187,11 @@ CS 模式主要在获取插件 `getInfo` 和设置项时隐藏浏览器登录功
 
 插件目录、插件 bundle 下载、Brotli 解码、QuickJS `getInfo` 校验、文件落盘和 SQLite 登记全部在服务端完成，
 客户端不会在 CS 模式下执行本地插件安装逻辑。回环地址默认允许已登录用户安装本体真实插件目录中的条目；部署到非回环地址时，
-应显式关闭 `BREEZE_ALLOW_PLUGIN_INSTALL`，并使用管理令牌安装部署者允许的 bundle：
+应显式关闭 `allow_plugin_install`，并使用 `config.yaml` 中的管理令牌安装部署者允许的 bundle：
 
 ```powershell
-$headers = @{ 'X-Breeze-Admin-Token' = $env:BREEZE_ADMIN_TOKEN }
+$adminToken = '替换为 config.yaml 中的 admin_token'
+$headers = @{ 'X-Breeze-Admin-Token' = $adminToken }
 $body = @{
   version = '1.0.0'
   bundle = (Get-Content .\plugin.cjs -Raw)

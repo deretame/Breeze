@@ -314,10 +314,35 @@ function Download-RealPluginBundle($Manifest) {
     throw "按照 Flutter 本体的 CDN 顺序无法下载插件: $npmName@$version"
 }
 
+function ConvertTo-YamlSingleQuoted([string]$Value) {
+    return "'" + $Value.Replace("'", "''") + "'"
+}
+
 function Start-TestServer {
     New-Item -ItemType Directory -Path $TempRoot -Force | Out-Null
     Assert-True (Test-Path -LiteralPath $ServerBinary) "找不到服务端二进制，请先 cargo build --manifest-path cs_server/Cargo.toml"
     Assert-True (Test-Path -LiteralPath $WebRoot) '找不到 cs_web/dist，请先 pnpm --dir cs_web build'
+
+    $configPath = Join-Path $TempRoot 'config.yaml'
+    $config = @"
+# CS 服务端冒烟测试专用配置，所有路径均使用测试临时目录。
+host: '127.0.0.1'
+port: $Port
+data_dir: $(ConvertTo-YamlSingleQuoted (Join-Path $TempRoot 'data'))
+web_root: $(ConvertTo-YamlSingleQuoted $WebRoot)
+plugin_root: $(ConvertTo-YamlSingleQuoted (Join-Path $TempRoot 'plugins'))
+allow_plugin_install: true
+allow_registration: true
+session_ttl_days: 30
+admin_token: $(ConvertTo-YamlSingleQuoted $AdminToken)
+cors_origin: null
+http_proxy: null
+socks5_proxy: null
+disable_tls_verify: false
+allow_private_network: false
+log_filter: 'breeze_cs_server=warn'
+"@
+    Set-Content -LiteralPath $configPath -Value $config -Encoding utf8NoBOM
 
     $startInfo = [Diagnostics.ProcessStartInfo]::new()
     $startInfo.FileName = $ServerBinary
@@ -326,16 +351,8 @@ function Start-TestServer {
     $startInfo.CreateNoWindow = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
-    $startInfo.EnvironmentVariables['BREEZE_SERVER_HOST'] = '127.0.0.1'
-    $startInfo.EnvironmentVariables['BREEZE_SERVER_PORT'] = [string]$Port
-    $startInfo.EnvironmentVariables['BREEZE_DATA_DIR'] = (Join-Path $TempRoot 'data')
-    $startInfo.EnvironmentVariables['BREEZE_PLUGIN_ROOT'] = (Join-Path $TempRoot 'plugins')
-    $startInfo.EnvironmentVariables['BREEZE_WEB_ROOT'] = $WebRoot
-    $startInfo.EnvironmentVariables['BREEZE_ADMIN_TOKEN'] = $AdminToken
-    $startInfo.EnvironmentVariables['BREEZE_ALLOW_PLUGIN_INSTALL'] = 'true'
-    $startInfo.EnvironmentVariables['BREEZE_SERVER_DOWNLOAD'] = 'true'
-    $startInfo.EnvironmentVariables['BREEZE_ALLOW_REGISTRATION'] = 'true'
-    $startInfo.EnvironmentVariables['RUST_LOG'] = 'breeze_cs_server=warn'
+    $startInfo.ArgumentList.Add('--config')
+    $startInfo.ArgumentList.Add($configPath)
 
     $script:ServerProcess = [Diagnostics.Process]::Start($startInfo)
     $script:ServerStdout = $ServerProcess.StandardOutput.ReadToEndAsync()
@@ -409,7 +426,7 @@ try {
     Start-TestServer
     $health = Wait-ForServer
     Assert-True ($health.status -eq 'ok') 'health.status 应为 ok'
-    Assert-True ($health.server_download -eq $true) '测试服务端应声明开启服务端下载'
+    Assert-True ($health.server_download -eq $true) '服务端应默认声明支持服务端下载'
     Pass 'health 内容正确'
 
     $capabilitiesResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/capabilities"
@@ -490,6 +507,21 @@ module.exports = {
     $webSocketBaseUrl = $BaseUrl -replace '^http://', 'ws://' -replace '^https://', 'wss://'
     $TestWebSocket = Open-TestWebSocket "$webSocketBaseUrl/api/v1/ws?access_token=$([Uri]::EscapeDataString($tokenA))"
     Pass '用户 A WebSocket bridge 连通'
+    # 等待服务端 upgrade 回调完成并把连接登记到 WebSocketHub，避免测试把
+    # 首个事件发送在连接注册之前。
+    Start-Sleep -Milliseconds 250
+    $installEvent = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/install-bundle" -Headers $authA -Body (@{
+        file_name = 'cs-smoke.cjs'
+        bundle_base64 = $smokeBundleBase64
+        expected_plugin_id = 'cs-smoke'
+    } | ConvertTo-Json -Compress)
+    Assert-Status $installEvent 200 '手动安装插件后返回成功'
+    $pluginInstallEvent = Convert-JsonBody (Receive-TestWebSocketText $TestWebSocket)
+    Assert-True ($pluginInstallEvent.type -eq 'event') '手动安装插件应推送 event'
+    Assert-True ($pluginInstallEvent.topic -eq 'plugins.updated') '手动安装插件应推送 plugins.updated'
+    Assert-True ([string]$pluginInstallEvent.payload.plugin_id -eq 'cs-smoke') '插件安装事件应包含插件 ID'
+    Assert-True ([string]$pluginInstallEvent.payload.status -eq 'installed') '插件安装事件状态应为 installed'
+    Pass '手动安装插件后通过 WebSocket 推送全局状态'
     $localeBridgeResult = Invoke-PluginThroughTestWebSocket `
         -PluginId 'cs-smoke' `
         -Function 'getLocaleInfo' `
@@ -532,6 +564,10 @@ module.exports = {
     $installRealBody = @{ plugin_id = $realPlugin.Uuid } | ConvertTo-Json -Compress
     $installReal = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/catalog/install" -Headers $authA -Body $installRealBody
     Assert-Status $installReal 200 "服务端下载并安装真实插件 $($realPlugin.Name)"
+    $realInstallEvent = Convert-JsonBody (Receive-TestWebSocketText $TestWebSocket)
+    Assert-True ($realInstallEvent.topic -eq 'plugins.updated') '安装真实插件应推送 plugins.updated'
+    Assert-True ([string]$realInstallEvent.payload.plugin_id -eq $realPlugin.Uuid) '真实插件安装事件应包含插件 ID'
+    Assert-True ([string]$realInstallEvent.payload.status -eq 'installed') '真实插件安装事件状态应为 installed'
     $pluginsResponse = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/plugins" -Headers $authA
     Assert-Status $pluginsResponse 200 '读取已安装插件列表'
     $plugins = Convert-JsonBody $pluginsResponse.Body
@@ -555,10 +591,16 @@ module.exports = {
     Assert-True ($pluginsBReal.Count -eq 0) '用户 B 不应看到用户 A 的插件'
     $disableSmoke = Invoke-Api -Method PATCH -Url "$BaseUrl/api/v1/plugins/cs-smoke" -Headers $authA -Body (@{ enabled = $false; debug = $false; debug_url = '' } | ConvertTo-Json -Compress)
     Assert-Status $disableSmoke 200 '修改用户 A 插件启用状态'
+    $disableEvent = Convert-JsonBody (Receive-TestWebSocketText $TestWebSocket)
+    Assert-True ($disableEvent.topic -eq 'plugins.updated') '禁用插件应推送 plugins.updated'
+    Assert-True ([string]$disableEvent.payload.status -eq 'state_changed') '禁用插件事件状态应为 state_changed'
     $disabledInvoke = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authA -Body (@{ function = 'echo'; args = @('disabled') } | ConvertTo-Json -Compress)
     Assert-Status $disabledInvoke 409 '禁用插件后不能调用'
     $enableSmoke = Invoke-Api -Method PATCH -Url "$BaseUrl/api/v1/plugins/cs-smoke" -Headers $authA -Body (@{ enabled = $true } | ConvertTo-Json -Compress)
     Assert-Status $enableSmoke 200 '恢复用户 A 插件启用状态'
+    $enableEvent = Convert-JsonBody (Receive-TestWebSocketText $TestWebSocket)
+    Assert-True ($enableEvent.topic -eq 'plugins.updated') '启用插件应推送 plugins.updated'
+    Assert-True ([string]$enableEvent.payload.status -eq 'state_changed') '启用插件事件状态应为 state_changed'
     Pass '插件启用状态按用户保存并影响调用权限'
 
     $invalidInvoke = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/plugins/cs-smoke/invoke" -Headers $authA -Body (@{ function = ''; args = @{} } | ConvertTo-Json -Compress)
@@ -630,7 +672,17 @@ module.exports = {
     Assert-Status $settingsConflict 409 '账号设置 revision 冲突'
     Pass '账号设置持久化和冲突检测正确'
 
-    foreach ($kind in @('favorites', 'history', 'follows')) {
+    foreach ($kind in @(
+        'favorites',
+        'history',
+        'follows',
+        'folders',
+        'links',
+        'favorite-folders',
+        'favorite-folder-items',
+        'download-folders',
+        'download-folder-items'
+    )) {
         $libraryBody = @{ unique_key = "cs-smoke-$kind"; source = 'cs-smoke'; comic_id = 'comic-1'; payload = @{ kind = $kind; title = 'Smoke Comic' } } | ConvertTo-Json -Compress -Depth 5
         $upsert = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/$kind" -Headers $authA -Body $libraryBody
         Assert-Status $upsert 200 "写入 $kind"
@@ -643,7 +695,157 @@ module.exports = {
         $remove = Invoke-Api -Method DELETE -Url "$BaseUrl/api/v1/library/$kind/cs-smoke-$kind" -Headers $authA
         Assert-Status $remove 200 "删除 $kind"
     }
-    Pass '收藏/历史/关注三类 SQLite 业务数据均按用户隔离'
+    Pass '九类 SQLite 业务数据均按用户隔离'
+
+    # 这里使用与 Flutter ComicFolder/ComicLink 相同的 payload，覆盖本地
+    # ObjectBox 文件夹测试中最重要的服务端持久化语义，而不是只验证通用 CRUD。
+    $folderType = 'favorite'
+    $folderRootId = "cs-folder-root-$suffix"
+    $folderChildId = "cs-folder-child-$suffix"
+    $folderTargetId = "cs-folder-target-$suffix"
+    $folderCopyId = "cs-folder-copy-$suffix"
+    $folderCopyChildId = "cs-folder-copy-child-$suffix"
+    $comicKey = "cs-folder-comic-$suffix"
+
+    $rootPayload = @{
+        syncId = $folderRootId
+        parentSyncId = $null
+        uniqueKey = "|root|$folderType"
+        name = 'root'
+        typeData = $folderType
+        versionVectorJson = '{"device":1}'
+        createdAt = '100'
+        updatedAt = '100'
+        deletedAt = $null
+    }
+    $childPayload = @{
+        syncId = $folderChildId
+        parentSyncId = $folderRootId
+        uniqueKey = "$folderRootId|child|$folderType"
+        name = 'child'
+        typeData = $folderType
+        versionVectorJson = '{"device":1}'
+        createdAt = '101'
+        updatedAt = '101'
+        deletedAt = $null
+    }
+    $targetPayload = @{
+        syncId = $folderTargetId
+        parentSyncId = $null
+        uniqueKey = "|target|$folderType"
+        name = 'target'
+        typeData = $folderType
+        versionVectorJson = '{"device":1}'
+        createdAt = '102'
+        updatedAt = '102'
+        deletedAt = $null
+    }
+
+    foreach ($folderPayload in @($rootPayload, $childPayload, $targetPayload)) {
+        $folderId = [string]$folderPayload.syncId
+        $folderBody = @{ unique_key = $folderId; payload = $folderPayload } | ConvertTo-Json -Compress -Depth 10
+        $folderWrite = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/folders" -Headers $authA -Body $folderBody
+        Assert-Status $folderWrite 200 "写入文件夹 $($folderPayload.name)"
+    }
+    $folderList = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/folders" -Headers $authA
+    Assert-Status $folderList 200 '读取文件夹树'
+    $folderItems = @((Convert-JsonBody $folderList.Body).items)
+    Assert-True (($folderItems | Where-Object unique_key -eq $folderRootId).payload.name -eq 'root') '根文件夹名称应正确'
+    Assert-True (($folderItems | Where-Object unique_key -eq $folderChildId).payload.parentSyncId -eq $folderRootId) '嵌套文件夹 parentSyncId 应正确'
+    Pass 'SQLite 文件夹根节点和嵌套节点持久化正确'
+
+    $rootPayload.name = 'renamed'
+    $rootPayload.uniqueKey = "|renamed|$folderType"
+    $rootPayload.updatedAt = '103'
+    $renameBody = @{ unique_key = $folderRootId; payload = $rootPayload } | ConvertTo-Json -Compress -Depth 10
+    $renameFolder = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/folders" -Headers $authA -Body $renameBody
+    Assert-Status $renameFolder 200 '重命名文件夹'
+
+    $rootPayload.parentSyncId = $folderTargetId
+    $rootPayload.uniqueKey = "$folderTargetId|renamed|$folderType"
+    $rootPayload.updatedAt = '104'
+    $moveBody = @{ unique_key = $folderRootId; payload = $rootPayload } | ConvertTo-Json -Compress -Depth 10
+    $moveFolder = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/folders" -Headers $authA -Body $moveBody
+    Assert-Status $moveFolder 200 '移动文件夹'
+    $movedList = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/folders" -Headers $authA
+    Assert-Status $movedList 200 '读取移动后的文件夹树'
+    $movedRoot = @((Convert-JsonBody $movedList.Body).items | Where-Object unique_key -eq $folderRootId)[0]
+    Assert-True ($movedRoot.payload.parentSyncId -eq $folderTargetId) '移动后的文件夹父节点应正确'
+    Assert-True ($movedRoot.payload.uniqueKey -eq "$folderTargetId|renamed|$folderType") '移动后的文件夹路径键应正确'
+    Pass 'SQLite 文件夹重命名和移动持久化正确'
+
+    $copyPayload = @{
+        syncId = $folderCopyId
+        parentSyncId = $null
+        uniqueKey = "|renamed|$folderType"
+        name = 'renamed'
+        typeData = $folderType
+        versionVectorJson = '{"device":1}'
+        createdAt = '105'
+        updatedAt = '105'
+        deletedAt = $null
+    }
+    $copyChildPayload = @{
+        syncId = $folderCopyChildId
+        parentSyncId = $folderCopyId
+        uniqueKey = "$folderCopyId|child|$folderType"
+        name = 'child'
+        typeData = $folderType
+        versionVectorJson = '{"device":1}'
+        createdAt = '106'
+        updatedAt = '106'
+        deletedAt = $null
+    }
+    foreach ($folderPayload in @($copyPayload, $copyChildPayload)) {
+        $folderBody = @{ unique_key = [string]$folderPayload.syncId; payload = $folderPayload } | ConvertTo-Json -Compress -Depth 10
+        $folderWrite = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/folders" -Headers $authA -Body $folderBody
+        Assert-Status $folderWrite 200 "复制文件夹 $($folderPayload.name)"
+    }
+    $linkPayload = @{
+        uniqueKey = "$comicKey|$folderCopyChildId|$folderType"
+        comicUniqueKey = $comicKey
+        folderSyncId = $folderCopyChildId
+        typeData = $folderType
+        versionVectorJson = '{"device":1}'
+        createdAt = '107'
+        updatedAt = '107'
+        deletedAt = $null
+    }
+    $linkBody = @{ unique_key = [string]$linkPayload.uniqueKey; payload = $linkPayload } | ConvertTo-Json -Compress -Depth 10
+    $linkWrite = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/links" -Headers $authA -Body $linkBody
+    Assert-Status $linkWrite 200 '写入复制文件夹中的漫画链接'
+    $linkList = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/links" -Headers $authA
+    Assert-Status $linkList 200 '读取文件夹漫画链接'
+    $linkItems = @((Convert-JsonBody $linkList.Body).items)
+    Assert-True (($linkItems | Where-Object unique_key -eq $linkPayload.uniqueKey).payload.folderSyncId -eq $folderCopyChildId) '漫画链接应指向复制后的子文件夹'
+    Pass 'SQLite 文件夹复制后的子树和漫画链接持久化正确'
+
+    # 服务端接收的是客户端生成的墓碑；递归删除由客户端遍历子树后逐条写入。
+    foreach ($folderPayload in @($copyPayload, $copyChildPayload)) {
+        $folderPayload.deletedAt = '108'
+        $folderPayload.updatedAt = '108'
+        $folderBody = @{ unique_key = [string]$folderPayload.syncId; payload = $folderPayload } | ConvertTo-Json -Compress -Depth 10
+        $folderDelete = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/folders" -Headers $authA -Body $folderBody
+        Assert-Status $folderDelete 200 "软删除文件夹 $($folderPayload.name)"
+    }
+    $linkPayload.deletedAt = '108'
+    $linkPayload.updatedAt = '108'
+    $linkDeleteBody = @{ unique_key = [string]$linkPayload.uniqueKey; payload = $linkPayload } | ConvertTo-Json -Compress -Depth 10
+    $linkDelete = Invoke-Api -Method POST -Url "$BaseUrl/api/v1/library/links" -Headers $authA -Body $linkDeleteBody
+    Assert-Status $linkDelete 200 '软删除文件夹中的漫画链接'
+    $activeFolders = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/folders" -Headers $authA
+    Assert-Status $activeFolders 200 '读取软删除后的活动文件夹'
+    Assert-True (@((Convert-JsonBody $activeFolders.Body).items | Where-Object { $_.unique_key -in @($folderCopyId, $folderCopyChildId) }).Count -eq 0) '软删除文件夹不应出现在活动列表'
+    $allFolders = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/folders?include_deleted=true" -Headers $authA
+    Assert-Status $allFolders 200 '读取包含墓碑的文件夹'
+    Assert-True (@((Convert-JsonBody $allFolders.Body).items | Where-Object { $_.unique_key -in @($folderCopyId, $folderCopyChildId) -and $null -ne $_.deleted_at }).Count -eq 2) '软删除文件夹墓碑应可同步读取'
+    $allLinks = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/links?include_deleted=true" -Headers $authA
+    Assert-Status $allLinks 200 '读取包含墓碑的漫画链接'
+    Assert-True (@((Convert-JsonBody $allLinks.Body).items | Where-Object { $_.unique_key -eq $linkPayload.uniqueKey -and $null -ne $_.deleted_at }).Count -eq 1) '软删除漫画链接墓碑应可同步读取'
+    $foldersB = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/library/folders?include_deleted=true" -Headers $authB
+    Assert-Status $foldersB 200 '读取用户 B 文件夹'
+    Assert-True (@((Convert-JsonBody $foldersB.Body).items).Count -eq 0) '用户 B 不应看到用户 A 文件夹及墓碑'
+    Pass 'SQLite 文件夹递归墓碑、链接墓碑和用户隔离正确'
 
     $migrationExport = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/migrations/export?include_downloads=false" -Headers $authA
     Assert-Status $migrationExport 200 '导出用户迁移快照（不含下载）'
@@ -706,6 +908,13 @@ module.exports = {
     Assert-Status $finishedCancel 200 '已完成任务取消请求幂等'
     Assert-True ((Convert-JsonBody $finishedCancel.Body).status -eq 'completed') '已完成任务取消后状态不应改变'
     Pass '下载任务取消边界正确'
+    $deleteDownload = Invoke-Api -Method DELETE -Url "$BaseUrl/api/v1/downloads/comics/cs-smoke:comic-1" -Headers $authA
+    Assert-Status $deleteDownload 204 '删除服务端下载及其资源'
+    $deletedManifest = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/downloads/comics/cs-smoke:comic-1/manifest" -Headers $authA
+    Assert-Status $deletedManifest 404 '删除后 manifest 不可读取'
+    $deletedAsset = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/downloads/assets/$assetId" -Headers $authA
+    Assert-Status $deletedAsset 404 '删除后图片资源不可读取'
+    Pass '服务端下载删除会清理 manifest、任务和资源'
 
     $tasksB = Invoke-Api -Method GET -Url "$BaseUrl/api/v1/downloads/tasks" -Headers $authB
     Assert-Status $tasksB 200 '读取用户 B 下载任务列表'

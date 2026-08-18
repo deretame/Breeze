@@ -59,7 +59,7 @@ pub async fn plugin_detail(
     headers: HeaderMap,
     AxumPath(plugin_id): AxumPath<String>,
 ) -> Result<Json<PluginDetailResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     Ok(Json(
         plugin_detail_for_user(&state, &user.id, &plugin_id).await?,
     ))
@@ -69,8 +69,12 @@ pub async fn list(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Json<PluginListResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
-    let plugins = state.database.list_user_plugins(&user.id)?;
+    let user = current_user(&state, &headers).await?;
+    let user_id = user.id.clone();
+    let plugins = state
+        .database
+        .run_blocking(move |database| database.list_user_plugins(&user_id))
+        .await?;
     let mut items = Vec::with_capacity(plugins.len());
     for plugin in plugins {
         items.push(plugin_detail_for_user(&state, &user.id, &plugin.plugin_id).await?);
@@ -84,7 +88,7 @@ pub async fn invoke(
     AxumPath(plugin_id): AxumPath<String>,
     Json(request): Json<InvokeRequest>,
 ) -> Result<Json<Value>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     validate_invoke_request(&request)?;
     let value = invoke_json_for_user_with_task_group(
         &state,
@@ -104,7 +108,7 @@ pub async fn invoke_bytes(
     AxumPath(plugin_id): AxumPath<String>,
     Json(request): Json<InvokeRequest>,
 ) -> Result<Response, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     validate_invoke_request(&request)?;
     let bytes = invoke_bytes_for_user_with_task_group(
         &state,
@@ -128,9 +132,9 @@ pub async fn cancel_task_group(
     AxumPath(plugin_id): AxumPath<String>,
     Json(request): Json<CancelTaskGroupRequest>,
 ) -> Result<Json<Value>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     validate_task_group_key(&request.task_group_key)?;
-    let _ = plugin_for_user(&state, &user.id, &plugin_id)?;
+    let _ = plugin_for_user(&state, &user.id, &plugin_id).await?;
     state
         .plugin_runtime
         .cancel_task_group(&user.id, &request.task_group_key);
@@ -187,7 +191,7 @@ async fn semantic_invoke(
     function: &str,
     request: SemanticRequest,
 ) -> Result<Json<Value>, ApiError> {
-    let user = current_user(state, headers)?;
+    let user = current_user(state, headers).await?;
     let args = build_plugin_args(request)?;
     Ok(Json(
         invoke_json_for_user(state, &user.id, plugin_id, function, &args).await?,
@@ -235,7 +239,7 @@ pub(crate) async fn invoke_json_for_user_with_task_group(
     args: &Value,
     task_group_key: Option<&str>,
 ) -> Result<Value, ApiError> {
-    let (plugin, user_plugin) = plugin_for_user(state, user_id, plugin_id)?;
+    let (plugin, user_plugin) = plugin_for_user(state, user_id, plugin_id).await?;
     if !plugin.enabled || !user_plugin.enabled {
         return Err(ApiError::Conflict("插件未启用".to_owned()));
     }
@@ -269,7 +273,7 @@ pub(crate) async fn invoke_bytes_for_user_with_task_group(
     args: &Value,
     task_group_key: Option<&str>,
 ) -> Result<Vec<u8>, ApiError> {
-    let (plugin, user_plugin) = plugin_for_user(state, user_id, plugin_id)?;
+    let (plugin, user_plugin) = plugin_for_user(state, user_id, plugin_id).await?;
     if !plugin.enabled || !user_plugin.enabled {
         return Err(ApiError::Conflict("插件未启用".to_owned()));
     }
@@ -303,7 +307,7 @@ pub(crate) async fn plugin_detail_for_user(
     user_id: &str,
     plugin_id: &str,
 ) -> Result<PluginDetailResponse, ApiError> {
-    let (plugin, user_plugin) = plugin_for_user(state, user_id, plugin_id)?;
+    let (plugin, user_plugin) = plugin_for_user(state, user_id, plugin_id).await?;
     let info = load_plugin_info(state, user_id, &plugin, &user_plugin).await?;
     let name = info.get("name").and_then(Value::as_str).map(str::to_owned);
     Ok(PluginDetailResponse {
@@ -319,20 +323,25 @@ pub(crate) async fn plugin_detail_for_user(
     })
 }
 
-fn plugin_for_user(
+async fn plugin_for_user(
     state: &AppState,
     user_id: &str,
     plugin_id: &str,
 ) -> Result<(crate::db::PluginRecord, crate::db::UserPluginRecord), ApiError> {
-    let plugin = state
+    let user_id = user_id.to_owned();
+    let plugin_id = plugin_id.to_owned();
+    let (plugin, user_plugin) = state
         .database
-        .find_plugin(plugin_id)?
-        .ok_or(ApiError::NotFound)?;
-    let user_plugin = state
-        .database
-        .find_user_plugin(user_id, plugin_id)?
-        .ok_or(ApiError::NotFound)?;
-    Ok((plugin, user_plugin))
+        .run_blocking(move |database| {
+            let plugin = database.find_plugin(&plugin_id)?;
+            let user_plugin = database.find_user_plugin(&user_id, &plugin_id)?;
+            Ok((plugin, user_plugin))
+        })
+        .await?;
+    Ok((
+        plugin.ok_or(ApiError::NotFound)?,
+        user_plugin.ok_or(ApiError::NotFound)?,
+    ))
 }
 
 async fn load_plugin_info(

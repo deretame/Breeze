@@ -1,9 +1,12 @@
 // 全局设置
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
@@ -95,6 +98,10 @@ extension ReadSettingStateBackgroundColor on ReadSettingState {
 }
 
 GlobalSettingState get globalSetting {
+  final remoteState = GlobalSettingCubit.currentState;
+  if (CsRuntimeContext.I.isCsMode && remoteState != null) {
+    return remoteState;
+  }
   return objectbox.userSettingBox.get(1)!.globalSetting;
 }
 
@@ -304,13 +311,54 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   // 构造函数，传入由 freezed 生成的默认 state
   GlobalSettingCubit() : super(const GlobalSettingState());
 
+  static GlobalSettingState? currentState;
+  Map<String, dynamic> _remoteAccountSettings = const {};
+
   // 用于获取 freezed 中定义的默认值的便捷实例
   static const _defaults = GlobalSettingState();
   // colorThemeList[6].color 是动态的，不能在 const 中，单独处理
   late final Color _defaultSeedColor = colorThemeList[6].color;
 
   Future<void> initBox() async {
-    emit(objectbox.userSettingBox.get(1)!.globalSetting);
+    _emitState(objectbox.userSettingBox.get(1)!.globalSetting);
+  }
+
+  /// CS 模式下从账号设置加载可同步的设置。
+  ///
+  /// 设备路径、代理、应用锁、窗口位置和本地同步服务仍由设备保留，
+  /// 不会被服务端值覆盖。
+  Future<void> loadFromRemote() async {
+    final client = CsRuntimeContext.I.client;
+    if (!CsRuntimeContext.I.isCsMode || client == null) return;
+    final response = await client.accountSettings();
+    final rawSettings = response['settings'];
+    final settings = rawSettings is Map
+        ? Map<String, dynamic>.from(rawSettings)
+        : const <String, dynamic>{};
+    _remoteAccountSettings = settings;
+    final rawGlobal = settings['global'];
+    final global = rawGlobal is Map
+        ? Map<String, dynamic>.from(rawGlobal)
+        : settings;
+    if (global.isEmpty) return;
+    final merged = GlobalSettingState.fromJson({...state.toJson(), ...global})
+        .copyWith(
+          syncSetting: state.syncSetting,
+          customExportPath: state.customExportPath,
+          appLockSetting: state.appLockSetting,
+          cacheSetting: state.cacheSetting,
+          enableMemoryDebug: state.enableMemoryDebug,
+          logAddress: state.logAddress,
+          proxySetting: state.proxySetting,
+          windowWidth: state.windowWidth,
+          windowHeight: state.windowHeight,
+          windowX: state.windowX,
+          windowY: state.windowY,
+        );
+    _emitState(merged);
+    if (response['revision'] case final revision as num) {
+      CsRuntimeContext.I.updateServerRevision(revision.toInt());
+    }
   }
 
   GlobalSettingState get defaults =>
@@ -419,14 +467,55 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
         settingsSyncTime: nowMs,
       ),
     );
-    _updateDataBase(persistedState);
-    emit(persistedState);
+    _emitState(persistedState);
+    if (CsRuntimeContext.I.isCsMode && CsRuntimeContext.I.client != null) {
+      unawaited(_persistRemote(persistedState));
+    } else {
+      _updateDataBase(persistedState);
+    }
+  }
+
+  Future<void> _persistRemote(GlobalSettingState value) async {
+    final client = CsRuntimeContext.I.client;
+    if (client == null) return;
+    try {
+      final response = await client.updateAccountSettings(
+        settings: {..._remoteAccountSettings, 'global': _remoteGlobal(value)},
+      );
+      final rawSettings = response['settings'];
+      if (rawSettings is Map) {
+        _remoteAccountSettings = Map<String, dynamic>.from(rawSettings);
+      }
+      if (response['revision'] case final revision as num) {
+        CsRuntimeContext.I.updateServerRevision(revision.toInt());
+      }
+    } catch (error, stackTrace) {
+      logger.w('CS 账号设置写入服务端失败', error: error, stackTrace: stackTrace);
+    }
+  }
+
+  Map<String, dynamic> _remoteGlobal(GlobalSettingState value) {
+    final global = Map<String, dynamic>.from(value.toJson())
+      ..remove('customExportPath')
+      ..remove('appLockSetting')
+      ..remove('syncSetting')
+      ..remove('proxySetting')
+      ..remove('windowWidth')
+      ..remove('windowHeight')
+      ..remove('windowX')
+      ..remove('windowY');
+    return global;
   }
 
   void applySyncedState(GlobalSettingState value) {
     final normalized = _preserveCompatibleVersion(value, state);
     _updateDataBase(normalized);
-    emit(normalized);
+    _emitState(normalized);
+  }
+
+  void _emitState(GlobalSettingState value) {
+    currentState = value;
+    emit(value);
   }
 
   GlobalSettingState _preserveCompatibleVersion(

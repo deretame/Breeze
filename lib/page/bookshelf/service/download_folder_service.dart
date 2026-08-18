@@ -1,4 +1,6 @@
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
+import 'package:zephyr/cs/data/cs_remote_database.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -19,6 +21,12 @@ class DownloadFolderView {
 }
 
 class DownloadFolderService {
+  static bool get _useRemote =>
+      CsRuntimeContext.I.isServerDownload &&
+      CsRuntimeContext.I.database != null;
+
+  static CsRemoteDatabase get _remote => CsRuntimeContext.I.database!;
+
   static String sourceToken(String folderKey) =>
       '$_kDownloadFolderSourcePrefix$folderKey';
 
@@ -39,6 +47,24 @@ class DownloadFolderService {
   }
 
   static List<DownloadFolderView> listFolders() {
+    if (_useRemote) {
+      final folders = <DownloadFolderView>[
+        DownloadFolderView(
+          key: kDownloadFolderAllKey,
+          name: t.common.all,
+          isAll: true,
+        ),
+      ];
+      final remoteFolders = _remote.listDownloadFolders()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      folders.addAll(
+        remoteFolders.map(
+          (folder) =>
+              DownloadFolderView(key: folder.folderKey, name: folder.name),
+        ),
+      );
+      return folders;
+    }
     final query = objectbox.downloadFolderBox
         .query(DownloadFolder_.deleted.equals(false))
         .order(DownloadFolder_.createdAt)
@@ -66,6 +92,25 @@ class DownloadFolderService {
     final safeName = name.trim();
     if (safeName.isEmpty) {
       throw ArgumentError(t.bookshelf.downloadFolderNameEmpty);
+    }
+    if (_useRemote) {
+      if (_remote.listDownloadFolders().any(
+        (folder) => folder.name == safeName,
+      )) {
+        throw StateError(t.bookshelf.downloadFolderNameExists);
+      }
+      final now = DateTime.now().toUtc();
+      final folderKey = 'd_${now.millisecondsSinceEpoch}';
+      _remote.saveDownloadFolder(
+        DownloadFolder(
+          folderKey: folderKey,
+          name: safeName,
+          createdAt: now,
+          updatedAt: now,
+          deleted: false,
+        ),
+      );
+      return DownloadFolderView(key: folderKey, name: safeName);
     }
     final existed = objectbox.downloadFolderBox
         .query(
@@ -96,6 +141,25 @@ class DownloadFolderService {
   static void deleteFolder(String folderKey) {
     final safeKey = folderKey.trim();
     if (safeKey.isEmpty || safeKey == kDownloadFolderAllKey) {
+      return;
+    }
+    if (_useRemote) {
+      final now = DateTime.now().toUtc();
+      final folder = _remote.findDownloadFolder(safeKey);
+      if (folder != null && !folder.deleted) {
+        folder
+          ..deleted = true
+          ..updatedAt = now;
+        _remote.saveDownloadFolder(folder);
+      }
+      for (final item in _remote.listDownloadFolderItems().where(
+        (item) => item.folderKey == safeKey,
+      )) {
+        item
+          ..deleted = true
+          ..updatedAt = now;
+        _remote.saveDownloadFolderItem(item);
+      }
       return;
     }
     final now = DateTime.now().toUtc();
@@ -137,6 +201,20 @@ class DownloadFolderService {
         safeName.isEmpty) {
       return;
     }
+    if (_useRemote) {
+      if (_remote.listDownloadFolders().any(
+        (folder) => folder.name == safeName && folder.folderKey != safeKey,
+      )) {
+        throw StateError(t.bookshelf.downloadFolderNameExists);
+      }
+      final folder = _remote.findDownloadFolder(safeKey);
+      if (folder == null || folder.deleted) return;
+      folder
+        ..name = safeName
+        ..updatedAt = DateTime.now().toUtc();
+      _remote.saveDownloadFolder(folder);
+      return;
+    }
     final duplicated = objectbox.downloadFolderBox
         .query(
           DownloadFolder_.name
@@ -168,6 +246,13 @@ class DownloadFolderService {
     if (folderKey == kDownloadFolderAllKey) {
       return const <String>{};
     }
+    if (_useRemote) {
+      return _remote
+          .listDownloadFolderItems()
+          .where((item) => item.folderKey == folderKey)
+          .map((item) => item.downloadUniqueKey)
+          .toSet();
+    }
     final query = objectbox.downloadFolderItemBox
         .query(
           DownloadFolderItem_.folderKey
@@ -187,6 +272,13 @@ class DownloadFolderService {
     if (safeKey.isEmpty) {
       return const <String>{};
     }
+    if (_useRemote) {
+      return _remote
+          .listDownloadFolderItems()
+          .where((item) => item.downloadUniqueKey == safeKey)
+          .map((item) => item.folderKey)
+          .toSet();
+    }
     final query = objectbox.downloadFolderItemBox
         .query(
           DownloadFolderItem_.downloadUniqueKey
@@ -203,6 +295,34 @@ class DownloadFolderService {
 
   static void addMembers(String folderKey, Iterable<String> uniqueKeys) {
     if (folderKey == kDownloadFolderAllKey) {
+      return;
+    }
+    if (_useRemote) {
+      final now = DateTime.now().toUtc();
+      for (final downloadUniqueKey
+          in uniqueKeys.map((e) => e.trim()).where((e) => e.isNotEmpty)) {
+        final uniqueKey = _itemUniqueKey(folderKey, downloadUniqueKey);
+        final existing = _remote.findDownloadFolderItem(uniqueKey);
+        if (existing != null) {
+          if (existing.deleted) {
+            existing
+              ..deleted = false
+              ..updatedAt = now;
+            _remote.saveDownloadFolderItem(existing);
+          }
+          continue;
+        }
+        _remote.saveDownloadFolderItem(
+          DownloadFolderItem(
+            uniqueKey: uniqueKey,
+            folderKey: folderKey,
+            downloadUniqueKey: downloadUniqueKey,
+            createdAt: now,
+            updatedAt: now,
+            deleted: false,
+          ),
+        );
+      }
       return;
     }
     final now = DateTime.now().toUtc();
@@ -240,6 +360,21 @@ class DownloadFolderService {
     if (folderKey == kDownloadFolderAllKey) {
       return;
     }
+    if (_useRemote) {
+      final now = DateTime.now().toUtc();
+      for (final downloadUniqueKey
+          in uniqueKeys.map((e) => e.trim()).where((e) => e.isNotEmpty)) {
+        final existing = _remote.findDownloadFolderItem(
+          _itemUniqueKey(folderKey, downloadUniqueKey),
+        );
+        if (existing == null || existing.deleted) continue;
+        existing
+          ..deleted = true
+          ..updatedAt = now;
+        _remote.saveDownloadFolderItem(existing);
+      }
+      return;
+    }
     final now = DateTime.now().toUtc();
     final normalized = uniqueKeys
         .map((e) => e.trim())
@@ -262,6 +397,18 @@ class DownloadFolderService {
   static void removeMemberFromAllFolders(String uniqueKey) {
     final safeKey = uniqueKey.trim();
     if (safeKey.isEmpty) {
+      return;
+    }
+    if (_useRemote) {
+      final now = DateTime.now().toUtc();
+      for (final item in _remote.listDownloadFolderItems().where(
+        (item) => item.downloadUniqueKey == safeKey,
+      )) {
+        item
+          ..deleted = true
+          ..updatedAt = now;
+        _remote.saveDownloadFolderItem(item);
+      }
       return;
     }
     final now = DateTime.now().toUtc();

@@ -7,6 +7,7 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/config/router/router.gr.dart';
@@ -448,6 +449,10 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   Future<void> _deleteDownload() async {
     final uniqueKey = '${info.from.trim()}:${info.id}';
+    if (CsRuntimeContext.I.isServerDownload) {
+      await CsRuntimeContext.I.database?.removeServerDownload(uniqueKey);
+      return;
+    }
     final temp = objectbox.unifiedDownloadBox
         .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
         .build()

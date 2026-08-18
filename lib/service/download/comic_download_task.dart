@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
@@ -25,6 +24,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/service/download/image_download.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/get_path.dart';
 
 Future<void> unifiedDownloadTask(
@@ -389,8 +389,12 @@ Future<void> _saveUnifiedDownload({
           .copyWith(extern: {...detail.extern, 'version': mainVersion})
           .toJson(),
     ),
-    storageRoot:
-        '${await getDownloadPath()}${Platform.pathSeparator}$from${Platform.pathSeparator}original${Platform.pathSeparator}${task.comicId}',
+    storageRoot: p.join(
+      await getDownloadPath(),
+      from,
+      'original',
+      encodePath(path: task.comicId),
+    ),
     createdAt: now,
     updatedAt: now,
     downloadedAt: now,

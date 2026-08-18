@@ -11,10 +11,10 @@ use uuid::Uuid;
 
 use crate::{app_state::AppState, db::MigrationImportCounts};
 
-use super::{admin, auth::current_user, error::ApiError};
+use super::{admin, auth::current_user, error::ApiError, plugin_store};
 
 const MAX_SNAPSHOT_BYTES: usize = 64 * 1024 * 1024;
-const MAX_ASSET_BYTES: usize = 64 * 1024 * 1024;
+pub(crate) const MAX_ASSET_BYTES: usize = 64 * 1024 * 1024;
 
 #[derive(Deserialize)]
 pub struct ImportRequest {
@@ -29,8 +29,12 @@ pub struct ImportResponse {
 
 #[derive(Deserialize)]
 pub struct AssetQuery {
+    pub plugin_id: Option<String>,
+    pub comic_id: Option<String>,
     pub comic_key: String,
     pub path: String,
+    pub kind: Option<String>,
+    pub chapter_id: Option<String>,
     pub media_type: Option<String>,
 }
 
@@ -56,12 +60,20 @@ pub async fn export(
     headers: HeaderMap,
     Query(query): Query<ExportQuery>,
 ) -> Result<Json<Value>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
+    let user_id = user.id.clone();
     let mut data = state
         .database
-        .export_migration_data(&user.id, query.include_downloads)?;
+        .run_blocking(move |database| {
+            database.export_migration_data(&user_id, query.include_downloads)
+        })
+        .await?;
 
-    let plugins = state.database.list_user_plugins(&user.id)?;
+    let user_id = user.id.clone();
+    let plugins = state
+        .database
+        .run_blocking(move |database| database.list_user_plugins(&user_id))
+        .await?;
     let plugin_root = std::fs::canonicalize(&state.config.plugin_root)?;
     let mut plugin_values = Vec::with_capacity(plugins.len());
     for plugin in plugins {
@@ -112,7 +124,7 @@ pub async fn import(
     headers: HeaderMap,
     Json(request): Json<ImportRequest>,
 ) -> Result<Json<ImportResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     let snapshot_size = serde_json::to_vec(&request.snapshot)?.len();
     if snapshot_size > MAX_SNAPSHOT_BYTES {
         return Err(ApiError::BadRequest("迁移快照不能超过 64 MiB".to_owned()));
@@ -126,7 +138,11 @@ pub async fn import(
         return Err(ApiError::BadRequest("不支持的迁移快照版本".to_owned()));
     }
 
-    let data = request.snapshot.get("data").unwrap_or(&request.snapshot);
+    let data = request
+        .snapshot
+        .get("data")
+        .cloned()
+        .unwrap_or_else(|| request.snapshot.clone());
     let include_downloads = request
         .snapshot
         .get("include_downloads")
@@ -150,20 +166,40 @@ pub async fn import(
             let enabled = bool_field(plugin, "isEnabled").unwrap_or(true);
             let response =
                 admin::install_bundle(&state, &plugin_id, &version, &bundle, enabled).await?;
-            state.database.upsert_user_plugin(
-                &user.id,
+            let user_id = user.id.clone();
+            let plugin_id = response.plugin_id.clone();
+            let debug = bool_field(plugin, "debug").unwrap_or(false);
+            let debug_url = string_field(plugin, "debugUrl");
+            let updated_at = super::auth::now_millis();
+            state
+                .database
+                .run_blocking(move |database| {
+                    database.upsert_user_plugin(
+                        &user_id,
+                        &plugin_id,
+                        enabled,
+                        debug,
+                        debug_url.as_deref(),
+                        &updated_at,
+                    )
+                })
+                .await?;
+            plugin_store::notify_plugin_updated(
+                &state,
                 &response.plugin_id,
-                enabled,
-                bool_field(plugin, "debug").unwrap_or(false),
-                string_field(plugin, "debugUrl").as_deref(),
-                &super::auth::now_millis(),
-            )?;
+                &response.version,
+                "installed",
+            );
         }
     }
 
+    let user_id = user.id.clone();
     let counts = state
         .database
-        .import_migration_snapshot(&user.id, data, include_downloads)?;
+        .run_blocking(move |database| {
+            database.import_migration_snapshot(&user_id, &data, include_downloads)
+        })
+        .await?;
     Ok(Json(ImportResponse {
         imported: true,
         counts,
@@ -176,7 +212,7 @@ pub async fn upload_asset(
     Query(query): Query<AssetQuery>,
     body: Bytes,
 ) -> Result<Json<AssetResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     validate_asset_query(&query)?;
     if body.is_empty() || body.len() > MAX_ASSET_BYTES {
         return Err(ApiError::BadRequest(
@@ -199,25 +235,47 @@ pub async fn upload_asset(
     let mut hasher = Sha256::new();
     hasher.update(&body);
     let content_hash = format!("{:x}", hasher.finalize());
-    state.database.create_asset(
-        &user.id,
-        &asset_id,
-        &storage_key,
-        query
-            .media_type
-            .as_deref()
-            .unwrap_or("application/octet-stream"),
-        body.len() as i64,
-        &content_hash,
-        &super::auth::now_millis(),
-    )?;
-    state.database.append_migration_asset_page(
-        &user.id,
-        &query.comic_key,
-        &query.path,
-        &asset_id,
-        &super::auth::now_millis(),
-    )?;
+    let kind = query.kind.clone().unwrap_or_else(|| "page".to_owned());
+    let body_size = body.len() as i64;
+    let user_id = user.id.clone();
+    let plugin_id = query.plugin_id.clone().unwrap_or_default();
+    let comic_id = query.comic_id.clone().unwrap_or_default();
+    let comic_key = query.comic_key.clone();
+    let relative_path = query.path.clone();
+    let chapter_id = query.chapter_id.clone();
+    let media_type = query
+        .media_type
+        .clone()
+        .unwrap_or_else(|| "application/octet-stream".to_owned());
+    let updated_at = super::auth::now_millis();
+    let asset_id_for_database = asset_id.clone();
+    let storage_key_for_database = storage_key.clone();
+    let content_hash_for_database = content_hash.clone();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.create_asset(
+                &user_id,
+                &asset_id_for_database,
+                &storage_key_for_database,
+                &media_type,
+                body_size,
+                &content_hash_for_database,
+                &updated_at,
+            )?;
+            database.append_migration_asset(
+                &user_id,
+                &plugin_id,
+                &comic_id,
+                &comic_key,
+                &relative_path,
+                &kind,
+                chapter_id.as_deref(),
+                &asset_id_for_database,
+                &updated_at,
+            )
+        })
+        .await?;
 
     Ok(Json(AssetResponse {
         asset_id,
@@ -227,6 +285,16 @@ pub async fn upload_asset(
 }
 
 fn validate_asset_query(query: &AssetQuery) -> Result<(), ApiError> {
+    if let Some(plugin_id) = query.plugin_id.as_deref()
+        && (plugin_id.trim().is_empty() || plugin_id.len() > 512)
+    {
+        return Err(ApiError::BadRequest("插件 ID 不合法".to_owned()));
+    }
+    if let Some(comic_id) = query.comic_id.as_deref()
+        && (comic_id.trim().is_empty() || comic_id.len() > 1024)
+    {
+        return Err(ApiError::BadRequest("漫画 ID 不合法".to_owned()));
+    }
     if query.comic_key.trim().is_empty() || query.comic_key.len() > 1024 {
         return Err(ApiError::BadRequest("漫画唯一键不合法".to_owned()));
     }
@@ -240,6 +308,15 @@ fn validate_asset_query(query: &AssetQuery) -> Result<(), ApiError> {
             .any(|component| matches!(component, std::path::Component::ParentDir))
     {
         return Err(ApiError::BadRequest("迁移文件路径不能越界".to_owned()));
+    }
+    let kind = query.kind.as_deref().unwrap_or("page");
+    if !matches!(kind, "cover" | "page") {
+        return Err(ApiError::BadRequest("迁移文件类型不合法".to_owned()));
+    }
+    if let Some(chapter_id) = query.chapter_id.as_deref()
+        && (chapter_id.trim().is_empty() || chapter_id.len() > 1024)
+    {
+        return Err(ApiError::BadRequest("章节 ID 不合法".to_owned()));
     }
     if let Some(media_type) = query.media_type.as_deref()
         && (media_type.is_empty() || media_type.len() > 128)

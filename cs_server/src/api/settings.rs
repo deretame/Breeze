@@ -23,8 +23,12 @@ pub async fn get_account_settings(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Json<AccountSettingsResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
-    let record = state.database.account_settings(&user.id)?;
+    let user = current_user(&state, &headers).await?;
+    let user_id = user.id.clone();
+    let record = state
+        .database
+        .run_blocking(move |database| database.account_settings(&user_id))
+        .await?;
     Ok(Json(to_response(record)?))
 }
 
@@ -33,15 +37,21 @@ pub async fn update_account_settings(
     headers: HeaderMap,
     Json(request): Json<UpdateAccountSettingsRequest>,
 ) -> Result<Json<AccountSettingsResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     let settings_json = serde_json::to_string(&request.settings)?;
     let updated_at = super::auth::now_millis();
-    let Some(record) = state.database.update_account_settings(
-        &user.id,
-        &settings_json,
-        request.expected_revision,
-        &updated_at,
-    )?
+    let user_id = user.id.clone();
+    let Some(record) = state
+        .database
+        .run_blocking(move |database| {
+            database.update_account_settings(
+                &user_id,
+                &settings_json,
+                request.expected_revision,
+                &updated_at,
+            )
+        })
+        .await?
     else {
         return Err(ApiError::Conflict(
             "账号设置版本已变化，请重新读取后再提交".to_owned(),

@@ -17,6 +17,7 @@ class PluginRegistryCubit extends Cubit<Map<String, PluginRuntimeState>> {
   final PluginRegistryService _service;
   late final StreamSubscription<Map<String, PluginRuntimeState>> _subscription;
   late final StreamSubscription<CsRealtimeEvent> _csEventSubscription;
+  int _refreshGeneration = 0;
 
   void _handleCsEvent(CsRealtimeEvent event) {
     if (event.topic != 'plugins.updated' ||
@@ -41,19 +42,53 @@ class PluginRegistryCubit extends Cubit<Map<String, PluginRuntimeState>> {
   }
 
   Future<void> refreshFromServer() async {
+    final refreshGeneration = ++_refreshGeneration;
     final client = CsRuntimeContext.I.client;
     if (client == null) {
       throw StateError('CS 服务端连接尚未建立');
     }
     final records = await client.plugins();
+    if (isClosed || refreshGeneration != _refreshGeneration) {
+      return;
+    }
     final now = DateTime.now().toUtc();
     for (final record in records) {
-      _service.setExternalPluginInfo(record.pluginId, record.info);
+      _applyExternalInfo(record);
     }
     emit({
       for (final record in records)
         record.pluginId: _toRuntimeState(record, now),
     });
+  }
+
+  /// Immediately reflect a successful CS plugin operation in the global
+  /// registry. The WebSocket event remains useful for other clients, but the
+  /// initiating client must not wait for that round trip to rebuild its UI.
+  void applyRemoteRecord(CsPluginRecord record) {
+    if (isClosed || record.pluginId.trim().isEmpty) {
+      return;
+    }
+    _refreshGeneration++;
+    _applyExternalInfo(record);
+    final next = Map<String, PluginRuntimeState>.from(state)
+      ..[record.pluginId] = _toRuntimeState(record, DateTime.now().toUtc());
+    emit(next);
+  }
+
+  /// Remove a user-owned plugin from the local view immediately after a
+  /// successful CS uninstall. The server event/refresh remains the source of
+  /// truth for other clients.
+  void removeRemoteRecord(String pluginId) {
+    if (isClosed || pluginId.trim().isEmpty || !state.containsKey(pluginId)) {
+      return;
+    }
+    _refreshGeneration++;
+    final next = Map<String, PluginRuntimeState>.from(state)..remove(pluginId);
+    emit(next);
+  }
+
+  void _applyExternalInfo(CsPluginRecord record) {
+    _service.setExternalPluginInfo(record.pluginId, record.info);
   }
 
   static PluginRuntimeState _toRuntimeState(

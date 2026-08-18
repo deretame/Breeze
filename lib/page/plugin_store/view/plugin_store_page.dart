@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/plugin_store/cubit/plugin_store_cubit.dart';
 import 'package:zephyr/page/plugin_store/widgets/cloud_plugin_card.dart';
 import 'package:zephyr/page/plugin_store/widgets/plugin_store_status_banner.dart';
+import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
@@ -16,7 +18,9 @@ class PluginStorePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PluginStoreCubit()..loadCloudPlugins(),
+      create: (context) =>
+          PluginStoreCubit(registry: context.read<PluginRegistryCubit>())
+            ..loadCloudPlugins(),
       child: const _PluginStorePageContent(),
     );
   }
@@ -53,26 +57,30 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return BlocBuilder<PluginStoreCubit, PluginStoreState>(
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(title: Text(t.plugin.store)),
-          body: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildSearchCard(colorScheme, state.installing),
-                  const SizedBox(height: 14),
-                  _buildInstallButtons(state.installing),
-                  const SizedBox(height: 16),
-                  _buildCloudPluginsSection(state),
-                ],
+    return BlocBuilder<PluginRegistryCubit, Map<String, PluginRuntimeState>>(
+      builder: (context, pluginStates) {
+        return BlocBuilder<PluginStoreCubit, PluginStoreState>(
+          builder: (context, state) {
+            return Scaffold(
+              appBar: AppBar(title: Text(t.plugin.store)),
+              body: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _buildSearchCard(colorScheme, state.installing),
+                      const SizedBox(height: 14),
+                      _buildInstallButtons(state.installing),
+                      const SizedBox(height: 16),
+                      _buildCloudPluginsSection(state, pluginStates),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -119,7 +127,10 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
     );
   }
 
-  Widget _buildCloudPluginsSection(PluginStoreState state) {
+  Widget _buildCloudPluginsSection(
+    PluginStoreState state,
+    Map<String, PluginRuntimeState> pluginStates,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     final query = _searchController.text.trim().toLowerCase();
     final displayPlugins = state.cloudPlugins.where((item) {
@@ -221,7 +232,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
                 .map(
                   (item) => CloudPluginCard(
                     item: item,
-                    serverPlugin: state.serverPlugins[item.manifest.uuid],
+                    pluginState: pluginStates[item.manifest.uuid],
                     installing: state.installing,
                     onOpenHome: _openExternalUrl,
                     onInstall: () =>

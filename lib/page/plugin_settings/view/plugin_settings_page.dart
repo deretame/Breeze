@@ -551,7 +551,13 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        await client.installCatalogPlugin(widget.pluginUuid);
+        final installed = await client.installCatalogPlugin(widget.pluginUuid);
+        if (installed.pluginId != widget.pluginUuid) {
+          throw StateError('服务端返回的插件 ID 不匹配');
+        }
+        if (mounted) {
+          context.read<PluginRegistryCubit>().applyRemoteRecord(installed);
+        }
         await _refreshServerPlugin();
         if (mounted) {
           showSuccessToast(t.plugin.syncSuccess);
@@ -630,6 +636,9 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         if (installed.pluginId != widget.pluginUuid) {
           throw StateError('服务端返回的插件 ID 不匹配');
         }
+        if (mounted) {
+          context.read<PluginRegistryCubit>().applyRemoteRecord(installed);
+        }
         await _refreshServerPlugin();
         if (!mounted) return;
         showSuccessToast(t.plugin.updateSuccess);
@@ -706,6 +715,9 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         if (installed.pluginId != widget.pluginUuid) {
           throw StateError('服务端返回的插件 ID 不匹配');
         }
+        if (mounted) {
+          context.read<PluginRegistryCubit>().applyRemoteRecord(installed);
+        }
         await _refreshServerPlugin();
         if (!mounted) return;
         showSuccessToast(t.plugin.updateSuccess);
@@ -736,11 +748,14 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        await client.updatePluginState(
+        final updated = await client.updatePluginState(
           widget.pluginUuid,
           debug: enabled,
           debugUrl: url,
         );
+        if (mounted) {
+          context.read<PluginRegistryCubit>().applyRemoteRecord(updated);
+        }
         await _refreshServerPlugin();
         if (!mounted) return;
         showSuccessToast(t.plugin.debugConfigUpdated);
@@ -788,6 +803,12 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
           throw StateError('CS 服务端连接尚未建立');
         }
         await client.deletePlugin(widget.pluginUuid);
+        if (!mounted) {
+          return;
+        }
+        context.read<PluginRegistryCubit>().removeRemoteRecord(
+          widget.pluginUuid,
+        );
       } else {
         await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
       }

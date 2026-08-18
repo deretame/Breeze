@@ -32,7 +32,8 @@ async fn update_once(state: &AppState) -> Result<()> {
     };
     let installed = state
         .database
-        .list_plugins()
+        .run_blocking(|database| database.list_plugins())
+        .await
         .context("failed to list installed plugins")?;
 
     for plugin in installed {

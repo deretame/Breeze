@@ -61,18 +61,45 @@ Future<bool> toggleLocalComicFavorite({
         .firstOrNull;
     if (existing != null && !existing.isDeleted) {
       await client.deleteLibrary('favorites', key);
+      FavoriteFolderService.removeMemberFromAllFolders(key);
+      ComicLinkService.removeComicFromAll(key, ComicFolderType.favorite);
+      final cached = CsRuntimeContext.I.database?.findFavorite(key);
+      if (cached != null) {
+        cached
+          ..deleted = true
+          ..updatedAt = now;
+        CsRuntimeContext.I.database?.saveFavorite(cached);
+      }
       return false;
     }
+    final coverMap = _comicImageToMap(comicInfo.cover);
+    final favorite = UnifiedComicFavorite(
+      uniqueKey: key,
+      source: pluginId,
+      comicId: comicInfo.id,
+      title: comicInfo.title,
+      description: comicInfo.description,
+      cover: jsonEncode(coverMap),
+      creator: jsonEncode(_creatorToMap(comicInfo.creator)),
+      titleMeta: jsonEncode(comicInfo.titleMeta.map(_titleMetaToMap).toList()),
+      metadata: jsonEncode(comicInfo.metadata.map(_metadataToMap).toList()),
+      createdAt: now,
+      updatedAt: now,
+      deleted: false,
+      schemaVersion: 2,
+    );
     await client.saveLibrary(
       'favorites',
       CsLibraryRecord(
         uniqueKey: key,
         source: pluginId,
         comicId: comicInfo.id,
-        payload: Map<String, dynamic>.from(normalInfo.toJson()),
+        payload: favorite.toJson(),
         updatedAt: now.toIso8601String(),
       ),
     );
+    CsRuntimeContext.I.database?.saveFavorite(favorite);
+    ComicLinkService.addComic(key, null, ComicFolderType.favorite);
     return true;
   }
   final unified = objectbox.unifiedFavoriteBox

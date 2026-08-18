@@ -11,7 +11,7 @@ mod settings;
 
 use axum::{
     Json, Router,
-    extract::State,
+    extract::{DefaultBodyLimit, State},
     routing::{get, post},
 };
 
@@ -74,7 +74,11 @@ pub fn router() -> Router<AppState> {
         )
         .route("/migrations/import", post(migrations::import))
         .route("/migrations/export", get(migrations::export))
-        .route("/migrations/assets", post(migrations::upload_asset))
+        .route(
+            "/migrations/assets",
+            post(migrations::upload_asset)
+                .layer(DefaultBodyLimit::max(migrations::MAX_ASSET_BYTES)),
+        )
         .nest("/library", library::router())
 }
 
@@ -84,7 +88,7 @@ async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
         service: "breeze-cs-server",
         version: env!("CARGO_PKG_VERSION"),
         web_frontend: state.config.web_frontend_enabled(),
-        server_download: state.config.server_download_enabled,
+        server_download: true,
     })
 }
 
@@ -92,7 +96,7 @@ async fn capabilities(State(state): State<AppState>) -> Json<CapabilitiesRespons
     Json(CapabilitiesResponse {
         protocol_version: "v1",
         server_version: env!("CARGO_PKG_VERSION"),
-        server_download: state.config.server_download_enabled,
+        server_download: true,
         browser_frontend: state.config.web_frontend_enabled(),
         plugin_runtime: PluginRuntimeCapabilityResponse {
             quickjs: state.plugin_capabilities.quickjs,

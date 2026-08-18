@@ -25,9 +25,9 @@ pub async fn get(
     headers: HeaderMap,
     axum::extract::Path(plugin_id): axum::extract::Path<String>,
 ) -> Result<Json<PluginConfigResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
-    ensure_plugin(&state, &user.id, &plugin_id)?;
-    let record = state.database.plugin_config(&user.id, &plugin_id)?;
+    let user = current_user(&state, &headers).await?;
+    ensure_plugin(&state, &user.id, &plugin_id).await?;
+    let record = state.database.plugin_config(&user.id, &plugin_id).await?;
     Ok(Json(to_response(&plugin_id, record)?))
 }
 
@@ -37,21 +37,24 @@ pub async fn update(
     axum::extract::Path(plugin_id): axum::extract::Path<String>,
     Json(request): Json<UpdatePluginConfigRequest>,
 ) -> Result<Json<PluginConfigResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
-    ensure_plugin(&state, &user.id, &plugin_id)?;
+    let user = current_user(&state, &headers).await?;
+    ensure_plugin(&state, &user.id, &plugin_id).await?;
     if !request.config.is_object() {
         return Err(ApiError::BadRequest("插件配置必须是 JSON 对象".to_owned()));
     }
     if serde_json::to_vec(&request.config)?.len() > 1024 * 1024 {
         return Err(ApiError::BadRequest("插件配置不能超过 1 MiB".to_owned()));
     }
-    let Some(record) = state.database.update_plugin_config(
-        &user.id,
-        &plugin_id,
-        &serde_json::to_string(&request.config)?,
-        request.expected_revision,
-        &super::auth::now_millis(),
-    )?
+    let Some(record) = state
+        .database
+        .update_plugin_config(
+            &user.id,
+            &plugin_id,
+            &serde_json::to_string(&request.config)?,
+            request.expected_revision,
+            &super::auth::now_millis(),
+        )
+        .await?
     else {
         return Err(ApiError::Conflict(
             "插件配置版本已变化，请重新读取后再提交".to_owned(),
@@ -60,10 +63,13 @@ pub async fn update(
     Ok(Json(to_response(&plugin_id, record)?))
 }
 
-fn ensure_plugin(state: &AppState, user_id: &str, plugin_id: &str) -> Result<(), ApiError> {
+async fn ensure_plugin(state: &AppState, user_id: &str, plugin_id: &str) -> Result<(), ApiError> {
+    let user_id = user_id.to_owned();
+    let plugin_id = plugin_id.to_owned();
     if state
         .database
-        .find_user_plugin(user_id, plugin_id)?
+        .run_blocking(move |database| database.find_user_plugin(&user_id, &plugin_id))
+        .await?
         .is_none()
     {
         return Err(ApiError::NotFound);

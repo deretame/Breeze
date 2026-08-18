@@ -53,7 +53,7 @@ pub async fn upgrade(
         AUTHORIZATION,
         HeaderValue::from_str(&format!("Bearer {token}")).map_err(|_| ApiError::Unauthorized)?,
     );
-    let user = current_user(&state, &auth_headers)?;
+    let user = current_user(&state, &auth_headers).await?;
     let hub = Arc::clone(&state.websocket_hub);
     Ok(websocket
         .on_upgrade(move |socket| async move {

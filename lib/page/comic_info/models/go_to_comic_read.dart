@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cs/cs.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -32,10 +33,12 @@ void goToComicRead(
     isDownload: isDownload,
   );
   final hasHistory = context.read<StringSelectCubit>().state.isNotEmpty;
-  final history = objectbox.unifiedHistoryBox
-      .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
-      .build()
-      .findFirst();
+  final history = CsRuntimeContext.I.isCsMode
+      ? CsRuntimeContext.I.database?.histories['$from:$comicId']
+      : objectbox.unifiedHistoryBox
+            .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
+            .build()
+            .findFirst();
 
   final typeVal = hasHistory
       ? (isDownload

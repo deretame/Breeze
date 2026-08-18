@@ -25,6 +25,7 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cs/application/cs_mode_cubit.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/cs/data/cs_migration_exporter.dart';
 import 'package:zephyr/cs/data/cs_migration_importer.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
@@ -320,7 +321,11 @@ _initServices() async {
   );
   await csModeCubit.init();
   if (csModeCubit.state.isCsMode) {
-    await pluginRegistryCubit.refreshFromServer();
+    // CS 模式下远端初始化属于可恢复的连接操作，不能因为服务端暂时
+    // 未启动就阻止应用进入主界面。模式本身仍保持为 CS，不回退到本地插件。
+    await _tryCsStartupStep('加载服务端账号设置', globalSettingCubit.loadFromRemote);
+    await _tryCsStartupStep('加载服务端插件列表', pluginRegistryCubit.refreshFromServer);
+    await _tryCsStartupStep('加载服务端业务数据', CsRuntimeContext.I.loadDatabase);
   }
 
   if (globalSettingCubit.state.needCleanCache) {
@@ -367,6 +372,17 @@ _initServices() async {
   setTlsVerifyEnabled(enabled: false);
 
   return (globalSettingCubit, pluginRegistryCubit, csModeCubit);
+}
+
+Future<void> _tryCsStartupStep(
+  String name,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+  } catch (error, stackTrace) {
+    logger.w('CS 启动阶段$name失败，应用将继续启动', error: error, stackTrace: stackTrace);
+  }
 }
 
 Future<void> _tryApplyHttpProxyFromEnv() async {

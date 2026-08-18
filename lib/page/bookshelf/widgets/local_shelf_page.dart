@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
 import 'package:zephyr/object_box/model.dart';
@@ -266,14 +267,22 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             if (!inAllFolder) {
               FavoriteFolderService.removeMembers(folderKey, [uniqueKey]);
             } else {
-              final temp = objectbox.unifiedFavoriteBox
-                  .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
-                  .build()
-                  .findFirst();
+              final temp = CsRuntimeContext.I.isCsMode
+                  ? CsRuntimeContext.I.database?.findFavorite(uniqueKey)
+                  : objectbox.unifiedFavoriteBox
+                        .query(
+                          UnifiedComicFavorite_.uniqueKey.equals(uniqueKey),
+                        )
+                        .build()
+                        .findFirst();
               if (temp != null) {
                 temp.deleted = true;
                 temp.updatedAt = DateTime.now().toUtc();
-                objectbox.unifiedFavoriteBox.put(temp);
+                if (CsRuntimeContext.I.isCsMode) {
+                  CsRuntimeContext.I.database?.saveFavorite(temp);
+                } else {
+                  objectbox.unifiedFavoriteBox.put(temp);
+                }
                 FavoriteFolderService.removeMemberFromAllFolders(uniqueKey);
                 ComicLinkService.removeComicFromAll(
                   uniqueKey,
@@ -283,14 +292,20 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             }
             break;
           case ShelfPageMode.history:
-            final temp = objectbox.unifiedHistoryBox
-                .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
-                .build()
-                .findFirst();
+            final temp = CsRuntimeContext.I.isCsMode
+                ? CsRuntimeContext.I.database?.findHistory(uniqueKey)
+                : objectbox.unifiedHistoryBox
+                      .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
+                      .build()
+                      .findFirst();
             if (temp != null) {
               temp.deleted = true;
               temp.updatedAt = DateTime.now().toUtc();
-              objectbox.unifiedHistoryBox.put(temp);
+              if (CsRuntimeContext.I.isCsMode) {
+                CsRuntimeContext.I.database?.saveHistory(temp);
+              } else {
+                objectbox.unifiedHistoryBox.put(temp);
+              }
             }
             ComicLinkService.removeComicFromAll(
               uniqueKey,
@@ -301,18 +316,28 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             if (!inAllFolder) {
               DownloadFolderService.removeMembers(folderKey, [uniqueKey]);
             } else {
-              final temp = objectbox.unifiedDownloadBox
-                  .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
-                  .build()
-                  .findFirst();
+              final temp = CsRuntimeContext.I.isServerDownload
+                  ? CsRuntimeContext.I.database?.findServerDownload(uniqueKey)
+                  : objectbox.unifiedDownloadBox
+                        .query(
+                          UnifiedComicDownload_.uniqueKey.equals(uniqueKey),
+                        )
+                        .build()
+                        .findFirst();
               if (temp != null) {
-                objectbox.unifiedDownloadBox.remove(temp.id);
+                if (CsRuntimeContext.I.isServerDownload) {
+                  await CsRuntimeContext.I.database?.removeServerDownload(
+                    uniqueKey,
+                  );
+                } else {
+                  objectbox.unifiedDownloadBox.remove(temp.id);
+                  await deleteComicDownloadDirectory(entry.from, entry.id);
+                }
                 DownloadFolderService.removeMemberFromAllFolders(uniqueKey);
                 ComicLinkService.removeComicFromAll(
                   uniqueKey,
                   ComicFolderType.download,
                 );
-                await deleteComicDownloadDirectory(entry.from, entry.id);
               }
             }
             break;

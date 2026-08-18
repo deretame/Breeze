@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:worker_manager/worker_manager.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
@@ -174,10 +174,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
     );
     final result = await getPluginSearchResult(event, BlocState());
     final comics = result.comics.map((e) => e.comic).toList();
-    final maskedKeywords = objectbox.userSettingBox
-        .get(1)!
-        .globalSetting
-        .maskedKeywords
+    final maskedKeywords = globalSetting.maskedKeywords
         .where((keyword) => keyword.trim().isNotEmpty)
         .map((keyword) => keyword.trim().toLowerCase().let(t2s))
         .where((keyword) => keyword.isNotEmpty)

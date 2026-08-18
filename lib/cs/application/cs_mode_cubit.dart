@@ -53,10 +53,12 @@ class CsModeCubit extends Cubit<CsConnectionSettings> {
   Future<void> enableCsMode({
     required bool migrateData,
     required bool migrateDownloads,
+    void Function(String message)? onMigrationProgress,
   }) async {
     await _service.enableCsMode(
       migrateData: migrateData,
       migrateDownloads: migrateDownloads,
+      onMigrationProgress: onMigrationProgress,
     );
     CsRuntimeContext.I.update(_service.settings);
     emit(_service.settings);

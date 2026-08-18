@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -22,11 +23,28 @@ class ComicFollowService {
 
   /// 保存或更新追更记录（直接写入数据库）
   void putFollow(ComicFollow follow) {
+    final remote = CsRuntimeContext.I.database;
+    if (CsRuntimeContext.I.isCsMode && remote != null) {
+      remote.saveFollow(follow);
+      return;
+    }
     objectbox.comicFollowBox.put(follow);
   }
 
   /// 查询全部未删除的追更记录
   List<ComicFollow> listActiveFollows() {
+    final remote = CsRuntimeContext.I.database;
+    if (CsRuntimeContext.I.isCsMode && remote != null) {
+      final follows = remote.listFollows().toList();
+      follows.sort((a, b) {
+        final update = b.hasUpdate ? 1 : 0;
+        final otherUpdate = a.hasUpdate ? 1 : 0;
+        final byFlag = update.compareTo(otherUpdate);
+        if (byFlag != 0) return byFlag;
+        return b.updateTime.compareTo(a.updateTime);
+      });
+      return follows;
+    }
     final query = objectbox.comicFollowBox
         .query(ComicFollow_.deleted.equals(false))
         .order(ComicFollow_.hasUpdate, flags: Order.descending)
@@ -41,6 +59,10 @@ class ComicFollowService {
 
   /// 按 uniqueKey 查询追更记录（包含已删除的），用于更新或复活旧记录
   ComicFollow? getFollowByUniqueKey(String uniqueKey) {
+    final remote = CsRuntimeContext.I.database;
+    if (CsRuntimeContext.I.isCsMode && remote != null) {
+      return remote.findFollow(uniqueKey);
+    }
     final query = objectbox.comicFollowBox
         .query(ComicFollow_.uniqueKey.equals(uniqueKey))
         .build();

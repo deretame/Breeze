@@ -141,6 +141,7 @@ class UnifiedComicDownloadChapter {
     'requestId': requestId,
     'storageChapterId': storageChapterId,
     'logicalKey': logicalKey,
+    'images': images.map((image) => image.toMap()).toList(),
     'extern': extern,
   };
 }

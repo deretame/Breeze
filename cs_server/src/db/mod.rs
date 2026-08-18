@@ -46,6 +46,12 @@ pub enum LibraryKind {
     Favorites,
     History,
     Follows,
+    Folders,
+    Links,
+    FavoriteFolders,
+    FavoriteFolderItems,
+    DownloadFolders,
+    DownloadFolderItems,
 }
 
 impl LibraryKind {
@@ -54,6 +60,12 @@ impl LibraryKind {
             "favorites" => Some(Self::Favorites),
             "history" => Some(Self::History),
             "follows" => Some(Self::Follows),
+            "folders" => Some(Self::Folders),
+            "links" => Some(Self::Links),
+            "favorite-folders" => Some(Self::FavoriteFolders),
+            "favorite-folder-items" => Some(Self::FavoriteFolderItems),
+            "download-folders" => Some(Self::DownloadFolders),
+            "download-folder-items" => Some(Self::DownloadFolderItems),
             _ => None,
         }
     }
@@ -63,6 +75,12 @@ impl LibraryKind {
             Self::Favorites => "comic_favorites",
             Self::History => "comic_histories",
             Self::Follows => "comic_follows",
+            Self::Folders => "comic_folders",
+            Self::Links => "comic_links",
+            Self::FavoriteFolders => "favorite_folders",
+            Self::FavoriteFolderItems => "favorite_folder_items",
+            Self::DownloadFolders => "download_folders",
+            Self::DownloadFolderItems => "download_folder_items",
         }
     }
 }
@@ -116,6 +134,8 @@ pub struct MigrationImportCounts {
     pub follows: i64,
     pub folders: i64,
     pub links: i64,
+    pub favorite_folders: i64,
+    pub favorite_folder_items: i64,
     pub plugins: i64,
     pub plugin_configs: i64,
     pub downloads: i64,
@@ -147,6 +167,22 @@ impl Database {
         Ok(Self {
             connection: Arc::new(Mutex::new(connection)),
         })
+    }
+
+    /// Execute a synchronous rusqlite operation on Tokio's blocking pool.
+    ///
+    /// `rusqlite` intentionally uses the bundled C SQLite API synchronously.
+    /// This boundary keeps that implementation while preventing a query or a
+    /// busy connection lock from blocking an async runtime worker thread.
+    pub async fn run_blocking<T, F>(&self, operation: F) -> anyhow::Result<T>
+    where
+        T: Send + 'static,
+        F: FnOnce(Database) -> anyhow::Result<T> + Send + 'static,
+    {
+        let database = self.clone();
+        tokio::task::spawn_blocking(move || operation(database))
+            .await
+            .context("SQLite blocking task failed")?
     }
 
     pub fn create_user(
@@ -296,7 +332,18 @@ impl Database {
         }))
     }
 
-    pub fn plugin_config(
+    pub async fn plugin_config(
+        &self,
+        user_id: &str,
+        plugin_id: &str,
+    ) -> anyhow::Result<PluginConfigRecord> {
+        let user_id = user_id.to_owned();
+        let plugin_id = plugin_id.to_owned();
+        self.run_blocking(move |database| database.plugin_config_sync(&user_id, &plugin_id))
+            .await
+    }
+
+    fn plugin_config_sync(
         &self,
         user_id: &str,
         plugin_id: &str,
@@ -323,7 +370,31 @@ impl Database {
         }))
     }
 
-    pub fn update_plugin_config(
+    pub async fn update_plugin_config(
+        &self,
+        user_id: &str,
+        plugin_id: &str,
+        config_json: &str,
+        expected_revision: Option<i64>,
+        updated_at: &str,
+    ) -> anyhow::Result<Option<PluginConfigRecord>> {
+        let user_id = user_id.to_owned();
+        let plugin_id = plugin_id.to_owned();
+        let config_json = config_json.to_owned();
+        let updated_at = updated_at.to_owned();
+        self.run_blocking(move |database| {
+            database.update_plugin_config_sync(
+                &user_id,
+                &plugin_id,
+                &config_json,
+                expected_revision,
+                &updated_at,
+            )
+        })
+        .await
+    }
+
+    fn update_plugin_config_sync(
         &self,
         user_id: &str,
         plugin_id: &str,
@@ -446,8 +517,19 @@ impl Database {
                 "SELECT unique_key, source, comic_id, payload_json, updated_at, deleted_at
                  FROM {table} WHERE user_id = ?1{deleted_filter} ORDER BY updated_at DESC"
             ),
-            LibraryKind::Follows => format!(
+            LibraryKind::Follows
+            | LibraryKind::Links
+            | LibraryKind::FavoriteFolderItems
+            | LibraryKind::DownloadFolderItems => format!(
                 "SELECT unique_key, '', '', payload_json, updated_at, deleted_at
+                 FROM {table} WHERE user_id = ?1{deleted_filter} ORDER BY updated_at DESC"
+            ),
+            LibraryKind::Folders => format!(
+                "SELECT sync_id, '', '', payload_json, updated_at, deleted_at
+                 FROM {table} WHERE user_id = ?1{deleted_filter} ORDER BY updated_at DESC"
+            ),
+            LibraryKind::FavoriteFolders | LibraryKind::DownloadFolders => format!(
+                "SELECT folder_key, '', '', payload_json, updated_at, deleted_at
                  FROM {table} WHERE user_id = ?1{deleted_filter} ORDER BY updated_at DESC"
             ),
         };
@@ -514,14 +596,150 @@ impl Database {
                     params![user_id, unique_key, payload_json, updated_at],
                 )?;
             }
+            LibraryKind::Folders => {
+                connection.execute(
+                    "INSERT INTO comic_folders(
+                       user_id, sync_id, parent_sync_id, type_data, unique_key,
+                       payload_json, updated_at, deleted_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+                     ON CONFLICT(user_id, sync_id) DO UPDATE SET
+                       parent_sync_id = excluded.parent_sync_id,
+                       type_data = excluded.type_data,
+                       unique_key = excluded.unique_key,
+                       payload_json = excluded.payload_json,
+                       updated_at = excluded.updated_at,
+                       deleted_at = excluded.deleted_at",
+                    params![
+                        user_id,
+                        string_value(&serde_json::from_str(payload_json)?, "syncId")
+                            .unwrap_or_else(|| unique_key.to_owned()),
+                        serde_json::from_str::<Value>(payload_json)?
+                            .get("parentSyncId")
+                            .and_then(value_as_string),
+                        string_value(&serde_json::from_str(payload_json)?, "typeData")
+                            .unwrap_or_default(),
+                        string_value(&serde_json::from_str(payload_json)?, "uniqueKey")
+                            .unwrap_or_default(),
+                        payload_json,
+                        updated_at,
+                        payload_deleted_at(payload_json, updated_at),
+                    ],
+                )?;
+            }
+            LibraryKind::Links => {
+                let payload = serde_json::from_str::<Value>(payload_json)?;
+                connection.execute(
+                    "INSERT INTO comic_links(
+                       user_id, unique_key, comic_unique_key, folder_sync_id,
+                       type_data, payload_json, updated_at, deleted_at
+                     ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+                     ON CONFLICT(user_id, unique_key) DO UPDATE SET
+                       comic_unique_key = excluded.comic_unique_key,
+                       folder_sync_id = excluded.folder_sync_id,
+                       type_data = excluded.type_data,
+                       payload_json = excluded.payload_json,
+                       updated_at = excluded.updated_at,
+                       deleted_at = excluded.deleted_at",
+                    params![
+                        user_id,
+                        unique_key,
+                        string_value(&payload, "comicUniqueKey").unwrap_or_default(),
+                        payload.get("folderSyncId").and_then(value_as_string),
+                        string_value(&payload, "typeData").unwrap_or_default(),
+                        payload_json,
+                        updated_at,
+                        payload_deleted_at(payload_json, updated_at),
+                    ],
+                )?;
+            }
+            LibraryKind::FavoriteFolders
+            | LibraryKind::FavoriteFolderItems
+            | LibraryKind::DownloadFolders
+            | LibraryKind::DownloadFolderItems => {
+                let payload = serde_json::from_str::<Value>(payload_json)?;
+                let table = kind.table_name();
+                let deleted_at = payload_deleted_at(payload_json, updated_at);
+                match kind {
+                    LibraryKind::FavoriteFolders | LibraryKind::DownloadFolders => {
+                        connection.execute(
+                            &format!(
+                                "INSERT INTO {table}(
+                                   user_id, folder_key, payload_json, updated_at, deleted_at
+                                 ) VALUES (?1, ?2, ?3, ?4, ?5)
+                                 ON CONFLICT(user_id, folder_key) DO UPDATE SET
+                                   payload_json = excluded.payload_json,
+                                   updated_at = excluded.updated_at,
+                                   deleted_at = excluded.deleted_at"
+                            ),
+                            params![
+                                user_id,
+                                string_value(&payload, "folderKey")
+                                    .unwrap_or_else(|| unique_key.to_owned()),
+                                payload_json,
+                                updated_at,
+                                deleted_at,
+                            ],
+                        )?;
+                    }
+                    LibraryKind::FavoriteFolderItems | LibraryKind::DownloadFolderItems => {
+                        let (folder_column, item_column) =
+                            if matches!(kind, LibraryKind::FavoriteFolderItems) {
+                                ("folder_key", "favorite_unique_key")
+                            } else {
+                                ("folder_key", "download_unique_key")
+                            };
+                        connection.execute(
+                            &format!(
+                                "INSERT INTO {table}(
+                                   user_id, unique_key, {folder_column}, {item_column},
+                                   payload_json, updated_at, deleted_at
+                                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                                 ON CONFLICT(user_id, unique_key) DO UPDATE SET
+                                   {folder_column} = excluded.{folder_column},
+                                   {item_column} = excluded.{item_column},
+                                   payload_json = excluded.payload_json,
+                                   updated_at = excluded.updated_at,
+                                   deleted_at = excluded.deleted_at"
+                            ),
+                            params![
+                                user_id,
+                                unique_key,
+                                string_value(&payload, "folderKey").unwrap_or_default(),
+                                string_value(
+                                    &payload,
+                                    if matches!(kind, LibraryKind::FavoriteFolderItems) {
+                                        "favoriteUniqueKey"
+                                    } else {
+                                        "downloadUniqueKey"
+                                    },
+                                )
+                                .unwrap_or_default(),
+                                payload_json,
+                                updated_at,
+                                deleted_at,
+                            ],
+                        )?;
+                    }
+                    _ => unreachable!(),
+                }
+            }
         }
+        let payload = serde_json::from_str::<Value>(payload_json)?;
         Ok(LibraryRecord {
             unique_key: unique_key.to_owned(),
-            source: source.to_owned(),
-            comic_id: comic_id.to_owned(),
+            source: if matches!(kind, LibraryKind::Favorites | LibraryKind::History) {
+                source.to_owned()
+            } else {
+                String::new()
+            },
+            comic_id: if matches!(kind, LibraryKind::Favorites | LibraryKind::History) {
+                comic_id.to_owned()
+            } else {
+                String::new()
+            },
             payload_json: payload_json.to_owned(),
             updated_at: updated_at.to_owned(),
-            deleted_at: None,
+            deleted_at: payload_deleted_at_value(&payload, updated_at),
         })
     }
 
@@ -533,14 +751,30 @@ impl Database {
         deleted_at: &str,
     ) -> anyhow::Result<bool> {
         let connection = self.lock_connection()?;
-        let table = kind.table_name();
-        Ok(connection.execute(
-            &format!(
-                "UPDATE {table} SET deleted_at = ?1, updated_at = ?2
-                 WHERE user_id = ?3 AND unique_key = ?4"
-            ),
-            params![deleted_at, deleted_at, user_id, unique_key],
-        )? > 0)
+        let affected = match kind {
+            LibraryKind::Folders => connection.execute(
+                "UPDATE comic_folders SET deleted_at = ?1, updated_at = ?2
+                 WHERE user_id = ?3 AND sync_id = ?4",
+                params![deleted_at, deleted_at, user_id, unique_key],
+            )?,
+            LibraryKind::FavoriteFolders | LibraryKind::DownloadFolders => connection.execute(
+                &format!(
+                    "UPDATE {} SET deleted_at = ?1, updated_at = ?2
+                     WHERE user_id = ?3 AND folder_key = ?4",
+                    kind.table_name()
+                ),
+                params![deleted_at, deleted_at, user_id, unique_key],
+            )?,
+            _ => connection.execute(
+                &format!(
+                    "UPDATE {} SET deleted_at = ?1, updated_at = ?2
+                     WHERE user_id = ?3 AND unique_key = ?4",
+                    kind.table_name()
+                ),
+                params![deleted_at, deleted_at, user_id, unique_key],
+            )?,
+        };
+        Ok(affected > 0)
     }
 
     pub fn upsert_user_plugin(
@@ -731,6 +965,59 @@ impl Database {
             )?;
             counts.links += 1;
         }
+        for item in array_field(data, "favorite_folders") {
+            let Some(folder_key) = string_value(item, "folderKey") else {
+                continue;
+            };
+            let updated_at =
+                string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+            transaction.execute(
+                "INSERT INTO favorite_folders(
+                   user_id, folder_key, payload_json, updated_at, deleted_at
+                 ) VALUES (?1, ?2, ?3, ?4, ?5)
+                 ON CONFLICT(user_id, folder_key) DO UPDATE SET
+                   payload_json = excluded.payload_json,
+                   updated_at = excluded.updated_at,
+                   deleted_at = excluded.deleted_at",
+                params![
+                    user_id,
+                    folder_key,
+                    serde_json::to_string(item)?,
+                    updated_at,
+                    deleted_timestamp(item, &updated_at),
+                ],
+            )?;
+            counts.favorite_folders += 1;
+        }
+        for item in array_field(data, "favorite_folder_items") {
+            let Some(unique_key) = string_value(item, "uniqueKey") else {
+                continue;
+            };
+            let updated_at =
+                string_value(item, "updatedAt").unwrap_or_else(current_import_timestamp);
+            transaction.execute(
+                "INSERT INTO favorite_folder_items(
+                   user_id, unique_key, folder_key, favorite_unique_key,
+                   payload_json, updated_at, deleted_at
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                 ON CONFLICT(user_id, unique_key) DO UPDATE SET
+                   folder_key = excluded.folder_key,
+                   favorite_unique_key = excluded.favorite_unique_key,
+                   payload_json = excluded.payload_json,
+                   updated_at = excluded.updated_at,
+                   deleted_at = excluded.deleted_at",
+                params![
+                    user_id,
+                    unique_key,
+                    string_value(item, "folderKey").unwrap_or_default(),
+                    string_value(item, "favoriteUniqueKey").unwrap_or_default(),
+                    serde_json::to_string(item)?,
+                    updated_at,
+                    deleted_timestamp(item, &updated_at),
+                ],
+            )?;
+            counts.favorite_folder_items += 1;
+        }
         for item in array_field(data, "plugin_configs") {
             let Some(plugin_id) = string_value(item, "name") else {
                 continue;
@@ -881,6 +1168,31 @@ impl Database {
         asset_id: &str,
         updated_at: &str,
     ) -> anyhow::Result<()> {
+        self.append_migration_asset(
+            user_id,
+            "",
+            "",
+            comic_unique_key,
+            relative_path,
+            "page",
+            None,
+            asset_id,
+            updated_at,
+        )
+    }
+
+    pub fn append_migration_asset(
+        &self,
+        user_id: &str,
+        plugin_id: &str,
+        comic_id: &str,
+        comic_unique_key: &str,
+        relative_path: &str,
+        kind: &str,
+        chapter_id: Option<&str>,
+        asset_id: &str,
+        updated_at: &str,
+    ) -> anyhow::Result<()> {
         let mut connection = self.lock_connection()?;
         let transaction = connection.transaction()?;
         let mut manifest = transaction
@@ -896,17 +1208,27 @@ impl Database {
         let object = manifest
             .as_object_mut()
             .ok_or_else(|| anyhow::anyhow!("migration manifest must be a JSON object"))?;
-        let pages = object
-            .entry("pages")
-            .or_insert_with(|| Value::Array(Vec::new()));
-        let pages = pages
-            .as_array_mut()
-            .ok_or_else(|| anyhow::anyhow!("migration manifest pages must be an array"))?;
-        pages.retain(|page| page.get("path").and_then(Value::as_str) != Some(relative_path));
-        pages.push(serde_json::json!({
+        let asset = serde_json::json!({
+            "plugin_id": plugin_id,
+            "comic_id": comic_id,
+            "comic_key": comic_unique_key,
             "path": relative_path,
             "asset_id": asset_id,
-        }));
+            "kind": kind,
+            "chapter_id": chapter_id,
+        });
+        if kind == "cover" {
+            object.insert("cover_asset".to_owned(), asset);
+        } else {
+            let pages = object
+                .entry("pages")
+                .or_insert_with(|| Value::Array(Vec::new()));
+            let pages = pages
+                .as_array_mut()
+                .ok_or_else(|| anyhow::anyhow!("migration manifest pages must be an array"))?;
+            pages.retain(|page| page.get("path").and_then(Value::as_str) != Some(relative_path));
+            pages.push(asset);
+        }
         transaction.execute(
             "INSERT INTO download_manifests(user_id, comic_unique_key, manifest_json, updated_at)
              VALUES (?1, ?2, ?3, ?4)
@@ -1020,6 +1342,14 @@ impl Database {
             "links".to_owned(),
             query_payloads(&connection, "comic_links", user_id)?,
         );
+        data.insert(
+            "favorite_folders".to_owned(),
+            query_payloads(&connection, "favorite_folders", user_id)?,
+        );
+        data.insert(
+            "favorite_folder_items".to_owned(),
+            query_payloads(&connection, "favorite_folder_items", user_id)?,
+        );
 
         let mut plugin_configs = Vec::new();
         let mut config_statement = connection.prepare(
@@ -1050,6 +1380,51 @@ impl Database {
             })? {
                 let (comic_key, manifest_json) = row?;
                 let mut manifest = serde_json::from_str::<Value>(&manifest_json)?;
+                if let Some(cover_asset) = manifest.get("cover_asset").cloned() {
+                    if let Some(asset_id) = cover_asset.get("asset_id").and_then(Value::as_str) {
+                        let relative_path = cover_asset
+                            .get("path")
+                            .and_then(Value::as_str)
+                            .unwrap_or("cover.bin");
+                        if let Some((media_type, byte_size, content_hash)) = connection
+                            .query_row(
+                                "SELECT media_type, byte_size, content_hash FROM assets
+                                 WHERE user_id = ?1 AND asset_id = ?2",
+                                rusqlite::params![user_id, asset_id],
+                                |asset| {
+                                    Ok((
+                                        asset.get::<_, String>(0)?,
+                                        asset.get::<_, i64>(1)?,
+                                        asset.get::<_, String>(2)?,
+                                    ))
+                                },
+                            )
+                            .optional()?
+                        {
+                            download_assets.push(serde_json::json!({
+                                "comic_key": comic_key,
+                                "plugin_id": cover_asset
+                                    .get("plugin_id")
+                                    .cloned()
+                                    .unwrap_or(Value::Null),
+                                "comic_id": cover_asset
+                                    .get("comic_id")
+                                    .cloned()
+                                    .unwrap_or(Value::Null),
+                                "relative_path": relative_path,
+                                "asset_id": asset_id,
+                                "kind": "cover",
+                                "chapter_id": Value::Null,
+                                "media_type": media_type,
+                                "byte_size": byte_size,
+                                "content_hash": content_hash,
+                            }));
+                        }
+                    }
+                    if let Some(object) = manifest.as_object_mut() {
+                        object.remove("cover_asset");
+                    }
+                }
                 if let Some(pages) = manifest.get_mut("pages").and_then(Value::as_array_mut) {
                     for (page_index, page) in pages.iter().enumerate() {
                         let Some(asset_id) = page.get("asset_id").and_then(Value::as_str) else {
@@ -1087,8 +1462,21 @@ impl Database {
                         };
                         download_assets.push(serde_json::json!({
                             "comic_key": comic_key,
+                            "plugin_id": page
+                                .get("plugin_id")
+                                .cloned()
+                                .unwrap_or(Value::Null),
+                            "comic_id": page
+                                .get("comic_id")
+                                .cloned()
+                                .unwrap_or(Value::Null),
                             "relative_path": relative_path,
                             "asset_id": asset_id,
+                            "kind": page
+                                .get("kind")
+                                .and_then(Value::as_str)
+                                .unwrap_or("page"),
+                            "chapter_id": page.get("chapter_id").cloned().unwrap_or(Value::Null),
                             "media_type": media_type,
                             "byte_size": byte_size,
                             "content_hash": content_hash,
@@ -1283,6 +1671,103 @@ impl Database {
             .map_err(Into::into)
     }
 
+    /// 删除一个服务端下载及其 manifest、图片资源和对应任务记录。
+    ///
+    /// 返回值是需要从文件系统移除的 storage key。数据库事务只负责保证
+    /// 引用关系的一致性，文件删除由 API 层在事务成功后执行。
+    pub fn delete_download_comic(
+        &self,
+        user_id: &str,
+        comic_unique_key: &str,
+    ) -> anyhow::Result<Vec<String>> {
+        let mut connection = self.lock_connection()?;
+        let transaction = connection.transaction()?;
+        let manifest = transaction
+            .query_row(
+                "SELECT manifest_json FROM download_manifests
+                 WHERE user_id = ?1 AND comic_unique_key = ?2",
+                params![user_id, comic_unique_key],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?;
+
+        let mut asset_ids = Vec::new();
+        if let Some(manifest) = manifest {
+            let manifest: Value = serde_json::from_str(&manifest)?;
+            if let Some(asset_id) = manifest
+                .get("cover_asset")
+                .and_then(|cover| cover.get("asset_id"))
+                .and_then(Value::as_str)
+            {
+                asset_ids.push(asset_id.to_owned());
+            }
+            if let Some(pages) = manifest.get("pages").and_then(Value::as_array) {
+                asset_ids.extend(
+                    pages
+                        .iter()
+                        .filter_map(|page| page.get("asset_id").and_then(Value::as_str))
+                        .map(str::to_owned),
+                );
+            }
+        }
+        asset_ids.sort();
+        asset_ids.dedup();
+
+        let mut storage_keys = Vec::new();
+        for asset_id in &asset_ids {
+            if let Some(storage_key) = transaction
+                .query_row(
+                    "SELECT storage_key FROM assets
+                     WHERE user_id = ?1 AND asset_id = ?2",
+                    params![user_id, asset_id],
+                    |row| row.get::<_, String>(0),
+                )
+                .optional()?
+            {
+                storage_keys.push(storage_key);
+            }
+            transaction.execute(
+                "DELETE FROM assets WHERE user_id = ?1 AND asset_id = ?2",
+                params![user_id, asset_id],
+            )?;
+        }
+
+        transaction.execute(
+            "DELETE FROM download_manifests
+             WHERE user_id = ?1 AND comic_unique_key = ?2",
+            params![user_id, comic_unique_key],
+        )?;
+
+        let task_ids = {
+            let mut statement = transaction
+                .prepare("SELECT task_id, payload_json FROM download_tasks WHERE user_id = ?1")?;
+            statement
+                .query_map([user_id], |row| {
+                    Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                })?
+                .filter_map(|row| row.ok())
+                .filter_map(|(task_id, payload_json)| {
+                    let payload = serde_json::from_str::<Value>(&payload_json).ok()?;
+                    let key = format!(
+                        "{}:{}",
+                        payload.get("plugin_id")?.as_str()?,
+                        payload.get("comic_id")?.as_str()?
+                    );
+                    (key == comic_unique_key).then_some(task_id)
+                })
+                .collect::<Vec<_>>()
+        };
+        for task_id in task_ids {
+            transaction.execute(
+                "DELETE FROM download_tasks WHERE user_id = ?1 AND task_id = ?2",
+                params![user_id, task_id],
+            )?;
+        }
+
+        transaction.commit()?;
+        Ok(storage_keys)
+    }
+
     pub fn create_asset(
         &self,
         user_id: &str,
@@ -1401,6 +1886,26 @@ fn deleted_timestamp(value: &Value, updated_at: &str) -> Option<String> {
         .map(|_| updated_at.to_owned())
 }
 
+fn payload_deleted_at(payload_json: &str, updated_at: &str) -> Option<String> {
+    serde_json::from_str::<Value>(payload_json)
+        .ok()
+        .and_then(|value| payload_deleted_at_value(&value, updated_at))
+}
+
+fn payload_deleted_at_value(value: &Value, updated_at: &str) -> Option<String> {
+    if value
+        .get("deleted")
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+    {
+        return Some(updated_at.to_owned());
+    }
+    value
+        .get("deletedAt")
+        .filter(|deleted_at| !deleted_at.is_null())
+        .and_then(value_as_string)
+}
+
 fn current_import_timestamp() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1461,21 +1966,21 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
     let transaction = connection.transaction()?;
     transaction.execute_batch(
         r#"
-        CREATE TABLE users (
+        CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY NOT NULL,
             username TEXT NOT NULL UNIQUE,
             password_hash TEXT,
             created_at TEXT NOT NULL
         );
 
-        CREATE TABLE user_settings (
+        CREATE TABLE IF NOT EXISTS user_settings (
             user_id TEXT PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             settings_json TEXT NOT NULL DEFAULT '{}',
             revision INTEGER NOT NULL DEFAULT 0,
             updated_at TEXT NOT NULL
         );
 
-        CREATE TABLE plugins (
+        CREATE TABLE IF NOT EXISTS plugins (
             plugin_id TEXT PRIMARY KEY NOT NULL,
             version TEXT NOT NULL,
             bundle_path TEXT NOT NULL,
@@ -1484,7 +1989,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             updated_at TEXT NOT NULL
         );
 
-        CREATE TABLE user_plugins (
+        CREATE TABLE IF NOT EXISTS user_plugins (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             plugin_id TEXT NOT NULL REFERENCES plugins(plugin_id) ON DELETE CASCADE,
             enabled INTEGER NOT NULL DEFAULT 1,
@@ -1494,7 +1999,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, plugin_id)
         );
 
-        CREATE TABLE plugin_configs (
+        CREATE TABLE IF NOT EXISTS plugin_configs (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             plugin_id TEXT NOT NULL REFERENCES plugins(plugin_id) ON DELETE CASCADE,
             config_json TEXT NOT NULL DEFAULT '{}',
@@ -1503,7 +2008,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, plugin_id)
         );
 
-        CREATE TABLE comic_favorites (
+        CREATE TABLE IF NOT EXISTS comic_favorites (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             unique_key TEXT NOT NULL,
             source TEXT NOT NULL,
@@ -1514,7 +2019,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, unique_key)
         );
 
-        CREATE TABLE comic_histories (
+        CREATE TABLE IF NOT EXISTS comic_histories (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             unique_key TEXT NOT NULL,
             source TEXT NOT NULL,
@@ -1525,7 +2030,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, unique_key)
         );
 
-        CREATE TABLE comic_follows (
+        CREATE TABLE IF NOT EXISTS comic_follows (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             unique_key TEXT NOT NULL,
             payload_json TEXT NOT NULL,
@@ -1534,7 +2039,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, unique_key)
         );
 
-        CREATE TABLE comic_folders (
+        CREATE TABLE IF NOT EXISTS comic_folders (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             sync_id TEXT NOT NULL,
             parent_sync_id TEXT,
@@ -1546,7 +2051,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, sync_id)
         );
 
-        CREATE TABLE comic_links (
+        CREATE TABLE IF NOT EXISTS comic_links (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             unique_key TEXT NOT NULL,
             comic_unique_key TEXT NOT NULL,
@@ -1558,7 +2063,27 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, unique_key)
         );
 
-        CREATE TABLE download_tasks (
+        CREATE TABLE IF NOT EXISTS favorite_folders (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            folder_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, folder_key)
+        );
+
+        CREATE TABLE IF NOT EXISTS favorite_folder_items (
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            unique_key TEXT NOT NULL,
+            folder_key TEXT NOT NULL,
+            favorite_unique_key TEXT NOT NULL,
+            payload_json TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            PRIMARY KEY (user_id, unique_key)
+        );
+
+        CREATE TABLE IF NOT EXISTS download_tasks (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             task_id TEXT NOT NULL,
             status TEXT NOT NULL,
@@ -1569,7 +2094,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, task_id)
         );
 
-        CREATE TABLE download_manifests (
+        CREATE TABLE IF NOT EXISTS download_manifests (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             comic_unique_key TEXT NOT NULL,
             manifest_json TEXT NOT NULL,
@@ -1577,7 +2102,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, comic_unique_key)
         );
 
-        CREATE TABLE assets (
+        CREATE TABLE IF NOT EXISTS assets (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             asset_id TEXT NOT NULL,
             storage_key TEXT NOT NULL,
@@ -1588,12 +2113,12 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, asset_id)
         );
 
-        CREATE TABLE server_meta (
+        CREATE TABLE IF NOT EXISTS server_meta (
             key TEXT PRIMARY KEY NOT NULL,
             value TEXT NOT NULL
         );
 
-        CREATE TABLE sessions (
+        CREATE TABLE IF NOT EXISTS sessions (
             id TEXT PRIMARY KEY NOT NULL,
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             token_hash TEXT NOT NULL UNIQUE,
@@ -1601,7 +2126,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             expires_at TEXT NOT NULL
         );
 
-        CREATE TABLE download_folders (
+        CREATE TABLE IF NOT EXISTS download_folders (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             folder_key TEXT NOT NULL,
             payload_json TEXT NOT NULL,
@@ -1610,7 +2135,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, folder_key)
         );
 
-        CREATE TABLE download_folder_items (
+        CREATE TABLE IF NOT EXISTS download_folder_items (
             user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             unique_key TEXT NOT NULL,
             folder_key TEXT NOT NULL,
@@ -1621,7 +2146,7 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             PRIMARY KEY (user_id, unique_key)
         );
 
-        CREATE TABLE plugin_objects (
+        CREATE TABLE IF NOT EXISTS plugin_objects (
             content_hash TEXT PRIMARY KEY NOT NULL,
             compression TEXT NOT NULL,
             original_size INTEGER NOT NULL,
@@ -1630,14 +2155,14 @@ fn initialize_schema(connection: &mut Connection) -> anyhow::Result<()> {
             created_at TEXT NOT NULL
         );
 
-        CREATE INDEX plugin_configs_plugin_idx ON plugin_configs(plugin_id);
-        CREATE INDEX download_tasks_status_idx ON download_tasks(status, updated_at);
-        CREATE INDEX assets_user_created_idx ON assets(user_id, created_at);
-        CREATE INDEX sessions_user_id_idx ON sessions(user_id);
-        CREATE INDEX sessions_expiry_idx ON sessions(expires_at);
-        CREATE INDEX download_folder_items_folder_idx
+        CREATE INDEX IF NOT EXISTS plugin_configs_plugin_idx ON plugin_configs(plugin_id);
+        CREATE INDEX IF NOT EXISTS download_tasks_status_idx ON download_tasks(status, updated_at);
+        CREATE INDEX IF NOT EXISTS assets_user_created_idx ON assets(user_id, created_at);
+        CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
+        CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions(expires_at);
+        CREATE INDEX IF NOT EXISTS download_folder_items_folder_idx
             ON download_folder_items(user_id, folder_key);
-        CREATE INDEX plugin_objects_storage_idx ON plugin_objects(storage_key);
+        CREATE INDEX IF NOT EXISTS plugin_objects_storage_idx ON plugin_objects(storage_key);
         "#,
     )?;
     transaction.commit()?;
@@ -1670,6 +2195,11 @@ mod tests {
                 .expect("plugin catalog should be readable")
                 .is_empty()
         );
+        drop(database);
+
+        // 服务端重启会再次初始化当前 schema；这必须是幂等操作，不能因为
+        // 当前数据库已经存在而把整个服务端启动失败。
+        let database = Database::open(&data_dir).expect("database should reopen");
 
         let user = database
             .create_user("user-1", "alice", "hash", "1")
@@ -1812,6 +2342,36 @@ mod tests {
             .expect("manifest should exist");
         let manifest: Value = serde_json::from_str(&manifest).expect("manifest should be JSON");
         assert_eq!(manifest["pages"][0]["asset_id"], "asset-1");
+        database
+            .create_asset(
+                &user.id,
+                "asset-cover",
+                "user-1/asset-cover.bin",
+                "image/gif",
+                4,
+                "hash-cover",
+                "8",
+            )
+            .expect("migration cover asset should be written");
+        database
+            .append_migration_asset(
+                &user.id,
+                "source",
+                "comic-4",
+                "source:comic-4",
+                "cover.jpg",
+                "cover",
+                None,
+                "asset-cover",
+                "8",
+            )
+            .expect("migration cover asset should be linked");
+        let manifest = database
+            .find_manifest(&user.id, "source:comic-4")
+            .expect("manifest should be readable")
+            .expect("manifest should exist");
+        let manifest: Value = serde_json::from_str(&manifest).expect("manifest should be JSON");
+        assert_eq!(manifest["cover_asset"]["asset_id"], "asset-cover");
 
         let exported = database
             .export_migration_data(&user.id, true)
@@ -1819,7 +2379,16 @@ mod tests {
         assert_eq!(exported["favorites"].as_array().unwrap().len(), 2);
         assert_eq!(exported["plugin_configs"][0]["name"], "plugin-1");
         assert_eq!(exported["downloads"][0]["uniqueKey"], "source:comic-4");
-        assert_eq!(exported["download_assets"][0]["asset_id"], "asset-1");
+        assert_eq!(exported["download_assets"].as_array().unwrap().len(), 2);
+        assert_eq!(
+            exported["download_assets"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|asset| asset["kind"].as_str() == Some("cover"))
+                .unwrap()["asset_id"],
+            "asset-cover"
+        );
         assert_eq!(exported["download_folders"][0]["folderKey"], "all");
         assert_eq!(exported["download_folder_items"][0]["uniqueKey"], "item-1");
 

@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
+import 'package:zephyr/cs/data/cs_server_download.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -42,6 +44,7 @@ Future<String> getCachePicture({
   if (url.contains("nopic-Male.gif")) return "nopic-Male.gif";
 
   final directPath = path.trim();
+  final remoteAssetId = csServerAssetId(directPath);
   if (directPath.isNotEmpty && file_path.isAbsolute(directPath)) {
     final directFile = File(directPath);
     if (await directFile.exists()) {
@@ -94,7 +97,7 @@ Future<String> getCachePicture({
     }
   }
 
-  if (url.isEmpty) {
+  if (url.isEmpty && remoteAssetId == null) {
     throw Exception('404');
   }
 
@@ -110,11 +113,9 @@ Future<String> getCachePicture({
   extern = {...?extern};
   extern['priority'] ??= 0;
 
-  final imageData = await downloadImageWithRetry(
-    url,
-    source: resolvedFrom,
-    extern: extern,
-  );
+  final imageData = remoteAssetId == null
+      ? await downloadImageWithRetry(url, source: resolvedFrom, extern: extern)
+      : await CsRuntimeContext.I.serverAsset(remoteAssetId);
 
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(

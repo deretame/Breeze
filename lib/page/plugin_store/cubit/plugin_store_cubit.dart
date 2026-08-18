@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/cs/data/cs_api_client.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_install_service.dart';
@@ -19,7 +20,6 @@ class PluginStoreState {
     this.cloudLoading = false,
     this.cloudError = '',
     this.cloudPlugins = const <CloudPluginItem>[],
-    this.serverPlugins = const <String, CsPluginRecord>{},
   });
 
   final bool installing;
@@ -27,7 +27,6 @@ class PluginStoreState {
   final bool cloudLoading;
   final String cloudError;
   final List<CloudPluginItem> cloudPlugins;
-  final Map<String, CsPluginRecord> serverPlugins;
 
   PluginStoreState copyWith({
     bool? installing,
@@ -35,7 +34,6 @@ class PluginStoreState {
     bool? cloudLoading,
     String? cloudError,
     List<CloudPluginItem>? cloudPlugins,
-    Map<String, CsPluginRecord>? serverPlugins,
   }) {
     return PluginStoreState(
       installing: installing ?? this.installing,
@@ -43,15 +41,21 @@ class PluginStoreState {
       cloudLoading: cloudLoading ?? this.cloudLoading,
       cloudError: cloudError ?? this.cloudError,
       cloudPlugins: cloudPlugins ?? this.cloudPlugins,
-      serverPlugins: serverPlugins ?? this.serverPlugins,
     );
   }
 }
 
 class PluginStoreCubit extends Cubit<PluginStoreState> {
-  PluginStoreCubit() : super(const PluginStoreState());
+  PluginStoreCubit({required PluginRegistryCubit registry})
+    : _registry = registry,
+      super(const PluginStoreState());
+
+  final PluginRegistryCubit _registry;
+  int _loadGeneration = 0;
 
   Future<void> loadCloudPlugins() async {
+    if (isClosed) return;
+    final requestGeneration = ++_loadGeneration;
     emit(state.copyWith(cloudLoading: true, cloudError: ''));
 
     try {
@@ -60,21 +64,13 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        final result = await Future.wait([
-          client.pluginCatalog(),
-          client.plugins(),
-        ]);
-        final cloudItems = (result[0] as List<CsCloudPluginItem>)
+        final cloudItems = (await client.pluginCatalog())
             .map(_toCloudPluginItem)
             .toList();
-        final serverPlugins = {
-          for (final plugin in result[1] as List<CsPluginRecord>)
-            plugin.pluginId: plugin,
-        };
+        if (isClosed || requestGeneration != _loadGeneration) return;
         emit(
           state.copyWith(
             cloudPlugins: cloudItems,
-            serverPlugins: serverPlugins,
             cloudLoading: false,
             cloudError: '',
           ),
@@ -89,6 +85,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
           .where((item) => item.manifest.uuid.trim().isNotEmpty)
           .toList();
 
+      if (isClosed || requestGeneration != _loadGeneration) return;
       emit(
         state.copyWith(
           cloudPlugins: entries,
@@ -97,6 +94,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         ),
       );
     } catch (e, stackTrace) {
+      if (isClosed || requestGeneration != _loadGeneration) return;
       logger.w('拉取云端插件列表失败', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
@@ -123,13 +121,8 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
         if (client == null) {
           throw StateError('CS 服务端连接尚未建立');
         }
-        await client.installCatalogPlugin(item.manifest.uuid);
-        final record = await client.pluginDetail(item.manifest.uuid);
-        emit(
-          state.copyWith(
-            serverPlugins: {...state.serverPlugins, record.pluginId: record},
-          ),
-        );
+        final installed = await client.installCatalogPlugin(item.manifest.uuid);
+        await _applyInstalledPlugin(installed);
         message = '服务端插件安装成功';
       } else {
         message = await PluginInstallService.I.installFromCloud(item);
@@ -160,12 +153,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
           Uint8List.fromList(bytes),
           fileName: fileName,
         );
-        final record = await client.pluginDetail(installed.pluginId);
-        emit(
-          state.copyWith(
-            serverPlugins: {...state.serverPlugins, record.pluginId: record},
-          ),
-        );
+        await _applyInstalledPlugin(installed);
         message = '服务端插件安装成功';
       } else {
         message = await PluginInstallService.I.installFromLocalBytes(
@@ -193,12 +181,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
           throw StateError('CS 服务端连接尚未建立');
         }
         final installed = await client.installPluginFromUrl(rawUrl);
-        final record = await client.pluginDetail(installed.pluginId);
-        emit(
-          state.copyWith(
-            serverPlugins: {...state.serverPlugins, record.pluginId: record},
-          ),
-        );
+        await _applyInstalledPlugin(installed);
         message = '服务端插件安装成功';
       } else {
         message = await PluginInstallService.I.installFromNetworkUrl(rawUrl);
@@ -206,6 +189,24 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       _reportInstallSuccess(message);
     } catch (e) {
       _reportInstallFailure(t.plugin.networkDownloadFailed(error: e));
+    }
+  }
+
+  Future<void> _applyInstalledPlugin(CsPluginRecord installed) async {
+    // 先使用安装接口返回值更新全局状态，保证当前页面立即变化；详情只
+    // 用于补齐名称和 getInfo，详情请求失败不应否定已经成功的安装。
+    _registry.applyRemoteRecord(installed);
+    final client = CsRuntimeContext.I.client;
+    if (client == null) return;
+    try {
+      final detail = await client.pluginDetail(installed.pluginId);
+      _registry.applyRemoteRecord(detail);
+    } catch (error, stackTrace) {
+      logger.w(
+        '安装插件后读取详情失败，保留安装状态: ${installed.pluginId}',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 

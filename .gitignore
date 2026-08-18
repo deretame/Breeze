@@ -82,6 +82,7 @@ third_party/llrt/
 third_party/Aidoku/
 
 node_modules
+**/*.tsbuildinfo
 
 # RealSR large binaries / downloaded assets
 asset/realsr/
@@ -112,4 +113,8 @@ native/generated/ir.json
 # CS server/frontend local artifacts
 /cs_server/data/
 /cs_server/target/
+/cs_server/target-*/
+/cs_server/plugins/objects/
 /cs_web/dist/
+/cs_web/coverage/
+/cs_web/.vite/

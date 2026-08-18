@@ -1,0 +1,42 @@
+# Breeze CS 服务端配置。
+#
+# 相对路径都相对于本配置文件所在目录（cs_server）解析；也可以填写绝对路径。
+# 启动服务端时默认读取本文件，也可以使用 --config <path> 指定另一份配置。
+
+# 监听地址。仅本机使用时保持 127.0.0.1；需要局域网或公网访问时才改为 0.0.0.0，
+# 并同时配置防火墙、反向代理和 admin_token。
+host: 127.0.0.1
+port: 8787
+
+# SQLite、下载资源和插件 bundle 的服务端存储目录。
+data_dir: data
+plugin_root: plugins
+
+# 独立 Web 前端的构建输出目录。目录不存在时，服务端仍然可以只提供 API。
+web_root: ../cs_web/dist
+
+# 是否允许已登录用户从插件目录安装或更新插件。这个开关不是插件权限系统。
+allow_plugin_install: true
+
+# 是否允许注册账号。省略时，回环监听默认开启，非回环监听默认关闭。
+allow_registration: true
+session_ttl_days: 30
+
+# 管理接口令牌。未设置（null）时禁用 /api/v1/admin/*；部署到非本机时建议设置随机长令牌。
+admin_token: null
+
+# 独立 Web 前端开发时允许的来源；同源部署保持 null。不要同时配置多个来源。
+cors_origin: null
+
+# 所有插件请求、普通 HTTP 请求和服务端下载共用的代理配置，HTTP 与 SOCKS5 只能配置一个。
+http_proxy: null
+socks5_proxy: null
+
+# 仅在确实需要兼容自签名图源时开启；这会降低 HTTPS 安全性。
+disable_tls_verify: false
+
+# 是否允许插件请求内网地址。默认关闭，避免服务端被插件间接用于访问内网服务。
+allow_private_network: false
+
+# 服务端日志过滤器。
+log_filter: breeze_cs_server=info,tower_http=info

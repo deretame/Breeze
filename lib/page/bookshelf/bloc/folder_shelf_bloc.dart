@@ -6,6 +6,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:equatable/equatable.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -264,6 +265,12 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
 
   ComicFolderType get _folderType => _toFolderType(state.mode);
 
+  bool get _useRemote =>
+      CsRuntimeContext.I.isCsMode &&
+      CsRuntimeContext.I.database != null &&
+      (state.mode != ShelfPageMode.download ||
+          CsRuntimeContext.I.isServerDownload);
+
   static ComicFolderType _toFolderType(ShelfPageMode mode) {
     return switch (mode) {
       ShelfPageMode.favorite => ComicFolderType.favorite,
@@ -281,17 +288,26 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       final search = event.search ?? state.search;
       final currentMode = state.mode;
       final currentPath = state.currentPath;
-      final token = captureWorkerIsolateToken();
-      final payload = {
-        'mode': currentMode.name,
-        'currentPath': currentPath,
-        'keyword': search?.keyword ?? '',
-        'sort': search?.sort ?? 'dd',
-        'sources': search?.sources ?? const <String>[],
-      };
-      final result = await workerManager.execute<Map<String, dynamic>>(
-        () => _runFolderShelfLoadTask(payload, token),
-      );
+      final Map<String, dynamic> result;
+      if (_useRemote) {
+        result = await _loadRemoteFolderShelf(
+          mode: currentMode,
+          currentPath: currentPath,
+          search: search,
+        );
+      } else {
+        final token = captureWorkerIsolateToken();
+        final payload = {
+          'mode': currentMode.name,
+          'currentPath': currentPath,
+          'keyword': search?.keyword ?? '',
+          'sort': search?.sort ?? 'dd',
+          'sources': search?.sources ?? const <String>[],
+        };
+        result = await workerManager.execute<Map<String, dynamic>>(
+          () => _runFolderShelfLoadTask(payload, token),
+        );
+      }
 
       final error = result['error']?.toString() ?? '';
       if (error.isNotEmpty) {
@@ -547,6 +563,116 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
   void _exitSelectionAndRefresh() {
     add(const FolderShelfExitSelectionMode());
     add(const FolderShelfLoadRequested());
+  }
+}
+
+Future<Map<String, dynamic>> _loadRemoteFolderShelf({
+  required ShelfPageMode mode,
+  required String currentPath,
+  required SearchStatusState? search,
+}) async {
+  try {
+    final database = CsRuntimeContext.I.database;
+    if (database == null) {
+      throw StateError('CS 业务数据库未初始化');
+    }
+    await database.load();
+    if (mode == ShelfPageMode.download) {
+      await database.loadServerDownloads(force: true);
+    }
+
+    final folderType = FolderShelfBloc._toFolderType(mode);
+    final keyword = search?.keyword ?? '';
+    final sort = search?.sort ?? 'dd';
+    final sortAscending = sort == 'da';
+    final sourceFilter = _sourceFilterFromSearch(search, folderType);
+    final folderMembers = _folderMembersFromSearch(search, folderType);
+    final isSearching = keyword.trim().isNotEmpty;
+    final normalizedKeyword = isSearching ? _normalizeSearchText(keyword) : '';
+    final folders = isSearching
+        ? <ComicFolder>[]
+        : ComicFolderService.listChildFolders(
+            currentPath,
+            folderType,
+            sortAscending: sortAscending,
+          );
+    final links = isSearching
+        ? ComicLinkService.listAllLinks(
+            folderType,
+            sortAscending: sortAscending,
+          )
+        : ComicLinkService.listLinks(
+            currentPath.isEmpty ? null : currentPath,
+            folderType,
+            sortAscending: sortAscending,
+          );
+
+    final comics = <ComicSimplifyEntryInfo>[];
+    final comicSearchTexts = <String, String>{};
+    final seenKeys = <String>{};
+    for (final link in links) {
+      if (folderMembers != null &&
+          !folderMembers.contains(link.comicUniqueKey)) {
+        continue;
+      }
+      final resolved = _resolveRemoteComic(link.comicUniqueKey, folderType);
+      if (resolved == null) continue;
+      if (sourceFilter != null &&
+          !sourceFilter.contains(resolved.info.source)) {
+        continue;
+      }
+      final key = '${resolved.info.from.trim()}:${resolved.info.id}';
+      if (!seenKeys.add(key)) continue;
+      if (isSearching && !resolved.searchText.contains(normalizedKeyword)) {
+        continue;
+      }
+      comics.add(resolved.info);
+      comicSearchTexts[key] = resolved.searchText;
+    }
+
+    return {
+      'folders': folders,
+      'comics': comics,
+      'comicSearchTexts': comicSearchTexts,
+    };
+  } catch (e) {
+    return {
+      'error': e.toString(),
+      'folders': <ComicFolder>[],
+      'comics': <ComicSimplifyEntryInfo>[],
+      'comicSearchTexts': <String, String>{},
+    };
+  }
+}
+
+({ComicSimplifyEntryInfo info, String searchText})? _resolveRemoteComic(
+  String uniqueKey,
+  ComicFolderType folderType,
+) {
+  final database = CsRuntimeContext.I.database;
+  if (database == null) return null;
+  switch (folderType) {
+    case ComicFolderType.favorite:
+      final comic = database.findFavorite(uniqueKey);
+      if (comic == null || comic.deleted) return null;
+      return (
+        info: unifiedComicFromUnifiedFavorite(comic).toSimplifyEntryInfo(),
+        searchText: _buildComicSearchText(comic),
+      );
+    case ComicFolderType.history:
+      final comic = database.findHistory(uniqueKey);
+      if (comic == null || comic.deleted) return null;
+      return (
+        info: unifiedComicFromUnifiedHistory(comic).toSimplifyEntryInfo(),
+        searchText: _buildComicSearchText(comic),
+      );
+    case ComicFolderType.download:
+      final comic = database.findServerDownload(uniqueKey);
+      if (comic == null || comic.deleted) return null;
+      return (
+        info: unifiedComicFromUnifiedDownload(comic).toSimplifyEntryInfo(),
+        searchText: _buildComicSearchText(comic),
+      );
   }
 }
 

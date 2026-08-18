@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cs/application/cs_runtime_context.dart';
-import 'package:zephyr/cs/data/cs_api_client.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -28,25 +28,21 @@ class DiscoverPluginInfoState {
   }
 }
 
-/// Discover 页状态：插件列表 + 每个插件的 info 加载状态 + 开关状态。
+/// Discover 页状态：每个插件的 info 加载状态和临时交互状态。
 class DiscoverState {
   const DiscoverState({
-    this.plugins = const {},
     this.infoStates = const {},
     this.togglingUuids = const {},
   });
 
-  final Map<String, PluginRuntimeState> plugins;
   final Map<String, DiscoverPluginInfoState> infoStates;
   final Set<String> togglingUuids;
 
   DiscoverState copyWith({
-    Map<String, PluginRuntimeState>? plugins,
     Map<String, DiscoverPluginInfoState>? infoStates,
     Set<String>? togglingUuids,
   }) {
     return DiscoverState(
-      plugins: plugins ?? this.plugins,
       infoStates: infoStates ?? this.infoStates,
       togglingUuids: togglingUuids ?? this.togglingUuids,
     );
@@ -54,13 +50,17 @@ class DiscoverState {
 }
 
 class DiscoverCubit extends Cubit<DiscoverState> {
-  DiscoverCubit({PluginRegistryService? service})
-    : _service = service ?? PluginRegistryService.I,
-      super(const DiscoverState()) {
-    _subscription = _service.stream.listen((_) => _syncPluginsAndLoad());
-    _syncPluginsAndLoad();
+  DiscoverCubit({
+    required PluginRegistryCubit registry,
+    PluginRegistryService? service,
+  }) : _registry = registry,
+       _service = service ?? PluginRegistryService.I,
+       super(const DiscoverState()) {
+    _subscription = _registry.stream.listen(_syncPluginsAndLoad);
+    _syncPluginsAndLoad(_registry.state);
   }
 
+  final PluginRegistryCubit _registry;
   final PluginRegistryService _service;
   late final StreamSubscription<Map<String, PluginRuntimeState>> _subscription;
 
@@ -70,11 +70,11 @@ class DiscoverCubit extends Cubit<DiscoverState> {
 
   /// 当前默认插件源：优先已启用，否则取首个可见插件。
   String get currentFrom {
-    final active = state.plugins.values.where((s) => s.isActive).toList();
+    final active = _registry.state.values.where((s) => s.isActive).toList();
     if (active.isNotEmpty) {
       return active.first.uuid;
     }
-    final first = state.plugins.values.firstOrNull;
+    final first = _registry.state.values.firstOrNull;
     return first?.uuid ?? '';
   }
 
@@ -96,9 +96,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
           throw StateError('CS 服务端连接尚未建立');
         }
         final plugin = await client.updatePluginState(uuid, enabled: enabled);
-        final plugins = Map<String, PluginRuntimeState>.from(state.plugins)
-          ..[uuid] = _toRuntimeState(plugin);
-        emit(state.copyWith(plugins: plugins));
+        _registry.applyRemoteRecord(plugin);
         return;
       }
       await _service.setEnabled(uuid, enabled);
@@ -122,13 +120,13 @@ class DiscoverCubit extends Cubit<DiscoverState> {
   }
 
   /// 初始加载，与 [reload] 区别是不清空缓存，仅补齐缺失的 info。
-  void load() => _syncPluginsAndLoad();
+  void load() => _syncPluginsAndLoad(_registry.state);
 
   /// 重新加载所有可见插件的 info。
   Future<void> reload() async {
     _cacheKeys.clear();
     emit(state.copyWith(infoStates: const {}));
-    _syncPluginsAndLoad();
+    _syncPluginsAndLoad(_registry.state);
   }
 
   /// 强制重新加载指定插件的 info。
@@ -141,12 +139,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     await _loadPluginInfo(uuid);
   }
 
-  void _syncPluginsAndLoad() {
-    if (CsRuntimeContext.I.isCsMode) {
-      unawaited(_loadServerPlugins());
-      return;
-    }
-    final snapshot = _service.snapshot;
+  void _syncPluginsAndLoad(Map<String, PluginRuntimeState> snapshot) {
     final visibleEntries =
         snapshot.entries.where((e) => !e.value.isDeleted).toList()
           ..sort((a, b) => a.value.insertedAt.compareTo(b.value.insertedAt));
@@ -193,7 +186,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
       ..clear()
       ..addAll(newCacheKeys);
 
-    emit(state.copyWith(plugins: plugins, infoStates: newInfoStates));
+    emit(state.copyWith(infoStates: newInfoStates));
   }
 
   Future<void> _loadPluginInfo(String uuid) async {
@@ -213,7 +206,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
         emit(state.copyWith(infoStates: infoStates));
       }
     } catch (e) {
-      final pluginState = _service.getByUuid(uuid);
+      final pluginState = _registry.state[uuid];
       if (pluginState?.debug == true) {
         showErrorToast(t.discover.pluginDebugLoadFailed(error: e));
       }
@@ -231,32 +224,6 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     }
   }
 
-  Future<void> _loadServerPlugins() async {
-    final client = CsRuntimeContext.I.client;
-    if (client == null) {
-      return;
-    }
-    try {
-      final records = await client.plugins();
-      final plugins = <String, PluginRuntimeState>{};
-      final infoStates = <String, DiscoverPluginInfoState>{};
-      for (final record in records) {
-        plugins[record.pluginId] = _toRuntimeState(record);
-        infoStates[record.pluginId] = DiscoverPluginInfoState(
-          loading: false,
-          data: record.info.isEmpty ? null : record.info,
-        );
-      }
-      if (isClosed) return;
-      emit(state.copyWith(plugins: plugins, infoStates: infoStates));
-    } catch (error) {
-      if (!isClosed) {
-        emit(state.copyWith(infoStates: const {}));
-      }
-      showErrorToast(t.discover.pluginInfoLoadFailed(error: error));
-    }
-  }
-
   Future<Map<String, dynamic>> _loadServerPluginInfo(String uuid) async {
     final client = CsRuntimeContext.I.client;
     if (client == null) {
@@ -266,27 +233,8 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     return record.info;
   }
 
-  PluginRuntimeState _toRuntimeState(CsPluginRecord record) {
-    final now = DateTime.now().toUtc();
-    final updatedAt = DateTime.tryParse(record.updatedAt) ?? now;
-    return PluginRuntimeState(
-      uuid: record.pluginId,
-      version: record.version,
-      originScript: '',
-      isEnabled: record.enabled,
-      isDeleted: false,
-      debug: record.debug,
-      debugUrl: record.debugUrl,
-      lastLoadSuccess: true,
-      lastLoadError: null,
-      insertedAt: updatedAt,
-      updatedAt: updatedAt,
-      deletedAt: null,
-    );
-  }
-
   String _pluginInfoCacheKey(PluginRuntimeState state) {
-    return '${state.isDeleted}|${state.debug}|${state.debugUrl ?? ''}';
+    return '${state.version}|${state.isDeleted}|${state.debug}|${state.debugUrl ?? ''}';
   }
 
   @override

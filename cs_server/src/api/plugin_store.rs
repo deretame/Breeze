@@ -52,6 +52,43 @@ pub struct UpdatePluginStateRequest {
     pub debug_url: Option<String>,
 }
 
+/// Notify connected clients that the server-owned plugin registry changed.
+///
+/// The global bundle is shared by all users, so install/update events are
+/// broadcast. Each client then refreshes its user-scoped plugin list.
+pub(crate) fn notify_plugin_updated(
+    state: &AppState,
+    plugin_id: &str,
+    version: &str,
+    status: &str,
+) {
+    state.websocket_hub.publish_event_to_all(
+        "plugins.updated",
+        json!({
+            "plugin_id": plugin_id,
+            "version": version,
+            "status": status,
+        }),
+    );
+}
+
+/// Notify only the user whose plugin association changed.
+pub(crate) fn notify_user_plugin_updated(
+    state: &AppState,
+    user_id: &str,
+    plugin_id: &str,
+    status: &str,
+) {
+    state.websocket_hub.publish_event(
+        user_id,
+        "plugins.updated",
+        json!({
+            "plugin_id": plugin_id,
+            "status": status,
+        }),
+    );
+}
+
 pub async fn catalog(State(state): State<AppState>) -> Result<Json<CatalogResponse>, ApiError> {
     let items = plugin_store::fetch_catalog(&state.http_client).await?;
     Ok(Json(CatalogResponse {
@@ -65,7 +102,7 @@ pub async fn install_catalog(
     headers: HeaderMap,
     Json(request): Json<CatalogInstallRequest>,
 ) -> Result<Json<InstallPluginResponse>, ApiError> {
-    let user_id = authorize_plugin_install(&state, &headers)?;
+    let user_id = authorize_plugin_install(&state, &headers).await?;
     let plugin_id = request.plugin_id.trim();
     if plugin_id.is_empty() {
         return Err(ApiError::BadRequest("plugin_id 不能为空".to_owned()));
@@ -77,7 +114,8 @@ pub async fn install_catalog(
         .find(|item| item.manifest.uuid == plugin_id)
         .ok_or_else(|| ApiError::NotFound)?;
     let response = install_catalog_item(&state, item).await?;
-    link_user_plugin(&state, &user_id, &response)?;
+    link_user_plugin(&state, &user_id, &response).await?;
+    notify_plugin_updated(&state, &response.plugin_id, &response.version, "installed");
     Ok(Json(response))
 }
 
@@ -94,7 +132,7 @@ pub async fn install_url(
     headers: HeaderMap,
     Json(request): Json<UrlInstallRequest>,
 ) -> Result<Json<InstallPluginResponse>, ApiError> {
-    let user_id = authorize_plugin_install(&state, &headers)?;
+    let user_id = authorize_plugin_install(&state, &headers).await?;
     let url = request.url.trim();
     if url.is_empty() {
         return Err(ApiError::BadRequest("插件 URL 不能为空".to_owned()));
@@ -107,7 +145,8 @@ pub async fn install_url(
         &bundle,
     )
     .await?;
-    link_user_plugin(&state, &user_id, &response)?;
+    link_user_plugin(&state, &user_id, &response).await?;
+    notify_plugin_updated(&state, &response.plugin_id, &response.version, "installed");
     Ok(Json(response))
 }
 
@@ -116,7 +155,7 @@ pub async fn install_bundle(
     headers: HeaderMap,
     Json(request): Json<BundleInstallRequest>,
 ) -> Result<Json<InstallPluginResponse>, ApiError> {
-    let user_id = authorize_plugin_install(&state, &headers)?;
+    let user_id = authorize_plugin_install(&state, &headers).await?;
     let bytes = BASE64
         .decode(request.bundle_base64.trim())
         .map_err(|error| ApiError::BadRequest(format!("插件 bundle 不是合法 Base64: {error}")))?;
@@ -131,7 +170,8 @@ pub async fn install_bundle(
         &bundle,
     )
     .await?;
-    link_user_plugin(&state, &user_id, &response)?;
+    link_user_plugin(&state, &user_id, &response).await?;
+    notify_plugin_updated(&state, &response.plugin_id, &response.version, "installed");
     Ok(Json(response))
 }
 
@@ -141,32 +181,45 @@ pub async fn update_state(
     AxumPath(plugin_id): AxumPath<String>,
     Json(request): Json<UpdatePluginStateRequest>,
 ) -> Result<Json<plugin_api::PluginDetailResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
+    let user_id = user.id.clone();
+    let plugin_id_for_database = plugin_id.clone();
     let current = state
         .database
-        .find_user_plugin(&user.id, &plugin_id)?
+        .run_blocking(move |database| database.find_user_plugin(&user_id, &plugin_id_for_database))
+        .await?
         .ok_or(ApiError::NotFound)?;
     let debug_url = request
         .debug_url
         .or(current.debug_url)
         .map(|url| url.trim().to_owned())
         .filter(|url| !url.is_empty());
-    state.database.upsert_user_plugin(
-        &user.id,
-        &plugin_id,
-        request.enabled.unwrap_or(current.enabled),
-        request.debug.unwrap_or(current.debug),
-        debug_url.as_deref(),
-        &super::auth::now_millis(),
-    )?;
+    let user_id = user.id.clone();
+    let enabled = request.enabled.unwrap_or(current.enabled);
+    let debug = request.debug.unwrap_or(current.debug);
+    let updated_at = super::auth::now_millis();
+    let plugin_id_for_update = plugin_id.clone();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.upsert_user_plugin(
+                &user_id,
+                &plugin_id_for_update,
+                enabled,
+                debug,
+                debug_url.as_deref(),
+                &updated_at,
+            )
+        })
+        .await?;
     if request.enabled == Some(false) {
         state
             .plugin_runtime
             .drop_plugin_runtime(&user.id, &plugin_id);
     }
-    Ok(Json(
-        plugin_api::plugin_detail_for_user(&state, &user.id, &plugin_id).await?,
-    ))
+    let response = plugin_api::plugin_detail_for_user(&state, &user.id, &plugin_id).await?;
+    notify_user_plugin_updated(&state, &user.id, &plugin_id, "state_changed");
+    Ok(Json(response))
 }
 
 pub async fn uninstall(
@@ -174,19 +227,37 @@ pub async fn uninstall(
     headers: HeaderMap,
     AxumPath(plugin_id): AxumPath<String>,
 ) -> Result<StatusCode, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
+    let user_id = user.id.clone();
+    let plugin_id_for_database = plugin_id.clone();
     if state
         .database
-        .find_user_plugin(&user.id, &plugin_id)?
+        .run_blocking(move |database| database.find_user_plugin(&user_id, &plugin_id_for_database))
+        .await?
         .is_none()
     {
         return Err(ApiError::NotFound);
     }
-    state.database.remove_user_plugin(&user.id, &plugin_id)?;
-    state.database.delete_plugin_config(&user.id, &plugin_id)?;
+    let user_id = user.id.clone();
+    let plugin_id_for_database = plugin_id.clone();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.remove_user_plugin(&user_id, &plugin_id_for_database)
+        })
+        .await?;
+    let user_id = user.id.clone();
+    let plugin_id_for_database = plugin_id.clone();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.delete_plugin_config(&user_id, &plugin_id_for_database)
+        })
+        .await?;
     state
         .plugin_runtime
         .drop_plugin_runtime(&user.id, &plugin_id);
+    notify_user_plugin_updated(&state, &user.id, &plugin_id, "uninstalled");
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -232,31 +303,50 @@ pub(crate) async fn install_validated_bundle(
     Ok(admin::install_bundle(state, &plugin_id, &version, bundle, true).await?)
 }
 
-fn link_user_plugin(
+async fn link_user_plugin(
     state: &AppState,
     user_id: &str,
     plugin: &InstallPluginResponse,
 ) -> Result<(), ApiError> {
+    let user_id_for_database = user_id.to_owned();
+    let plugin_id = plugin.plugin_id.clone();
     let current = state
         .database
-        .find_user_plugin(user_id, &plugin.plugin_id)?;
-    state.database.upsert_user_plugin(
-        user_id,
-        &plugin.plugin_id,
-        current
-            .as_ref()
-            .map(|item| item.enabled)
-            .unwrap_or(plugin.enabled),
-        current.as_ref().map(|item| item.debug).unwrap_or(false),
-        current.as_ref().and_then(|item| item.debug_url.as_deref()),
-        &super::auth::now_millis(),
-    )?;
+        .run_blocking({
+            let plugin_id = plugin_id.clone();
+            move |database| database.find_user_plugin(&user_id_for_database, &plugin_id)
+        })
+        .await?;
+    let enabled = current
+        .as_ref()
+        .map(|item| item.enabled)
+        .unwrap_or(plugin.enabled);
+    let debug = current.as_ref().map(|item| item.debug).unwrap_or(false);
+    let debug_url = current.as_ref().and_then(|item| item.debug_url.clone());
+    let updated_at = super::auth::now_millis();
+    let user_id = user_id.to_owned();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.upsert_user_plugin(
+                &user_id,
+                &plugin_id,
+                enabled,
+                debug,
+                debug_url.as_deref(),
+                &updated_at,
+            )
+        })
+        .await?;
     Ok(())
 }
 
-fn authorize_plugin_install(state: &AppState, headers: &HeaderMap) -> Result<String, ApiError> {
+async fn authorize_plugin_install(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<String, ApiError> {
     if !state.config.plugin_install_enabled {
         return Err(ApiError::Forbidden);
     }
-    Ok(current_user(state, headers)?.id)
+    Ok(current_user(state, headers).await?.id)
 }

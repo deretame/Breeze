@@ -4,6 +4,7 @@ export 'application/cs_runtime_context.dart';
 export 'data/cs_api_client.dart';
 export 'data/cs_plugin_bridge_channel.dart';
 export 'data/cs_connection_store.dart';
+export 'data/cs_remote_database.dart';
 export 'data/remote_library_repository.dart';
 export 'data/remote_plugin_gateway.dart';
 export 'domain/cs_connection_settings.dart';

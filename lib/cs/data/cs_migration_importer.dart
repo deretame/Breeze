@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/get_path.dart';
 
 typedef CsMigrationAssetReader = Future<Uint8List> Function(String assetId);
@@ -100,6 +101,8 @@ class CsMigrationImporter {
           _putAll(objectbox.comicFollowBox, parsed.follows);
           _putAll(objectbox.comicFolderBox, parsed.folders);
           _putAll(objectbox.comicLinkBox, parsed.links);
+          _putAll(objectbox.favoriteFolderBox, parsed.favoriteFolders);
+          _putAll(objectbox.favoriteFolderItemBox, parsed.favoriteFolderItems);
           _putAll(objectbox.pluginConfigBox, parsed.pluginConfigs);
           _putAll(objectbox.pluginInfoBox, parsed.plugins);
           if (includeDownloads) {
@@ -150,6 +153,14 @@ class CsMigrationImporter {
       follows: _parseList(data['follows'], ComicFollow.fromJson),
       folders: _parseList(data['folders'], ComicFolder.fromJson),
       links: _parseList(data['links'], ComicLink.fromJson),
+      favoriteFolders: _parseList(
+        data['favorite_folders'],
+        FavoriteFolder.fromJson,
+      ),
+      favoriteFolderItems: _parseList(
+        data['favorite_folder_items'],
+        FavoriteFolderItem.fromJson,
+      ),
       pluginConfigs: _parseList(data['plugin_configs'], PluginConfig.fromJson),
       plugins: _parsePlugins(data['plugins']),
       downloads: includeDownloads
@@ -192,7 +203,7 @@ class CsMigrationImporter {
               downloadRoot,
               _safeSegment(source),
               'original',
-              _safeSegment(comicId),
+              encodePath(path: _safeSegment(comicId)),
             );
           return UnifiedComicDownload.fromJson(updated);
         })
@@ -236,6 +247,10 @@ class CsMigrationImporter {
             assetId: assetId,
             comicKey: comicKey,
             relativePath: _safeRelativePath(path),
+            kind: json['kind']?.toString().trim() == 'cover' ? 'cover' : 'page',
+            chapterId: json['chapter_id']?.toString().trim().isNotEmpty == true
+                ? json['chapter_id']!.toString().trim()
+                : null,
           );
         })
         .toList(growable: false);
@@ -247,6 +262,8 @@ class CsMigrationImporter {
     objectbox.comicFollowBox.removeAll();
     objectbox.comicFolderBox.removeAll();
     objectbox.comicLinkBox.removeAll();
+    objectbox.favoriteFolderBox.removeAll();
+    objectbox.favoriteFolderItemBox.removeAll();
     objectbox.pluginConfigBox.removeAll();
     objectbox.pluginInfoBox.removeAll();
     if (includeDownloads) {
@@ -304,7 +321,7 @@ class CsMigrationImporter {
         root.path,
         _safeSegment(download.source),
         'original',
-        _safeSegment(download.comicId),
+        encodePath(path: _safeSegment(download.comicId)),
       );
       final target = p.join(targetRoot, asset.relativePath);
       if (!_isInside(targetRoot, target)) {
@@ -393,6 +410,8 @@ class _ParsedMigrationData {
     required this.follows,
     required this.folders,
     required this.links,
+    required this.favoriteFolders,
+    required this.favoriteFolderItems,
     required this.pluginConfigs,
     required this.plugins,
     required this.downloads,
@@ -408,6 +427,8 @@ class _ParsedMigrationData {
   final List<ComicFollow> follows;
   final List<ComicFolder> folders;
   final List<ComicLink> links;
+  final List<FavoriteFolder> favoriteFolders;
+  final List<FavoriteFolderItem> favoriteFolderItems;
   final List<PluginConfig> pluginConfigs;
   final List<PluginInfo> plugins;
   final List<UnifiedComicDownload> downloads;
@@ -424,6 +445,8 @@ class _ParsedMigrationData {
       follows: follows,
       folders: folders,
       links: links,
+      favoriteFolders: favoriteFolders,
+      favoriteFolderItems: favoriteFolderItems,
       pluginConfigs: pluginConfigs,
       plugins: plugins,
       downloads: downloads,
@@ -440,11 +463,15 @@ class _MigrationAsset {
     required this.assetId,
     required this.comicKey,
     required this.relativePath,
+    required this.kind,
+    required this.chapterId,
   });
 
   final String assetId;
   final String comicKey;
   final String relativePath;
+  final String kind;
+  final String? chapterId;
 }
 
 class _StagedAsset {

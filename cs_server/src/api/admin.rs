@@ -34,16 +34,21 @@ async fn install_plugin(
 ) -> Result<Json<InstallPluginResponse>, ApiError> {
     authorize(&state, &headers)?;
     validate_plugin_id(&plugin_id)?;
-    Ok(Json(
-        install_bundle(
-            &state,
-            &plugin_id,
-            &request.version,
-            &request.bundle,
-            request.enabled,
-        )
-        .await?,
-    ))
+    let response = install_bundle(
+        &state,
+        &plugin_id,
+        &request.version,
+        &request.bundle,
+        request.enabled,
+    )
+    .await?;
+    super::plugin_store::notify_plugin_updated(
+        &state,
+        &response.plugin_id,
+        &response.version,
+        "installed",
+    );
+    Ok(Json(response))
 }
 
 pub(crate) async fn install_bundle(
@@ -71,23 +76,46 @@ pub(crate) async fn install_bundle(
         return Err(ApiError::Forbidden);
     }
     let compressed_size = tokio::fs::metadata(&object_path).await?.len() as i64;
-    let record = state.database.upsert_plugin(
-        plugin_id,
-        version.trim(),
-        &storage_key,
-        &bundle_hash,
-        enabled,
-        &now_millis(),
-    )?;
-    state.database.upsert_plugin_object(
-        &bundle_hash,
-        "brotli",
-        bundle.len() as i64,
-        compressed_size,
-        &storage_key,
-        &now_millis(),
-    )?;
-    for orphan in state.database.remove_unreferenced_plugin_objects()? {
+    let plugin_id_for_database = plugin_id.to_owned();
+    let version_for_database = version.trim().to_owned();
+    let storage_key_for_database = storage_key.clone();
+    let bundle_hash_for_database = bundle_hash.clone();
+    let updated_at = now_millis();
+    let bundle_original_size = bundle.len() as i64;
+    let record = state
+        .database
+        .run_blocking(move |database| {
+            database.upsert_plugin(
+                &plugin_id_for_database,
+                &version_for_database,
+                &storage_key_for_database,
+                &bundle_hash_for_database,
+                enabled,
+                &updated_at,
+            )
+        })
+        .await?;
+    let bundle_hash_for_object = bundle_hash.clone();
+    let storage_key_for_object = storage_key.clone();
+    let updated_at = now_millis();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.upsert_plugin_object(
+                &bundle_hash_for_object,
+                "brotli",
+                bundle_original_size,
+                compressed_size,
+                &storage_key_for_object,
+                &updated_at,
+            )
+        })
+        .await?;
+    let orphans = state
+        .database
+        .run_blocking(|database| database.remove_unreferenced_plugin_objects())
+        .await?;
+    for orphan in orphans {
         let orphan_path = root.join(&orphan);
         if orphan_path.starts_with(&root) {
             if let Err(error) = tokio::fs::remove_file(&orphan_path).await {

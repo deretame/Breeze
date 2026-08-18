@@ -396,8 +396,12 @@ class CsApiClient {
   }
 
   Future<Map<String, dynamic>> uploadMigrationAsset({
+    required String pluginId,
+    required String comicId,
     required String comicUniqueKey,
     required String relativePath,
+    String kind = 'page',
+    String? chapterId,
     required String mediaType,
     required Uint8List bytes,
   }) {
@@ -405,8 +409,12 @@ class CsApiClient {
       '/api/v1/migrations/assets',
       bytes,
       query: {
+        'plugin_id': pluginId,
+        'comic_id': comicId,
         'comic_key': comicUniqueKey,
         'path': relativePath,
+        'kind': kind,
+        if (chapterId?.trim().isNotEmpty == true) 'chapter_id': chapterId!,
         'media_type': mediaType,
       },
       headers: {'Content-Type': mediaType},
@@ -565,6 +573,10 @@ class CsApiClient {
     );
   }
 
+  Future<void> deleteServerDownload(String comicKey) async {
+    await _delete('/api/v1/downloads/comics/${Uri.encodeComponent(comicKey)}');
+  }
+
   Future<Uint8List> serverAsset(String assetId) async {
     final response = await _httpClient.fetch(
       _url('/api/v1/downloads/assets/${Uri.encodeComponent(assetId)}'),
@@ -711,23 +723,30 @@ class CsApiClient {
 
   dynamic _decodeAny(FetchResponse response) {
     dynamic decoded;
+    Object? decodeError;
     try {
       decoded = response.json;
     } on Object catch (error) {
-      throw FormatException('CS 服务端返回了无效 JSON: $error');
+      decodeError = error;
     }
     if (!response.ok) {
       final map = decoded is Map
           ? Map<String, dynamic>.from(decoded)
           : const {};
+      final plainText = response.text.trim();
       throw CsApiException(
         status: response.status,
         code: map['code'] as String? ?? 'http_error',
-        message: map['message'] as String? ?? 'CS 请求失败',
+        message:
+            map['message'] as String? ??
+            (plainText.isNotEmpty ? plainText : 'CS 请求失败'),
         details: map['details'] is Map
             ? Map<String, dynamic>.from(map['details'] as Map)
             : null,
       );
+    }
+    if (decodeError != null) {
+      throw FormatException('CS 服务端返回了无效 JSON: $decodeError');
     }
     return decoded;
   }

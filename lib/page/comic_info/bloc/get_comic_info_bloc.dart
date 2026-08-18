@@ -5,6 +5,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -43,23 +44,27 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       late dynamic comicInfo;
 
       if (event.type == ComicEntryType.download) {
-        comicInfo =
-            objectbox.unifiedDownloadBox
-                .query(
-                  UnifiedComicDownload_.uniqueKey.equals(
-                    '${event.pluginId}:${event.comicId}',
-                  ),
-                )
-                .build()
-                .findFirst() ??
-            objectbox.unifiedDownloadBox
-                .query(
-                  UnifiedComicDownload_.uniqueKey.equals(
-                    '${event.from}:${event.comicId}',
-                  ),
-                )
-                .build()
-                .findFirst();
+        comicInfo = CsRuntimeContext.I.isServerDownload
+            ? await CsRuntimeContext.I.serverDownload(
+                event.pluginId,
+                event.comicId,
+              )
+            : objectbox.unifiedDownloadBox
+                      .query(
+                        UnifiedComicDownload_.uniqueKey.equals(
+                          '${event.pluginId}:${event.comicId}',
+                        ),
+                      )
+                      .build()
+                      .findFirst() ??
+                  objectbox.unifiedDownloadBox
+                      .query(
+                        UnifiedComicDownload_.uniqueKey.equals(
+                          '${event.from}:${event.comicId}',
+                        ),
+                      )
+                      .build()
+                      .findFirst();
         if (comicInfo == null) {
           final pluginResult = await getComicDetailByPlugin(
             event.comicId,
@@ -69,9 +74,20 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
           comicInfo = pluginResult.source;
           normalComicInfo = pluginResult.normalInfo;
         } else {
-          normalComicInfo = _localizeDownloadDetail(
-            comicInfo as UnifiedComicDownload,
-          );
+          try {
+            normalComicInfo = _localizeDownloadDetail(
+              comicInfo as UnifiedComicDownload,
+            );
+          } catch (_) {
+            // 服务端下载只保存 manifest 和资源引用；详情结构仍由服务端
+            // 插件生成，避免在客户端重复维护一套漫画详情模型。
+            final pluginResult = await getComicDetailByPlugin(
+              event.comicId,
+              event.from,
+              pluginId: event.pluginId,
+            );
+            normalComicInfo = pluginResult.normalInfo;
+          }
         }
       } else {
         final pluginResult = await getComicDetailByPlugin(

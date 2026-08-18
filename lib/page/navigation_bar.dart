@@ -70,7 +70,7 @@ class _NavigationBarState extends State<NavigationBar> {
         await ForegroundTaskService.instance.syncOnAppStart();
       }
     });
-    final globalSetting = objectbox.userSettingBox.get(1)!.globalSetting;
+    final globalSetting = context.read<GlobalSettingCubit>().state;
     final configuredIndex = globalSetting.welcomePageNum;
     final initialIndex = _normalizeWelcomePageIndex(
       configuredIndex,

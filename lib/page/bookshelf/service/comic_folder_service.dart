@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
+import 'package:zephyr/cs/data/cs_remote_database.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
@@ -10,6 +12,15 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 const String kComicFolderRootPath = '';
 
 class ComicFolderService {
+  static bool _useRemote(ComicFolderType type) {
+    return CsRuntimeContext.I.isCsMode &&
+        CsRuntimeContext.I.database != null &&
+        (type != ComicFolderType.download ||
+            CsRuntimeContext.I.isServerDownload);
+  }
+
+  static CsRemoteDatabase get _remote => CsRuntimeContext.I.database!;
+
   static String get _deviceId => syncDeviceId;
 
   static String get _newSyncId => const Uuid().v4();
@@ -24,6 +35,15 @@ class ComicFolderService {
     bool includeDeleted = false,
   }) {
     if (path == null || path.isEmpty) return null;
+    if (_useRemote(type)) {
+      for (final folder in _remote.listFolders(
+        type,
+        includeDeleted: includeDeleted,
+      )) {
+        if (folder.uniqueKey == _uniqueKey(path, type)) return folder.syncId;
+      }
+      return null;
+    }
     var condition = ComicFolder_.uniqueKey.equals(_uniqueKey(path, type));
     if (!includeDeleted) {
       condition = condition.and(ComicFolder_.deletedAt.isNull());
@@ -121,6 +141,19 @@ class ComicFolderService {
     ComicFolderType type, {
     bool sortAscending = false,
   }) {
+    if (_useRemote(type)) {
+      final parentSyncId = _parentSyncIdByPath(parentPath, type);
+      final children = _remote
+          .listFolders(type)
+          .where((folder) => folder.parentSyncId == parentSyncId)
+          .toList();
+      children.sort(
+        (a, b) => sortAscending
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt),
+      );
+      return children;
+    }
     final parentSyncId = _parentSyncIdByPath(parentPath, type);
     final condition = parentSyncId == null
         ? ComicFolder_.parentSyncId.isNull()
@@ -151,6 +184,15 @@ class ComicFolderService {
     ComicFolderType type, {
     bool sortAscending = false,
   }) {
+    if (_useRemote(type)) {
+      final all = _remote.listFolders(type).toList();
+      all.sort(
+        (a, b) => sortAscending
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt),
+      );
+      return all;
+    }
     final query = objectbox.comicFolderBox
         .query(
           ComicFolder_.typeData
@@ -174,6 +216,9 @@ class ComicFolderService {
   /// 获取文件夹名称
   static String? folderName(String path, ComicFolderType type) {
     if (path == kComicFolderRootPath) return null;
+    if (_useRemote(type)) {
+      return _remote.findFolderByUniqueKey(_uniqueKey(path, type))?.name;
+    }
     final folder = objectbox.comicFolderBox
         .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
         .build()
@@ -198,6 +243,37 @@ class ComicFolderService {
     final newPath = _folderPath(parentPath, safeName);
     final uniqueKey = _uniqueKey(newPath, type);
     final parentSyncId = _parentSyncIdByPath(parentPath, type);
+
+    if (_useRemote(type)) {
+      final existed = _remote.findFolderByUniqueKey(uniqueKey);
+      if (existed != null) {
+        if (existed.deletedAt != null) {
+          final now = _now();
+          existed
+            ..name = safeName
+            ..deletedAt = null
+            ..createdAt = now
+            ..updatedAt = now
+            ..versionVectorJson = _bumpVersionVector(existed.versionVectorJson);
+          _remote.saveFolder(existed);
+          return existed;
+        }
+        throw StateError(t.bookshelf.folderNameExists);
+      }
+      final now = _now();
+      final folder = ComicFolder(
+        syncId: _newSyncId,
+        parentSyncId: parentSyncId,
+        uniqueKey: uniqueKey,
+        name: safeName,
+        typeData: type.name,
+        versionVectorJson: _encodeVersionVector({_deviceId: 1}),
+        createdAt: now,
+        updatedAt: now,
+      );
+      _remote.saveFolder(folder);
+      return folder;
+    }
 
     final existed = objectbox.comicFolderBox
         .query(ComicFolder_.uniqueKey.equals(uniqueKey))
@@ -238,6 +314,20 @@ class ComicFolderService {
   static void deleteFolder(String path, ComicFolderType type) {
     if (path == kComicFolderRootPath) return;
     final now = _now();
+
+    if (_useRemote(type)) {
+      final folder = _remote.findFolderByUniqueKey(_uniqueKey(path, type));
+      if (folder == null || folder.deletedAt != null) return;
+      for (final item in _remoteSubtree(folder.syncId, type)) {
+        if (item.deletedAt != null) continue;
+        item
+          ..deletedAt = now
+          ..updatedAt = now
+          ..versionVectorJson = _bumpVersionVector(item.versionVectorJson);
+        _remote.saveFolder(item);
+      }
+      return;
+    }
 
     final folder = objectbox.comicFolderBox
         .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
@@ -284,15 +374,35 @@ class ComicFolderService {
       throw ArgumentError(t.bookshelf.folderNameSlash);
     }
 
+    final parentPath = _parentPath(path);
+    final newPath = _folderPath(parentPath, safeName);
+    final newUniqueKey = _uniqueKey(newPath, type);
+
+    if (_useRemote(type)) {
+      final folder = _remote.findFolderByUniqueKey(_uniqueKey(path, type));
+      if (folder == null || folder.deletedAt != null) return;
+      final duplicated = _remote.findFolderByUniqueKey(newUniqueKey);
+      if (duplicated != null && duplicated.syncId != folder.syncId) {
+        if (duplicated.deletedAt == null) {
+          throw StateError(t.bookshelf.folderNameExists);
+        }
+        duplicated.deletedAt = _now();
+        _remote.saveFolder(duplicated);
+      }
+      folder
+        ..name = safeName
+        ..uniqueKey = newUniqueKey
+        ..updatedAt = _now()
+        ..versionVectorJson = _bumpVersionVector(folder.versionVectorJson);
+      _remote.saveFolder(folder);
+      return;
+    }
+
     final folder = objectbox.comicFolderBox
         .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
         .build()
         .findFirst();
     if (folder == null || folder.deletedAt != null) return;
-
-    final parentPath = _parentPath(path);
-    final newPath = _folderPath(parentPath, safeName);
-    final newUniqueKey = _uniqueKey(newPath, type);
 
     // 检查目标名称是否冲突
     final duplicated = objectbox.comicFolderBox
@@ -325,6 +435,10 @@ class ComicFolderService {
     String targetPath,
     ComicFolderType type,
   ) {
+    if (_useRemote(type)) {
+      _remoteBatchMoveFolders(paths, targetPath, type);
+      return;
+    }
     for (final path in paths) {
       _validateMoveTarget(path, targetPath);
     }
@@ -366,6 +480,10 @@ class ComicFolderService {
     String targetPath,
     ComicFolderType type,
   ) {
+    if (_useRemote(type)) {
+      _remoteBatchCopyFolders(paths, targetPath, type);
+      return;
+    }
     for (final path in paths) {
       if (path == targetPath || targetPath.startsWith('$path/')) {
         throw StateError(t.bookshelf.cannotCopyFolderToSelfOrChild);
@@ -387,6 +505,12 @@ class ComicFolderService {
 
   /// 批量删除文件夹（递归软删除）。
   static void batchDeleteFolders(Set<String> paths, ComicFolderType type) {
+    if (_useRemote(type)) {
+      for (final path in paths) {
+        deleteFolder(path, type);
+      }
+      return;
+    }
     for (final path in paths) {
       deleteFolder(path, type);
     }
@@ -529,5 +653,126 @@ class ComicFolderService {
       }
     }
     return result;
+  }
+
+  static List<ComicFolder> _remoteSubtree(
+    String rootSyncId,
+    ComicFolderType type,
+  ) {
+    final all = _remote.listFolders(type, includeDeleted: true);
+    final result = <ComicFolder>[];
+    final queue = <String>[rootSyncId];
+    while (queue.isNotEmpty) {
+      final parentId = queue.removeLast();
+      for (final folder in all.where((item) => item.parentSyncId == parentId)) {
+        if (result.every((item) => item.syncId != folder.syncId)) {
+          result.add(folder);
+          queue.add(folder.syncId);
+        }
+      }
+    }
+    final root = _remote.findFolderBySyncId(rootSyncId);
+    if (root != null) result.insert(0, root);
+    return result;
+  }
+
+  static void _remoteBatchMoveFolders(
+    Set<String> paths,
+    String targetPath,
+    ComicFolderType type,
+  ) {
+    for (final path in paths) {
+      _validateMoveTarget(path, targetPath);
+    }
+    final targetParentSyncId = _parentSyncIdByPath(targetPath, type);
+    final now = _now();
+    for (final path in paths) {
+      final folder = _remote.findFolderByUniqueKey(_uniqueKey(path, type));
+      if (folder == null || folder.deletedAt != null) continue;
+      final newPath = _folderPath(targetPath, folder.name);
+      final duplicate = _remote.findFolderByUniqueKey(
+        _uniqueKey(newPath, type),
+      );
+      if (duplicate != null && duplicate.syncId != folder.syncId) {
+        if (duplicate.deletedAt == null) {
+          throw StateError(
+            t.bookshelf.targetFolderNameExists(name: folder.name),
+          );
+        }
+      }
+      folder
+        ..parentSyncId = targetParentSyncId
+        ..uniqueKey = _uniqueKey(newPath, type)
+        ..updatedAt = now
+        ..versionVectorJson = _bumpVersionVector(folder.versionVectorJson);
+      _remote.saveFolder(folder);
+    }
+  }
+
+  static void _remoteBatchCopyFolders(
+    Set<String> paths,
+    String targetPath,
+    ComicFolderType type,
+  ) {
+    for (final path in paths) {
+      if (path == targetPath || targetPath.startsWith('$path/')) {
+        throw StateError(t.bookshelf.cannotCopyFolderToSelfOrChild);
+      }
+    }
+    final targetParentSyncId = _parentSyncIdByPath(targetPath, type);
+    for (final path in paths) {
+      final source = _remote.findFolderByUniqueKey(_uniqueKey(path, type));
+      if (source == null || source.deletedAt != null) continue;
+      _remoteCopyFolderRecursive(source, targetParentSyncId, type);
+    }
+  }
+
+  static void _remoteCopyFolderRecursive(
+    ComicFolder source,
+    String? targetParentSyncId,
+    ComicFolderType type,
+  ) {
+    final parentKey = targetParentSyncId ?? '';
+    var targetName = source.name;
+    var suffix = 1;
+    while (_remote.findFolderByUniqueKey(
+          '$parentKey|$targetName|${type.name}',
+        ) !=
+        null) {
+      suffix++;
+      targetName = '${source.name} ($suffix)';
+    }
+    final now = _now();
+    final target = ComicFolder(
+      syncId: _newSyncId,
+      parentSyncId: targetParentSyncId,
+      uniqueKey: '$parentKey|$targetName|${type.name}',
+      name: targetName,
+      typeData: type.name,
+      versionVectorJson: _encodeVersionVector({_deviceId: 1}),
+      createdAt: now,
+      updatedAt: now,
+    );
+    _remote.saveFolder(target);
+    for (final link in _remote.listLinks(type)) {
+      if (link.folderSyncId != source.syncId) continue;
+      _remote.saveLink(
+        ComicLink(
+          uniqueKey: '${link.comicUniqueKey}|${target.syncId}|${type.name}',
+          comicUniqueKey: link.comicUniqueKey,
+          folderSyncId: target.syncId,
+          typeData: type.name,
+          versionVectorJson: _encodeVersionVector({_deviceId: 1}),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+    for (final child
+        in _remote
+            .listFolders(type)
+            .where((item) => item.parentSyncId == source.syncId)) {
+      _remoteCopyFolderRecursive(child, target.syncId, type);
+    }
   }
 }

@@ -53,9 +53,11 @@ async fn register(
         return Err(ApiError::Forbidden);
     }
     validate_credentials(&credentials)?;
+    let username = credentials.username.clone();
     if state
         .database
-        .find_user_by_username(&credentials.username)?
+        .run_blocking(move |database| database.find_user_by_username(&username))
+        .await?
         .is_some()
     {
         return Err(ApiError::Conflict("用户名已存在".to_owned()));
@@ -63,13 +65,16 @@ async fn register(
 
     let password_hash = hash_password(&credentials.password)?;
     let now = now_millis();
-    let user = state.database.create_user(
-        &Uuid::new_v4().to_string(),
-        &credentials.username,
-        &password_hash,
-        &now,
-    )?;
-    create_session(&state, user)
+    let user_id = Uuid::new_v4().to_string();
+    let username = credentials.username.clone();
+    let password_hash_for_database = password_hash.clone();
+    let user = state
+        .database
+        .run_blocking(move |database| {
+            database.create_user(&user_id, &username, &password_hash_for_database, &now)
+        })
+        .await?;
+    create_session(&state, user).await
 }
 
 async fn login(
@@ -77,9 +82,11 @@ async fn login(
     Json(credentials): Json<Credentials>,
 ) -> Result<Json<SessionResponse>, ApiError> {
     validate_credentials(&credentials)?;
+    let username = credentials.username.clone();
     let Some(user) = state
         .database
-        .find_user_by_username(&credentials.username)?
+        .run_blocking(move |database| database.find_user_by_username(&username))
+        .await?
     else {
         return Err(ApiError::Unauthorized);
     };
@@ -90,7 +97,7 @@ async fn login(
     Argon2::default()
         .verify_password(credentials.password.as_bytes(), &parsed_hash)
         .map_err(|_| ApiError::Unauthorized)?;
-    create_session(&state, user)
+    create_session(&state, user).await
 }
 
 async fn logout(
@@ -98,7 +105,11 @@ async fn logout(
     headers: HeaderMap,
 ) -> Result<Json<LogoutResponse>, ApiError> {
     let token = bearer_token(&headers).ok_or(ApiError::Unauthorized)?;
-    state.database.delete_session(&hash_token(token))?;
+    let token_hash = hash_token(token);
+    state
+        .database
+        .run_blocking(move |database| database.delete_session(&token_hash))
+        .await?;
     Ok(Json(LogoutResponse { logged_out: true }))
 }
 
@@ -106,23 +117,30 @@ async fn me(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Json<UserResponse>, ApiError> {
-    let user = current_user(&state, &headers)?;
+    let user = current_user(&state, &headers).await?;
     Ok(Json(user_response(user)))
 }
 
-pub fn current_user(state: &AppState, headers: &HeaderMap) -> Result<UserRecord, ApiError> {
+pub async fn current_user(state: &AppState, headers: &HeaderMap) -> Result<UserRecord, ApiError> {
     let token = bearer_token(headers).ok_or(ApiError::Unauthorized)?;
-    let user_id = state
-        .database
-        .find_user_id_by_session(&hash_token(token), &now_millis())?
-        .ok_or(ApiError::Unauthorized)?;
+    let token_hash = hash_token(token);
+    let now = now_millis();
     state
         .database
-        .find_user_by_id(&user_id)?
+        .run_blocking(move |database| {
+            let Some(user_id) = database.find_user_id_by_session(&token_hash, &now)? else {
+                return Ok(None);
+            };
+            database.find_user_by_id(&user_id)
+        })
+        .await?
         .ok_or(ApiError::Unauthorized)
 }
 
-fn create_session(state: &AppState, user: UserRecord) -> Result<Json<SessionResponse>, ApiError> {
+async fn create_session(
+    state: &AppState,
+    user: UserRecord,
+) -> Result<Json<SessionResponse>, ApiError> {
     let access_token = Uuid::new_v4().to_string();
     let created_at = now_millis();
     let expires_at_value = SystemTime::now()
@@ -134,13 +152,23 @@ fn create_session(state: &AppState, user: UserRecord) -> Result<Json<SessionResp
         .map_err(|error| anyhow::anyhow!(error))?
         .as_millis();
     let expires_at = expires_at_value.to_string();
-    state.database.create_session(
-        &Uuid::new_v4().to_string(),
-        &user.id,
-        &hash_token(&access_token),
-        &created_at,
-        &expires_at,
-    )?;
+    let session_id = Uuid::new_v4().to_string();
+    let user_id = user.id.clone();
+    let token_hash = hash_token(&access_token);
+    let expires_at_for_database = expires_at.clone();
+    let created_at_for_database = created_at.clone();
+    state
+        .database
+        .run_blocking(move |database| {
+            database.create_session(
+                &session_id,
+                &user_id,
+                &token_hash,
+                &created_at_for_database,
+                &expires_at_for_database,
+            )
+        })
+        .await?;
     Ok(Json(SessionResponse {
         access_token,
         token_type: "Bearer",

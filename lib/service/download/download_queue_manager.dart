@@ -486,6 +486,12 @@ Future<void> startDownloadTask(DownloadTaskJson task) async {
           .map((chapter) => chapter.chapterId)
           .where((chapterId) => chapterId.trim().isNotEmpty)
           .toList(),
+      options: {
+        'title': task.comicName,
+        'chapter_refs': task.chapterRefs
+            .map((chapter) => chapter.toJson())
+            .toList(),
+      },
     );
     return;
   }

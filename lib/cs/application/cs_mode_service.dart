@@ -101,6 +101,7 @@ class CsModeService extends ChangeNotifier {
   Future<void> enableCsMode({
     required bool migrateData,
     required bool migrateDownloads,
+    void Function(String message)? onMigrationProgress,
   }) async {
     if (migrateDownloads && !migrateData) {
       throw StateError('迁移下载数据前必须先迁移本地数据');
@@ -110,32 +111,57 @@ class CsModeService extends ChangeNotifier {
       throw StateError('启用 CS 模式前必须先配置服务端并登录');
     }
 
+    final client = CsApiClient(
+      baseUrl: _settings.serverUrl,
+      accessToken: _settings.accessToken,
+    );
     if (migrateData) {
+      onMigrationProgress?.call('正在整理本地数据');
       final exporter = _migrationExporter;
       if (exporter == null) {
         throw StateError('本地数据迁移服务尚未初始化');
       }
+      if (migrateDownloads) {
+        onMigrationProgress?.call('正在检查本地下载文件');
+        final assetCount = await exporter.validateDownloadAssets();
+        onMigrationProgress?.call('已找到 $assetCount 个本地下载文件');
+      }
       final snapshot = exporter.exportSnapshot(
         includeDownloads: migrateDownloads,
       );
-      final client = CsApiClient(
-        baseUrl: _settings.serverUrl,
-        accessToken: _settings.accessToken,
-      );
+      onMigrationProgress?.call('正在导入数据');
       await client.importMigrationSnapshot(snapshot);
       if (migrateDownloads) {
+        var uploadedAssets = 0;
         await for (final asset in exporter.exportDownloadAssets()) {
+          onMigrationProgress?.call(
+            '正在上传下载文件（已完成 $uploadedAssets 个）：${asset.relativePath}',
+          );
           final bytes = await asset.readBytes();
           await client.uploadMigrationAsset(
+            pluginId: asset.pluginId,
+            comicId: asset.comicId,
             comicUniqueKey: asset.comicUniqueKey,
             relativePath: asset.relativePath,
+            kind: asset.kind,
+            chapterId: asset.chapterId,
             mediaType: asset.mediaType,
             bytes: Uint8List.fromList(bytes),
           );
+          uploadedAssets++;
+          onMigrationProgress?.call('已上传下载文件：$uploadedAssets 个');
         }
+        onMigrationProgress?.call('下载文件迁移完成，共 $uploadedAssets 个文件');
       }
     }
 
+    // “是否迁移下载”同时决定进入 CS 后的新下载归属。已有下载迁移到
+    // 服务端后，后续下载也必须走服务端；不迁移则继续使用客户端文件。
+    _settings = _settings.copyWith(
+      downloadMode: migrateDownloads
+          ? CsDownloadMode.server
+          : CsDownloadMode.client,
+    );
     await requestMode(CsRunMode.cs, downloadDataMigrated: migrateDownloads);
   }
 

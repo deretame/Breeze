@@ -7,6 +7,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -118,6 +119,11 @@ class BookshelfSectionBloc
 
   final ShelfPageMode mode;
 
+  bool get _useRemote =>
+      CsRuntimeContext.I.isCsMode &&
+      CsRuntimeContext.I.database != null &&
+      (mode != ShelfPageMode.download || CsRuntimeContext.I.isServerDownload);
+
   Future<void> _onLoadRequested(
     BookshelfLoadRequested event,
     Emitter<BookshelfSectionState> emit,
@@ -154,20 +160,30 @@ class BookshelfSectionBloc
     try {
       final offset = event.append ? current.comics.length : 0;
       final modeName = mode.name;
-      final token = captureWorkerIsolateToken();
-      final payload = {
-        'mode': modeName,
-        'search': {
-          'keyword': event.searchEnterConst.keyword,
-          'sort': event.searchEnterConst.sort,
-          'sources': event.searchEnterConst.sources,
-        },
-        'offset': offset,
-        'limit': _kPageSize,
-      };
-      final response = await workerManager.execute<Map<String, dynamic>>(
-        () => _runBookshelfLoadTask(payload, token),
-      );
+      final Map<String, dynamic> response;
+      if (_useRemote) {
+        response = await _loadRemoteBookshelf(
+          mode: mode,
+          search: event.searchEnterConst,
+          offset: offset,
+          limit: _kPageSize,
+        );
+      } else {
+        final token = captureWorkerIsolateToken();
+        final payload = {
+          'mode': modeName,
+          'search': {
+            'keyword': event.searchEnterConst.keyword,
+            'sort': event.searchEnterConst.sort,
+            'sources': event.searchEnterConst.sources,
+          },
+          'offset': offset,
+          'limit': _kPageSize,
+        };
+        response = await workerManager.execute<Map<String, dynamic>>(
+          () => _runBookshelfLoadTask(payload, token),
+        );
+      }
 
       final error = response['error']?.toString() ?? '';
       if (error.isNotEmpty) {
@@ -280,6 +296,111 @@ class BookshelfSectionBloc
       _ => '',
     };
   }
+}
+
+Future<Map<String, dynamic>> _loadRemoteBookshelf({
+  required ShelfPageMode mode,
+  required SearchEnter search,
+  required int offset,
+  required int limit,
+}) async {
+  try {
+    final database = CsRuntimeContext.I.database;
+    if (database == null) {
+      throw StateError('CS 业务数据库未初始化');
+    }
+    await database.load();
+    if (mode == ShelfPageMode.download) {
+      await database.loadServerDownloads(force: true);
+    }
+
+    final rawItems = switch (mode) {
+      ShelfPageMode.favorite =>
+        database.favorites.values
+            .where((item) => !item.deleted)
+            .map((item) => item.toJson())
+            .toList(),
+      ShelfPageMode.history =>
+        database.histories.values
+            .where((item) => !item.deleted)
+            .map((item) => item.toJson())
+            .toList(),
+      ShelfPageMode.download =>
+        database.serverDownloads.values
+            .where((item) => !item.deleted)
+            .map((item) => item.toJson())
+            .toList(),
+    };
+
+    final sourceFilter = _remoteShelfSources(search.sources, mode);
+    var items = rawItems
+        .where((item) => sourceFilter.contains(item['source']?.toString()))
+        .toList();
+
+    final folderKey = mode == ShelfPageMode.favorite
+        ? FavoriteFolderService.parseFolderKeyFromSources(search.sources)
+        : null;
+    if (folderKey != null && folderKey != kFavoriteFolderAllKey) {
+      final members = FavoriteFolderService.membersOf(folderKey);
+      items = items
+          .where((item) => members.contains(item['uniqueKey']?.toString()))
+          .toList();
+    }
+
+    items.sort((a, b) {
+      final field = mode == ShelfPageMode.favorite ? 'createdAt' : 'updatedAt';
+      final left =
+          DateTime.tryParse(a[field]?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+      final right =
+          DateTime.tryParse(b[field]?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+      final result = left.compareTo(right);
+      return search.sort == 'da' ? result : -result;
+    });
+
+    final keyword = _normalizeSearchText(search.keyword);
+    if (keyword.isNotEmpty) {
+      items = items
+          .where((item) => _remoteShelfSearchText(item).contains(keyword))
+          .toList();
+    }
+
+    final total = items.length;
+    final pageItems = items.skip(offset).take(limit).toList();
+    return {'items': pageItems, 'total': total};
+  } catch (e) {
+    return {'error': normalizeSearchErrorMessage(e), 'items': [], 'total': 0};
+  }
+}
+
+Set<String> _remoteShelfSources(List<String> sources, ShelfPageMode mode) {
+  final filtered = switch (mode) {
+    ShelfPageMode.favorite => FavoriteFolderService.stripFolderSourceTokens(
+      sources,
+    ),
+    ShelfPageMode.download => DownloadFolderService.stripFolderSourceTokens(
+      sources,
+    ),
+    ShelfPageMode.history => sources,
+  };
+  return filtered
+      .map((source) => source.trim())
+      .where((source) => source.isNotEmpty)
+      .toSet();
+}
+
+String _remoteShelfSearchText(Map<String, dynamic> item) {
+  return _normalizeSearchText(
+    [
+      item['comicId']?.toString() ?? '',
+      item['title']?.toString() ?? '',
+      item['description']?.toString() ?? '',
+      item['creator']?.toString() ?? '',
+      item['titleMeta']?.toString() ?? '',
+      item['metadata']?.toString() ?? '',
+    ].join(),
+  );
 }
 
 Future<Map<String, dynamic>> _runBookshelfLoadTask(

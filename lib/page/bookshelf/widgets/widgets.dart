@@ -5,4 +5,3 @@ export 'package:zephyr/page/bookshelf/widgets/delete_dialog.dart';
 export 'package:zephyr/page/bookshelf/widgets/folder_shelf_item.dart';
 export 'package:zephyr/page/bookshelf/widgets/folder_shelf_page.dart';
 export 'package:zephyr/page/bookshelf/widgets/local_shelf_page.dart';
-export 'package:zephyr/page/bookshelf/widgets/cs_remote_shelf_page.dart';

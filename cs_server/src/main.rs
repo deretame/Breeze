@@ -20,14 +20,11 @@ use crate::db::Database;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let config = Arc::new(ServerConfig::from_cli()?);
     tracing_subscriber::fmt()
-        .with_env_filter(
-            std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "breeze_cs_server=info,tower_http=info".to_owned()),
-        )
+        .with_env_filter(config.log_filter.clone())
         .init();
 
-    let config = Arc::new(ServerConfig::from_env()?);
     let database = Database::open(&config.data_dir)?;
 
     let http_config = config.http_client_config();
@@ -52,7 +49,6 @@ async fn main() -> anyhow::Result<()> {
         web_root = %config.web_root.display(),
         web_frontend = config.web_frontend_enabled(),
         admin_token_configured = config.admin_token.is_some(),
-        server_download = config.server_download_enabled,
         "Breeze CS server started"
     );
 

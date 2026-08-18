@@ -134,22 +134,56 @@ class ReaderHistoryService {
         if (client == null) {
           throw StateError('CS 会话未登录');
         }
+        final key = '${_source ?? ''}:${_comicId ?? ''}';
+        final database = CsRuntimeContext.I.database;
+        final history =
+            database?.findHistory(key) ??
+            UnifiedComicHistory(
+              uniqueKey: key,
+              source: _source ?? '',
+              comicId: _comicId ?? '',
+              title: _comicInfo!.title,
+              description: _comicInfo!.description,
+              cover: _normalizeWorkerFlexMapString(_comicInfo!.cover),
+              creator: _normalizeWorkerFlexMapString(_comicInfo!.creator),
+              titleMeta: _normalizeWorkerFlexListString(_comicInfo!.titleMeta),
+              metadata: _normalizeWorkerMetadataString(_comicInfo!.metadata),
+              chapterId: snapshot.epInfo.epId,
+              chapterTitle: snapshot.epInfo.epName,
+              chapterOrder: snapshot.chapterOrder,
+              pageIndex: snapshot.pageIndex,
+              createdAt: timestamp,
+              lastReadAt: timestamp,
+              updatedAt: timestamp,
+              deleted: false,
+              schemaVersion: 2,
+            );
+        history
+          ..title = _comicInfo!.title
+          ..description = _comicInfo!.description
+          ..cover = _normalizeWorkerFlexMapString(_comicInfo!.cover)
+          ..creator = _normalizeWorkerFlexMapString(_comicInfo!.creator)
+          ..titleMeta = _normalizeWorkerFlexListString(_comicInfo!.titleMeta)
+          ..metadata = _normalizeWorkerMetadataString(_comicInfo!.metadata)
+          ..chapterId = snapshot.epInfo.epId
+          ..chapterTitle = snapshot.epInfo.epName
+          ..chapterOrder = snapshot.chapterOrder
+          ..pageIndex = snapshot.pageIndex
+          ..lastReadAt = timestamp
+          ..updatedAt = timestamp
+          ..deleted = false;
         await client.saveLibrary(
           'history',
           CsLibraryRecord(
-            uniqueKey: '${_source ?? ''}:${_comicId ?? ''}',
-            source: _source ?? '',
-            comicId: _comicId ?? '',
-            payload: {
-              'normalInfo': _serializeComicInfoForWorker(_comicInfo!),
-              'chapterId': snapshot.epInfo.epId,
-              'chapterTitle': snapshot.epInfo.epName,
-              'chapterOrder': snapshot.chapterOrder,
-              'pageIndex': snapshot.pageIndex,
-            },
+            uniqueKey: history.uniqueKey,
+            source: history.source,
+            comicId: history.comicId,
+            payload: history.toJson(),
             updatedAt: timestamp.toIso8601String(),
           ),
         );
+        database?.saveHistory(history);
+        _history = history;
         _remoteLastPageIndex = snapshot.pageIndex;
         return;
       }

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cs/application/cs_runtime_context.dart';
+import 'package:zephyr/cs/data/cs_remote_database.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -10,6 +12,15 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 
 class ComicLinkService {
+  static bool _useRemote(ComicFolderType type) {
+    return CsRuntimeContext.I.isCsMode &&
+        CsRuntimeContext.I.database != null &&
+        (type != ComicFolderType.download ||
+            CsRuntimeContext.I.isServerDownload);
+  }
+
+  static CsRemoteDatabase get _remote => CsRuntimeContext.I.database!;
+
   static String get _deviceId => syncDeviceId;
 
   static Map<String, int> _parseVersionVector(String json) {
@@ -54,6 +65,15 @@ class ComicLinkService {
     ComicFolderType type, {
     bool sortAscending = false,
   }) {
+    if (_useRemote(type)) {
+      final links = _remote.listLinks(type).toList();
+      links.sort(
+        (a, b) => sortAscending
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt),
+      );
+      return links;
+    }
     final query = objectbox.comicLinkBox
         .query(
           ComicLink_.typeData
@@ -79,6 +99,18 @@ class ComicLinkService {
     bool sortAscending = false,
   }) {
     final folderSyncId = _folderSyncIdByPath(folderPath, type);
+    if (_useRemote(type)) {
+      final links = _remote
+          .listLinks(type)
+          .where((link) => link.folderSyncId == folderSyncId)
+          .toList();
+      links.sort(
+        (a, b) => sortAscending
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt),
+      );
+      return links;
+    }
     final folderCondition = folderSyncId == null
         ? ComicLink_.folderSyncId.isNull()
         : ComicLink_.folderSyncId.equals(folderSyncId);
@@ -106,6 +138,12 @@ class ComicLinkService {
     String comicUniqueKey,
     ComicFolderType type,
   ) {
+    if (_useRemote(type)) {
+      return _remote
+          .listLinks(type)
+          .where((link) => link.comicUniqueKey == comicUniqueKey)
+          .toList();
+    }
     final query = objectbox.comicLinkBox
         .query(
           ComicLink_.typeData
@@ -129,6 +167,34 @@ class ComicLinkService {
   ) {
     final folderSyncId = _folderSyncIdByPath(folderPath, type);
     final uniqueKey = _uniqueKey(comicUniqueKey, folderSyncId, type);
+    if (_useRemote(type)) {
+      final existing = _remote.findLink(uniqueKey);
+      if (existing != null) {
+        if (existing.deletedAt != null) {
+          existing
+            ..deletedAt = null
+            ..createdAt = _now()
+            ..updatedAt = _now()
+            ..versionVectorJson = _bumpVersionVector(
+              existing.versionVectorJson,
+            );
+          _remote.saveLink(existing);
+        }
+        return existing;
+      }
+      final now = _now();
+      final link = ComicLink(
+        uniqueKey: uniqueKey,
+        comicUniqueKey: comicUniqueKey,
+        folderSyncId: folderSyncId,
+        typeData: type.name,
+        versionVectorJson: _encodeVersionVector({_deviceId: 1}),
+        createdAt: now,
+        updatedAt: now,
+      );
+      _remote.saveLink(link);
+      return link;
+    }
     final existing = objectbox.comicLinkBox
         .query(ComicLink_.uniqueKey.equals(uniqueKey))
         .build()
@@ -189,6 +255,21 @@ class ComicLinkService {
     ComicFolderType type,
   ) {
     final uniqueKey = _uniqueKey(comicUniqueKey, folderSyncId, type);
+    if (_useRemote(type)) {
+      final link = _remote.findLink(uniqueKey);
+      if (link == null || link.deletedAt != null) return;
+      link
+        ..deletedAt = _now()
+        ..updatedAt = _now()
+        ..versionVectorJson = _bumpVersionVector(link.versionVectorJson);
+      _remote.saveLink(link);
+      if (type == ComicFolderType.favorite) {
+        _markFavoriteDeletedIfNoLinks(comicUniqueKey);
+      } else if (type == ComicFolderType.download) {
+        unawaited(_deleteDownloadIfNoLinks(comicUniqueKey));
+      }
+      return;
+    }
     final link = objectbox.comicLinkBox
         .query(ComicLink_.uniqueKey.equals(uniqueKey))
         .build()
@@ -215,6 +296,19 @@ class ComicLinkService {
   /// 把漫画从所有路径移除。
   /// 对收藏类型会标记漫画本身为删除；对下载类型会删除下载记录及文件。
   static void removeComicFromAll(String comicUniqueKey, ComicFolderType type) {
+    if (_useRemote(type)) {
+      for (final link
+          in _remote
+              .listLinks(type)
+              .where((item) => item.comicUniqueKey == comicUniqueKey)
+              .toList()) {
+        _removeComicBySyncId(link.comicUniqueKey, link.folderSyncId, type);
+      }
+      if (type == ComicFolderType.favorite) {
+        _markFavoriteDeletedIfNoLinks(comicUniqueKey);
+      }
+      return;
+    }
     final query = objectbox.comicLinkBox
         .query(
           ComicLink_.typeData
@@ -248,6 +342,16 @@ class ComicLinkService {
   }
 
   static void _markFavoriteDeleted(String comicUniqueKey) {
+    if (_useRemote(ComicFolderType.favorite)) {
+      final comic = _remote.findFavorite(comicUniqueKey);
+      if (comic != null && !comic.deleted) {
+        comic
+          ..deleted = true
+          ..updatedAt = DateTime.now().toUtc();
+        _remote.saveFavorite(comic);
+      }
+      return;
+    }
     final comic = objectbox.unifiedFavoriteBox
         .query(UnifiedComicFavorite_.uniqueKey.equals(comicUniqueKey))
         .build()
@@ -329,6 +433,32 @@ class ComicLinkService {
     );
     if (folderSyncId == null) return;
 
+    if (_useRemote(type)) {
+      final subtreeSyncIds = <String>{folderSyncId};
+      final queue = <String>[folderSyncId];
+      final folders = ComicFolderService.listAllFolders(type);
+      while (queue.isNotEmpty) {
+        final parent = queue.removeLast();
+        for (final folder in folders.where(
+          (item) => item.parentSyncId == parent,
+        )) {
+          if (subtreeSyncIds.add(folder.syncId)) queue.add(folder.syncId);
+        }
+      }
+      for (final link
+          in _remote
+              .listLinks(type)
+              .where(
+                (item) =>
+                    item.folderSyncId != null &&
+                    subtreeSyncIds.contains(item.folderSyncId),
+              )
+              .toList()) {
+        _removeComicBySyncId(link.comicUniqueKey, link.folderSyncId, type);
+      }
+      return;
+    }
+
     final subtreeSyncIds = _collectSubtreeSyncIds(folderSyncId, type);
 
     // 直接加载该类型下所有 active link 在内存里过滤，避免 oneOf 兼容性风险。
@@ -384,6 +514,19 @@ class ComicLinkService {
   static Future<void> _deleteDownloadIfNoLinks(String comicUniqueKey) async {
     final remaining = linksOfComic(comicUniqueKey, ComicFolderType.download);
     if (remaining.isNotEmpty) return;
+
+    if (CsRuntimeContext.I.isServerDownload) {
+      try {
+        await _remote.removeServerDownload(comicUniqueKey);
+      } catch (e, stackTrace) {
+        logger.e(
+          'Failed to delete server download: $comicUniqueKey',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+      return;
+    }
 
     final comic = objectbox.unifiedDownloadBox
         .query(UnifiedComicDownload_.uniqueKey.equals(comicUniqueKey))

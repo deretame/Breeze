@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:zephyr/cs/data/cs_api_client.dart';
 import 'package:zephyr/cs/domain/cs_connection_settings.dart';
 import 'package:zephyr/cs/data/cs_plugin_bridge_channel.dart';
+import 'package:zephyr/cs/data/cs_remote_database.dart';
+import 'package:zephyr/object_box/model.dart';
 
 /// 给现有插件调用链提供一个不依赖 Flutter UI 的 CS dispatch 点。
 ///
@@ -17,6 +19,8 @@ class CsRuntimeContext {
 
   CsConnectionSettings _settings = const CsConnectionSettings();
   CsApiClient? _client;
+  CsRemoteDatabase? _database;
+  int? _serverRevision;
   final CsPluginBridgeChannel _bridgeChannel = CsPluginBridgeChannel();
   String? _bridgeConnectionKey;
 
@@ -29,9 +33,18 @@ class CsRuntimeContext {
 
   CsApiClient? get client => isCsMode ? _client : null;
 
+  CsRemoteDatabase? get database => isCsMode ? _database : null;
+
+  int? get serverRevision => _serverRevision;
+
+  void updateServerRevision(int revision) {
+    _serverRevision = revision;
+  }
+
   Stream<CsRealtimeEvent> get events => _bridgeChannel.events;
 
   void update(CsConnectionSettings settings) {
+    _database?.dispose();
     _settings = settings;
     _client = settings.hasServer
         ? CsApiClient(
@@ -39,7 +52,16 @@ class CsRuntimeContext {
             accessToken: settings.accessToken,
           )
         : null;
+    _database = _client == null ? null : CsRemoteDatabase(_client!);
     _updateBridgeChannel(settings);
+  }
+
+  /// 在应用进入 CS 模式后预加载所有业务数据。同步业务服务依赖这份
+  /// 镜像提供同步读取接口，因此必须在首个页面创建前完成。
+  Future<void> loadDatabase() async {
+    final activeDatabase = database;
+    if (activeDatabase == null) return;
+    await activeDatabase.load();
   }
 
   void _updateBridgeChannel(CsConnectionSettings settings) {
@@ -147,5 +169,24 @@ class CsRuntimeContext {
       throw StateError('CS runtime is not active');
     }
     return activeClient.listServerDownloads();
+  }
+
+  Future<Uint8List> serverAsset(String assetId) {
+    final activeClient = client;
+    if (activeClient == null || !isServerDownload) {
+      throw StateError('服务端下载未启用');
+    }
+    return activeClient.serverAsset(assetId);
+  }
+
+  Future<UnifiedComicDownload?> serverDownload(
+    String pluginId,
+    String comicId,
+  ) async {
+    final activeDatabase = database;
+    if (activeDatabase == null || !isServerDownload) {
+      throw StateError('服务端下载未启用');
+    }
+    return activeDatabase.findServerDownloadAsync(pluginId, comicId);
   }
 }

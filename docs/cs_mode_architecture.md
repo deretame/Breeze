@@ -1,6 +1,6 @@
 # Breeze CS 模式兼容架构设计
 
-> 状态：CS 架构与第一版端到端实现。当前已落地 `cs_server`、单一 SQLite schema、用户会话、账号设置、收藏/历史/追更 API、按用户隔离的 QuickJS 调用边界、用户级插件安装/更新/卸载/启用/调试配置、服务端插件元数据、插件配置、插件语义接口、可选服务端下载、Flutter 侧 CS Service/Repository 抽象、认证 WebSocket 宿主回调通道，以及独立的 React `cs_web` 前端。Flutter 原有纯本地模式仍保留。当前已实现“登录后可选迁移、重启后生效、关闭时可选远端覆盖本地”的模式切换流程：迁移和覆盖使用 JSON，插件 bundle 由服务端返回，已迁移下载文件和下载文件夹通过私有资产/SQLite 接口恢复；Web 前端继续暂缓完善。
+> 状态：CS 架构与第一版端到端实现。当前已落地 `cs_server`、单一 SQLite schema、用户会话、账号设置、收藏/历史/追更/文件夹/链接及收藏夹与下载夹辅助表 API、按用户隔离的 QuickJS 调用边界、用户级插件安装/更新/卸载/启用/调试配置、服务端插件元数据、插件配置、插件语义接口、可选服务端下载、Flutter 侧 CS Service/Repository 抽象、认证 WebSocket 宿主回调通道，以及独立的 React `cs_web` 前端。Flutter 原有纯本地模式仍保留。当前已实现“登录后可选迁移、重启后生效、关闭时可选远端覆盖本地”的模式切换流程：迁移和覆盖使用 JSON，插件 bundle 由服务端返回，已迁移下载文件和下载文件夹通过私有资产/SQLite 接口恢复；Web 前端继续暂缓完善。
 >
 > 目标：在保留现有纯本地模式的前提下，增加可选的 Client/Server（CS）模式。用户可以继续把 Breeze 当作现在的本地应用使用，也可以在设置中连接一个 Breeze 服务端，将指定能力切换到服务端。
 
@@ -155,6 +155,14 @@ ObjectBox 在 `lib/object_box/object_box.dart` 中集中初始化，但业务代
 
 当前 `UserSetting` 同时包含全局设置、图源设置、窗口尺寸、缓存设置、应用锁和本地路径等内容，不能整体无差别上传。CS 设计必须对设置进行“账号级”和“设备级”拆分。
 
+当前实现的数据库边界如下：
+
+- CS 启动时通过 `CsRemoteDatabase` 从服务端加载收藏、历史、追更、文件夹、链接、收藏夹及其成员、下载夹及其成员，旧的同步业务服务和原有书架 BLoC 在 CS 下只操作这份内存镜像并写回服务端 SQLite；不会另起一套书架页面，也不会把这些数据写入本地 ObjectBox。
+- CS 模式复用 Flutter 原有的 `BookshelfPage`、收藏/历史/下载三个标签、分页、文件夹、选择和批量操作；CS 只替换书架数据来源。未开启服务端下载时，下载标签、下载夹、本地任务、已下载漫画和文件路径仍保持原本的客户端本地行为，不得隐藏下载入口。
+- `GlobalSettingCubit` 在 CS 下从 `user_settings` 加载账号级设置，普通设置更新写回服务端；代理、缓存、应用锁、窗口和本地路径等设备设置仍只保留在本地。
+- `DownloadTask`、`UnifiedComicDownload` 及下载文件只有在选择“客户端下载”时才允许继续写本地；选择“服务端下载”时使用服务端任务、manifest 和资产接口。这个下载例外不能扩大到插件管理或其他业务数据。
+- 旧版 `Bika*`/`Jm*` 实体、数据备份和本地 WebDAV/S3 同步属于本地维护/迁移工具，不作为 CS 运行时数据库表。
+
 ### 2.2 插件
 
 插件运行链路主要位于：
@@ -290,7 +298,7 @@ CS 模式下，客户端可以保留 ObjectBox 作为缓存、离线草稿和本
 2. **Domain/Application 层**：收藏、历史、文件夹、追更、插件、下载等用例。
 3. **Repository 层**：SQLite、服务端文件存储、插件包存储、任务队列。
 4. **Plugin Runtime 层**：基于 `rust/rquickjs_playground` 的 QuickJS 沙箱、插件包加载、用户配置、网络请求、取消和资源限制。
-5. **Download Worker 层**：可选；服务端下载模式开启时才运行。
+5. **Download Worker 层**：服务端默认提供；客户端选择服务端下载时提交任务并由该 Worker 执行，选择本地下载时不提交服务端任务。
 6. **Web Delivery 层**：可选地直接提供独立前端的 HTML、CSS、JavaScript、图片和其他静态资源，不依赖 Nginx。
 7. **Event 层**：将数据变更和下载进度推送给客户端。
 
@@ -315,7 +323,7 @@ CS 模式下，客户端可以保留 ObjectBox 作为缓存、离线草稿和本
 - `/api/v1/*`：只返回版本化 JSON、事件流和明确的 HTTP 错误码；
 - `/media/*`：提供经过权限校验的漫画图片、封面和下载资源；
 - `/`、`/app/*` 或 `/reader/*`：可选地返回独立前端的 HTML 和静态资源；
-- `WEB_ROOT`：配置 `cs_web/dist` 或其他静态文件目录；
+- `web_root`：在 `cs_server/config.yaml` 中配置 `../cs_web/dist` 或其他静态文件目录；
 - 未命中具体静态文件时，可以将浏览器路由回退到 `index.html`，支持前端路由；
 - 未配置前端资源时，服务端仍然只启动 API，不因为缺少 `cs_web` 而无法运行。
 
@@ -369,7 +377,7 @@ CS 模式下，客户端可以保留 ObjectBox 作为缓存、离线草稿和本
 
 启动流程建议为：
 
-1. 读取服务端配置文件或环境变量；
+1. 读取 `cs_server/config.yaml`（也支持通过 `--config <path>` 指定配置文件）；
 2. 生成 `rquickjs_playground::HttpClientConfig`；
 3. 通过 `rquickjs_playground::configure_http_client` 设置全局配置；
 4. 使用 `current_http_client_config` + `build_http_client` 构建服务端共享的 `reqwest::Client`；
@@ -401,6 +409,8 @@ CS 服务端默认开启 TLS 校验。即使现有 Flutter 应用为了兼容图
 | `comic_follows` | `user_id`、漫画字段、检测状态、时间 | 对应追更 |
 | `comic_folders` | `user_id`、`sync_id`、父 ID、名称、类型、删除标记、版本号 | 保留现有稳定 folder ID |
 | `comic_links` | `user_id`、漫画 key、folder ID、类型、删除标记、版本号 | 保留文件夹链接语义 |
+| `favorite_folders`、`favorite_folder_items` | `user_id`、收藏夹 key、收藏记录 key、删除标记 | 收藏夹及成员关系 |
+| `download_folders`、`download_folder_items` | `user_id`、下载夹 key、下载记录 key、删除标记 | 服务端下载模式使用 |
 | `plugins` | 插件 UUID、名称、描述 | 全局插件身份，不绑定单个用户 |
 | `plugin_objects` | 内容 hash、压缩算法、原始/压缩大小、storage key、状态、创建时间 | 当前 bundle 的共享压缩对象；hash 用于去重和完整性校验，不用于版本历史 |
 | `user_plugins` | `user_id`、插件 UUID、启用状态、调试状态、更新时间 | 用户插件关联状态，不保存版本选择，不复制插件包 |
@@ -814,11 +824,11 @@ CS 模式只支持服务端可以直接完成的插件登录方式：
 - 初始化独立 `cs_web` 工程，并通过 pnpm 完成 lint、format 和构建脚本；
 - 保证本地模式回归行为不变。
 
-### 阶段 2：业务数据库服务端化（核心记录已完成，复杂本地实体待迁移）
+### 阶段 2：业务数据库服务端化（核心数据库路径已完成）
 
 - 迁移收藏、历史、追更、文件夹和链接，并在登录后按用户选择执行；
 - 迁移插件列表、启用状态、插件配置和插件元数据；CS 模式下这些能力必须由服务端唯一管理；
-- Flutter 书架、收藏、历史的主链路已根据 CS 模式走服务端 Repository；文件夹、链接、下载 manifest 等复杂本地实体仍保留本地实现；
+- Flutter 书架、收藏、历史、追更、文件夹、链接、收藏夹和下载夹服务已根据 CS/下载归属选择远端镜像或本地 ObjectBox；服务端 SQLite CRUD 和多用户隔离已通过冒烟测试覆盖；
 - 增加服务端写入后的缓存更新和断线重试；
 - 下载数据迁移必须与普通业务数据迁移分开询问和执行。
 

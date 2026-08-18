@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -19,7 +20,8 @@ class DiscoverPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DiscoverCubit()..load(),
+      create: (context) =>
+          DiscoverCubit(registry: context.read<PluginRegistryCubit>())..load(),
       child: const _DiscoverView(),
     );
   }
@@ -66,35 +68,39 @@ class _DiscoverView extends StatelessWidget {
   }
 
   Widget _buildPluginHome(BuildContext context) {
-    return BlocBuilder<DiscoverCubit, DiscoverState>(
-      builder: (context, state) {
-        final plugins = state.plugins.values.toList();
+    return BlocBuilder<PluginRegistryCubit, Map<String, PluginRuntimeState>>(
+      builder: (context, pluginStates) {
+        return BlocBuilder<DiscoverCubit, DiscoverState>(
+          builder: (context, state) {
+            final plugins = pluginStates.values.toList();
 
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 120),
-          children: [
-            const SizedBox(height: 16),
-            _buildPluginStoreButton(context),
-            const SizedBox(height: 8),
-            _buildSectionHeader(context, t.discover.pluginManagement),
-            if (plugins.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(32),
-                child: Center(
-                  child: Text(
-                    t.discover.noPlugins,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ),
-              )
-            else
-              for (var i = 0; i < plugins.length; i++) ...[
-                _buildPluginCard(context, plugins[i], state),
-                if (i != plugins.length - 1)
-                  const Divider(height: 1, indent: 80, endIndent: 16),
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 120),
+              children: [
+                const SizedBox(height: 16),
+                _buildPluginStoreButton(context),
+                const SizedBox(height: 8),
+                _buildSectionHeader(context, t.discover.pluginManagement),
+                if (plugins.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(
+                      child: Text(
+                        t.discover.noPlugins,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  )
+                else
+                  for (var i = 0; i < plugins.length; i++) ...[
+                    _buildPluginCard(context, plugins[i], state),
+                    if (i != plugins.length - 1)
+                      const Divider(height: 1, indent: 80, endIndent: 16),
+                  ],
               ],
-          ],
+            );
+          },
         );
       },
     );

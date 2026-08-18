@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -10,7 +11,6 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 
 const String syncDataVersion = 'v1';
@@ -123,16 +123,16 @@ class ComicSyncCore {
   }
 
   static Future<List<int>> buildCompressedPayload() async {
-    final favorites = objectbox.unifiedFavoriteBox.getAll();
+    final favorites = database.unifiedFavorites.getAll();
     favorites.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-    final histories = objectbox.unifiedHistoryBox.getAll();
+    final histories = database.unifiedHistories.getAll();
     histories.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-    final follows = objectbox.comicFollowBox.getAll();
+    final follows = database.comicFollows.getAll();
     follows.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-    final folders = objectbox.comicFolderBox
+    final folders = database.comicFolders
         .getAll()
         .where(
           (f) =>
@@ -140,7 +140,7 @@ class ComicSyncCore {
               f.type == ComicFolderType.history,
         )
         .toList();
-    final links = objectbox.comicLinkBox
+    final links = database.comicLinks
         .getAll()
         .where(
           (l) =>
@@ -184,23 +184,12 @@ class ComicSyncCore {
     return raw;
   }
 
-  static int mergeUnifiedDataInIsolate(Store store, Map<String, dynamic> arg) {
-    syncDeviceId = arg['_deviceId'] as String;
-    return mergeUnifiedData(store, arg['_data'] as Map<String, dynamic>);
-  }
-
-  static int mergeUnifiedData(Store store, Map<String, dynamic> data) {
-    final favoriteBox = store.box<UnifiedComicFavorite>();
-    final historyBox = store.box<UnifiedComicHistory>();
-    final followBox = store.box<ComicFollow>();
-    final folderBox = store.box<ComicFolder>();
-    final linkBox = store.box<ComicLink>();
-
-    final localFavorites = favoriteBox.getAll();
-    final localHistories = historyBox.getAll();
-    final localFollows = followBox.getAll();
-    var localFolders = folderBox.getAll();
-    var localLinks = linkBox.getAll();
+  static int mergeUnifiedData(AppDatabase db, Map<String, dynamic> data) {
+    final localFavorites = db.unifiedFavorites.getAll();
+    final localHistories = db.unifiedHistories.getAll();
+    final localFollows = db.comicFollows.getAll();
+    var localFolders = db.comicFolders.getAll();
+    var localLinks = db.comicLinks.getAll();
 
     final cloudFavorites = _parseJsonList(
       data['favorites'],
@@ -328,26 +317,26 @@ class ComicSyncCore {
       item.id = 0;
     }
 
-    favoriteBox.removeAll();
-    historyBox.removeAll();
-    followBox.removeAll();
-    folderBox.removeAll();
-    linkBox.removeAll();
+    db.unifiedFavorites.removeAll();
+    db.unifiedHistories.removeAll();
+    db.comicFollows.removeAll();
+    db.comicFolders.removeAll();
+    db.comicLinks.removeAll();
 
     if (mergedFavorites.isNotEmpty) {
-      favoriteBox.putMany(mergedFavorites);
+      db.unifiedFavorites.putMany(mergedFavorites);
     }
     if (mergedHistories.isNotEmpty) {
-      historyBox.putMany(mergedHistories);
+      db.unifiedHistories.putMany(mergedHistories);
     }
     if (mergedFollows.isNotEmpty) {
-      followBox.putMany(mergedFollows);
+      db.comicFollows.putMany(mergedFollows);
     }
     if (mergedFolders.isNotEmpty) {
-      folderBox.putMany(mergedFolders);
+      db.comicFolders.putMany(mergedFolders);
     }
     if (mergedLinks.isNotEmpty) {
-      linkBox.putMany(mergedLinks);
+      db.comicLinks.putMany(mergedLinks);
     }
 
     return mergedFavorites.length +
@@ -1152,16 +1141,10 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
     final cloudData = await ComicSyncCore.decodeCompressedPayload(
       remoteData.bytes,
     );
-    final mergeArg = <String, dynamic>{
-      '_data': cloudData,
-      '_deviceId': syncDeviceId,
-    };
-    final count = await objectbox.store
-        .runInTransactionAsync<int, Map<String, dynamic>>(
-          TxMode.write,
-          ComicSyncCore.mergeUnifiedDataInIsolate,
-          mergeArg,
-        );
+    final count = database.runInTransaction(
+      DatabaseTransactionMode.write,
+      () => ComicSyncCore.mergeUnifiedData(database, cloudData),
+    );
     logger.d(
       '[sync][comic] decision=apply_remote remoteFile=${remoteData.path} mergedCount=$count',
     );
@@ -1231,14 +1214,9 @@ Future<bool> downloadComicData(ComicSyncRemoteAdapter adapter) async {
   final cloudData = await ComicSyncCore.decodeCompressedPayload(
     remoteData.bytes,
   );
-  final mergeArg = <String, dynamic>{
-    '_data': cloudData,
-    '_deviceId': syncDeviceId,
-  };
-  await objectbox.store.runInTransactionAsync<int, Map<String, dynamic>>(
-    TxMode.write,
-    ComicSyncCore.mergeUnifiedDataInIsolate,
-    mergeArg,
+  database.runInTransaction(
+    DatabaseTransactionMode.write,
+    () => ComicSyncCore.mergeUnifiedData(database, cloudData),
   );
   logger.d('[sync][comic] manual_download file=${remoteData.path}');
   return true;

@@ -3,10 +3,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:worker_manager/worker_manager.dart';
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
@@ -36,30 +35,30 @@ Future<void> migrateV1ToV2() async {
 }
 
 Future<void> _migrateV1ToV2InCurrentIsolate() async {
-  final box = objectbox;
-  box.downloadTaskBox.removeAll();
-  _migrateLegacySearchHistory(box);
-  _migrateLegacyPluginSettings(box);
-  _debugLogMigrationSnapshot('before', _buildLegacySnapshot(box));
-  final proxy = box.userSettingBox.get(1)?.bikaSetting.proxy ?? 3;
+  final db = database;
+  db.downloadTasks.removeAll();
+  _migrateLegacySearchHistory(db);
+  _migrateLegacyPluginSettings(db);
+  _debugLogMigrationSnapshot('before', _buildLegacySnapshot(db));
+  final proxy = db.userSettings.get(1)?.bikaSetting.proxy ?? 3;
 
-  final jmFavoritesJson = box.jmFavoriteBox
+  final jmFavoritesJson = db.jmFavorites
       .getAll()
       .map((e) => e.toJson())
       .toList();
-  final bikaHistoriesJson = box.bikaHistoryBox
+  final bikaHistoriesJson = db.bikaHistories
       .getAll()
       .map((e) => e.toJson())
       .toList();
-  final jmHistoriesJson = box.jmHistoryBox
+  final jmHistoriesJson = db.jmHistories
       .getAll()
       .map((e) => e.toJson())
       .toList();
-  final bikaDownloadsJson = box.bikaDownloadBox
+  final bikaDownloadsJson = db.bikaDownloads
       .getAll()
       .map((e) => e.toJson())
       .toList();
-  final jmDownloadsJson = box.jmDownloadBox
+  final jmDownloadsJson = db.jmDownloads
       .getAll()
       .map((e) => e.toJson())
       .toList();
@@ -89,28 +88,28 @@ Future<void> _migrateV1ToV2InCurrentIsolate() async {
       .map((e) => UnifiedComicDownload.fromJson(e))
       .toList();
 
-  await _seedBuiltinPlugins(box);
-  box.store.runInTransaction(TxMode.write, () {
-    box.unifiedFavoriteBox.removeAll();
-    box.unifiedHistoryBox.removeAll();
-    box.unifiedDownloadBox.removeAll();
+  await _seedBuiltinPlugins(db);
+  db.runInTransaction(DatabaseTransactionMode.write, () {
+    db.unifiedFavorites.removeAll();
+    db.unifiedHistories.removeAll();
+    db.unifiedDownloads.removeAll();
 
     if (favorites.isNotEmpty) {
-      box.unifiedFavoriteBox.putMany(favorites);
+      db.unifiedFavorites.putMany(favorites);
     }
     if (histories.isNotEmpty) {
-      box.unifiedHistoryBox.putMany(histories);
+      db.unifiedHistories.putMany(histories);
     }
     if (downloads.isNotEmpty) {
-      box.unifiedDownloadBox.putMany(downloads);
+      db.unifiedDownloads.putMany(downloads);
     }
   });
 
-  _debugLogMigrationSnapshot('after', _buildUnifiedSnapshot(box));
+  _debugLogMigrationSnapshot('after', _buildUnifiedSnapshot(db));
 }
 
-void _migrateLegacyPluginSettings(ObjectBox objectbox) {
-  final user = objectbox.userSettingBox.get(1);
+void _migrateLegacyPluginSettings(AppDatabase database) {
+  final user = database.userSettings.get(1);
   if (user == null) {
     return;
   }
@@ -119,7 +118,7 @@ void _migrateLegacyPluginSettings(ObjectBox objectbox) {
   final jm = user.jmSetting;
 
   final bikaConfig = _upsertPluginConfigData(
-    objectbox,
+    database,
     pluginUuid: _kBikaPluginUuid,
     patches: {
       'auth.account': bika.account,
@@ -140,7 +139,7 @@ void _migrateLegacyPluginSettings(ObjectBox objectbox) {
   }
 
   final jmConfig = _upsertPluginConfigData(
-    objectbox,
+    database,
     pluginUuid: _kJmPluginUuid,
     patches: {
       'auth.account': jm.account,
@@ -155,12 +154,12 @@ void _migrateLegacyPluginSettings(ObjectBox objectbox) {
 }
 
 bool _upsertPluginConfigData(
-  ObjectBox objectbox, {
+  AppDatabase database, {
   required String pluginUuid,
   required Map<String, dynamic> patches,
 }) {
-  final box = objectbox.pluginConfigBox;
-  final found = box.query(PluginConfig_.name.equals(pluginUuid)).build().find();
+  final box = database.pluginConfigs;
+  final found = box.query((item) => item.name == pluginUuid).build().find();
   final existing = found.isNotEmpty ? found.first : null;
   final data = _decodeJsonObject(existing?.config);
 
@@ -189,10 +188,12 @@ bool _upsertPluginConfigData(
   }
 
   if (existing == null) {
-    box.put(PluginConfig(name: pluginUuid, config: jsonEncode(data)));
+    database.pluginConfigs.put(
+      PluginConfig(name: pluginUuid, config: jsonEncode(data)),
+    );
   } else {
     existing.config = jsonEncode(data);
-    box.put(existing);
+    database.pluginConfigs.put(existing);
   }
   return true;
 }
@@ -272,14 +273,12 @@ Future<void> migrateLegacyDownloadFilesToPluginUuidLayout() async {
   logger.d('[migration_v1_to_v2][files] done');
 }
 
-Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
+Future<void> _seedBuiltinPlugins(AppDatabase database) async {
   final now = DateTime.now().toUtc();
 
-  final existing = objectbox.pluginInfoBox
+  final existing = database.pluginInfos
       .query(
-        PluginInfo_.uuid
-            .equals(_kBikaPluginUuid)
-            .or(PluginInfo_.uuid.equals(_kJmPluginUuid)),
+        (item) => item.uuid == _kBikaPluginUuid || item.uuid == _kJmPluginUuid,
       )
       .build()
       .find();
@@ -287,7 +286,7 @@ Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
 
   final upserts = <PluginInfo>[];
 
-  final bikaHistorys = objectbox.bikaHistoryBox.getAll().length;
+  final bikaHistorys = database.bikaHistories.getAll().length;
   if (bikaHistorys > 0) {
     upserts.add(
       _buildBuiltinPluginInfo(
@@ -299,7 +298,7 @@ Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
     );
   }
 
-  final jmHistorys = objectbox.jmHistoryBox.getAll().length;
+  final jmHistorys = database.jmHistories.getAll().length;
   if (jmHistorys > 0) {
     upserts.add(
       _buildBuiltinPluginInfo(
@@ -311,7 +310,7 @@ Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
     );
   }
 
-  if (upserts.isNotEmpty) objectbox.pluginInfoBox.putMany(upserts);
+  if (upserts.isNotEmpty) database.pluginInfos.putMany(upserts);
 }
 
 PluginInfo _buildBuiltinPluginInfo(
@@ -342,8 +341,8 @@ PluginInfo _buildBuiltinPluginInfo(
   );
 }
 
-void _migrateLegacySearchHistory(ObjectBox objectbox) {
-  final user = objectbox.userSettingBox.get(1);
+void _migrateLegacySearchHistory(AppDatabase database) {
+  final user = database.userSettings.get(1);
   if (user == null) {
     return;
   }
@@ -359,7 +358,7 @@ void _migrateLegacySearchHistory(ObjectBox objectbox) {
   logger.d(
     "user.globalSetting.compatibleVersion : ${user.globalSetting.compatibleVersion}",
   );
-  objectbox.userSettingBox.put(user);
+  database.userSettings.put(user);
 }
 
 String _migrateSearchHistoryEntry(String raw) {
@@ -402,42 +401,33 @@ void _debugLogMigrationSnapshot(String stage, Map<String, dynamic> snapshot) {
   logger.d('[migration_v1_to_v2][$stage] snapshot end');
 }
 
-Map<String, dynamic> _buildLegacySnapshot(ObjectBox objectbox) {
+Map<String, dynamic> _buildLegacySnapshot(AppDatabase database) {
   return {
-    'jmFavorite': objectbox.jmFavoriteBox
+    'jmFavorite': database.jmFavorites.getAll().map((e) => e.toJson()).toList(),
+    'bikaHistory': database.bikaHistories
         .getAll()
         .map((e) => e.toJson())
         .toList(),
-    'bikaHistory': objectbox.bikaHistoryBox
+    'jmHistory': database.jmHistories.getAll().map((e) => e.toJson()).toList(),
+    'bikaDownload': database.bikaDownloads
         .getAll()
         .map((e) => e.toJson())
         .toList(),
-    'jmHistory': objectbox.jmHistoryBox
-        .getAll()
-        .map((e) => e.toJson())
-        .toList(),
-    'bikaDownload': objectbox.bikaDownloadBox
-        .getAll()
-        .map((e) => e.toJson())
-        .toList(),
-    'jmDownload': objectbox.jmDownloadBox
-        .getAll()
-        .map((e) => e.toJson())
-        .toList(),
+    'jmDownload': database.jmDownloads.getAll().map((e) => e.toJson()).toList(),
   };
 }
 
-Map<String, dynamic> _buildUnifiedSnapshot(ObjectBox objectbox) {
+Map<String, dynamic> _buildUnifiedSnapshot(AppDatabase database) {
   return {
-    'unifiedFavorite': objectbox.unifiedFavoriteBox
+    'unifiedFavorite': database.unifiedFavorites
         .getAll()
         .map((e) => e.toJson())
         .toList(),
-    'unifiedHistory': objectbox.unifiedHistoryBox
+    'unifiedHistory': database.unifiedHistories
         .getAll()
         .map((e) => e.toJson())
         .toList(),
-    'unifiedDownload': objectbox.unifiedDownloadBox
+    'unifiedDownload': database.unifiedDownloads
         .getAll()
         .map((e) => e.toJson())
         .toList(),

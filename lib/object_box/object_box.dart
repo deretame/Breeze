@@ -1,9 +1,11 @@
 import 'package:path/path.dart' as p;
-import 'package:zephyr/main.dart';
+import 'package:logger/logger.dart';
 import 'package:zephyr/util/get_path.dart';
 
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+
+final _objectBoxLogger = Logger();
 
 class ObjectBox {
   late final Store store;
@@ -148,7 +150,7 @@ class ObjectBox {
   Box<ComicFollow> get comicFollowBox => _comicFollowBox;
 
   void dumpAllData() {
-    logger.d("========= ObjectBox Data Dump Start =========");
+    _objectBoxLogger.d("========= ObjectBox Data Dump Start =========");
 
     _dumpBoxData<BikaComicHistory>(_bikaComicHistoryBox, "BikaComicHistory");
     _dumpBoxData<BikaComicDownload>(_bikaComicDownloadBox, "BikaComicDownload");
@@ -188,13 +190,13 @@ class ObjectBox {
     _dumpBoxData<ComicLink>(_comicLinkBox, "ComicLink");
     _dumpBoxData<ComicFollow>(_comicFollowBox, "ComicFollow");
 
-    logger.d("=========  ObjectBox Data Dump End  =========");
+    _objectBoxLogger.d("=========  ObjectBox Data Dump End  =========");
   }
 
   /// 私有辅助方法，用于统一格式化输出
   void _dumpBoxData<T>(Box<T> box, String entityName) {
     final data = box.getAll();
-    logger.d("[$entityName] 共有 ${data.length} 条记录");
+    _objectBoxLogger.d("[$entityName] 共有 ${data.length} 条记录");
     // for (var item in data) {
     //   logger.d("  -> $item");
     // }

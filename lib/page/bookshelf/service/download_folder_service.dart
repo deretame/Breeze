@@ -1,7 +1,6 @@
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 
 const String kDownloadFolderAllKey = 'all';
 const String _kDownloadFolderSourcePrefix = 'dl-folder:';
@@ -39,9 +38,9 @@ class DownloadFolderService {
   }
 
   static List<DownloadFolderView> listFolders() {
-    final query = objectbox.downloadFolderBox
-        .query(DownloadFolder_.deleted.equals(false))
-        .order(DownloadFolder_.createdAt)
+    final query = database.downloadFolders
+        .query((item) => !item.deleted)
+        .order((a, b) => a.createdAt.compareTo(b.createdAt))
         .build();
     try {
       final folders = <DownloadFolderView>[
@@ -67,12 +66,8 @@ class DownloadFolderService {
     if (safeName.isEmpty) {
       throw ArgumentError(t.bookshelf.downloadFolderNameEmpty);
     }
-    final existed = objectbox.downloadFolderBox
-        .query(
-          DownloadFolder_.name
-              .equals(safeName)
-              .and(DownloadFolder_.deleted.equals(false)),
-        )
+    final existed = database.downloadFolders
+        .query((item) => item.name == safeName && !item.deleted)
         .build()
         .findFirst();
     if (existed != null) {
@@ -81,7 +76,7 @@ class DownloadFolderService {
 
     final now = DateTime.now().toUtc();
     final folderKey = 'd_${now.millisecondsSinceEpoch}';
-    objectbox.downloadFolderBox.put(
+    database.downloadFolders.put(
       DownloadFolder(
         folderKey: folderKey,
         name: safeName,
@@ -99,21 +94,17 @@ class DownloadFolderService {
       return;
     }
     final now = DateTime.now().toUtc();
-    final folder = objectbox.downloadFolderBox
-        .query(DownloadFolder_.folderKey.equals(safeKey))
+    final folder = database.downloadFolders
+        .query((item) => item.folderKey == safeKey)
         .build()
         .findFirst();
     if (folder != null && folder.deleted == false) {
       folder.deleted = true;
       folder.updatedAt = now;
-      objectbox.downloadFolderBox.put(folder);
+      database.downloadFolders.put(folder);
     }
-    final itemQuery = objectbox.downloadFolderItemBox
-        .query(
-          DownloadFolderItem_.folderKey
-              .equals(safeKey)
-              .and(DownloadFolderItem_.deleted.equals(false)),
-        )
+    final itemQuery = database.downloadFolderItems
+        .query((item) => item.folderKey == safeKey && !item.deleted)
         .build();
     try {
       final items = itemQuery.find();
@@ -122,7 +113,7 @@ class DownloadFolderService {
         item.updatedAt = now;
       }
       if (items.isNotEmpty) {
-        objectbox.downloadFolderItemBox.putMany(items);
+        database.downloadFolderItems.putMany(items);
       }
     } finally {
       itemQuery.close();
@@ -137,23 +128,15 @@ class DownloadFolderService {
         safeName.isEmpty) {
       return;
     }
-    final duplicated = objectbox.downloadFolderBox
-        .query(
-          DownloadFolder_.name
-              .equals(safeName)
-              .and(DownloadFolder_.deleted.equals(false)),
-        )
+    final duplicated = database.downloadFolders
+        .query((item) => item.name == safeName && !item.deleted)
         .build()
         .findFirst();
     if (duplicated != null && duplicated.folderKey != safeKey) {
       throw StateError(t.bookshelf.downloadFolderNameExists);
     }
-    final folder = objectbox.downloadFolderBox
-        .query(
-          DownloadFolder_.folderKey
-              .equals(safeKey)
-              .and(DownloadFolder_.deleted.equals(false)),
-        )
+    final folder = database.downloadFolders
+        .query((item) => item.folderKey == safeKey && !item.deleted)
         .build()
         .findFirst();
     if (folder == null) {
@@ -161,19 +144,15 @@ class DownloadFolderService {
     }
     folder.name = safeName;
     folder.updatedAt = DateTime.now().toUtc();
-    objectbox.downloadFolderBox.put(folder);
+    database.downloadFolders.put(folder);
   }
 
   static Set<String> membersOf(String folderKey) {
     if (folderKey == kDownloadFolderAllKey) {
       return const <String>{};
     }
-    final query = objectbox.downloadFolderItemBox
-        .query(
-          DownloadFolderItem_.folderKey
-              .equals(folderKey)
-              .and(DownloadFolderItem_.deleted.equals(false)),
-        )
+    final query = database.downloadFolderItems
+        .query((item) => item.folderKey == folderKey && !item.deleted)
         .build();
     try {
       return query.find().map((item) => item.downloadUniqueKey).toSet();
@@ -187,12 +166,8 @@ class DownloadFolderService {
     if (safeKey.isEmpty) {
       return const <String>{};
     }
-    final query = objectbox.downloadFolderItemBox
-        .query(
-          DownloadFolderItem_.downloadUniqueKey
-              .equals(safeKey)
-              .and(DownloadFolderItem_.deleted.equals(false)),
-        )
+    final query = database.downloadFolderItems
+        .query((item) => item.downloadUniqueKey == safeKey && !item.deleted)
         .build();
     try {
       return query.find().map((item) => item.folderKey).toSet();
@@ -211,19 +186,19 @@ class DownloadFolderService {
         .where((e) => e.isNotEmpty);
     for (final downloadUniqueKey in normalized) {
       final uniqueKey = _itemUniqueKey(folderKey, downloadUniqueKey);
-      final existing = objectbox.downloadFolderItemBox
-          .query(DownloadFolderItem_.uniqueKey.equals(uniqueKey))
+      final existing = database.downloadFolderItems
+          .query((item) => item.uniqueKey == uniqueKey)
           .build()
           .findFirst();
       if (existing != null) {
         if (existing.deleted) {
           existing.deleted = false;
           existing.updatedAt = now;
-          objectbox.downloadFolderItemBox.put(existing);
+          database.downloadFolderItems.put(existing);
         }
         continue;
       }
-      objectbox.downloadFolderItemBox.put(
+      database.downloadFolderItems.put(
         DownloadFolderItem(
           uniqueKey: uniqueKey,
           folderKey: folderKey,
@@ -246,8 +221,8 @@ class DownloadFolderService {
         .where((e) => e.isNotEmpty);
     for (final downloadUniqueKey in normalized) {
       final uniqueKey = _itemUniqueKey(folderKey, downloadUniqueKey);
-      final existing = objectbox.downloadFolderItemBox
-          .query(DownloadFolderItem_.uniqueKey.equals(uniqueKey))
+      final existing = database.downloadFolderItems
+          .query((item) => item.uniqueKey == uniqueKey)
           .build()
           .findFirst();
       if (existing == null || existing.deleted) {
@@ -255,7 +230,7 @@ class DownloadFolderService {
       }
       existing.deleted = true;
       existing.updatedAt = now;
-      objectbox.downloadFolderItemBox.put(existing);
+      database.downloadFolderItems.put(existing);
     }
   }
 
@@ -265,12 +240,8 @@ class DownloadFolderService {
       return;
     }
     final now = DateTime.now().toUtc();
-    final query = objectbox.downloadFolderItemBox
-        .query(
-          DownloadFolderItem_.downloadUniqueKey
-              .equals(safeKey)
-              .and(DownloadFolderItem_.deleted.equals(false)),
-        )
+    final query = database.downloadFolderItems
+        .query((item) => item.downloadUniqueKey == safeKey && !item.deleted)
         .build();
     try {
       final items = query.find();
@@ -279,7 +250,7 @@ class DownloadFolderService {
         item.updatedAt = now;
       }
       if (items.isNotEmpty) {
-        objectbox.downloadFolderItemBox.putMany(items);
+        database.downloadFolderItems.putMany(items);
       }
     } finally {
       query.close();

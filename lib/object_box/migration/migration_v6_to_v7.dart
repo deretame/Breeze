@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/main.dart';
 
 /// v6 -> v7: 把 JSON 字段中残留的 `extension` 统一重命名为 `extern`。
@@ -16,7 +17,7 @@ Future<void> migrateV6ToV7() async {
   var historyChanged = 0;
   var downloadChanged = 0;
 
-  final favorites = objectbox.unifiedFavoriteBox.getAll();
+  final favorites = database.unifiedFavorites.getAll();
   for (final item in favorites) {
     final newCover = _renameExtensionToExternDeep(item.cover);
     final newCreator = _renameExtensionToExternDeep(item.creator);
@@ -32,11 +33,11 @@ Future<void> migrateV6ToV7() async {
     if (newCreator != null) item.creator = newCreator;
     if (newTitleMeta != null) item.titleMeta = newTitleMeta;
     if (newMetadata != null) item.metadata = newMetadata;
-    objectbox.unifiedFavoriteBox.put(item);
+    database.unifiedFavorites.put(item);
     favoriteChanged++;
   }
 
-  final histories = objectbox.unifiedHistoryBox.getAll();
+  final histories = database.unifiedHistories.getAll();
   for (final item in histories) {
     final newCover = _renameExtensionToExternDeep(item.cover);
     final newCreator = _renameExtensionToExternDeep(item.creator);
@@ -52,11 +53,11 @@ Future<void> migrateV6ToV7() async {
     if (newCreator != null) item.creator = newCreator;
     if (newTitleMeta != null) item.titleMeta = newTitleMeta;
     if (newMetadata != null) item.metadata = newMetadata;
-    objectbox.unifiedHistoryBox.put(item);
+    database.unifiedHistories.put(item);
     historyChanged++;
   }
 
-  final downloads = objectbox.unifiedDownloadBox.getAll();
+  final downloads = database.unifiedDownloads.getAll();
   for (final item in downloads) {
     final newCover = _renameExtensionToExternDeep(item.cover);
     final newCreator = _renameExtensionToExternDeep(item.creator);
@@ -78,7 +79,7 @@ Future<void> migrateV6ToV7() async {
     if (newMetadata != null) item.metadata = newMetadata;
     if (newChapters != null) item.chapters = newChapters;
     if (newDetailJson != null) item.detailJson = newDetailJson;
-    objectbox.unifiedDownloadBox.put(item);
+    database.unifiedDownloads.put(item);
     downloadChanged++;
   }
 

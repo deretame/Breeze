@@ -1,12 +1,11 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
@@ -284,16 +283,16 @@ Future<String> _exportComicAsZip(
 }
 
 UnifiedComicDownload _getDownload(String comicId, {required String from}) {
-  final exact = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.uniqueKey.equals('$from:$comicId'))
+  final exact = database.unifiedDownloads
+      .query((item) => item.uniqueKey == '$from:$comicId')
       .build()
       .findFirst();
   if (exact != null) {
     return exact;
   }
 
-  final fallback = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.comicId.equals(comicId))
+  final fallback = database.unifiedDownloads
+      .query((item) => item.comicId == comicId)
       .build()
       .findFirst();
   if (fallback != null) {

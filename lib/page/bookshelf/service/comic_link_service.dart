@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -5,7 +6,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 
@@ -54,15 +54,12 @@ class ComicLinkService {
     ComicFolderType type, {
     bool sortAscending = false,
   }) {
-    final query = objectbox.comicLinkBox
-        .query(
-          ComicLink_.typeData
-              .equals(type.name)
-              .and(ComicLink_.deletedAt.isNull()),
-        )
+    final query = database.comicLinks
+        .query((item) => item.typeData == type.name && item.deletedAt == null)
         .order(
-          ComicLink_.createdAt,
-          flags: sortAscending ? 0 : Order.descending,
+          (a, b) => sortAscending
+              ? a.createdAt.compareTo(b.createdAt)
+              : b.createdAt.compareTo(a.createdAt),
         )
         .build();
     try {
@@ -79,19 +76,19 @@ class ComicLinkService {
     bool sortAscending = false,
   }) {
     final folderSyncId = _folderSyncIdByPath(folderPath, type);
-    final folderCondition = folderSyncId == null
-        ? ComicLink_.folderSyncId.isNull()
-        : ComicLink_.folderSyncId.equals(folderSyncId);
-    final query = objectbox.comicLinkBox
+    final query = database.comicLinks
         .query(
-          ComicLink_.typeData
-              .equals(type.name)
-              .and(ComicLink_.deletedAt.isNull())
-              .and(folderCondition),
+          (item) =>
+              item.typeData == type.name &&
+              item.deletedAt == null &&
+              (folderSyncId == null
+                  ? item.folderSyncId == null
+                  : item.folderSyncId == folderSyncId),
         )
         .order(
-          ComicLink_.createdAt,
-          flags: sortAscending ? 0 : Order.descending,
+          (a, b) => sortAscending
+              ? a.createdAt.compareTo(b.createdAt)
+              : b.createdAt.compareTo(a.createdAt),
         )
         .build();
     try {
@@ -106,12 +103,12 @@ class ComicLinkService {
     String comicUniqueKey,
     ComicFolderType type,
   ) {
-    final query = objectbox.comicLinkBox
+    final query = database.comicLinks
         .query(
-          ComicLink_.typeData
-              .equals(type.name)
-              .and(ComicLink_.deletedAt.isNull())
-              .and(ComicLink_.comicUniqueKey.equals(comicUniqueKey)),
+          (item) =>
+              item.typeData == type.name &&
+              item.deletedAt == null &&
+              item.comicUniqueKey == comicUniqueKey,
         )
         .build();
     try {
@@ -129,8 +126,8 @@ class ComicLinkService {
   ) {
     final folderSyncId = _folderSyncIdByPath(folderPath, type);
     final uniqueKey = _uniqueKey(comicUniqueKey, folderSyncId, type);
-    final existing = objectbox.comicLinkBox
-        .query(ComicLink_.uniqueKey.equals(uniqueKey))
+    final existing = database.comicLinks
+        .query((item) => item.uniqueKey == uniqueKey)
         .build()
         .findFirst();
 
@@ -146,7 +143,7 @@ class ComicLinkService {
         if (existing.folderSyncId == null && folderSyncId != null) {
           existing.folderSyncId = folderSyncId;
         }
-        objectbox.comicLinkBox.put(existing);
+        database.comicLinks.put(existing);
         return existing;
       }
       return existing;
@@ -161,7 +158,7 @@ class ComicLinkService {
       createdAt: now,
       updatedAt: now,
     );
-    objectbox.comicLinkBox.put(link);
+    database.comicLinks.put(link);
     return link;
   }
 
@@ -189,20 +186,20 @@ class ComicLinkService {
     ComicFolderType type,
   ) {
     final uniqueKey = _uniqueKey(comicUniqueKey, folderSyncId, type);
-    final link = objectbox.comicLinkBox
-        .query(ComicLink_.uniqueKey.equals(uniqueKey))
+    final link = database.comicLinks
+        .query((item) => item.uniqueKey == uniqueKey)
         .build()
         .findFirst();
     if (link == null || link.deletedAt != null) return;
 
     if (type == ComicFolderType.download) {
-      objectbox.comicLinkBox.remove(link.id);
+      database.comicLinks.remove(link.id);
     } else {
       link
         ..deletedAt = _now()
         ..updatedAt = _now()
         ..versionVectorJson = _bumpVersionVector(link.versionVectorJson);
-      objectbox.comicLinkBox.put(link);
+      database.comicLinks.put(link);
     }
 
     if (type == ComicFolderType.favorite) {
@@ -215,12 +212,12 @@ class ComicLinkService {
   /// 把漫画从所有路径移除。
   /// 对收藏类型会标记漫画本身为删除；对下载类型会删除下载记录及文件。
   static void removeComicFromAll(String comicUniqueKey, ComicFolderType type) {
-    final query = objectbox.comicLinkBox
+    final query = database.comicLinks
         .query(
-          ComicLink_.typeData
-              .equals(type.name)
-              .and(ComicLink_.deletedAt.isNull())
-              .and(ComicLink_.comicUniqueKey.equals(comicUniqueKey)),
+          (item) =>
+              item.typeData == type.name &&
+              item.deletedAt == null &&
+              item.comicUniqueKey == comicUniqueKey,
         )
         .build();
     try {
@@ -248,15 +245,15 @@ class ComicLinkService {
   }
 
   static void _markFavoriteDeleted(String comicUniqueKey) {
-    final comic = objectbox.unifiedFavoriteBox
-        .query(UnifiedComicFavorite_.uniqueKey.equals(comicUniqueKey))
+    final comic = database.unifiedFavorites
+        .query((item) => item.uniqueKey == comicUniqueKey)
         .build()
         .findFirst();
     if (comic != null && !comic.deleted) {
       comic
         ..deleted = true
         ..updatedAt = DateTime.now().toUtc();
-      objectbox.unifiedFavoriteBox.put(comic);
+      database.unifiedFavorites.put(comic);
     }
   }
 
@@ -332,12 +329,8 @@ class ComicLinkService {
     final subtreeSyncIds = _collectSubtreeSyncIds(folderSyncId, type);
 
     // 直接加载该类型下所有 active link 在内存里过滤，避免 oneOf 兼容性风险。
-    final linkQuery = objectbox.comicLinkBox
-        .query(
-          ComicLink_.typeData
-              .equals(type.name)
-              .and(ComicLink_.deletedAt.isNull()),
-        )
+    final linkQuery = database.comicLinks
+        .query((item) => item.typeData == type.name && item.deletedAt == null)
         .build();
     try {
       final links = linkQuery.find();
@@ -362,11 +355,10 @@ class ComicLinkService {
     final queue = [rootSyncId];
     while (queue.isNotEmpty) {
       final parentId = queue.removeLast();
-      final query = objectbox.comicFolderBox
+      final query = database.comicFolders
           .query(
-            ComicFolder_.typeData
-                .equals(type.name)
-                .and(ComicFolder_.parentSyncId.equals(parentId)),
+            (item) =>
+                item.typeData == type.name && item.parentSyncId == parentId,
           )
           .build();
       try {
@@ -385,8 +377,8 @@ class ComicLinkService {
     final remaining = linksOfComic(comicUniqueKey, ComicFolderType.download);
     if (remaining.isNotEmpty) return;
 
-    final comic = objectbox.unifiedDownloadBox
-        .query(UnifiedComicDownload_.uniqueKey.equals(comicUniqueKey))
+    final comic = database.unifiedDownloads
+        .query((item) => item.uniqueKey == comicUniqueKey)
         .build()
         .findFirst();
     if (comic == null) return;
@@ -401,6 +393,6 @@ class ComicLinkService {
       );
     }
 
-    objectbox.unifiedDownloadBox.remove(comic.id);
+    database.unifiedDownloads.remove(comic.id);
   }
 }

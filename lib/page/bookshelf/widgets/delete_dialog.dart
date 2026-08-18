@@ -1,10 +1,9 @@
+import 'package:zephyr/database/database.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
-
-import 'package:zephyr/main.dart';
 
 enum DeleteType { download, history }
 
@@ -40,12 +39,12 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                 TextButton(
                   onPressed: () {
                     if (type == DeleteType.download) {
-                      objectbox.unifiedDownloadBox.removeAll();
+                      database.unifiedDownloads.removeAll();
                       deleteDirectory(
                         '/data/data/com.zephyr.breeze/files/downloads',
                       );
                     } else {
-                      var allHistory = objectbox.unifiedHistoryBox.getAll();
+                      var allHistory = database.unifiedHistories.getAll();
 
                       for (var history in allHistory) {
                         history.deleted = true;
@@ -53,7 +52,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                         history.lastReadAt = history.updatedAt;
                       }
 
-                      objectbox.unifiedHistoryBox.putMany(allHistory);
+                      database.unifiedHistories.putMany(allHistory);
                     }
 
                     // 刷新页面

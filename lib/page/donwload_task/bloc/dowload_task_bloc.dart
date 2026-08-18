@@ -1,11 +1,10 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 
 part 'dowload_task_bloc.freezed.dart';
@@ -30,13 +29,12 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
   }
 
   void _watchTasks(Emitter<DowloadTaskState> emit) {
-    final watchedQuery = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(false))
-        .order(DownloadTask_.id)
+    final watchedQuery = database.downloadTasks
+        .query((item) => !item.isCompleted)
+        .order((a, b) => a.id.compareTo(b.id))
         .watch();
 
-    _watchSubscription = watchedQuery.listen((query) {
-      final tasks = query.find();
+    _watchSubscription = watchedQuery.listen((tasks) {
       add(DowloadTaskEvent.tasksUpdated(tasks));
     });
 
@@ -44,9 +42,9 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
   }
 
   void _refreshTasks(Emitter<DowloadTaskState> emit) {
-    final tasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(false))
-        .order(DownloadTask_.id)
+    final tasks = database.downloadTasks
+        .query((item) => !item.isCompleted)
+        .order((a, b) => a.id.compareTo(b.id))
         .build()
         .find();
 
@@ -61,7 +59,7 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
   }
 
   void _deleteTask(int taskId, Emitter<DowloadTaskState> emit) {
-    objectbox.downloadTaskBox.remove(taskId);
+    database.downloadTasks.remove(taskId);
   }
 
   void _cancelCurrentTask(Emitter<DowloadTaskState> emit) {
@@ -69,13 +67,13 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
   }
 
   void _clearCompletedTasks(Emitter<DowloadTaskState> emit) {
-    final completedTasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(true))
+    final completedTasks = database.downloadTasks
+        .query((item) => item.isCompleted)
         .build()
         .find();
 
     for (final task in completedTasks) {
-      objectbox.downloadTaskBox.remove(task.id);
+      database.downloadTasks.remove(task.id);
     }
   }
 

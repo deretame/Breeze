@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -9,7 +10,6 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
@@ -38,19 +38,15 @@ Future<void> unifiedDownloadTask(
   Timer? progressTimer;
   bool running = true;
 
-  final query = objectbox.downloadTaskBox
-      .query(
-        DownloadTask_.comicId
-            .equals(task.comicId)
-            .and(DownloadTask_.isDownloading.equals(true)),
-      )
+  final query = database.downloadTasks
+      .query((item) => item.comicId == task.comicId && item.isDownloading)
       .build();
 
   void updateTaskStatus(String status) {
     final dbTask = query.findFirst();
     if (dbTask != null) {
       dbTask.status = status;
-      objectbox.downloadTaskBox.put(dbTask);
+      database.downloadTasks.put(dbTask);
     }
   }
 
@@ -395,12 +391,12 @@ Future<void> _saveUnifiedDownload({
     schemaVersion: 2,
   );
 
-  final temp = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.uniqueKey.equals(key))
+  final temp = database.unifiedDownloads
+      .query((item) => item.uniqueKey == key)
       .build()
       .find();
-  objectbox.unifiedDownloadBox.removeMany(temp.map((e) => e.id).toList());
-  objectbox.unifiedDownloadBox.put(entity);
+  database.unifiedDownloads.removeMany(temp.map((e) => e.id).toList());
+  database.unifiedDownloads.put(entity);
 
   // 同时建立根目录下载链接，用于新的文件夹书架视图
   ComicLinkService.addComic(key, null, ComicFolderType.download);
@@ -491,8 +487,8 @@ Map<String, dynamic> _normalizeStoredCreatorMap(Map<String, dynamic> creator) {
 }
 
 void _markTaskCompleted(String comicId) {
-  final tasks = objectbox.downloadTaskBox
-      .query(DownloadTask_.comicId.equals(comicId))
+  final tasks = database.downloadTasks
+      .query((item) => item.comicId == comicId)
       .build()
       .find();
   for (final item in tasks) {
@@ -502,7 +498,7 @@ void _markTaskCompleted(String comicId) {
       ..status = t.download.notificationCompleteTitle;
   }
   if (tasks.isNotEmpty) {
-    objectbox.downloadTaskBox.putMany(tasks);
+    database.downloadTasks.putMany(tasks);
   }
 }
 

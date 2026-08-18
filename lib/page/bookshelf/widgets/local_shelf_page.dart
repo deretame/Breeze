@@ -1,12 +1,11 @@
+import 'package:zephyr/database/database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
@@ -266,14 +265,14 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             if (!inAllFolder) {
               FavoriteFolderService.removeMembers(folderKey, [uniqueKey]);
             } else {
-              final temp = objectbox.unifiedFavoriteBox
-                  .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
+              final temp = database.unifiedFavorites
+                  .query((item) => item.uniqueKey == uniqueKey)
                   .build()
                   .findFirst();
               if (temp != null) {
                 temp.deleted = true;
                 temp.updatedAt = DateTime.now().toUtc();
-                objectbox.unifiedFavoriteBox.put(temp);
+                database.unifiedFavorites.put(temp);
                 FavoriteFolderService.removeMemberFromAllFolders(uniqueKey);
                 ComicLinkService.removeComicFromAll(
                   uniqueKey,
@@ -283,14 +282,14 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             }
             break;
           case ShelfPageMode.history:
-            final temp = objectbox.unifiedHistoryBox
-                .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
+            final temp = database.unifiedHistories
+                .query((item) => item.uniqueKey == uniqueKey)
                 .build()
                 .findFirst();
             if (temp != null) {
               temp.deleted = true;
               temp.updatedAt = DateTime.now().toUtc();
-              objectbox.unifiedHistoryBox.put(temp);
+              database.unifiedHistories.put(temp);
             }
             ComicLinkService.removeComicFromAll(
               uniqueKey,
@@ -301,12 +300,12 @@ class _LocalShelfPageState extends State<LocalShelfPage>
             if (!inAllFolder) {
               DownloadFolderService.removeMembers(folderKey, [uniqueKey]);
             } else {
-              final temp = objectbox.unifiedDownloadBox
-                  .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
+              final temp = database.unifiedDownloads
+                  .query((item) => item.uniqueKey == uniqueKey)
                   .build()
                   .findFirst();
               if (temp != null) {
-                objectbox.unifiedDownloadBox.remove(temp.id);
+                database.unifiedDownloads.remove(temp.id);
                 DownloadFolderService.removeMemberFromAllFolders(uniqueKey);
                 ComicLinkService.removeComicFromAll(
                   uniqueKey,

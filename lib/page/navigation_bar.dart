@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -70,7 +71,7 @@ class _NavigationBarState extends State<NavigationBar> {
         await ForegroundTaskService.instance.syncOnAppStart();
       }
     });
-    final globalSetting = objectbox.userSettingBox.get(1)!.globalSetting;
+    final globalSetting = database.userSettings.get(1)!.globalSetting;
     final configuredIndex = globalSetting.welcomePageNum;
     final initialIndex = _normalizeWelcomePageIndex(
       configuredIndex,

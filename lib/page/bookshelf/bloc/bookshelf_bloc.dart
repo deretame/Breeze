@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -8,8 +9,6 @@ import 'package:equatable/equatable.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
@@ -289,7 +288,7 @@ Future<Map<String, dynamic>> _runBookshelfLoadTask(
   try {
     ensureWorkerIsolateInitialized(token);
     await initRustLib(silent: true);
-    objectbox = await ObjectBox.create();
+    database = await createDatabase();
 
     final mode = ShelfPageMode.values.byName(payload['mode'] as String);
     final searchMap = Map<String, dynamic>.from(
@@ -347,13 +346,14 @@ _RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
   final folderFiltering =
       folderKey != null && folderKey != kFavoriteFolderAllKey;
   final preFilter = !_needsWorkerFilter(search);
-  final query = objectbox.unifiedFavoriteBox
+  final query = database.unifiedFavorites
       .query(
         _favoriteBaseCondition(search.copyWith(sources: sourcesWithoutFolder)),
       )
       .order(
-        UnifiedComicFavorite_.createdAt,
-        flags: search.sort == 'da' ? 0 : Order.descending,
+        (a, b) => search.sort == 'da'
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt),
       )
       .build();
   try {
@@ -394,11 +394,12 @@ _RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
 
 _RawQueryResult _queryHistoryRaw(SearchEnter search, int offset, int limit) {
   final preFilter = !_needsWorkerFilter(search);
-  final query = objectbox.unifiedHistoryBox
+  final query = database.unifiedHistories
       .query(_historyBaseCondition(search))
       .order(
-        UnifiedComicHistory_.updatedAt,
-        flags: search.sort == 'da' ? 0 : Order.descending,
+        (a, b) => search.sort == 'da'
+            ? a.updatedAt.compareTo(b.updatedAt)
+            : b.updatedAt.compareTo(a.updatedAt),
       )
       .build();
   try {
@@ -434,13 +435,14 @@ _RawQueryResult _queryDownloadRaw(SearchEnter search, int offset, int limit) {
   final folderFiltering =
       folderKey != null && folderKey != kDownloadFolderAllKey;
   final preFilter = !_needsWorkerFilter(search);
-  final query = objectbox.unifiedDownloadBox
+  final query = database.unifiedDownloads
       .query(
         _downloadBaseCondition(search.copyWith(sources: sourcesWithoutFolder)),
       )
       .order(
-        UnifiedComicDownload_.downloadedAt,
-        flags: search.sort == 'da' ? 0 : Order.descending,
+        (a, b) => search.sort == 'da'
+            ? a.downloadedAt.compareTo(b.downloadedAt)
+            : b.downloadedAt.compareTo(a.downloadedAt),
       )
       .build();
   try {
@@ -479,65 +481,50 @@ _RawQueryResult _queryDownloadRaw(SearchEnter search, int offset, int limit) {
   }
 }
 
-Condition<UnifiedComicFavorite> _favoriteBaseCondition(SearchEnter search) {
-  return _favoriteSourceCondition(
-    search.sources,
-  ).and(UnifiedComicFavorite_.deleted.equals(false));
+DatabaseFilter<UnifiedComicFavorite> _favoriteBaseCondition(
+  SearchEnter search,
+) {
+  return _favoriteSourceCondition(search.sources).and((item) => !item.deleted);
 }
 
-Condition<UnifiedComicHistory> _historyBaseCondition(SearchEnter search) {
-  return _historySourceCondition(
-    search.sources,
-  ).and(UnifiedComicHistory_.deleted.equals(false));
+DatabaseFilter<UnifiedComicHistory> _historyBaseCondition(SearchEnter search) {
+  return _historySourceCondition(search.sources).and((item) => !item.deleted);
 }
 
-Condition<UnifiedComicDownload> _downloadBaseCondition(SearchEnter search) {
+DatabaseFilter<UnifiedComicDownload> _downloadBaseCondition(
+  SearchEnter search,
+) {
   return _downloadSourceCondition(search.sources);
 }
 
-Condition<UnifiedComicFavorite> _favoriteSourceCondition(List<String> sources) {
+DatabaseFilter<UnifiedComicFavorite> _favoriteSourceCondition(
+  List<String> sources,
+) {
   final cleaned = sources
       .map((e) => e.trim())
       .where((e) => e.isNotEmpty)
-      .toList();
-  if (cleaned.isEmpty) {
-    return UnifiedComicFavorite_.id.lessThan(0);
-  }
-  var condition = UnifiedComicFavorite_.source.equals(cleaned.first);
-  for (final source in cleaned.skip(1)) {
-    condition = condition.or(UnifiedComicFavorite_.source.equals(source));
-  }
-  return condition;
+      .toSet();
+  return (item) => cleaned.contains(item.source);
 }
 
-Condition<UnifiedComicHistory> _historySourceCondition(List<String> sources) {
+DatabaseFilter<UnifiedComicHistory> _historySourceCondition(
+  List<String> sources,
+) {
   final cleaned = sources
       .map((e) => e.trim())
       .where((e) => e.isNotEmpty)
-      .toList();
-  if (cleaned.isEmpty) {
-    return UnifiedComicHistory_.id.lessThan(0);
-  }
-  var condition = UnifiedComicHistory_.source.equals(cleaned.first);
-  for (final source in cleaned.skip(1)) {
-    condition = condition.or(UnifiedComicHistory_.source.equals(source));
-  }
-  return condition;
+      .toSet();
+  return (item) => cleaned.contains(item.source);
 }
 
-Condition<UnifiedComicDownload> _downloadSourceCondition(List<String> sources) {
+DatabaseFilter<UnifiedComicDownload> _downloadSourceCondition(
+  List<String> sources,
+) {
   final cleaned = sources
       .map((e) => e.trim())
       .where((e) => e.isNotEmpty)
-      .toList();
-  if (cleaned.isEmpty) {
-    return UnifiedComicDownload_.id.lessThan(0);
-  }
-  var condition = UnifiedComicDownload_.source.equals(cleaned.first);
-  for (final source in cleaned.skip(1)) {
-    condition = condition.or(UnifiedComicDownload_.source.equals(source));
-  }
-  return condition;
+      .toSet();
+  return (item) => cleaned.contains(item.source);
 }
 
 List<Map<String, dynamic>> _filterAndSort({

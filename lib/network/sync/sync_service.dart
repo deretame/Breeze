@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -668,7 +669,7 @@ Map<String, Map<String, dynamic>> _extractSyncableSettingsBlocks(
 }
 
 Map<String, dynamic> _buildPluginBlockData() {
-  final deletedUuids = objectbox.pluginInfoBox
+  final deletedUuids = database.pluginInfos
       .getAll()
       .where((item) => item.isDeleted)
       .map((item) => item.uuid.trim())
@@ -679,7 +680,7 @@ Map<String, dynamic> _buildPluginBlockData() {
       ..._buildPluginConfigNameCandidatesForSync(uuid),
   };
 
-  final pluginConfigs = objectbox.pluginConfigBox
+  final pluginConfigs = database.pluginConfigs
       .getAll()
       .map((item) {
         final name = item.name.trim();
@@ -699,7 +700,7 @@ Map<String, dynamic> _buildPluginBlockData() {
     return aName.compareTo(bName);
   });
 
-  final pluginInfos = objectbox.pluginInfoBox
+  final pluginInfos = database.pluginInfos
       .getAll()
       .where((item) => !item.isDeleted)
       .map((item) {
@@ -762,10 +763,10 @@ Future<void> _applyMergedGlobalState(
     return;
   }
 
-  final user = objectbox.userSettingBox.get(1);
+  final user = database.userSettings.get(1);
   if (user != null) {
     user.globalSetting = value;
-    objectbox.userSettingBox.put(user);
+    database.userSettings.put(user);
   }
 }
 
@@ -779,7 +780,7 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
     'previousRegistry=${previousSnapshot.length}',
   );
 
-  final localPluginInfos = objectbox.pluginInfoBox.getAll();
+  final localPluginInfos = database.pluginInfos.getAll();
   final localPluginByUuid = <String, PluginInfo>{
     for (final item in localPluginInfos)
       if (item.uuid.trim().isNotEmpty) item.uuid.trim(): item,
@@ -855,7 +856,7 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
     localPluginByUuid[uuid] = upsert;
   }
   if (infoUpserts.isNotEmpty) {
-    objectbox.pluginInfoBox.putMany(infoUpserts);
+    database.pluginInfos.putMany(infoUpserts);
   }
 
   final blockedConfigNames = <String>{
@@ -864,7 +865,7 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
   };
   final blockedConfigIds = <int>[];
   final localConfigByName = <String, PluginConfig>{
-    for (final item in objectbox.pluginConfigBox.getAll())
+    for (final item in database.pluginConfigs.getAll())
       if (item.name.trim().isNotEmpty &&
           !blockedConfigNames.contains(item.name.trim()))
         item.name.trim(): PluginConfig(
@@ -873,14 +874,14 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
           config: item.config,
         ),
   };
-  for (final item in objectbox.pluginConfigBox.getAll()) {
+  for (final item in database.pluginConfigs.getAll()) {
     final name = item.name.trim();
     if (name.isNotEmpty && blockedConfigNames.contains(name)) {
       blockedConfigIds.add(item.id);
     }
   }
   if (blockedConfigIds.isNotEmpty) {
-    objectbox.pluginConfigBox.removeMany(blockedConfigIds);
+    database.pluginConfigs.removeMany(blockedConfigIds);
   }
   var skippedBlockedConfig = 0;
   for (final json in pluginConfigJsonList) {
@@ -905,7 +906,7 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
     }
   }
   if (localConfigByName.isNotEmpty) {
-    objectbox.pluginConfigBox.putMany(localConfigByName.values.toList());
+    database.pluginConfigs.putMany(localConfigByName.values.toList());
   }
   logger.d(
     '[sync][plugins] apply_remote_db '
@@ -960,10 +961,10 @@ Future<void> _updateLocalSettingsSyncTime(
   if (globalSettingCubit != null) {
     globalSettingCubit.applySyncedState(merged);
   } else {
-    final user = objectbox.userSettingBox.get(1);
+    final user = database.userSettings.get(1);
     if (user != null) {
       user.globalSetting = merged;
-      objectbox.userSettingBox.put(user);
+      database.userSettings.put(user);
     }
   }
 }

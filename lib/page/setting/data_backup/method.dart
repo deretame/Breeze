@@ -1,8 +1,8 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:objectbox/objectbox.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
@@ -240,61 +240,61 @@ Future<Map<String, dynamic>> _collectObjectBoxData() async {
 
   return <String, dynamic>{
     'bikaComicHistory': withoutIds(
-      objectbox.bikaHistoryBox.getAll().map((e) => e.toJson()).toList(),
+      database.bikaHistories.getAll().map((e) => e.toJson()).toList(),
     ),
     'bikaComicDownload': withoutIds(
-      objectbox.bikaDownloadBox.getAll().map((e) => e.toJson()).toList(),
+      database.bikaDownloads.getAll().map((e) => e.toJson()).toList(),
     ),
     'jmFavorite': withoutIds(
-      objectbox.jmFavoriteBox.getAll().map((e) => e.toJson()).toList(),
+      database.jmFavorites.getAll().map((e) => e.toJson()).toList(),
     ),
     'jmHistory': withoutIds(
-      objectbox.jmHistoryBox.getAll().map((e) => e.toJson()).toList(),
+      database.jmHistories.getAll().map((e) => e.toJson()).toList(),
     ),
     'jmDownload': withoutIds(
-      objectbox.jmDownloadBox.getAll().map((e) => e.toJson()).toList(),
+      database.jmDownloads.getAll().map((e) => e.toJson()).toList(),
     ),
     'unifiedComicFavorite': withoutIds(
-      objectbox.unifiedFavoriteBox.getAll().map((e) => e.toJson()).toList(),
+      database.unifiedFavorites.getAll().map((e) => e.toJson()).toList(),
     ),
     'unifiedComicHistory': withoutIds(
-      objectbox.unifiedHistoryBox.getAll().map((e) => e.toJson()).toList(),
+      database.unifiedHistories.getAll().map((e) => e.toJson()).toList(),
     ),
     'comicFollow': withoutIds(
-      objectbox.comicFollowBox.getAll().map((e) => e.toJson()).toList(),
+      database.comicFollows.getAll().map((e) => e.toJson()).toList(),
     ),
     'unifiedComicDownload': withoutIds(
-      objectbox.unifiedDownloadBox.getAll().map((e) => e.toJson()).toList(),
+      database.unifiedDownloads.getAll().map((e) => e.toJson()).toList(),
     ),
     'favoriteFolder': withoutIds(
-      objectbox.favoriteFolderBox.getAll().map((e) => e.toJson()).toList(),
+      database.favoriteFolders.getAll().map((e) => e.toJson()).toList(),
     ),
     'favoriteFolderItem': withoutIds(
-      objectbox.favoriteFolderItemBox.getAll().map((e) => e.toJson()).toList(),
+      database.favoriteFolderItems.getAll().map((e) => e.toJson()).toList(),
     ),
     'downloadFolder': withoutIds(
-      objectbox.downloadFolderBox.getAll().map((e) => e.toJson()).toList(),
+      database.downloadFolders.getAll().map((e) => e.toJson()).toList(),
     ),
     'downloadFolderItem': withoutIds(
-      objectbox.downloadFolderItemBox.getAll().map((e) => e.toJson()).toList(),
+      database.downloadFolderItems.getAll().map((e) => e.toJson()).toList(),
     ),
     'userSetting': withoutIds(
-      objectbox.userSettingBox.getAll().map((e) => e.toJson()).toList(),
+      database.userSettings.getAll().map((e) => e.toJson()).toList(),
     ),
     'downloadTask': withoutIds(
-      objectbox.downloadTaskBox.getAll().map((e) => e.toJson()).toList(),
+      database.downloadTasks.getAll().map((e) => e.toJson()).toList(),
     ),
     'pluginConfig': withoutIds(
-      objectbox.pluginConfigBox.getAll().map((e) => e.toJson()).toList(),
+      database.pluginConfigs.getAll().map((e) => e.toJson()).toList(),
     ),
     'pluginInfo': withoutIds(
-      objectbox.pluginInfoBox.getAll().map((e) => e.toJson()).toList(),
+      database.pluginInfos.getAll().map((e) => e.toJson()).toList(),
     ),
     'comicFolder': withoutIds(
-      objectbox.comicFolderBox.getAll().map((e) => e.toJson()).toList(),
+      database.comicFolders.getAll().map((e) => e.toJson()).toList(),
     ),
     'comicLink': withoutIds(
-      objectbox.comicLinkBox.getAll().map((e) => e.toJson()).toList(),
+      database.comicLinks.getAll().map((e) => e.toJson()).toList(),
     ),
   };
 }
@@ -306,29 +306,29 @@ Future<Map<String, dynamic>> _collectObjectBoxData() async {
 ///
 /// 下载任务在任何情况下都不会被导入，因此 [downloadTaskBox] 总是被清空。
 Future<void> _clearObjectBoxData({bool preserveDownloads = false}) async {
-  objectbox.bikaHistoryBox.removeAll();
-  if (!preserveDownloads) objectbox.bikaDownloadBox.removeAll();
-  objectbox.jmFavoriteBox.removeAll();
-  objectbox.jmHistoryBox.removeAll();
-  if (!preserveDownloads) objectbox.jmDownloadBox.removeAll();
-  objectbox.unifiedFavoriteBox.removeAll();
-  objectbox.unifiedHistoryBox.removeAll();
-  objectbox.comicFollowBox.removeAll();
-  if (!preserveDownloads) objectbox.unifiedDownloadBox.removeAll();
-  objectbox.favoriteFolderBox.removeAll();
-  objectbox.favoriteFolderItemBox.removeAll();
+  database.bikaHistories.removeAll();
+  if (!preserveDownloads) database.bikaDownloads.removeAll();
+  database.jmFavorites.removeAll();
+  database.jmHistories.removeAll();
+  if (!preserveDownloads) database.jmDownloads.removeAll();
+  database.unifiedFavorites.removeAll();
+  database.unifiedHistories.removeAll();
+  database.comicFollows.removeAll();
+  if (!preserveDownloads) database.unifiedDownloads.removeAll();
+  database.favoriteFolders.removeAll();
+  database.favoriteFolderItems.removeAll();
   if (!preserveDownloads) {
-    objectbox.downloadFolderBox.removeAll();
-    objectbox.downloadFolderItemBox.removeAll();
+    database.downloadFolders.removeAll();
+    database.downloadFolderItems.removeAll();
   }
   // 注意：UserSetting 不在这里清除，而是在 _restoreUserSetting 中直接替换/更新，
   // 因为应用其他位置假设 UserSetting 的 id 始终为 1。
   // 下载任务在任何情况下都不导入，所以这里总是先清空本地下载任务。
-  objectbox.downloadTaskBox.removeAll();
-  objectbox.pluginConfigBox.removeAll();
-  objectbox.pluginInfoBox.removeAll();
-  objectbox.comicFolderBox.removeAll();
-  objectbox.comicLinkBox.removeAll();
+  database.downloadTasks.removeAll();
+  database.pluginConfigs.removeAll();
+  database.pluginInfos.removeAll();
+  database.comicFolders.removeAll();
+  database.comicLinks.removeAll();
 }
 
 /// 为缺少 `id` 的 JSON 补一个默认 0，避免 json_serializable 生成代码里对 `id` 做非空强制转换时崩溃。
@@ -353,7 +353,7 @@ Future<void> _restoreObjectBoxData(Map<String, dynamic> json) async {
   }
 
   void putAll<T>(
-    Box<T> box,
+    EntityStore<T> box,
     List<dynamic>? list,
     T Function(Map<String, dynamic>) fromJson,
   ) {
@@ -368,88 +368,88 @@ Future<void> _restoreObjectBoxData(Map<String, dynamic> json) async {
   }
 
   putAll(
-    objectbox.bikaHistoryBox,
+    database.bikaHistories,
     json['bikaComicHistory'] as List?,
     (j) => BikaComicHistory.fromJson(j),
   );
   putAll(
-    objectbox.bikaDownloadBox,
+    database.bikaDownloads,
     json['bikaComicDownload'] as List?,
     (j) => BikaComicDownload.fromJson(j),
   );
   putAll(
-    objectbox.jmFavoriteBox,
+    database.jmFavorites,
     json['jmFavorite'] as List?,
     (j) => JmFavorite.fromJson(j),
   );
   putAll(
-    objectbox.jmHistoryBox,
+    database.jmHistories,
     json['jmHistory'] as List?,
     (j) => JmHistory.fromJson(j),
   );
   putAll(
-    objectbox.jmDownloadBox,
+    database.jmDownloads,
     json['jmDownload'] as List?,
     (j) => JmDownload.fromJson(j),
   );
   putAll(
-    objectbox.unifiedFavoriteBox,
+    database.unifiedFavorites,
     json['unifiedComicFavorite'] as List?,
     (j) => UnifiedComicFavorite.fromJson(j),
   );
   putAll(
-    objectbox.unifiedHistoryBox,
+    database.unifiedHistories,
     json['unifiedComicHistory'] as List?,
     (j) => UnifiedComicHistory.fromJson(j),
   );
   putAll(
-    objectbox.comicFollowBox,
+    database.comicFollows,
     json['comicFollow'] as List?,
     (j) => ComicFollow.fromJson(j),
   );
   putAll(
-    objectbox.unifiedDownloadBox,
+    database.unifiedDownloads,
     json['unifiedComicDownload'] as List?,
     (j) => UnifiedComicDownload.fromJson(j),
   );
   putAll(
-    objectbox.favoriteFolderBox,
+    database.favoriteFolders,
     json['favoriteFolder'] as List?,
     (j) => FavoriteFolder.fromJson(j),
   );
   putAll(
-    objectbox.favoriteFolderItemBox,
+    database.favoriteFolderItems,
     json['favoriteFolderItem'] as List?,
     (j) => FavoriteFolderItem.fromJson(j),
   );
   putAll(
-    objectbox.downloadFolderBox,
+    database.downloadFolders,
     json['downloadFolder'] as List?,
     (j) => DownloadFolder.fromJson(j),
   );
   putAll(
-    objectbox.downloadFolderItemBox,
+    database.downloadFolderItems,
     json['downloadFolderItem'] as List?,
     (j) => DownloadFolderItem.fromJson(j),
   );
   await _restoreUserSetting(json['userSetting'] as List?);
   // 下载任务不导入，避免恢复后继续执行已过期的下载任务。
   putAll(
-    objectbox.pluginConfigBox,
+    database.pluginConfigs,
     json['pluginConfig'] as List?,
     (j) => PluginConfig.fromJson(j),
   );
   putAll(
-    objectbox.pluginInfoBox,
+    database.pluginInfos,
     json['pluginInfo'] as List?,
     (j) => PluginInfo.fromJson(j),
   );
-  putAll(objectbox.comicFolderBox, json['comicFolder'] as List?, (j) {
+  putAll(database.comicFolders, json['comicFolder'] as List?, (j) {
     final folder = ComicFolder.fromJson(j);
     folder.versionVectorJson = bumpVersionVector(folder.versionVectorJson);
     return folder;
   });
-  putAll(objectbox.comicLinkBox, json['comicLink'] as List?, (j) {
+  putAll(database.comicLinks, json['comicLink'] as List?, (j) {
     final link = ComicLink.fromJson(j);
     link.versionVectorJson = bumpVersionVector(link.versionVectorJson);
     return link;
@@ -471,7 +471,7 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
     _withDefaultId(Map<String, dynamic>.from(list.first as Map)),
   );
 
-  final current = objectbox.userSettingBox.get(1);
+  final current = database.userSettings.get(1);
   if (current != null) {
     // 复用现有 id=1 的 slot，直接覆盖设置数据
     if (backup.globalSettingData != null &&
@@ -488,7 +488,7 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
       current.jmSettingData = backup.jmSettingData;
     }
     current.jmJwt = backup.jmJwt;
-    objectbox.userSettingBox.put(current);
+    database.userSettings.put(current);
   } else {
     // 没有现有记录时直接插入备份数据，让 ObjectBox 自动分配 id（空盒时通常为 1）
     backup.id = 0;
@@ -499,7 +499,7 @@ Future<void> _restoreUserSetting(List<dynamic>? list) async {
         const GlobalSettingState(),
       );
     }
-    objectbox.userSettingBox.put(backup);
+    database.userSettings.put(backup);
   }
 }
 

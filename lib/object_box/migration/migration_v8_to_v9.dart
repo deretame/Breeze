@@ -1,4 +1,5 @@
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/main.dart';
 
 /// v8 -> v9: 将旧的 SOCKS5 代理开关迁移到通用代理配置 [ProxySettingState]。
@@ -7,7 +8,7 @@ import 'package:zephyr/main.dart';
 /// - 旧开关开启但未配置地址：默认使用 HTTP
 /// - 旧开关关闭：保持关闭，默认类型 HTTP
 Future<void> migrateV8ToV9() async {
-  final userSetting = objectbox.userSettingBox.get(1);
+  final userSetting = database.userSettings.get(1);
   if (userSetting == null) {
     throw Exception('Global setting not found');
   }
@@ -22,7 +23,7 @@ Future<void> migrateV8ToV9() async {
     ),
   );
   userSetting.globalSetting = next;
-  objectbox.userSettingBox.put(userSetting);
+  database.userSettings.put(userSetting);
 
   logger.d(
     '[migration_v8_to_v9] proxyEnabled=${next.proxySetting.enabled} '

@@ -1,11 +1,10 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 
 const String kComicFolderRootPath = '';
 
@@ -24,12 +23,13 @@ class ComicFolderService {
     bool includeDeleted = false,
   }) {
     if (path == null || path.isEmpty) return null;
-    var condition = ComicFolder_.uniqueKey.equals(_uniqueKey(path, type));
-    if (!includeDeleted) {
-      condition = condition.and(ComicFolder_.deletedAt.isNull());
-    }
-    final folder = objectbox.comicFolderBox
-        .query(condition)
+    final key = _uniqueKey(path, type);
+    final folder = database.comicFolders
+        .query(
+          (item) =>
+              item.uniqueKey == key &&
+              (includeDeleted || item.deletedAt == null),
+        )
         .build()
         .findFirst();
     return folder?.syncId;
@@ -122,15 +122,14 @@ class ComicFolderService {
     bool sortAscending = false,
   }) {
     final parentSyncId = _parentSyncIdByPath(parentPath, type);
-    final condition = parentSyncId == null
-        ? ComicFolder_.parentSyncId.isNull()
-        : ComicFolder_.parentSyncId.equals(parentSyncId);
-    final query = objectbox.comicFolderBox
+    final query = database.comicFolders
         .query(
-          ComicFolder_.typeData
-              .equals(type.name)
-              .and(ComicFolder_.deletedAt.isNull())
-              .and(condition),
+          (item) =>
+              item.typeData == type.name &&
+              item.deletedAt == null &&
+              (parentSyncId == null
+                  ? item.parentSyncId == null
+                  : item.parentSyncId == parentSyncId),
         )
         .build();
     try {
@@ -151,12 +150,8 @@ class ComicFolderService {
     ComicFolderType type, {
     bool sortAscending = false,
   }) {
-    final query = objectbox.comicFolderBox
-        .query(
-          ComicFolder_.typeData
-              .equals(type.name)
-              .and(ComicFolder_.deletedAt.isNull()),
-        )
+    final query = database.comicFolders
+        .query((item) => item.typeData == type.name && item.deletedAt == null)
         .build();
     try {
       final all = query.find();
@@ -174,8 +169,8 @@ class ComicFolderService {
   /// 获取文件夹名称
   static String? folderName(String path, ComicFolderType type) {
     if (path == kComicFolderRootPath) return null;
-    final folder = objectbox.comicFolderBox
-        .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
+    final folder = database.comicFolders
+        .query((item) => item.uniqueKey == _uniqueKey(path, type))
         .build()
         .findFirst();
     return folder?.name;
@@ -199,8 +194,8 @@ class ComicFolderService {
     final uniqueKey = _uniqueKey(newPath, type);
     final parentSyncId = _parentSyncIdByPath(parentPath, type);
 
-    final existed = objectbox.comicFolderBox
-        .query(ComicFolder_.uniqueKey.equals(uniqueKey))
+    final existed = database.comicFolders
+        .query((item) => item.uniqueKey == uniqueKey)
         .build()
         .findFirst();
     if (existed != null) {
@@ -213,7 +208,7 @@ class ComicFolderService {
           ..createdAt = now
           ..updatedAt = now
           ..versionVectorJson = _bumpVersionVector(existed.versionVectorJson);
-        objectbox.comicFolderBox.put(existed);
+        database.comicFolders.put(existed);
         return existed;
       }
       throw StateError(t.bookshelf.folderNameExists);
@@ -230,7 +225,7 @@ class ComicFolderService {
       createdAt: now,
       updatedAt: now,
     );
-    objectbox.comicFolderBox.put(folder);
+    database.comicFolders.put(folder);
     return folder;
   }
 
@@ -239,8 +234,8 @@ class ComicFolderService {
     if (path == kComicFolderRootPath) return;
     final now = _now();
 
-    final folder = objectbox.comicFolderBox
-        .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
+    final folder = database.comicFolders
+        .query((item) => item.uniqueKey == _uniqueKey(path, type))
         .build()
         .findFirst();
     if (folder == null || folder.deletedAt != null) return;
@@ -249,15 +244,15 @@ class ComicFolderService {
       ..deletedAt = now
       ..updatedAt = now
       ..versionVectorJson = _bumpVersionVector(folder.versionVectorJson);
-    objectbox.comicFolderBox.put(folder);
+    database.comicFolders.put(folder);
 
     // 级联删除子文件夹（软删除）
     final subtreeSyncIds = _collectSubtreeSyncIds(folder.syncId, type);
     subtreeSyncIds.remove(folder.syncId);
     if (subtreeSyncIds.isEmpty) return;
 
-    final childQuery = objectbox.comicFolderBox
-        .query(ComicFolder_.syncId.oneOf(subtreeSyncIds.toList()))
+    final childQuery = database.comicFolders
+        .query((item) => subtreeSyncIds.contains(item.syncId))
         .build();
     try {
       final children = childQuery.find();
@@ -269,7 +264,7 @@ class ComicFolderService {
           ..versionVectorJson = _bumpVersionVector(child.versionVectorJson);
       }
       if (children.isNotEmpty) {
-        objectbox.comicFolderBox.putMany(children);
+        database.comicFolders.putMany(children);
       }
     } finally {
       childQuery.close();
@@ -284,8 +279,8 @@ class ComicFolderService {
       throw ArgumentError(t.bookshelf.folderNameSlash);
     }
 
-    final folder = objectbox.comicFolderBox
-        .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
+    final folder = database.comicFolders
+        .query((item) => item.uniqueKey == _uniqueKey(path, type))
         .build()
         .findFirst();
     if (folder == null || folder.deletedAt != null) return;
@@ -295,8 +290,8 @@ class ComicFolderService {
     final newUniqueKey = _uniqueKey(newPath, type);
 
     // 检查目标名称是否冲突
-    final duplicated = objectbox.comicFolderBox
-        .query(ComicFolder_.uniqueKey.equals(newUniqueKey))
+    final duplicated = database.comicFolders
+        .query((item) => item.uniqueKey == newUniqueKey)
         .build()
         .findFirst();
     if (duplicated != null && duplicated.id != folder.id) {
@@ -304,7 +299,7 @@ class ComicFolderService {
         throw StateError(t.bookshelf.folderNameExists);
       }
       //  Tombstone 冲突：先物理删除旧的 tombstone
-      objectbox.comicFolderBox.remove(duplicated.id);
+      database.comicFolders.remove(duplicated.id);
     }
 
     final now = _now();
@@ -313,7 +308,7 @@ class ComicFolderService {
       ..uniqueKey = newUniqueKey
       ..updatedAt = now
       ..versionVectorJson = _bumpVersionVector(folder.versionVectorJson);
-    objectbox.comicFolderBox.put(folder);
+    database.comicFolders.put(folder);
   }
 
   // ==================== 批量操作 ====================
@@ -331,8 +326,8 @@ class ComicFolderService {
 
     final now = _now();
     for (final path in paths) {
-      final folder = objectbox.comicFolderBox
-          .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
+      final folder = database.comicFolders
+          .query((item) => item.uniqueKey == _uniqueKey(path, type))
           .build()
           .findFirst();
       if (folder == null || folder.deletedAt != null) continue;
@@ -342,8 +337,8 @@ class ComicFolderService {
       final newUniqueKey = _uniqueKey(newPath, type);
 
       // 目标位置若存在 tombstone，先物理清理
-      final duplicated = objectbox.comicFolderBox
-          .query(ComicFolder_.uniqueKey.equals(newUniqueKey))
+      final duplicated = database.comicFolders
+          .query((item) => item.uniqueKey == newUniqueKey)
           .build()
           .findFirst();
       if (duplicated != null && duplicated.id != folder.id) {
@@ -352,7 +347,7 @@ class ComicFolderService {
             t.bookshelf.targetFolderNameExists(name: folderName),
           );
         }
-        objectbox.comicFolderBox.remove(duplicated.id);
+        database.comicFolders.remove(duplicated.id);
       }
 
       _moveFolderInternal(folder, newPath, now, type);
@@ -375,8 +370,8 @@ class ComicFolderService {
     final now = _now();
     final targetParentSyncId = _parentSyncIdByPath(targetPath, type);
     for (final path in paths) {
-      final sourceFolder = objectbox.comicFolderBox
-          .query(ComicFolder_.uniqueKey.equals(_uniqueKey(path, type)))
+      final sourceFolder = database.comicFolders
+          .query((item) => item.uniqueKey == _uniqueKey(path, type))
           .build()
           .findFirst();
       if (sourceFolder == null || sourceFolder.deletedAt != null) continue;
@@ -417,7 +412,7 @@ class ComicFolderService {
       ..uniqueKey = newUniqueKey
       ..updatedAt = now
       ..versionVectorJson = _bumpVersionVector(folder.versionVectorJson);
-    objectbox.comicFolderBox.put(folder);
+    database.comicFolders.put(folder);
   }
 
   /// 递归复制文件夹。
@@ -433,8 +428,8 @@ class ComicFolderService {
     var suffix = 1;
     while (true) {
       final candidateKey = '$parentKey|$targetName|${type.name}';
-      final exists = objectbox.comicFolderBox
-          .query(ComicFolder_.uniqueKey.equals(candidateKey))
+      final exists = database.comicFolders
+          .query((item) => item.uniqueKey == candidateKey)
           .build()
           .findFirst();
       if (exists == null) break;
@@ -453,21 +448,21 @@ class ComicFolderService {
       createdAt: now,
       updatedAt: now,
     );
-    objectbox.comicFolderBox.put(targetFolder);
+    database.comicFolders.put(targetFolder);
 
     // 复制当前文件夹下的链接
-    final linkQuery = objectbox.comicLinkBox
+    final linkQuery = database.comicLinks
         .query(
-          ComicLink_.typeData
-              .equals(type.name)
-              .and(ComicLink_.deletedAt.isNull())
-              .and(ComicLink_.folderSyncId.equals(sourceFolder.syncId)),
+          (item) =>
+              item.typeData == type.name &&
+              item.deletedAt == null &&
+              item.folderSyncId == sourceFolder.syncId,
         )
         .build();
     try {
       final links = linkQuery.find();
       for (final link in links) {
-        objectbox.comicLinkBox.put(
+        database.comicLinks.put(
           ComicLink(
             uniqueKey:
                 '${link.comicUniqueKey}|${targetFolder.syncId}|${type.name}',
@@ -485,12 +480,12 @@ class ComicFolderService {
     }
 
     // 递归复制子文件夹
-    final childQuery = objectbox.comicFolderBox
+    final childQuery = database.comicFolders
         .query(
-          ComicFolder_.typeData
-              .equals(type.name)
-              .and(ComicFolder_.deletedAt.isNull())
-              .and(ComicFolder_.parentSyncId.equals(sourceFolder.syncId)),
+          (item) =>
+              item.typeData == type.name &&
+              item.deletedAt == null &&
+              item.parentSyncId == sourceFolder.syncId,
         )
         .build();
     try {
@@ -511,12 +506,12 @@ class ComicFolderService {
     final queue = [rootSyncId];
     while (queue.isNotEmpty) {
       final parentId = queue.removeLast();
-      final query = objectbox.comicFolderBox
+      final query = database.comicFolders
           .query(
-            ComicFolder_.typeData
-                .equals(type.name)
-                .and(ComicFolder_.deletedAt.isNull())
-                .and(ComicFolder_.parentSyncId.equals(parentId)),
+            (item) =>
+                item.typeData == type.name &&
+                item.deletedAt == null &&
+                item.parentSyncId == parentId,
           )
           .build();
       try {

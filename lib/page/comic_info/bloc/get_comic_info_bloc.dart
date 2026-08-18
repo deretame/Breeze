@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
@@ -6,7 +7,6 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
@@ -44,19 +44,16 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
 
       if (event.type == ComicEntryType.download) {
         comicInfo =
-            objectbox.unifiedDownloadBox
+            database.unifiedDownloads
                 .query(
-                  UnifiedComicDownload_.uniqueKey.equals(
-                    '${event.pluginId}:${event.comicId}',
-                  ),
+                  (item) =>
+                      item.uniqueKey == '${event.pluginId}:${event.comicId}',
                 )
                 .build()
                 .findFirst() ??
-            objectbox.unifiedDownloadBox
+            database.unifiedDownloads
                 .query(
-                  UnifiedComicDownload_.uniqueKey.equals(
-                    '${event.from}:${event.comicId}',
-                  ),
+                  (item) => item.uniqueKey == '${event.from}:${event.comicId}',
                 )
                 .build()
                 .findFirst();

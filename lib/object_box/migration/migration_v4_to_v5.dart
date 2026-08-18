@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:worker_manager/worker_manager.dart';
-import 'package:zephyr/main.dart' hide objectbox;
-import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/database/database.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/worker_isolate.dart';
 
@@ -11,16 +11,16 @@ Future<void> migrateV4ToV5() async {
   final rootIsolateToken = captureWorkerIsolateToken();
   await workerManager.execute(() async {
     ensureWorkerIsolateInitialized(rootIsolateToken);
-    final objectboxTemp = await ObjectBox.create(dbRootPath: dbRootPath);
-    _migrateFavorites(objectboxTemp);
-    _migrateHistories(objectboxTemp);
-    _migrateDownloads(objectboxTemp);
+    final databaseTemp = await createDatabase(dbRootPath: dbRootPath);
+    _migrateFavorites(databaseTemp);
+    _migrateHistories(databaseTemp);
+    _migrateDownloads(databaseTemp);
   });
   logger.d('[migration_v4_to_v5] done');
 }
 
-void _migrateFavorites(ObjectBox objectbox) {
-  final all = objectbox.unifiedFavoriteBox.getAll();
+void _migrateFavorites(AppDatabase database) {
+  final all = database.unifiedFavorites.getAll();
   var changed = 0;
   for (final item in all) {
     final newCover = _renameExtensionToExternInJsonString(item.cover);
@@ -37,14 +37,14 @@ void _migrateFavorites(ObjectBox objectbox) {
     if (newCreator != null) item.creator = newCreator;
     if (newTitleMeta != null) item.titleMeta = newTitleMeta;
     if (newMetadata != null) item.metadata = newMetadata;
-    objectbox.unifiedFavoriteBox.put(item);
+    database.unifiedFavorites.put(item);
     changed++;
   }
   logger.d('[migration_v4_to_v5] updated UnifiedComicFavorite: $changed');
 }
 
-void _migrateHistories(ObjectBox objectbox) {
-  final all = objectbox.unifiedHistoryBox.getAll();
+void _migrateHistories(AppDatabase database) {
+  final all = database.unifiedHistories.getAll();
   var changed = 0;
   for (final item in all) {
     final newCover = _renameExtensionToExternInJsonString(item.cover);
@@ -61,14 +61,14 @@ void _migrateHistories(ObjectBox objectbox) {
     if (newCreator != null) item.creator = newCreator;
     if (newTitleMeta != null) item.titleMeta = newTitleMeta;
     if (newMetadata != null) item.metadata = newMetadata;
-    objectbox.unifiedHistoryBox.put(item);
+    database.unifiedHistories.put(item);
     changed++;
   }
   logger.d('[migration_v4_to_v5] updated UnifiedComicHistory: $changed');
 }
 
-void _migrateDownloads(ObjectBox objectbox) {
-  final all = objectbox.unifiedDownloadBox.getAll();
+void _migrateDownloads(AppDatabase database) {
+  final all = database.unifiedDownloads.getAll();
   var changed = 0;
   for (final item in all) {
     final newCover = _renameExtensionToExternInJsonString(item.cover);
@@ -91,7 +91,7 @@ void _migrateDownloads(ObjectBox objectbox) {
     if (newMetadata != null) item.metadata = newMetadata;
     if (newChapters != null) item.chapters = newChapters;
     if (newDetailJson != null) item.detailJson = newDetailJson;
-    objectbox.unifiedDownloadBox.put(item);
+    database.unifiedDownloads.put(item);
     changed++;
   }
   logger.d('[migration_v4_to_v5] updated UnifiedComicDownload: $changed');

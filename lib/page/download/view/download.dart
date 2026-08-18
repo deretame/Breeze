@@ -1,10 +1,10 @@
+import 'package:zephyr/database/database.dart';
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
@@ -60,8 +60,8 @@ class _DownloadPageState extends State<DownloadPage> {
       _downloadInfo[chapter.id] = false;
     }
 
-    final query = objectbox.unifiedDownloadBox.query(
-      UnifiedComicDownload_.uniqueKey.equals('$source:${downloadInfo.comicId}'),
+    final query = database.unifiedDownloads.query(
+      (item) => item.uniqueKey == '$source:${downloadInfo.comicId}',
     );
     comicDownloadInfo = query.build().findFirst();
     if (comicDownloadInfo != null) {

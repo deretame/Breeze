@@ -1,7 +1,7 @@
+import 'package:zephyr/database/database.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -22,16 +22,22 @@ class ComicFollowService {
 
   /// 保存或更新追更记录（直接写入数据库）
   void putFollow(ComicFollow follow) {
-    objectbox.comicFollowBox.put(follow);
+    database.comicFollows.put(follow);
   }
 
   /// 查询全部未删除的追更记录
   List<ComicFollow> listActiveFollows() {
-    final query = objectbox.comicFollowBox
-        .query(ComicFollow_.deleted.equals(false))
-        .order(ComicFollow_.hasUpdate, flags: Order.descending)
-        .order(ComicFollow_.updateTime, flags: Order.descending)
-        .build();
+    final query = database.comicFollows.query((item) => !item.deleted).order((
+      a,
+      b,
+    ) {
+      final byHasUpdate = b.hasUpdate == a.hasUpdate
+          ? 0
+          : (b.hasUpdate ? 1 : -1);
+      return byHasUpdate != 0
+          ? byHasUpdate
+          : b.updateTime.compareTo(a.updateTime);
+    }).build();
     try {
       return query.find();
     } finally {
@@ -41,8 +47,8 @@ class ComicFollowService {
 
   /// 按 uniqueKey 查询追更记录（包含已删除的），用于更新或复活旧记录
   ComicFollow? getFollowByUniqueKey(String uniqueKey) {
-    final query = objectbox.comicFollowBox
-        .query(ComicFollow_.uniqueKey.equals(uniqueKey))
+    final query = database.comicFollows
+        .query((item) => item.uniqueKey == uniqueKey)
         .build();
     try {
       return query.findFirst();

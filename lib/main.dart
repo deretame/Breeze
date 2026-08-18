@@ -25,13 +25,13 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/i18n/system_locale_service.dart';
 import 'package:zephyr/network/http/wind_http.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/platform/desktop/native_window.dart';
 import 'package:zephyr/platform/desktop/system_tray.dart';
@@ -51,10 +51,6 @@ import 'package:zephyr/widgets/desktop/intent.dart';
 
 export 'package:zephyr/network/http/wind_http.dart'
     show WindHttp, FetchResponse, fetch, fetchDirect;
-
-ObjectBox? _objectbox;
-ObjectBox get objectbox => _objectbox!;
-set objectbox(ObjectBox value) => _objectbox = value;
 
 final appRouter = AppRouter();
 
@@ -286,10 +282,10 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     ]);
   }
 
-  objectbox = await ObjectBox.create();
-  final setting = objectbox.userSettingBox.get(1);
+  database = await createDatabase();
+  final setting = database.userSettings.get(1);
   if (setting == null) {
-    objectbox.userSettingBox.put(UserSetting());
+    database.userSettings.put(UserSetting());
   }
 
   final globalSettingCubit = GlobalSettingCubit();
@@ -531,7 +527,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     } else {
       windowManager.hide(); // 其他桌面平台
     }
-    objectbox.close();
+    database.close();
     nuclearKillProcess();
   }
 

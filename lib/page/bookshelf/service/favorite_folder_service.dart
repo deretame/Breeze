@@ -1,7 +1,6 @@
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 
 const String kFavoriteFolderAllKey = 'all';
 const String _kFolderSourcePrefix = 'fav-folder:';
@@ -39,9 +38,9 @@ class FavoriteFolderService {
   }
 
   static List<FavoriteFolderView> listFolders() {
-    final query = objectbox.favoriteFolderBox
-        .query(FavoriteFolder_.deleted.equals(false))
-        .order(FavoriteFolder_.createdAt)
+    final query = database.favoriteFolders
+        .query((item) => !item.deleted)
+        .order((a, b) => a.createdAt.compareTo(b.createdAt))
         .build();
     try {
       final folders = <FavoriteFolderView>[
@@ -67,12 +66,8 @@ class FavoriteFolderService {
     if (safeName.isEmpty) {
       throw ArgumentError(t.bookshelf.favoriteFolderNameEmpty);
     }
-    final existed = objectbox.favoriteFolderBox
-        .query(
-          FavoriteFolder_.name
-              .equals(safeName)
-              .and(FavoriteFolder_.deleted.equals(false)),
-        )
+    final existed = database.favoriteFolders
+        .query((item) => item.name == safeName && !item.deleted)
         .build()
         .findFirst();
     if (existed != null) {
@@ -81,7 +76,7 @@ class FavoriteFolderService {
 
     final now = DateTime.now().toUtc();
     final folderKey = 'f_${now.millisecondsSinceEpoch}';
-    objectbox.favoriteFolderBox.put(
+    database.favoriteFolders.put(
       FavoriteFolder(
         folderKey: folderKey,
         name: safeName,
@@ -99,21 +94,17 @@ class FavoriteFolderService {
       return;
     }
     final now = DateTime.now().toUtc();
-    final folder = objectbox.favoriteFolderBox
-        .query(FavoriteFolder_.folderKey.equals(safeKey))
+    final folder = database.favoriteFolders
+        .query((item) => item.folderKey == safeKey)
         .build()
         .findFirst();
     if (folder != null && folder.deleted == false) {
       folder.deleted = true;
       folder.updatedAt = now;
-      objectbox.favoriteFolderBox.put(folder);
+      database.favoriteFolders.put(folder);
     }
-    final itemQuery = objectbox.favoriteFolderItemBox
-        .query(
-          FavoriteFolderItem_.folderKey
-              .equals(safeKey)
-              .and(FavoriteFolderItem_.deleted.equals(false)),
-        )
+    final itemQuery = database.favoriteFolderItems
+        .query((item) => item.folderKey == safeKey && !item.deleted)
         .build();
     try {
       final items = itemQuery.find();
@@ -122,7 +113,7 @@ class FavoriteFolderService {
         item.updatedAt = now;
       }
       if (items.isNotEmpty) {
-        objectbox.favoriteFolderItemBox.putMany(items);
+        database.favoriteFolderItems.putMany(items);
       }
     } finally {
       itemQuery.close();
@@ -137,23 +128,15 @@ class FavoriteFolderService {
         safeName.isEmpty) {
       return;
     }
-    final duplicated = objectbox.favoriteFolderBox
-        .query(
-          FavoriteFolder_.name
-              .equals(safeName)
-              .and(FavoriteFolder_.deleted.equals(false)),
-        )
+    final duplicated = database.favoriteFolders
+        .query((item) => item.name == safeName && !item.deleted)
         .build()
         .findFirst();
     if (duplicated != null && duplicated.folderKey != safeKey) {
       throw StateError(t.bookshelf.favoriteFolderNameExists);
     }
-    final folder = objectbox.favoriteFolderBox
-        .query(
-          FavoriteFolder_.folderKey
-              .equals(safeKey)
-              .and(FavoriteFolder_.deleted.equals(false)),
-        )
+    final folder = database.favoriteFolders
+        .query((item) => item.folderKey == safeKey && !item.deleted)
         .build()
         .findFirst();
     if (folder == null) {
@@ -161,19 +144,15 @@ class FavoriteFolderService {
     }
     folder.name = safeName;
     folder.updatedAt = DateTime.now().toUtc();
-    objectbox.favoriteFolderBox.put(folder);
+    database.favoriteFolders.put(folder);
   }
 
   static Set<String> membersOf(String folderKey) {
     if (folderKey == kFavoriteFolderAllKey) {
       return const <String>{};
     }
-    final query = objectbox.favoriteFolderItemBox
-        .query(
-          FavoriteFolderItem_.folderKey
-              .equals(folderKey)
-              .and(FavoriteFolderItem_.deleted.equals(false)),
-        )
+    final query = database.favoriteFolderItems
+        .query((item) => item.folderKey == folderKey && !item.deleted)
         .build();
     try {
       return query.find().map((item) => item.favoriteUniqueKey).toSet();
@@ -187,12 +166,8 @@ class FavoriteFolderService {
     if (safeKey.isEmpty) {
       return const <String>{};
     }
-    final query = objectbox.favoriteFolderItemBox
-        .query(
-          FavoriteFolderItem_.favoriteUniqueKey
-              .equals(safeKey)
-              .and(FavoriteFolderItem_.deleted.equals(false)),
-        )
+    final query = database.favoriteFolderItems
+        .query((item) => item.favoriteUniqueKey == safeKey && !item.deleted)
         .build();
     try {
       return query.find().map((item) => item.folderKey).toSet();
@@ -211,19 +186,19 @@ class FavoriteFolderService {
         .where((e) => e.isNotEmpty);
     for (final favoriteUniqueKey in normalized) {
       final uniqueKey = _itemUniqueKey(folderKey, favoriteUniqueKey);
-      final existing = objectbox.favoriteFolderItemBox
-          .query(FavoriteFolderItem_.uniqueKey.equals(uniqueKey))
+      final existing = database.favoriteFolderItems
+          .query((item) => item.uniqueKey == uniqueKey)
           .build()
           .findFirst();
       if (existing != null) {
         if (existing.deleted) {
           existing.deleted = false;
           existing.updatedAt = now;
-          objectbox.favoriteFolderItemBox.put(existing);
+          database.favoriteFolderItems.put(existing);
         }
         continue;
       }
-      objectbox.favoriteFolderItemBox.put(
+      database.favoriteFolderItems.put(
         FavoriteFolderItem(
           uniqueKey: uniqueKey,
           folderKey: folderKey,
@@ -246,8 +221,8 @@ class FavoriteFolderService {
         .where((e) => e.isNotEmpty);
     for (final favoriteUniqueKey in normalized) {
       final uniqueKey = _itemUniqueKey(folderKey, favoriteUniqueKey);
-      final existing = objectbox.favoriteFolderItemBox
-          .query(FavoriteFolderItem_.uniqueKey.equals(uniqueKey))
+      final existing = database.favoriteFolderItems
+          .query((item) => item.uniqueKey == uniqueKey)
           .build()
           .findFirst();
       if (existing == null || existing.deleted) {
@@ -255,7 +230,7 @@ class FavoriteFolderService {
       }
       existing.deleted = true;
       existing.updatedAt = now;
-      objectbox.favoriteFolderItemBox.put(existing);
+      database.favoriteFolderItems.put(existing);
     }
   }
 
@@ -265,12 +240,8 @@ class FavoriteFolderService {
       return;
     }
     final now = DateTime.now().toUtc();
-    final query = objectbox.favoriteFolderItemBox
-        .query(
-          FavoriteFolderItem_.favoriteUniqueKey
-              .equals(safeKey)
-              .and(FavoriteFolderItem_.deleted.equals(false)),
-        )
+    final query = database.favoriteFolderItems
+        .query((item) => item.favoriteUniqueKey == safeKey && !item.deleted)
         .build();
     try {
       final items = query.find();
@@ -279,7 +250,7 @@ class FavoriteFolderService {
         item.updatedAt = now;
       }
       if (items.isNotEmpty) {
-        objectbox.favoriteFolderItemBox.putMany(items);
+        database.favoriteFolderItems.putMany(items);
       }
     } finally {
       query.close();

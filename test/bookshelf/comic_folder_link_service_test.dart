@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
@@ -105,7 +105,7 @@ void main() {
       final path = ComicFolderService.folderPath(folder);
       ComicFolderService.renameFolder(path, 'new', ComicFolderType.favorite);
 
-      final renamed = objectbox.comicFolderBox.get(folder.id);
+      final renamed = database.comicFolders.get(folder.id);
       expect(renamed!.name, 'new');
       expect(ComicFolderService.folderPath(renamed), '/new');
     });
@@ -145,8 +145,8 @@ void main() {
       final bPath = ComicFolderService.folderPath(b);
       ComicFolderService.renameFolder(bPath, 'a', ComicFolderType.favorite);
 
-      expect(objectbox.comicFolderBox.get(a.id), isNull);
-      expect(objectbox.comicFolderBox.get(b.id)!.name, 'a');
+      expect(database.comicFolders.get(a.id), isNull);
+      expect(database.comicFolders.get(b.id)!.name, 'a');
     });
 
     test('deleteFolder soft deletes folder and descendants', () {
@@ -164,8 +164,8 @@ void main() {
 
       ComicFolderService.deleteFolder(parentPath, ComicFolderType.favorite);
 
-      expect(objectbox.comicFolderBox.get(parent.id)!.deletedAt, isNotNull);
-      expect(objectbox.comicFolderBox.get(child.id)!.deletedAt, isNotNull);
+      expect(database.comicFolders.get(parent.id)!.deletedAt, isNotNull);
+      expect(database.comicFolders.get(child.id)!.deletedAt, isNotNull);
     });
 
     test('deleteFolder does not delete root', () {
@@ -194,7 +194,7 @@ void main() {
         ComicFolderType.favorite,
       );
 
-      final moved = objectbox.comicFolderBox.get(a.id);
+      final moved = database.comicFolders.get(a.id);
       expect(moved!.parentSyncId, b.syncId);
       expect(ComicFolderService.folderPath(moved), '/b/a');
     });
@@ -241,7 +241,7 @@ void main() {
 
     test('batchCopyFolders copies folder recursively with links', () {
       final favorite = createTestFavorite('test:comic1');
-      objectbox.unifiedFavoriteBox.put(favorite);
+      database.unifiedFavorites.put(favorite);
 
       final src = ComicFolderService.createFolder(
         '',
@@ -349,13 +349,13 @@ void main() {
         ComicFolderType.favorite,
       );
 
-      final stored = objectbox.comicLinkBox.get(link.id);
+      final stored = database.comicLinks.get(link.id);
       expect(stored!.deletedAt, isNotNull);
     });
 
     test('removeComic marks favorite deleted when last link', () {
       final favorite = createTestFavorite('test:comic1');
-      objectbox.unifiedFavoriteBox.put(favorite);
+      database.unifiedFavorites.put(favorite);
       ComicLinkService.addComic('test:comic1', null, ComicFolderType.favorite);
 
       ComicLinkService.removeComic(
@@ -364,7 +364,7 @@ void main() {
         ComicFolderType.favorite,
       );
 
-      final stored = objectbox.unifiedFavoriteBox.get(favorite.id);
+      final stored = database.unifiedFavorites.get(favorite.id);
       expect(stored!.deleted, isTrue);
     });
 
@@ -372,7 +372,7 @@ void main() {
       'removeComic does not mark favorite deleted when other links exist',
       () {
         final favorite = createTestFavorite('test:comic1');
-        objectbox.unifiedFavoriteBox.put(favorite);
+        database.unifiedFavorites.put(favorite);
         final f1 = ComicFolderService.createFolder(
           '',
           'f1',
@@ -400,7 +400,7 @@ void main() {
           ComicFolderType.favorite,
         );
 
-        final stored = objectbox.unifiedFavoriteBox.get(favorite.id);
+        final stored = database.unifiedFavorites.get(favorite.id);
         expect(stored!.deleted, isFalse);
       },
     );
@@ -413,7 +413,7 @@ void main() {
         ComicFolderType.download,
       );
 
-      final remaining = objectbox.comicLinkBox.getAll();
+      final remaining = database.comicLinks.getAll();
       expect(remaining, isEmpty);
     });
 
@@ -425,7 +425,7 @@ void main() {
         'test:comic1',
         storageRoot: tempDir.path,
       );
-      objectbox.unifiedDownloadBox.put(download);
+      database.unifiedDownloads.put(download);
       ComicLinkService.addComic('test:comic1', null, ComicFolderType.download);
 
       ComicLinkService.removeComic(
@@ -434,13 +434,13 @@ void main() {
         ComicFolderType.download,
       );
 
-      expect(objectbox.unifiedDownloadBox.get(download.id), isNull);
+      expect(database.unifiedDownloads.get(download.id), isNull);
       expect(await tempDir.exists(), isFalse);
     });
 
     test('moveComic moves link without marking favorite deleted', () {
       final favorite = createTestFavorite('test:comic1');
-      objectbox.unifiedFavoriteBox.put(favorite);
+      database.unifiedFavorites.put(favorite);
       final f1 = ComicFolderService.createFolder(
         '',
         'f1',
@@ -469,7 +469,7 @@ void main() {
         ComicFolderType.favorite,
       );
       expect(links.length, 1);
-      expect(objectbox.unifiedFavoriteBox.get(favorite.id)!.deleted, isFalse);
+      expect(database.unifiedFavorites.get(favorite.id)!.deleted, isFalse);
     });
 
     test('removeComicFromAll removes all links', () {
@@ -539,7 +539,7 @@ void main() {
   group('folder deletion link cleanup', () {
     test('deleting a folder removes links inside it and unfavorites comic', () {
       final favorite = createTestFavorite('test:comic1');
-      objectbox.unifiedFavoriteBox.put(favorite);
+      database.unifiedFavorites.put(favorite);
       final folder = ComicFolderService.createFolder(
         '',
         'folder',
@@ -556,14 +556,14 @@ void main() {
         ComicLinkService.linksOfComic('test:comic1', ComicFolderType.favorite),
         isEmpty,
       );
-      expect(objectbox.unifiedFavoriteBox.get(favorite.id)!.deleted, isTrue);
+      expect(database.unifiedFavorites.get(favorite.id)!.deleted, isTrue);
     });
 
     test(
       'deleting a parent folder removes links in nested folders and unfavorites comic',
       () {
         final favorite = createTestFavorite('test:comic1');
-        objectbox.unifiedFavoriteBox.put(favorite);
+        database.unifiedFavorites.put(favorite);
         final parent = ComicFolderService.createFolder(
           '',
           'parent',
@@ -595,7 +595,7 @@ void main() {
           ),
           isEmpty,
         );
-        expect(objectbox.unifiedFavoriteBox.get(favorite.id)!.deleted, isTrue);
+        expect(database.unifiedFavorites.get(favorite.id)!.deleted, isTrue);
       },
     );
   });
@@ -609,7 +609,7 @@ void main() {
       );
       // Manufacture a self-reference cycle.
       folder.parentSyncId = folder.syncId;
-      objectbox.comicFolderBox.put(folder);
+      database.comicFolders.put(folder);
 
       // Should not infinite loop; returns partial path.
       final path = ComicFolderService.folderPath(folder);
@@ -629,7 +629,7 @@ void main() {
       );
       a.parentSyncId = b.syncId;
       b.parentSyncId = a.syncId;
-      objectbox.comicFolderBox.putMany([a, b]);
+      database.comicFolders.putMany([a, b]);
 
       // Should not infinite loop.
       final pathA = ComicFolderService.folderPath(a);
@@ -660,7 +660,7 @@ void main() {
         ComicFolderType.favorite,
       );
 
-      final all = objectbox.comicFolderBox.getAll();
+      final all = database.comicFolders.getAll();
       expect(all.length, depth);
       expect(all.every((f) => f.deletedAt != null), isTrue);
     });
@@ -692,8 +692,8 @@ void main() {
         ComicFolderType.favorite,
       );
 
-      final storedParent = objectbox.comicFolderBox.get(parent.id);
-      final storedChild = objectbox.comicFolderBox.get(child.id);
+      final storedParent = database.comicFolders.get(parent.id);
+      final storedChild = database.comicFolders.get(child.id);
       expect(storedParent!.parentSyncId, target.syncId);
       expect(storedChild!.parentSyncId, parent.syncId);
       expect(
@@ -721,8 +721,8 @@ void main() {
         childPath,
       }, ComicFolderType.favorite);
 
-      expect(objectbox.comicFolderBox.get(parent.id)!.deletedAt, isNotNull);
-      expect(objectbox.comicFolderBox.get(child.id)!.deletedAt, isNotNull);
+      expect(database.comicFolders.get(parent.id)!.deletedAt, isNotNull);
+      expect(database.comicFolders.get(child.id)!.deletedAt, isNotNull);
     });
 
     test('createFolder under deleted parent falls back to root semantics', () {
@@ -892,7 +892,7 @@ void main() {
         'test:comic1',
         storageRoot: tempDir.path,
       );
-      objectbox.unifiedDownloadBox.put(download);
+      database.unifiedDownloads.put(download);
 
       final folder = ComicFolderService.createFolder(
         '',
@@ -906,7 +906,7 @@ void main() {
       ComicLinkService.removeLinksInFolderTree(path, ComicFolderType.download);
 
       expect(await tempDir.exists(), isFalse);
-      expect(objectbox.unifiedDownloadBox.get(download.id), isNull);
+      expect(database.unifiedDownloads.get(download.id), isNull);
     });
   });
 }

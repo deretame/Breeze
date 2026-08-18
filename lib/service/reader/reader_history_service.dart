@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -6,8 +7,6 @@ import 'package:path/path.dart' as p;
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
@@ -59,8 +58,8 @@ class ReaderHistoryService {
     _comicInfo = _resolveNormalComicInfo(comicInfo);
     _isLoading = true;
 
-    final query = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.uniqueKey.equals('$source:$comicId'))
+    final query = database.unifiedHistories
+        .query((item) => item.uniqueKey == '$source:$comicId')
         .build();
     try {
       _history = query.findFirst();
@@ -110,7 +109,7 @@ class ReaderHistoryService {
     try {
       final timestamp = DateTime.now().toUtc();
       final payload = <String, dynamic>{
-        'dbRootPath': p.dirname(objectbox.store.directoryPath),
+        'dbRootPath': p.dirname(database.storagePath),
         'source': _source,
         'comicId': _comicId,
         'normalInfo': _serializeComicInfoForWorker(_comicInfo!),
@@ -212,11 +211,9 @@ Future<Map<String, dynamic>> _upsertUnifiedHistoryOnWorker(
         DateTime.now().toUtc().toIso8601String(),
   ).toUtc();
 
-  final box = await ObjectBox.create(dbRootPath: dbRootPath);
+  final db = await createDatabase(dbRootPath: dbRootPath);
   final key = '$source:$comicId';
-  final query = box.unifiedHistoryBox
-      .query(UnifiedComicHistory_.uniqueKey.equals(key))
-      .build();
+  final query = db.unifiedHistories.query((item) => item.uniqueKey == key);
 
   try {
     final existing = query.findFirst();
@@ -258,7 +255,7 @@ Future<Map<String, dynamic>> _upsertUnifiedHistoryOnWorker(
       ..updatedAt = timestamp
       ..deleted = false;
 
-    entity.id = box.unifiedHistoryBox.put(entity);
+    entity.id = db.unifiedHistories.put(entity);
     return entity.toJson();
   } finally {
     query.close();

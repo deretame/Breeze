@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 // 全局设置
 
 import 'package:flutter/material.dart';
@@ -6,7 +7,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/util/json/converter.dart';
 
 part 'global_setting.freezed.dart';
@@ -95,7 +95,7 @@ extension ReadSettingStateBackgroundColor on ReadSettingState {
 }
 
 GlobalSettingState get globalSetting {
-  return objectbox.userSettingBox.get(1)!.globalSetting;
+  return database.userSettings.get(1)!.globalSetting;
 }
 
 @freezed
@@ -310,7 +310,7 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   late final Color _defaultSeedColor = colorThemeList[6].color;
 
   Future<void> initBox() async {
-    emit(objectbox.userSettingBox.get(1)!.globalSetting);
+    emit(database.userSettings.get(1)!.globalSetting);
   }
 
   GlobalSettingState get defaults =>
@@ -451,7 +451,7 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
 
   void _updateDataBase(GlobalSettingState state) {
     // logger.d(state.toJson());
-    final userBox = objectbox.userSettingBox;
+    final userBox = database.userSettings;
     var dbSettings = userBox.get(1)!;
     var toSave = state;
     final existingVersion = dbSettings.globalSetting.compatibleVersion.trim();

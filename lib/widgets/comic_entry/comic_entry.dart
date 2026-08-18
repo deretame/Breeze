@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
@@ -6,7 +7,6 @@ import 'package:zephyr/widgets/toast.dart';
 
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/type/enum.dart';
@@ -239,22 +239,22 @@ class ComicEntryWidget extends StatelessWidget {
 
   Future<void> _deleteFavorite() async {
     final uniqueKey = '${comic.from.trim()}:${comic.id}';
-    final temp = objectbox.unifiedFavoriteBox
-        .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
+    final temp = database.unifiedFavorites
+        .query((item) => item.uniqueKey == uniqueKey)
         .build()
         .findFirst();
 
     if (temp != null) {
       temp.deleted = true;
       temp.updatedAt = DateTime.now().toUtc();
-      objectbox.unifiedFavoriteBox.put(temp);
+      database.unifiedFavorites.put(temp);
     }
   }
 
   Future<void> _deleteHistory() async {
     final uniqueKey = '${comic.from.trim()}:${comic.id}';
-    final temp = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
+    final temp = database.unifiedHistories
+        .query((item) => item.uniqueKey == uniqueKey)
         .build()
         .findFirst();
 
@@ -262,19 +262,19 @@ class ComicEntryWidget extends StatelessWidget {
       temp.deleted = true;
       temp.updatedAt = DateTime.now().toUtc();
       temp.lastReadAt = temp.updatedAt;
-      objectbox.unifiedHistoryBox.put(temp);
+      database.unifiedHistories.put(temp);
     }
   }
 
   Future<void> _deleteDownload() async {
     final uniqueKey = '${comic.from.trim()}:${comic.id}';
-    final temp = objectbox.unifiedDownloadBox
-        .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
+    final temp = database.unifiedDownloads
+        .query((item) => item.uniqueKey == uniqueKey)
         .build()
         .findFirst();
 
     if (temp != null) {
-      objectbox.unifiedDownloadBox.remove(temp.id);
+      database.unifiedDownloads.remove(temp.id);
     }
 
     await _deleteDownloadDirectory();

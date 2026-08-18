@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,7 +7,6 @@ import 'package:path/path.dart' as p;
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/src/rust/api/data_backup.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
@@ -227,8 +227,8 @@ Future<ComicImportResult> _importComic(
   );
 
   // 先检查是否已存在，让用户决定是否覆盖，避免先把图片复制到磁盘后再取消。
-  final existing = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
+  final existing = database.unifiedDownloads
+      .query((item) => item.uniqueKey == uniqueKey)
       .build()
       .find();
   if (existing.isNotEmpty) {
@@ -295,10 +295,10 @@ Future<ComicImportResult> _importComic(
   );
 
   if (existing.isNotEmpty) {
-    objectbox.unifiedDownloadBox.removeMany(existing.map((e) => e.id).toList());
+    database.unifiedDownloads.removeMany(existing.map((e) => e.id).toList());
   }
 
-  objectbox.unifiedDownloadBox.put(entity);
+  database.unifiedDownloads.put(entity);
   ComicLinkService.addComic(uniqueKey, null, ComicFolderType.download);
 
   // 导入/覆盖导入后更新 ComicLink 的创建/更新时间，使漫画在书架排序中体现为最新。
@@ -311,7 +311,7 @@ Future<ComicImportResult> _importComic(
     link
       ..createdAt = nowMillis
       ..updatedAt = nowMillis;
-    objectbox.comicLinkBox.put(link);
+    database.comicLinks.put(link);
   }
 
   return ComicImportResult(comicId: comicId, title: title, source: source);

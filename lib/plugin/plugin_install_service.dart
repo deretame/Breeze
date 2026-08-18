@@ -1,7 +1,7 @@
+import 'package:zephyr/database/database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/plugin/utils/plugin_cloud_download_utils.dart';
@@ -177,8 +177,8 @@ class PluginInstallService {
   }
 
   PluginInfo? _findExistingPluginInfoByUuid(String uuid) {
-    return objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    return database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
   }

@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,7 +41,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   @override
   void initState() {
     super.initState();
-    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+    final settings = database.userSettings.get(1)!.globalSetting;
     _webdavHost.text = settings.syncSetting.webdavSetting.host;
     _webdavUsername.text = settings.syncSetting.webdavSetting.username;
     _webdavPassword.text = settings.syncSetting.webdavSetting.password;

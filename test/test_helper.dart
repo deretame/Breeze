@@ -1,31 +1,31 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
 
-/// 测试辅助类：在独立的临时目录创建 ObjectBox，并设置全局 [objectbox]。
+/// 测试辅助类：在独立的临时目录创建数据库并设置全局数据库入口。
 ///
 /// 每个调用方在 `setUpAll` 中调用 [setUpTestObjectBox]，
 /// 在 `tearDownAll` 中调用 [tearDownTestObjectBox]，
 /// 在 `tearDown` 中调用 [cleanComicFolderBoxes] 清理数据。
 class TestObjectBoxHelper {
   static Directory? _tempDir;
-  static ObjectBox? _objectBox;
+  static AppDatabase? _database;
 
   static Future<void> setUpTestObjectBox() async {
     _tempDir = await Directory.systemTemp.createTemp('breeze_test_');
-    ObjectBox.resetForTests();
-    _objectBox = await ObjectBox.create(dbRootPath: _tempDir!.path);
-    objectbox = _objectBox!;
+    resetDatabaseForTests();
+    _database = await createDatabase(dbRootPath: _tempDir!.path);
+    database = _database!;
     syncDeviceId = 'test_device';
   }
 
   static Future<void> tearDownTestObjectBox() async {
-    _objectBox?.close();
-    _objectBox = null;
+    _database?.close();
+    _database = null;
+    resetDatabaseForTests();
     if (_tempDir != null && await _tempDir!.exists()) {
       await _tempDir!.delete(recursive: true);
     }
@@ -33,11 +33,11 @@ class TestObjectBoxHelper {
   }
 
   static void cleanComicFolderBoxes() {
-    objectbox.comicFolderBox.removeAll();
-    objectbox.comicLinkBox.removeAll();
-    objectbox.unifiedFavoriteBox.removeAll();
-    objectbox.unifiedHistoryBox.removeAll();
-    objectbox.unifiedDownloadBox.removeAll();
+    database.comicFolders.removeAll();
+    database.comicLinks.removeAll();
+    database.unifiedFavorites.removeAll();
+    database.unifiedHistories.removeAll();
+    database.unifiedDownloads.removeAll();
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -5,7 +6,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/service/download/comic_download_task.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/service/download/download_notification_reporter.dart';
@@ -60,13 +60,9 @@ class DownloadQueueManager {
   ///
   /// 如果当前没有运行中的任务，此方法无任何副作用。
   void cancelCurrentTask() {
-    final downloadingTask = objectbox.downloadTaskBox
-        .query(
-          DownloadTask_.isCompleted
-              .equals(false)
-              .and(DownloadTask_.isDownloading.equals(true)),
-        )
-        .order(DownloadTask_.id)
+    final downloadingTask = database.downloadTasks
+        .query((item) => !item.isCompleted && item.isDownloading)
+        .order((a, b) => a.id.compareTo(b.id))
         .build()
         .findFirst();
 
@@ -80,11 +76,9 @@ class DownloadQueueManager {
       return;
     }
 
-    final fallbackTask = objectbox.downloadTaskBox
+    final fallbackTask = database.downloadTasks
         .query(
-          DownloadTask_.comicId
-              .equals(_downloadingComicId)
-              .and(DownloadTask_.isCompleted.equals(false)),
+          (item) => item.comicId == _downloadingComicId && !item.isCompleted,
         )
         .build()
         .findFirst();
@@ -99,7 +93,7 @@ class DownloadQueueManager {
     dbTask.status = t.download.statusCancelling;
     dbTask.isDownloading = false;
     dbTask.isCompleted = true;
-    objectbox.downloadTaskBox.put(dbTask);
+    database.downloadTasks.put(dbTask);
     triggerDownloadCancelSignal(dbTask.comicId);
 
     final source = dbTask.taskInfo?.from;
@@ -118,20 +112,16 @@ class DownloadQueueManager {
   }
 
   /// 队列中剩余任务数
-  int get queueLength => objectbox.downloadTaskBox
-      .query(DownloadTask_.isCompleted.equals(false))
+  int get queueLength => database.downloadTasks
+      .query((item) => !item.isCompleted)
       .build()
       .find()
       .length;
 
   /// 检查任务是否已存在（未完成的任务）
   bool taskExists(String comicId) {
-    final existingTask = objectbox.downloadTaskBox
-        .query(
-          DownloadTask_.comicId
-              .equals(comicId)
-              .and(DownloadTask_.isCompleted.equals(false)),
-        )
+    final existingTask = database.downloadTasks
+        .query((item) => item.comicId == comicId && !item.isCompleted)
         .build()
         .findFirst();
     return existingTask != null;
@@ -139,8 +129,8 @@ class DownloadQueueManager {
 
   /// 统一的队列处理入口
   Future<void> _processQueue() async {
-    final pendingTasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(false))
+    final pendingTasks = database.downloadTasks
+        .query((item) => !item.isCompleted)
         .build()
         .find();
     logger.d('_processQueue: 发现 ${pendingTasks.length} 个待处理任务');
@@ -176,7 +166,7 @@ class DownloadQueueManager {
     if (task == null) {
       logger.w("任务 ${dbTask.comicName} 无任务信息，跳过");
       dbTask.isCompleted = true;
-      objectbox.downloadTaskBox.put(dbTask);
+      database.downloadTasks.put(dbTask);
       Future.microtask(() => _processQueue());
       return;
     }
@@ -194,7 +184,7 @@ class DownloadQueueManager {
     dbTask.isDownloading = true;
     dbTask.status = t.download.statusStartDownload;
     logger.d("dbTask.status: ${dbTask.status}");
-    objectbox.downloadTaskBox.put(dbTask);
+    database.downloadTasks.put(dbTask);
 
     _progressController.add(
       DownloadProgress(
@@ -211,7 +201,7 @@ class DownloadQueueManager {
 
       dbTask.isCompleted = true;
       dbTask.isDownloading = false;
-      objectbox.downloadTaskBox.put(dbTask);
+      database.downloadTasks.put(dbTask);
 
       _progressController.add(
         DownloadProgress(
@@ -261,7 +251,7 @@ class DownloadQueueManager {
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
         dbTask.isDownloading = false;
-        objectbox.downloadTaskBox.put(dbTask);
+        database.downloadTasks.put(dbTask);
 
         _progressController.add(
           DownloadProgress(
@@ -307,7 +297,7 @@ class DownloadQueueManager {
       return;
     }
 
-    final box = objectbox.downloadTaskBox;
+    final box = database.downloadTasks;
     final downloadTask = DownloadTask()
       ..comicId = task.comicId
       ..comicName = task.comicName
@@ -328,8 +318,8 @@ class DownloadQueueManager {
   /// 应用启动后、开始监听任务队列前调用一次，避免上次崩溃/杀进程后留下的
   /// `isDownloading == true` 任务永远无法被调度。
   void resetStuckTasks() {
-    final pendingTasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(false))
+    final pendingTasks = database.downloadTasks
+        .query((item) => !item.isCompleted)
         .build()
         .find();
 
@@ -341,22 +331,17 @@ class DownloadQueueManager {
       for (final task in tasksToReset) {
         task.isDownloading = false;
       }
-      objectbox.downloadTaskBox.putMany(tasksToReset);
+      database.downloadTasks.putMany(tasksToReset);
       logger.d("重置了 ${tasksToReset.length} 个任务的下载状态");
     }
   }
 
   void watchTasks() {
-    final watchedQuery = objectbox.downloadTaskBox
-        .query(
-          DownloadTask_.isCompleted
-              .equals(false)
-              .and(DownloadTask_.isDownloading.equals(false)),
-        )
+    final watchedQuery = database.downloadTasks
+        .query((item) => !item.isCompleted && !item.isDownloading)
         .watch(triggerImmediately: true);
 
-    _watchSubscription = watchedQuery.listen((query) {
-      final pendingTasks = query.find();
+    _watchSubscription = watchedQuery.listen((pendingTasks) {
       if (pendingTasks.isNotEmpty && !_isProcessing) {
         _processQueue();
       }
@@ -377,8 +362,8 @@ class DownloadQueueManager {
     String comicId, {
     String? source,
   }) async {
-    final cancelledTasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.comicId.equals(comicId))
+    final cancelledTasks = database.downloadTasks
+        .query((item) => item.comicId == comicId)
         .build()
         .find();
     final fallbackSource = cancelledTasks.isNotEmpty
@@ -386,7 +371,7 @@ class DownloadQueueManager {
         : "";
     final resolvedSource = (source ?? fallbackSource).trim();
     if (cancelledTasks.isNotEmpty) {
-      objectbox.downloadTaskBox.removeMany(
+      database.downloadTasks.removeMany(
         cancelledTasks.map((e) => e.id).toList(),
       );
     }
@@ -414,13 +399,13 @@ class DownloadQueueManager {
 
   /// 删除所有已完成的任务记录
   void _removeAllCompletedTasks() {
-    final completedTasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(true))
+    final completedTasks = database.downloadTasks
+        .query((item) => item.isCompleted)
         .build()
         .find();
 
     if (completedTasks.isNotEmpty) {
-      objectbox.downloadTaskBox.removeMany(
+      database.downloadTasks.removeMany(
         completedTasks.map((e) => e.id).toList(),
       );
       logger.d('清理了 ${completedTasks.length} 个已完成的任务记录');
@@ -438,8 +423,8 @@ bool _isTaskCancelledOrMarked(String comicId, Object error) {
     return true;
   }
 
-  final task = objectbox.downloadTaskBox
-      .query(DownloadTask_.comicId.equals(comicId))
+  final task = database.downloadTasks
+      .query((item) => item.comicId == comicId)
       .build()
       .findFirst();
 
@@ -456,8 +441,8 @@ bool _isTaskCancelledOrMarked(String comicId, Object error) {
 }
 
 bool _isTaskGoneOrCompleted(String comicId) {
-  final task = objectbox.downloadTaskBox
-      .query(DownloadTask_.comicId.equals(comicId))
+  final task = database.downloadTasks
+      .query((item) => item.comicId == comicId)
       .build()
       .findFirst();
 

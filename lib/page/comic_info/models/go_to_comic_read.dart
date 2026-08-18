@@ -1,10 +1,9 @@
+import 'package:zephyr/database/database.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
@@ -32,8 +31,8 @@ void goToComicRead(
     isDownload: isDownload,
   );
   final hasHistory = context.read<StringSelectCubit>().state.isNotEmpty;
-  final history = objectbox.unifiedHistoryBox
-      .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
+  final history = database.unifiedHistories
+      .query((item) => item.uniqueKey == '$from:$comicId')
       .build()
       .findFirst();
 

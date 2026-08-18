@@ -1,10 +1,9 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/json/json_sanitize.dart';
@@ -19,8 +18,8 @@ Future<bool> isLocalComicCollected({
 }) async {
   final pluginId = (from).trim();
   final key = '$pluginId:$comicId';
-  final unified = objectbox.unifiedFavoriteBox
-      .query(UnifiedComicFavorite_.uniqueKey.equals(key))
+  final unified = database.unifiedFavorites
+      .query((item) => item.uniqueKey == key)
       .build()
       .findFirst();
   final collected = unified != null && unified.deleted == false;
@@ -39,15 +38,15 @@ Future<bool> toggleLocalComicFavorite({
   final pluginId = (from).trim();
   final key = '$pluginId:${comicInfo.id}';
   final now = DateTime.now().toUtc();
-  final unified = objectbox.unifiedFavoriteBox
-      .query(UnifiedComicFavorite_.uniqueKey.equals(key))
+  final unified = database.unifiedFavorites
+      .query((item) => item.uniqueKey == key)
       .build()
       .findFirst();
 
   if (unified != null && unified.deleted == false) {
     unified.deleted = true;
     unified.updatedAt = now;
-    objectbox.unifiedFavoriteBox.put(unified);
+    database.unifiedFavorites.put(unified);
     FavoriteFolderService.removeMemberFromAllFolders(key);
     ComicLinkService.removeComicFromAll(key, ComicFolderType.favorite);
     if (showToast) {
@@ -59,7 +58,7 @@ Future<bool> toggleLocalComicFavorite({
   final createdAt = unified?.createdAt ?? now;
   final coverMap = _comicImageToMap(comicInfo.cover);
 
-  objectbox.unifiedFavoriteBox.put(
+  database.unifiedFavorites.put(
     UnifiedComicFavorite(
       id: unified?.id ?? 0,
       uniqueKey: key,
@@ -135,7 +134,7 @@ void _repairFavoriteCoverPathIfNeeded(UnifiedComicFavorite favorite) {
   coverMap['path'] = repairedPath;
   favorite.cover = jsonEncode(sanitizeDynamic(coverMap));
   favorite.updatedAt = DateTime.now().toUtc();
-  objectbox.unifiedFavoriteBox.put(favorite);
+  database.unifiedFavorites.put(favorite);
 }
 
 String _resolveImagePath({

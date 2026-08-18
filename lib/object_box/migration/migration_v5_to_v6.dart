@@ -1,6 +1,6 @@
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 
 /// v5 -> v6: 为所有未删除的本地收藏/下载漫画补一条根目录 ComicLink。
@@ -13,17 +13,17 @@ Future<void> migrateV5ToV6() async {
   var skipped = 0;
 
   // 收藏
-  final favoriteQuery = objectbox.unifiedFavoriteBox
-      .query(UnifiedComicFavorite_.deleted.equals(false))
+  final favoriteQuery = database.unifiedFavorites
+      .query((item) => !item.deleted)
       .build();
   try {
     final favorites = favoriteQuery.find();
     for (final comic in favorites) {
-      final existing = objectbox.comicLinkBox
+      final existing = database.comicLinks
           .query(
-            ComicLink_.comicUniqueKey
-                .equals(comic.uniqueKey)
-                .and(ComicLink_.typeData.equals(ComicFolderType.favorite.name)),
+            (item) =>
+                item.comicUniqueKey == comic.uniqueKey &&
+                item.typeData == ComicFolderType.favorite.name,
           )
           .build()
           .findFirst();
@@ -43,17 +43,17 @@ Future<void> migrateV5ToV6() async {
   }
 
   // 下载
-  final downloadQuery = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.deleted.equals(false))
+  final downloadQuery = database.unifiedDownloads
+      .query((item) => !item.deleted)
       .build();
   try {
     final downloads = downloadQuery.find();
     for (final comic in downloads) {
-      final existing = objectbox.comicLinkBox
+      final existing = database.comicLinks
           .query(
-            ComicLink_.comicUniqueKey
-                .equals(comic.uniqueKey)
-                .and(ComicLink_.typeData.equals(ComicFolderType.download.name)),
+            (item) =>
+                item.comicUniqueKey == comic.uniqueKey &&
+                item.typeData == ComicFolderType.download.name,
           )
           .build()
           .findFirst();

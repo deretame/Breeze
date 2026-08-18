@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/database/database.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 
@@ -86,7 +87,7 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
 
     if (migrated && context.mounted) {
       context.read<GlobalSettingCubit>().updateALl(
-        objectbox.userSettingBox.get(1)!.globalSetting,
+        database.userSettings.get(1)!.globalSetting,
       );
     }
   } catch (e, stackTrace) {
@@ -95,7 +96,7 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
 }
 
 Future<String> getCompatibleVersion() async {
-  final setting = objectbox.userSettingBox.get(1);
+  final setting = database.userSettings.get(1);
   if (setting == null) {
     throw Exception('Global setting not found');
   }
@@ -110,7 +111,7 @@ Future<String> getCompatibleVersion() async {
 }
 
 Future<void> setCompatibleVersion(String version) async {
-  final setting = objectbox.userSettingBox.get(1);
+  final setting = database.userSettings.get(1);
   if (setting == null) {
     throw Exception('Global setting not found');
   }
@@ -119,5 +120,5 @@ Future<void> setCompatibleVersion(String version) async {
   globalSetting = globalSetting.copyWith(compatibleVersion: version);
   setting.globalSetting = globalSetting;
 
-  objectbox.userSettingBox.put(setting);
+  database.userSettings.put(setting);
 }

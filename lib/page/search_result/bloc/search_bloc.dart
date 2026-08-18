@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -201,7 +202,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   (List<String>, String) _loadMaskedKeywords() {
-    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+    final settings = database.userSettings.get(1)!.globalSetting;
     final maskedKeywords = settings.maskedKeywords
         .where((keyword) => keyword.trim().isNotEmpty)
         .map((keyword) => _normalizeMaskedText(keyword.trim()))

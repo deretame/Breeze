@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -6,8 +7,6 @@ import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
@@ -27,7 +26,7 @@ class PluginRegistryService {
   final Map<String, PluginRuntimeState> _states = {};
   final _streamController =
       StreamController<Map<String, PluginRuntimeState>>.broadcast();
-  ObjectBox? _objectbox;
+  AppDatabase? _database;
   final Map<String, Map<String, dynamic>> _pluginInfoCache = {};
   final Set<String> _pluginInitDone = <String>{};
 
@@ -42,17 +41,16 @@ class PluginRegistryService {
       _pluginInfoCache[uuid];
 
   Future<void> init() async {
-    _objectbox = objectbox;
+    _database = database;
     await refreshFromDb();
   }
 
   Future<void> refreshFromDb() async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
 
-    final list = objectbox.pluginInfoBox.getAll();
+    final list = database.pluginInfos.getAll();
     _states
       ..clear()
       ..addEntries(list.map((item) => MapEntry(item.uuid, _toState(item))));
@@ -210,12 +208,11 @@ class PluginRegistryService {
 
   /// 持久化 getInfo JSON 字符串到 ObjectBox（不清理 runtime / 内存 cache）。
   Future<void> persistGetInfoJson(String uuid, String getInfoJson) async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
-    final found = objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    final found = database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
     if (found == null) {
@@ -227,17 +224,16 @@ class PluginRegistryService {
     }
     found.getInfoJson = normalized;
     // 仅缓存元数据，不改 updatedAt，避免触发无意义的同步冲突。
-    objectbox.pluginInfoBox.put(found);
+    database.pluginInfos.put(found);
   }
 
   /// 读取已持久化的 getInfo JSON 字符串。
   String readPersistedGetInfoJson(String uuid) {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return '';
     }
-    final found = objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    final found = database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
     return found?.getInfoJson.trim() ?? '';
@@ -281,12 +277,11 @@ class PluginRegistryService {
   }
 
   Future<void> upsert(PluginInfo info) async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
 
-    objectbox.pluginInfoBox.put(info);
+    database.pluginInfos.put(info);
     _states[info.uuid] = _toState(info);
     _pluginInfoCache.remove(info.uuid);
     _pluginInitDone.remove(info.uuid);
@@ -294,12 +289,11 @@ class PluginRegistryService {
   }
 
   Future<void> setEnabled(String uuid, bool enabled) async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
-    final found = objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    final found = database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
     if (found == null) {
@@ -307,7 +301,7 @@ class PluginRegistryService {
     }
     found.isEnabled = enabled;
     found.updatedAt = DateTime.now().toUtc();
-    objectbox.pluginInfoBox.put(found);
+    database.pluginInfos.put(found);
     _states[uuid] = _toState(found);
     _pluginInfoCache.remove(uuid);
     _pluginInitDone.remove(uuid);
@@ -339,12 +333,11 @@ class PluginRegistryService {
     required bool success,
     String? error,
   }) async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
-    final found = objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    final found = database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
     if (found == null) {
@@ -353,7 +346,7 @@ class PluginRegistryService {
     found.lastLoadSuccess = success;
     found.lastLoadError = error;
     found.updatedAt = DateTime.now().toUtc();
-    objectbox.pluginInfoBox.put(found);
+    database.pluginInfos.put(found);
     _states[uuid] = _toState(found);
     _emit();
   }
@@ -363,12 +356,11 @@ class PluginRegistryService {
     required bool debug,
     String? debugUrl,
   }) async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
-    final found = objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    final found = database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
     if (found == null) {
@@ -377,7 +369,7 @@ class PluginRegistryService {
     found.debug = debug;
     found.debugUrl = debugUrl?.trim().isEmpty == true ? null : debugUrl?.trim();
     found.updatedAt = DateTime.now().toUtc();
-    objectbox.pluginInfoBox.put(found);
+    database.pluginInfos.put(found);
     _states[uuid] = _toState(found);
     _pluginInfoCache.remove(uuid);
     _pluginInitDone.remove(uuid);
@@ -385,12 +377,11 @@ class PluginRegistryService {
   }
 
   Future<void> deletePlugin(String uuid) async {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
+    if (_database == null) {
       return;
     }
-    final found = objectbox.pluginInfoBox
-        .query(PluginInfo_.uuid.equals(uuid))
+    final found = database.pluginInfos
+        .query((item) => item.uuid == uuid)
         .build()
         .findFirst();
     if (found == null) {
@@ -408,9 +399,9 @@ class PluginRegistryService {
     }
 
     await _deletePluginDownloadFolders(uuid);
-    _deletePluginConfigs(objectbox, uuid);
-    _deletePluginRelatedData(objectbox, uuid);
-    _deletePluginDownloadTasks(objectbox, uuid);
+    _deletePluginConfigs(uuid);
+    _deletePluginRelatedData(uuid);
+    _deletePluginDownloadTasks(uuid);
 
     final now = DateTime.now().toUtc();
     found
@@ -421,7 +412,7 @@ class PluginRegistryService {
       ..updatedAt = now
       ..lastLoadSuccess = false
       ..lastLoadError = null;
-    objectbox.pluginInfoBox.put(found);
+    database.pluginInfos.put(found);
     _states[uuid] = _toState(found);
     _pluginInfoCache.remove(uuid);
     _pluginInitDone.remove(uuid);
@@ -443,17 +434,17 @@ class PluginRegistryService {
     }
   }
 
-  void _deletePluginRelatedData(ObjectBox objectbox, String uuid) {
-    final favorites = objectbox.unifiedFavoriteBox
-        .query(UnifiedComicFavorite_.source.equals(uuid))
+  void _deletePluginRelatedData(String uuid) {
+    final favorites = database.unifiedFavorites
+        .query((item) => item.source == uuid)
         .build()
         .find();
-    final histories = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.source.equals(uuid))
+    final histories = database.unifiedHistories
+        .query((item) => item.source == uuid)
         .build()
         .find();
-    final downloads = objectbox.unifiedDownloadBox
-        .query(UnifiedComicDownload_.source.equals(uuid))
+    final downloads = database.unifiedDownloads
+        .query((item) => item.source == uuid)
         .build()
         .find();
 
@@ -473,7 +464,7 @@ class PluginRegistryService {
         comic
           ..deleted = true
           ..updatedAt = now;
-        objectbox.unifiedHistoryBox.put(comic);
+        database.unifiedHistories.put(comic);
       }
       // 历史记录目前没有 ComicLink，只需要软删除本体即可。
     }
@@ -488,8 +479,8 @@ class PluginRegistryService {
     }
   }
 
-  void _deletePluginDownloadTasks(ObjectBox objectbox, String uuid) {
-    final idsToDelete = objectbox.downloadTaskBox
+  void _deletePluginDownloadTasks(String uuid) {
+    final idsToDelete = database.downloadTasks
         .getAll()
         .where((task) {
           final info = task.taskInfo;
@@ -499,17 +490,17 @@ class PluginRegistryService {
         .map((task) => task.id)
         .toList();
     if (idsToDelete.isNotEmpty) {
-      objectbox.downloadTaskBox.removeMany(idsToDelete);
+      database.downloadTasks.removeMany(idsToDelete);
     }
   }
 
-  void _deletePluginConfigs(ObjectBox objectbox, String uuid) {
+  void _deletePluginConfigs(String uuid) {
     final candidateNames = _buildPluginConfigNameCandidates(uuid);
     if (candidateNames.isEmpty) {
       return;
     }
 
-    final idsToDelete = objectbox.pluginConfigBox
+    final idsToDelete = database.pluginConfigs
         .getAll()
         .where((item) => candidateNames.contains(item.name.trim()))
         .map((item) => item.id)
@@ -517,7 +508,7 @@ class PluginRegistryService {
     if (idsToDelete.isEmpty) {
       return;
     }
-    objectbox.pluginConfigBox.removeMany(idsToDelete);
+    database.pluginConfigs.removeMany(idsToDelete);
   }
 
   Set<String> _buildPluginConfigNameCandidates(String uuid) {

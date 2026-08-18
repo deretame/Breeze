@@ -1,17 +1,16 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 
 String onSavePluginConfig(String name, String key, String value) {
-  final box = objectbox.pluginConfigBox;
+  final box = database.pluginConfigs;
 
   // 使用同步事务确保原子性
-  return objectbox.store.runInTransaction(TxMode.write, () {
-    var entity = box.query(PluginConfig_.name.equals(name)).build().findFirst();
+  return database.runInTransaction(DatabaseTransactionMode.write, () {
+    var entity = box.query((item) => item.name == name).build().findFirst();
     final parsedValue = _decodeMaybeJson(value);
 
     if (entity == null) {
@@ -33,13 +32,10 @@ String onSavePluginConfig(String name, String key, String value) {
 }
 
 String onLoadPluginConfig(String name, String key, String fallback) {
-  final box = objectbox.pluginConfigBox;
+  final box = database.pluginConfigs;
 
-  return objectbox.store.runInTransaction(TxMode.read, () {
-    final entity = box
-        .query(PluginConfig_.name.equals(name))
-        .build()
-        .findFirst();
+  return database.runInTransaction(DatabaseTransactionMode.read, () {
+    final entity = box.query((item) => item.name == name).build().findFirst();
 
     final data = _decodeObjectMap(entity?.config ?? '');
     final value = key.isEmpty

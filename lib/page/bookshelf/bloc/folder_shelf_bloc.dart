@@ -1,3 +1,4 @@
+import 'package:zephyr/database/database.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
@@ -5,11 +6,8 @@ import 'package:bloc/bloc.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:equatable/equatable.dart';
 import 'package:worker_manager/worker_manager.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
@@ -557,7 +555,7 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
   try {
     ensureWorkerIsolateInitialized(token);
     await initRustLib(silent: true);
-    objectbox = await ObjectBox.create();
+    database = await createDatabase();
 
     final mode = ShelfPageMode.values.byName(payload['mode'] as String);
     final folderType = FolderShelfBloc._toFolderType(mode);
@@ -693,12 +691,8 @@ Set<String>? _folderMembersFromSearch(
 ) {
   switch (folderType) {
     case ComicFolderType.favorite:
-      final comic = objectbox.unifiedFavoriteBox
-          .query(
-            UnifiedComicFavorite_.uniqueKey
-                .equals(uniqueKey)
-                .and(UnifiedComicFavorite_.deleted.equals(false)),
-          )
+      final comic = database.unifiedFavorites
+          .query((item) => item.uniqueKey == uniqueKey && !item.deleted)
           .build()
           .findFirst();
       if (comic == null) return null;
@@ -707,12 +701,8 @@ Set<String>? _folderMembersFromSearch(
         searchText: _buildComicSearchText(comic),
       );
     case ComicFolderType.download:
-      final comic = objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey
-                .equals(uniqueKey)
-                .and(UnifiedComicDownload_.deleted.equals(false)),
-          )
+      final comic = database.unifiedDownloads
+          .query((item) => item.uniqueKey == uniqueKey && !item.deleted)
           .build()
           .findFirst();
       if (comic == null) return null;
@@ -721,12 +711,8 @@ Set<String>? _folderMembersFromSearch(
         searchText: _buildComicSearchText(comic),
       );
     case ComicFolderType.history:
-      final comic = objectbox.unifiedHistoryBox
-          .query(
-            UnifiedComicHistory_.uniqueKey
-                .equals(uniqueKey)
-                .and(UnifiedComicHistory_.deleted.equals(false)),
-          )
+      final comic = database.unifiedHistories
+          .query((item) => item.uniqueKey == uniqueKey && !item.deleted)
           .build()
           .findFirst();
       if (comic == null) return null;

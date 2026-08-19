@@ -139,6 +139,14 @@ pub fn native_buffer_take_raw(id: u64) -> Option<Vec<u8>> {
     pool.remove(&id).map(|entry| entry.bytes)
 }
 
+/// 复制 native buffer 的内容但保留原 buffer，供同步的 `Request/Response.clone()` 使用。
+pub fn native_buffer_clone_raw(id: u64) -> Option<Vec<u8>> {
+    let pool = native_pool()
+        .lock()
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
+    pool.get(&id).map(|entry| entry.bytes.clone())
+}
+
 /// 快速版 take：直接把 bytes 做成 ArrayBuffer（零拷贝，JS_NewArrayBuffer 复用 Vec 内存）。
 ///
 /// 为什么要单独加：`native_buffer_take_raw` 返回 `Vec<u8>`，经 rquickjs 的
@@ -159,6 +167,27 @@ pub fn native_buffer_take_typed<'js>(
         None => Err(rquickjs::Error::new_from_js_message(
             "native buffer",
             "take_typed",
+            "buffer id does not exist",
+        )),
+    }
+}
+
+/// 同步复制 native buffer 到 JS ArrayBuffer，但保留原 buffer。
+pub fn native_buffer_clone_typed<'js>(
+    ctx: rquickjs::Ctx<'js>,
+    id: u64,
+) -> rquickjs::Result<rquickjs::ArrayBuffer<'js>> {
+    let bytes = {
+        let pool = native_pool()
+            .lock()
+            .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
+        pool.get(&id).map(|entry| entry.bytes.clone())
+    };
+    match bytes {
+        Some(bytes) => rquickjs::ArrayBuffer::new(ctx, bytes),
+        None => Err(rquickjs::Error::new_from_js_message(
+            "native buffer",
+            "clone_typed",
             "buffer id does not exist",
         )),
     }

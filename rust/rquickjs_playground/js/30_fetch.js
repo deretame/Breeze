@@ -97,6 +97,38 @@
     return match ? match[1] : null;
   }
 
+  function cloneNativeBufferToBytes(id) {
+    let bytes = null;
+    if (typeof globalThis.__native_buffer_clone_typed === "function") {
+      try {
+        const arrayBuffer = globalThis.__native_buffer_clone_typed(Number(id));
+        if (arrayBuffer instanceof ArrayBuffer) {
+          bytes = new Uint8Array(arrayBuffer);
+        }
+      } catch (_) {
+      }
+    }
+    if (!bytes && typeof globalThis.__native_buffer_clone_raw === "function") {
+      try {
+        const raw = globalThis.__native_buffer_clone_raw(Number(id));
+        if (raw instanceof Uint8Array) {
+          bytes = raw;
+        } else if (ArrayBuffer.isView(raw)) {
+          bytes = new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength);
+        } else if (raw instanceof ArrayBuffer) {
+          bytes = new Uint8Array(raw);
+        } else if (Array.isArray(raw)) {
+          bytes = Uint8Array.from(raw);
+        }
+      } catch (_) {
+      }
+    }
+    if (!bytes) {
+      throw new TypeError("native buffer 不可用于 clone");
+    }
+    return bytes;
+  }
+
   function parseUrlEncodedFormData(bodyText) {
     const params = new URLSearchParams(bodyText);
     const fd = new FormData();
@@ -288,6 +320,13 @@
       }
       const produce = () => {
         if (this._bodyBlob) return this._bodyBlob.text();
+        if (this._bodyTextIsBinary && typeof TextDecoder === "function") {
+          return Promise.resolve(
+            new TextDecoder("utf-8").decode(
+              new Uint8Array(stringToArrayBuffer(this._bodyText)),
+            ),
+          );
+        }
         return Promise.resolve(this._bodyText);
       };
       if (this._bodyInitPromise) {
@@ -650,8 +689,29 @@
       if (this.bodyUsed) {
         throw new TypeError("Body 已被读取，无法 clone");
       }
+      if (this._bodyNativeBufferId !== null && this._bodyNativeBufferId !== undefined) {
+        const clonedInit = {
+          method: this.method,
+          headers: new Headers(this.headers),
+          signal: this.signal,
+          timeout: this.timeout,
+          credentials: this.credentials,
+          mode: this.mode,
+          redirect: this.redirect,
+          referrer: this.referrer,
+          referrerPolicy: this.referrerPolicy,
+          integrity: this.integrity,
+          keepalive: this.keepalive,
+          cache: this.cache,
+          body: new Blob([
+            cloneNativeBufferToBytes(this._bodyNativeBufferId),
+          ], this.headers.get("content-type")
+            ? { type: String(this.headers.get("content-type")) }
+            : {}),
+        };
+        return new Request(this.url, clonedInit);
+      }
       if (this._isBodyStateConsumed()) {
-        this.__bodyUsed = true;
         throw new TypeError("Body 已被读取，无法 clone");
       }
       const clonedInit = {
@@ -806,12 +866,17 @@
       if (this.bodyUsed) {
         throw new TypeError("Body 已被读取，无法 clone");
       }
-      if (this._isBodyStateConsumed()) {
-        this.__bodyUsed = true;
-        throw new TypeError("Body 已被读取，无法 clone");
-      }
       if (this.offloaded && this.nativeBufferId !== null) {
-        throw new TypeError("offload 响应暂不支持 clone");
+        const clonedBody = cloneNativeBufferToBytes(this.nativeBufferId);
+        return new Response(clonedBody, {
+          status: this.status,
+          statusText: this.statusText,
+          headers: this.headers,
+          url: this.url,
+        });
+      }
+      if (this._isBodyStateConsumed()) {
+        throw new TypeError("Body 已被读取，无法 clone");
       }
       const clonedBody = this._bodyBlob || this._bodyFormData || this._bodyText;
       return new Response(clonedBody, {

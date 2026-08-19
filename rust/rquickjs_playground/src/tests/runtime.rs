@@ -561,7 +561,43 @@ fn runtime_response_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
 }
 
 #[test]
-fn runtime_request_clone_rejected_for_native_binary_body() {
+fn runtime_response_clone_materializes_offloaded_body() {
+    let script = r#"
+      (async () => {
+        const body = JSON.stringify({ message: "你好", count: 2 });
+        const id = await native.put(new TextEncoder().encode(body));
+        const res = new Response("", {
+          status: 200,
+          headers: { "content-type": "application/json; charset=utf-8" },
+          offloaded: true,
+          nativeBufferId: id
+        });
+        const cloned = res.clone();
+        const clonedValue = await cloned.json();
+        const originalValue = await res.json();
+        return JSON.stringify({
+          clonedMessage: clonedValue.message,
+          originalMessage: originalValue.message,
+          clonedCount: clonedValue.count,
+          originalCount: originalValue.count,
+          originalOffloaded: res.offloaded === true,
+          clonedOffloaded: cloned.offloaded === true
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["clonedMessage"], "你好");
+    assert_eq!(parsed["originalMessage"], "你好");
+    assert_eq!(parsed["clonedCount"], 2);
+    assert_eq!(parsed["originalCount"], 2);
+    assert_eq!(parsed["originalOffloaded"], true);
+    assert_eq!(parsed["clonedOffloaded"], false);
+}
+
+#[test]
+fn runtime_request_clone_materializes_native_binary_body() {
     let script = r#"
       (async () => {
         const req = new Request("https://example.com/native", {
@@ -571,20 +607,25 @@ fn runtime_request_clone_rejected_for_native_binary_body() {
         if (req._bodyInitPromise) {
           await req._bodyInitPromise;
         }
-        let errMsg = "";
-        try {
-          req.clone();
-        } catch (err) {
-          errMsg = Error.isError(err) ? err.message : String(err);
-        }
-        return JSON.stringify({ errMsg });
+        const cloned = req.clone();
+        const bytes = new Uint8Array(await cloned.arrayBuffer());
+        return JSON.stringify({
+          length: bytes.length,
+          first: bytes[0],
+          last: bytes[bytes.length - 1],
+          originalBodyUsed: req.bodyUsed,
+          originalHasNativeBody: req._bodyNativeBufferId !== null
+        });
       })()
     "#;
 
     let result = run_async_script(script).expect("执行脚本失败");
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
-    let msg = parsed["errMsg"].as_str().unwrap_or("");
-    assert!(msg.contains("无法 clone") || msg.contains("Body 已被读取"));
+    assert_eq!(parsed["length"], 4);
+    assert_eq!(parsed["first"], 1);
+    assert_eq!(parsed["last"], 4);
+    assert_eq!(parsed["originalBodyUsed"], false);
+    assert_eq!(parsed["originalHasNativeBody"], true);
 }
 
 #[test]

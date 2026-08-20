@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -147,6 +149,28 @@ class ObjectBox {
 
   Box<ComicFollow> get comicFollowBox => _comicFollowBox;
 
+  /// 在当前 isolate 中以只读事务收集所有 ObjectBox 数据并序列化为 JSON。
+  ///
+  /// 调用方应确保当前 isolate 是后台 isolate，避免阻塞 UI。
+  String collectAllDataJson({bool removeIds = false}) {
+    return store.runInTransaction<String>(
+      TxMode.read,
+      () => _collectObjectBoxDataJson(store, removeIds),
+    );
+  }
+
+  /// 在 ObjectBox worker isolate 中以只读事务收集所有数据并序列化为 JSON。
+  ///
+  /// 适用于当前运行在 UI isolate 的调用方，例如手动数据备份。
+  /// [removeIds] 仅供可恢复的数据备份使用；启动快照默认保留所有字段。
+  Future<String> collectAllDataJsonAsync({bool removeIds = false}) {
+    return store.runInTransactionAsync<String, bool>(
+      TxMode.read,
+      _collectObjectBoxDataJson,
+      removeIds,
+    );
+  }
+
   void dumpAllData() {
     logger.d("========= ObjectBox Data Dump Start =========");
 
@@ -199,4 +223,69 @@ class ObjectBox {
     //   logger.d("  -> $item");
     // }
   }
+}
+
+/// 该函数会被 ObjectBox 在 worker isolate 中调用，必须保持为顶层函数。
+String _collectObjectBoxDataJson(Store store, bool removeIds) {
+  List<Map<String, dynamic>> readBox<T>(
+    Box<T> box,
+    Map<String, dynamic> Function(T item) toJson,
+  ) {
+    return box.getAll().map((item) {
+      final json = toJson(item);
+      if (!removeIds) return json;
+      return <String, dynamic>{...json}..remove('id');
+    }).toList();
+  }
+
+  final data = <String, dynamic>{
+    'bikaComicHistory': readBox(
+      store.box<BikaComicHistory>(),
+      (item) => item.toJson(),
+    ),
+    'bikaComicDownload': readBox(
+      store.box<BikaComicDownload>(),
+      (item) => item.toJson(),
+    ),
+    'jmFavorite': readBox(store.box<JmFavorite>(), (item) => item.toJson()),
+    'jmHistory': readBox(store.box<JmHistory>(), (item) => item.toJson()),
+    'jmDownload': readBox(store.box<JmDownload>(), (item) => item.toJson()),
+    'unifiedComicFavorite': readBox(
+      store.box<UnifiedComicFavorite>(),
+      (item) => item.toJson(),
+    ),
+    'unifiedComicHistory': readBox(
+      store.box<UnifiedComicHistory>(),
+      (item) => item.toJson(),
+    ),
+    'comicFollow': readBox(store.box<ComicFollow>(), (item) => item.toJson()),
+    'unifiedComicDownload': readBox(
+      store.box<UnifiedComicDownload>(),
+      (item) => item.toJson(),
+    ),
+    'favoriteFolder': readBox(
+      store.box<FavoriteFolder>(),
+      (item) => item.toJson(),
+    ),
+    'favoriteFolderItem': readBox(
+      store.box<FavoriteFolderItem>(),
+      (item) => item.toJson(),
+    ),
+    'downloadFolder': readBox(
+      store.box<DownloadFolder>(),
+      (item) => item.toJson(),
+    ),
+    'downloadFolderItem': readBox(
+      store.box<DownloadFolderItem>(),
+      (item) => item.toJson(),
+    ),
+    'userSetting': readBox(store.box<UserSetting>(), (item) => item.toJson()),
+    'downloadTask': readBox(store.box<DownloadTask>(), (item) => item.toJson()),
+    'pluginConfig': readBox(store.box<PluginConfig>(), (item) => item.toJson()),
+    'pluginInfo': readBox(store.box<PluginInfo>(), (item) => item.toJson()),
+    'comicFolder': readBox(store.box<ComicFolder>(), (item) => item.toJson()),
+    'comicLink': readBox(store.box<ComicLink>(), (item) => item.toJson()),
+  };
+
+  return jsonEncode(data);
 }

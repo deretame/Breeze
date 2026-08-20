@@ -37,6 +37,7 @@ import 'package:zephyr/platform/desktop/native_window.dart';
 import 'package:zephyr/platform/desktop/system_tray.dart';
 import 'package:zephyr/platform/desktop/window_logic.dart';
 import 'package:zephyr/service/reader/reader_desktop_fullscreen_service.dart';
+import 'package:zephyr/service/startup_database_snapshot_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
@@ -349,6 +350,9 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   setHostCacheGcEnabled(enabled: false);
 
   setTlsVerifyEnabled(enabled: false);
+
+  // Rust 已在本函数开头初始化；快照查询和 Brotli 压缩均在后台执行。
+  unawaited(saveStartupDatabaseSnapshot());
 
   return (globalSettingCubit, pluginRegistryCubit);
 }

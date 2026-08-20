@@ -66,10 +66,9 @@ Future<String> exportBreezeBackup({
     ).writeAsString(jsonEncode(config));
 
     // 2. 写入 objectbox.json
-    final objectBoxData = await _collectObjectBoxData();
     await File(
       p.join(tempDir.path, 'objectbox.json'),
-    ).writeAsString(jsonEncode(objectBoxData));
+    ).writeAsString(await objectbox.collectAllDataJsonAsync(removeIds: true));
 
     // 3. 调用 Rust 流式打包
     await createDataBackupZip(
@@ -227,76 +226,6 @@ Future<void> applyBreezeBackupImport(BackupConfig config) async {
       await cacheDirectory.delete(recursive: true);
     } catch (_) {}
   }
-}
-
-/// 收集所有 ObjectBox 实体数据；导出时移除 ObjectBox 自动分配的 `id` 字段，
-/// 避免导入时因携带旧 id 导致异常。
-Future<Map<String, dynamic>> _collectObjectBoxData() async {
-  List<Map<String, dynamic>> withoutIds(List<Map<String, dynamic>> items) {
-    return items
-        .map((json) => <String, dynamic>{...json}..remove('id'))
-        .toList();
-  }
-
-  return <String, dynamic>{
-    'bikaComicHistory': withoutIds(
-      objectbox.bikaHistoryBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'bikaComicDownload': withoutIds(
-      objectbox.bikaDownloadBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'jmFavorite': withoutIds(
-      objectbox.jmFavoriteBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'jmHistory': withoutIds(
-      objectbox.jmHistoryBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'jmDownload': withoutIds(
-      objectbox.jmDownloadBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'unifiedComicFavorite': withoutIds(
-      objectbox.unifiedFavoriteBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'unifiedComicHistory': withoutIds(
-      objectbox.unifiedHistoryBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'comicFollow': withoutIds(
-      objectbox.comicFollowBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'unifiedComicDownload': withoutIds(
-      objectbox.unifiedDownloadBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'favoriteFolder': withoutIds(
-      objectbox.favoriteFolderBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'favoriteFolderItem': withoutIds(
-      objectbox.favoriteFolderItemBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'downloadFolder': withoutIds(
-      objectbox.downloadFolderBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'downloadFolderItem': withoutIds(
-      objectbox.downloadFolderItemBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'userSetting': withoutIds(
-      objectbox.userSettingBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'downloadTask': withoutIds(
-      objectbox.downloadTaskBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'pluginConfig': withoutIds(
-      objectbox.pluginConfigBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'pluginInfo': withoutIds(
-      objectbox.pluginInfoBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'comicFolder': withoutIds(
-      objectbox.comicFolderBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-    'comicLink': withoutIds(
-      objectbox.comicLinkBox.getAll().map((e) => e.toJson()).toList(),
-    ),
-  };
 }
 
 /// 清空所有 ObjectBox Box。

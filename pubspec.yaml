@@ -38,7 +38,8 @@ dependencies:
 
   # 网络通信与内容解析
   flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
-  desktop_webview_linux: ^0.1.4 # 网络: Linux专用的webview
+  desktop_webview_linux:
+    path: third_party/desktop_webview_linux # 网络: Linux专用的webview
   url_launcher: ^6.3.1 # 网络: 调起系统链接
   connectivity_plus: ^7.1.0 # 网络: 状态监听
   html: ^0.15.5+1 # 网络: HTML 解析
@@ -95,8 +96,6 @@ dependencies:
 
 dependency_overrides:
   meta: ^1.19.0
-  desktop_webview_linux:
-    path: third_party/desktop_webview_linux
 
 dev_dependencies:
   # 测试与规范

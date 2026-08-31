@@ -229,6 +229,8 @@
     "logAddressSubtitle": "配置后实时转发日志到指定地址",
     "memoryDebug": "内存调试",
     "memoryDebugSubtitle": "开启后在界面显示内存占用信息",
+    "blockRustHttpRequests": "拦截 Rust HTTP 请求",
+    "blockRustHttpRequestsSubtitle": "开启后 Rust 端所有 HTTP 请求都会直接失败，不会发送到网络",
     "forceEnableImpeller": "强制启用 Impeller",
     "forceEnableImpellerSubtitle": "Android 实验性渲染后端",
     "colorPreview": "整点颜色看看",

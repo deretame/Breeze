@@ -117,6 +117,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(1) int comicChoice,
     @Default(false) bool disableBika,
     @Default(false) bool enableMemoryDebug,
+    @Default(false) bool blockRustHttpRequests,
     @Default('') String logAddress,
     @Default(false) bool forceEnableImpeller,
     @Default(false) bool androidKeepAliveEnabled,

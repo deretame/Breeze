@@ -749,6 +749,7 @@ GlobalSettingState _applySyncableBlocksToState(
     appLockSetting: localState.appLockSetting,
     cacheSetting: localState.cacheSetting,
     enableMemoryDebug: localState.enableMemoryDebug,
+    blockRustHttpRequests: localState.blockRustHttpRequests,
     logAddress: localState.logAddress,
   );
 }

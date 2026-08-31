@@ -1,3 +1,6 @@
+use ::http::Extensions;
+use reqwest_middleware::ClientWithMiddleware;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HttpClientConfig {
     pub use_http_proxy: bool,
@@ -6,6 +9,44 @@ pub struct HttpClientConfig {
     pub socks5_proxy: Option<String>,
     pub disable_tls_verify: bool,
     pub allow_private_network: bool,
+}
+
+static HTTP_REQUESTS_BLOCKED: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+pub fn set_http_requests_blocked(blocked: bool) {
+    HTTP_REQUESTS_BLOCKED.store(blocked, Ordering::Release);
+}
+
+pub fn is_http_requests_blocked() -> bool {
+    HTTP_REQUESTS_BLOCKED.load(Ordering::Acquire)
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct HttpRequestBlockMiddleware;
+
+#[async_trait::async_trait]
+impl reqwest_middleware::Middleware for HttpRequestBlockMiddleware {
+    async fn handle(
+        &self,
+        request: reqwest::Request,
+        extensions: &mut Extensions,
+        next: reqwest_middleware::Next<'_>,
+    ) -> reqwest_middleware::Result<reqwest::Response> {
+        if is_http_requests_blocked() {
+            return Err(reqwest_middleware::Error::Middleware(anyhow!(crate::tr!(
+                "http-requests-blocked"
+            ))));
+        }
+
+        next.run(request, extensions).await
+    }
+}
+
+pub fn wrap_http_client(client: Client) -> ClientWithMiddleware {
+    reqwest_middleware::ClientBuilder::new(client)
+        .with(HttpRequestBlockMiddleware)
+        .build()
 }
 
 impl Default for HttpClientConfig {
@@ -248,7 +289,7 @@ fn worker_http_config() -> HttpClientConfig {
     })
 }
 
-fn http_client() -> AnyResult<Client> {
+fn http_client() -> AnyResult<ClientWithMiddleware> {
     let state = http_client_state_cell()
         .lock()
         .map_err(|_| anyhow!(crate::tr!("http-client-state-lock-is-poisoned")))?;
@@ -282,7 +323,7 @@ pub struct BuildHttpClientOptions {
 }
 
 /// 按当前/指定全局配置创建 `reqwest::Client`。
-pub fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
+pub fn build_http_client(config: &HttpClientConfig) -> AnyResult<ClientWithMiddleware> {
     build_http_client_ex(config, BuildHttpClientOptions::default())
 }
 
@@ -290,7 +331,7 @@ pub fn build_http_client(config: &HttpClientConfig) -> AnyResult<Client> {
 pub fn build_http_client_ex(
     config: &HttpClientConfig,
     options: BuildHttpClientOptions,
-) -> AnyResult<Client> {
+) -> AnyResult<ClientWithMiddleware> {
     let mut builder = Client::builder().timeout(options.timeout.unwrap_or(Duration::from_secs(30)));
     if let Some(connect_timeout) = options.connect_timeout {
         builder = builder.connect_timeout(connect_timeout);
@@ -343,7 +384,7 @@ pub fn build_http_client_ex(
     let client = builder
         .build()
         .context(crate::tr!("failed-to-create-http-client"))?;
-    Ok(client)
+    Ok(wrap_http_client(client))
 }
 
 pub fn http_request_promise(
@@ -612,5 +653,28 @@ fn is_private_or_local_ipv4(ip: Ipv4Addr) -> bool {
 
 fn is_private_or_local_ipv6(ip: Ipv6Addr) -> bool {
     ip.is_loopback() || ip.is_unspecified() || ip.is_unique_local() || ip.is_unicast_link_local()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn blocked_request_middleware_returns_before_io() {
+        let previous = is_http_requests_blocked();
+        set_http_requests_blocked(true);
+        let client = build_http_client(&HttpClientConfig {
+            use_http_proxy: false,
+            use_socks5_proxy: false,
+            ..Default::default()
+        })
+        .expect("middleware client should build without network I/O");
+        let result = client.get("http://192.0.2.1/").send().await;
+        set_http_requests_blocked(previous);
+
+        let error = result.expect_err("blocked request should fail");
+        assert!(error.is_middleware());
+        assert!(error.to_string().contains("HTTP"));
+    }
 }
 use super::*;

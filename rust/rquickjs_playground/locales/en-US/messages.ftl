@@ -31,6 +31,7 @@ request-id-does-not-exist = request id does not exist
 failed-to-initialize-hmac = Failed to initialize hmac
 failed-to-lock-http-event-request-pool = Failed to lock HTTP event request pool
 blocked-intranet-request = Blocked intranet request: { $host }
+http-requests-blocked = HTTP requests are blocked by the debug setting
 failed-to-lock-timer-event-request-pool = Failed to lock timer event request pool
 failed-to-lock-fs-event-request-pool = Failed to lock fs event request pool
 file-upload-failed = File upload failed: { $e }

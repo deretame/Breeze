@@ -1,8 +1,9 @@
 use crate::frb_generated::StreamSink;
 use anyhow::{Result, anyhow};
 use flutter_rust_bridge::frb;
+use reqwest::Method;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::{Client, Method};
+use reqwest_middleware::{ClientWithMiddleware, RequestBuilder};
 use rquickjs_playground::{
     BuildHttpClientOptions, build_http_client_ex, current_http_client_config,
 };
@@ -72,7 +73,7 @@ pub struct HttpProgress {
 /// 与 QuickJS 插件侧共用同一套代理 / TLS 配置。
 #[frb(opaque)]
 pub struct HttpClient {
-    client: Client,
+    client: ClientWithMiddleware,
     base_url: String,
     default_headers: HashMap<String, String>,
     timeout_ms: u64,
@@ -277,10 +278,7 @@ impl HttpClient {
         }
     }
 
-    fn apply_default_headers(
-        &self,
-        mut builder: reqwest::RequestBuilder,
-    ) -> reqwest::RequestBuilder {
+    fn apply_default_headers(&self, mut builder: RequestBuilder) -> RequestBuilder {
         for (k, v) in &self.default_headers {
             builder = builder.header(k.as_str(), v.as_str());
         }
@@ -300,7 +298,7 @@ pub async fn fetch_direct(url: String, init: Option<FetchInit>) -> Result<FetchR
     HttpClient::direct()?.fetch(url, init).await
 }
 
-fn create_reqwest_client(options: &HttpClientOptions) -> Result<Client> {
+fn create_reqwest_client(options: &HttpClientOptions) -> Result<ClientWithMiddleware> {
     let mut config = current_http_client_config();
     if let Some(disable_tls) = options.danger_accept_invalid_certs {
         config.disable_tls_verify = disable_tls;
@@ -334,9 +332,9 @@ fn create_reqwest_client(options: &HttpClientOptions) -> Result<Client> {
 }
 
 fn apply_headers(
-    mut builder: reqwest::RequestBuilder,
+    mut builder: RequestBuilder,
     headers: Option<&HashMap<String, String>>,
-) -> Result<reqwest::RequestBuilder> {
+) -> Result<RequestBuilder> {
     if let Some(headers) = headers {
         for (k, v) in headers {
             let name = HeaderName::from_bytes(k.as_bytes())

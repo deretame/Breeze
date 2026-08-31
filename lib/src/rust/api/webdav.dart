@@ -6,7 +6,9 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `build_client`, `directory_request_path`, `download_file_with_retry`, `ensure_directory`, `is_directory_entry`, `normalize_any_managed_path`, `normalize_managed_href`, `normalize_remote_path`, `path_depth`, `strip_to_managed_root`, `upload_bytes`
+// These functions are ignored because they are not marked as `pub`: `build_client`, `delete_raw`, `directory_request_path`, `download_file_with_retry`, `ensure_directory`, `get_raw`, `is_directory_entry`, `list_raw`, `list_rsp`, `mkcol_raw`, `normalize_any_managed_path`, `normalize_managed_href`, `normalize_remote_path`, `path_depth`, `start_request`, `strip_to_managed_root`, `upload_bytes`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `WebDavClient`, `WebDavStatusError`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`, `fmt`
 
 Future<void> webdavTestConnection({
   required String host,

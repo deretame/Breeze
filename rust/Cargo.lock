@@ -3239,6 +3239,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "reqwest-middleware"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07bc3f1384cffa4f274dad2d4ddd73aed32fed8f786d96c6be8aa4e5fd3c3b58"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "http",
+ "reqwest",
+ "serde",
+ "thiserror 2.0.17",
+ "tower-service",
+]
+
+[[package]]
 name = "reqwest_dav"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3357,6 +3372,7 @@ dependencies = [
  "aes",
  "aes-gcm",
  "anyhow",
+ "async-trait",
  "axum",
  "base64",
  "cbc",
@@ -3366,6 +3382,7 @@ dependencies = [
  "fluent-bundle",
  "getrandom 0.4.3",
  "hmac",
+ "http",
  "icu",
  "jiff",
  "jiff-icu",
@@ -3373,6 +3390,7 @@ dependencies = [
  "pbkdf2",
  "regex",
  "reqwest",
+ "reqwest-middleware",
  "rquickjs",
  "scraper",
  "serde",
@@ -4831,6 +4849,7 @@ dependencies = [
  "md5",
  "oslog",
  "reqwest",
+ "reqwest-middleware",
  "reqwest_dav",
  "rquickjs_playground",
  "rustls-platform-verifier",

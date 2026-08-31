@@ -41,6 +41,12 @@ reqwest = { version = "0.13.4", default-features = false, features = [
     "system-proxy",
     "socks",
 ] }
+reqwest-middleware = { version = "0.5.2", features = [
+    "form",
+    "json",
+    "multipart",
+    "query",
+] }
 reqwest_dav = "0.3.3"
 url = "2.5.8"
 tokio-tar = "0.3.1"

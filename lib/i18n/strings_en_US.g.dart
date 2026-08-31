@@ -331,6 +331,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get logAddressSubtitle => 'Forward logs to specified address in real time';
 	@override String get memoryDebug => 'Memory debug';
 	@override String get memoryDebugSubtitle => 'Show memory usage on interface';
+	@override String get blockRustHttpRequests => 'Block Rust HTTP requests';
+	@override String get blockRustHttpRequestsSubtitle => 'All Rust HTTP requests fail immediately without being sent';
 	@override String get forceEnableImpeller => 'Force enable Impeller';
 	@override String get forceEnableImpellerSubtitle => 'Android experimental rendering backend';
 	@override String get colorPreview => 'Color preview';
@@ -1737,6 +1739,8 @@ extension on TranslationsEnUs {
 			'settings.logAddressSubtitle' => 'Forward logs to specified address in real time',
 			'settings.memoryDebug' => 'Memory debug',
 			'settings.memoryDebugSubtitle' => 'Show memory usage on interface',
+			'settings.blockRustHttpRequests' => 'Block Rust HTTP requests',
+			'settings.blockRustHttpRequestsSubtitle' => 'All Rust HTTP requests fail immediately without being sent',
 			'settings.forceEnableImpeller' => 'Force enable Impeller',
 			'settings.forceEnableImpellerSubtitle' => 'Android experimental rendering backend',
 			'settings.colorPreview' => 'Color preview',
@@ -2025,10 +2029,10 @@ extension on TranslationsEnUs {
 			'reader.singlePageScrollInterval' => 'Single page scroll interval',
 			'reader.preload' => 'Preload',
 			'reader.preloadImageCount' => 'Preloaded image count',
-			'reader.preloadImageCountSubtitle' => 'Download images after the current reading position in advance',
-			'reader.preloadChapterCount' => 'Preloaded chapter count',
 			_ => null,
 		} ?? switch (path) {
+			'reader.preloadImageCountSubtitle' => 'Download images after the current reading position in advance',
+			'reader.preloadChapterCount' => 'Preloaded chapter count',
 			'reader.preloadChapterCountSubtitle' => 'Load following chapter information in advance',
 			'reader.background' => 'Background',
 			'reader.auto' => 'Auto',
@@ -2539,10 +2543,10 @@ extension on TranslationsEnUs {
 			'comicFollow.newChaptersShort' => ({required Object diff}) => '${diff} new',
 			'comicFollow.update' => 'Update',
 			'comicFollow.retry' => 'Retry',
-			'comicFollow.updateChannelName' => 'Comic update reminder',
-			'comicFollow.updateChannelDesc' => 'Pushed when followed comics have new chapters',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.updateChannelName' => 'Comic update reminder',
+			'comicFollow.updateChannelDesc' => 'Pushed when followed comics have new chapters',
 			'comicFollow.updateTitle' => 'Follow update',
 			'comicFollow.updateBodySingle' => '1 followed comic has updates',
 			'comicFollow.updateBodyMultiple' => ({required Object count}) => '${count} followed comics have updates',

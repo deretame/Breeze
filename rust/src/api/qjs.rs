@@ -85,6 +85,11 @@ pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
 }
 
 #[frb(sync)]
+pub fn set_http_requests_blocked(blocked: bool) -> Result<()> {
+    crate::qjs::set_http_requests_blocked(blocked)
+}
+
+#[frb(sync)]
 /// 设置 QuickJS 运行时错误消息语言（BCP-47 locale），默认 zh-CN
 /// Set the QuickJS runtime error-message language (BCP-47 locale), defaults to zh-CN.
 pub fn set_qjs_error_message_language(lang: String) -> Result<()> {

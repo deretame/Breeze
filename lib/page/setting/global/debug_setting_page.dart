@@ -6,6 +6,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -56,6 +57,7 @@ class _DebugSettingPageState extends State<DebugSettingPage> {
           ),
           _logAddress(state, cubit),
           _enableMemoryDebug(state, cubit),
+          _blockRustHttpRequests(state, cubit),
           if (defaultTargetPlatform == TargetPlatform.android)
             _forceEnableImpeller(state, cubit),
           if (kDebugMode) ...[
@@ -148,6 +150,25 @@ class _DebugSettingPageState extends State<DebugSettingPage> {
           cubit.updateState((current) => current.copyWith(logAddress: result));
           showSuccessToast(t.common.settingSaved);
         }
+      },
+    );
+  }
+
+  Widget _blockRustHttpRequests(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.cloud_off_outlined),
+      title: Text(t.settings.blockRustHttpRequests),
+      subtitle: Text(t.settings.blockRustHttpRequestsSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.blockRustHttpRequests,
+      onChanged: (bool value) {
+        setHttpRequestsBlocked(blocked: value);
+        cubit.updateState(
+          (current) => current.copyWith(blockRustHttpRequests: value),
+        );
       },
     );
   }

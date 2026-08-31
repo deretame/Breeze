@@ -61,7 +61,8 @@ pub use self::bridge::{
 pub use self::http::{
     BuildHttpClientOptions, HttpClientConfig, build_http_client, build_http_client_ex,
     configure_http_client, current_http_client_config, http_promise_cancel_senders_len,
-    http_request_cancel, http_request_promise, set_worker_http_config,
+    http_request_cancel, http_request_promise, is_http_requests_blocked, set_http_requests_blocked,
+    set_worker_http_config, wrap_http_client,
 };
 pub use self::native_buffer::{
     native_buffer_clone_raw, native_buffer_clone_typed, native_buffer_free, native_buffer_put,
@@ -416,7 +417,7 @@ static FS_EVENT_CANCELED: AtomicU64 = AtomicU64::new(0);
 static TIMER_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static LOG_TX: OnceLock<mpsc::Sender<LogEvent>> = OnceLock::new();
 static LOG_HTTP_ENDPOINT: OnceLock<Mutex<Option<String>>> = OnceLock::new();
-static LOG_HTTP_DIRECT_CLIENT: OnceLock<Client> = OnceLock::new();
+static LOG_HTTP_DIRECT_CLIENT: OnceLock<reqwest_middleware::ClientWithMiddleware> = OnceLock::new();
 static LOG_ENQUEUED: AtomicU64 = AtomicU64::new(0);
 static LOG_WRITTEN: AtomicU64 = AtomicU64::new(0);
 static LOG_DROPPED: AtomicU64 = AtomicU64::new(0);
@@ -783,7 +784,7 @@ pub fn current_log_http_endpoint() -> Option<String> {
         .and_then(|guard| guard.clone())
 }
 
-fn log_http_direct_client() -> AnyResult<&'static Client> {
+fn log_http_direct_client() -> AnyResult<&'static reqwest_middleware::ClientWithMiddleware> {
     if let Some(client) = LOG_HTTP_DIRECT_CLIENT.get() {
         return Ok(client);
     }
@@ -793,6 +794,7 @@ fn log_http_direct_client() -> AnyResult<&'static Client> {
         .timeout(Duration::from_secs(10))
         .build()
         .context(crate::tr!("failed-to-create-log-direct-http-client"))?;
+    let client = wrap_http_client(client);
 
     match LOG_HTTP_DIRECT_CLIENT.set(client) {
         Ok(()) => Ok(LOG_HTTP_DIRECT_CLIENT
@@ -822,12 +824,11 @@ fn forward_log_event_if_needed(event: &LogEvent) {
             }
         });
         if let Ok(client) = log_http_direct_client() {
-            let _ = client
+            let request = client
                 .post(url)
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
-                .json(&payload)
-                .send()
-                .await;
+                .json(&payload);
+            let _ = request.send().await;
         } else {
             tracing::debug!(
                 "{}",
@@ -862,12 +863,11 @@ pub fn forward_log_line(level: impl Into<String>, message: impl Into<String>) {
                 "tsMs": ts_ms
             }
         });
-        let _ = client
+        let request = client
             .post(url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .json(&payload)
-            .send()
-            .await;
+            .json(&payload);
+        let _ = request.send().await;
     });
 }
 

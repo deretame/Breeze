@@ -294,6 +294,9 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
+  setHttpRequestsBlocked(
+    blocked: globalSettingCubit.state.blockRustHttpRequests,
+  );
 
   // 根据用户设置或系统语言初始化应用语言
   if (globalSettingCubit.state.localeFollowsSystem) {

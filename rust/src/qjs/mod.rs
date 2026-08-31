@@ -6,8 +6,10 @@ use rquickjs_playground::{
     AsyncHostRuntime, AsyncHostRuntimeBuilder, BridgeRuntimeConfig, HttpClientConfig,
     WebRuntimeOptions, configure_bridge_runtime as configure_bridge_runtime_global,
     configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
-    current_http_client_config, js_error_stack_enabled, register_bridge_route_async_handler,
+    current_http_client_config, is_http_requests_blocked as is_http_requests_blocked_global,
+    js_error_stack_enabled, register_bridge_route_async_handler,
     register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
+    set_http_requests_blocked as set_http_requests_blocked_global, wrap_http_client,
 };
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
@@ -1040,8 +1042,9 @@ async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
         .danger_accept_invalid_certs(http_config.disable_tls_verify)
         .build()
         .with_context(|| rquickjs_playground::tr!("failed-to-create-bundle-download-client"))?;
-    let response = client
-        .get(bundle_url)
+    let client = wrap_http_client(client);
+    let request = client.get(bundle_url);
+    let response = request
         .send()
         .await
         .with_context(|| {
@@ -1448,6 +1451,15 @@ pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
     let mut config = current_http_client_config();
     config.disable_tls_verify = !enabled;
     configure_http_client(config).map_err(|err| anyhow!("设置 TLS 校验开关失败: {err}"))
+}
+
+pub fn set_http_requests_blocked(blocked: bool) -> Result<()> {
+    set_http_requests_blocked_global(blocked);
+    Ok(())
+}
+
+pub fn is_http_requests_blocked() -> bool {
+    is_http_requests_blocked_global()
 }
 
 pub fn is_tls_verify_enabled() -> bool {

@@ -778,6 +778,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后在界面显示内存占用信息'
 	String get memoryDebugSubtitle => '开启后在界面显示内存占用信息';
 
+	/// zh-CN: '拦截 Rust HTTP 请求'
+	String get blockRustHttpRequests => '拦截 Rust HTTP 请求';
+
+	/// zh-CN: '开启后 Rust 端所有 HTTP 请求都会直接失败，不会发送到网络'
+	String get blockRustHttpRequestsSubtitle => '开启后 Rust 端所有 HTTP 请求都会直接失败，不会发送到网络';
+
 	/// zh-CN: '强制启用 Impeller'
 	String get forceEnableImpeller => '强制启用 Impeller';
 
@@ -3994,6 +4000,8 @@ extension on Translations {
 			'settings.logAddressSubtitle' => '配置后实时转发日志到指定地址',
 			'settings.memoryDebug' => '内存调试',
 			'settings.memoryDebugSubtitle' => '开启后在界面显示内存占用信息',
+			'settings.blockRustHttpRequests' => '拦截 Rust HTTP 请求',
+			'settings.blockRustHttpRequestsSubtitle' => '开启后 Rust 端所有 HTTP 请求都会直接失败，不会发送到网络',
 			'settings.forceEnableImpeller' => '强制启用 Impeller',
 			'settings.forceEnableImpellerSubtitle' => 'Android 实验性渲染后端',
 			'settings.colorPreview' => '整点颜色看看',
@@ -4282,10 +4290,10 @@ extension on Translations {
 			'reader.webtoonScrollInterval' => '条漫滚动间隔',
 			'reader.singlePageScrollInterval' => '单页式滚动间隔',
 			'reader.preload' => '预加载',
-			'reader.preloadImageCount' => '预加载图片数量',
-			'reader.preloadImageCountSubtitle' => '提前下载当前阅读位置之后的图片',
 			_ => null,
 		} ?? switch (path) {
+			'reader.preloadImageCount' => '预加载图片数量',
+			'reader.preloadImageCountSubtitle' => '提前下载当前阅读位置之后的图片',
 			'reader.preloadChapterCount' => '预加载章节数量',
 			'reader.preloadChapterCountSubtitle' => '提前加载后续章节信息',
 			'reader.background' => '阅读背景',
@@ -4796,10 +4804,10 @@ extension on Translations {
 			'comicFollow.fetchFailed' => '获取失败',
 			'comicFollow.newChaptersShort' => ({required Object diff}) => '新增 ${diff} 话',
 			'comicFollow.update' => '更新',
-			'comicFollow.retry' => '重试',
-			'comicFollow.updateChannelName' => '漫画更新提醒',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.retry' => '重试',
+			'comicFollow.updateChannelName' => '漫画更新提醒',
 			'comicFollow.updateChannelDesc' => '追更漫画检测到新章节时推送',
 			'comicFollow.updateTitle' => '追更更新',
 			'comicFollow.updateBodySingle' => '有 1 部追更漫画更新了',

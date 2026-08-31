@@ -36,6 +36,14 @@ reqwest = { version = "0.13.4", default-features = false, features = [
     "system-proxy",
     "socks",
 ] }
+reqwest-middleware = { version = "0.5.2", features = [
+    "form",
+    "json",
+    "multipart",
+    "query",
+] }
+http = "1.0"
+async-trait = "0.1.51"
 anyhow = "1.0.102"
 tracing = "0.1.44"
 base64 = "0.22.1"

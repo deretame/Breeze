@@ -17,9 +17,10 @@ pub use web_runtime::{
     build_http_client, build_http_client_ex, configure_bridge_runtime, configure_http_client,
     configure_log_http_endpoint, configure_native_buffer_gc_ttl_seconds,
     current_bridge_runtime_config, current_http_client_config, current_log_http_endpoint,
-    current_native_buffer_gc_ttl_seconds, forward_log_line, polyfill_script,
-    register_bridge_route_async_handler, register_bridge_route_blocking_handler,
-    register_bridge_route_sync_handler, unregister_bridge_route_handler,
+    current_native_buffer_gc_ttl_seconds, forward_log_line, is_http_requests_blocked,
+    polyfill_script, register_bridge_route_async_handler, register_bridge_route_blocking_handler,
+    register_bridge_route_sync_handler, set_http_requests_blocked, unregister_bridge_route_handler,
+    wrap_http_client,
 };
 
 #[cfg(test)]

@@ -229,6 +229,8 @@
     "logAddressSubtitle": "Forward logs to specified address in real time",
     "memoryDebug": "Memory debug",
     "memoryDebugSubtitle": "Show memory usage on interface",
+    "blockRustHttpRequests": "Block Rust HTTP requests",
+    "blockRustHttpRequestsSubtitle": "All Rust HTTP requests fail immediately without being sent",
     "forceEnableImpeller": "Force enable Impeller",
     "forceEnableImpellerSubtitle": "Android experimental rendering backend",
     "colorPreview": "Color preview",

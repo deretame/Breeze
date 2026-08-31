@@ -31,6 +31,7 @@ request-id-does-not-exist = request id 不存在
 failed-to-initialize-hmac = 初始化 hmac 失败
 failed-to-lock-http-event-request-pool = http event 请求池加锁失败
 blocked-intranet-request = 已拦截内网请求: { $host }
+http-requests-blocked = HTTP 请求已被调试设置拦截
 failed-to-lock-timer-event-request-pool = timer event 请求池加锁失败
 failed-to-lock-fs-event-request-pool = fs event 请求池加锁失败
 file-upload-failed = 文件上传失败: { $e }

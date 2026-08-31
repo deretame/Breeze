@@ -1,13 +1,106 @@
 use anyhow::{Result, anyhow};
 use flutter_rust_bridge::frb;
-use reqwest_dav::re_exports::reqwest as dav_reqwest;
-use reqwest_dav::types::list_cmd::ListResponse;
-use reqwest_dav::{Auth, Client, ClientBuilder, DecodeError, Depth, Error as DavError};
+use reqwest::header::CONTENT_TYPE;
+use reqwest::{Method, Response};
+use reqwest_dav::Depth;
+use reqwest_dav::types::list_cmd::{ListMultiStatus, ListResponse};
+use reqwest_middleware::{ClientWithMiddleware, RequestBuilder};
 use rquickjs_playground::{
     BuildHttpClientOptions, build_http_client_ex, current_http_client_config,
 };
 use std::collections::{HashSet, VecDeque};
+use std::fmt::{Display, Formatter};
 use std::time::Duration;
+
+#[derive(Debug)]
+struct WebDavStatusError(u16);
+
+impl Display for WebDavStatusError {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "WebDAV returned HTTP status {}", self.0)
+    }
+}
+
+impl std::error::Error for WebDavStatusError {}
+
+#[derive(Clone)]
+struct WebDavClient {
+    agent: ClientWithMiddleware,
+    host: String,
+    username: String,
+    password: String,
+}
+
+impl WebDavClient {
+    fn start_request(&self, method: Method, path: &str) -> RequestBuilder {
+        let url = format!(
+            "{}/{}",
+            self.host.trim_end_matches('/'),
+            path.trim_start_matches('/')
+        );
+        self.agent
+            .request(method, url)
+            .basic_auth(&self.username, Some(&self.password))
+    }
+
+    async fn get_raw(&self, path: &str) -> Result<Response> {
+        self.start_request(Method::GET, path)
+            .send()
+            .await
+            .map_err(|e| anyhow!(e))
+    }
+
+    async fn delete_raw(&self, path: &str) -> Result<Response> {
+        self.start_request(Method::DELETE, path)
+            .send()
+            .await
+            .map_err(|e| anyhow!(e))
+    }
+
+    async fn mkcol_raw(&self, path: &str) -> Result<Response> {
+        self.start_request(
+            Method::from_bytes(b"MKCOL").expect("MKCOL is a valid method"),
+            path,
+        )
+        .send()
+        .await
+        .map_err(|e| anyhow!(e))
+    }
+
+    async fn list_raw(&self, path: &str, depth: Depth) -> Result<Response> {
+        let depth = match depth {
+            Depth::Number(value) => value.to_string(),
+            Depth::Infinity => "infinity".to_string(),
+        };
+        let body = r#"<?xml version="1.0" encoding="utf-8" ?>
+            <D:propfind xmlns:D="DAV:">
+                <D:allprop/>
+            </D:propfind>
+        "#;
+        let response = self
+            .start_request(
+                Method::from_bytes(b"PROPFIND").expect("PROPFIND is a valid method"),
+                path,
+            )
+            .header("depth", depth)
+            .header(CONTENT_TYPE, "text/xml; charset=\"utf-8\"")
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| anyhow!(e))?;
+        Ok(response)
+    }
+
+    async fn list_rsp(&self, path: &str, depth: Depth) -> Result<Vec<ListResponse>> {
+        let response = self.list_raw(path, depth).await?;
+        let status = response.status();
+        if !status.is_success() {
+            return Err(WebDavStatusError(status.as_u16()).into());
+        }
+        let body = response.text().await?;
+        Ok(serde_xml_rs::from_str::<ListMultiStatus>(&body)?.responses)
+    }
+}
 
 #[frb]
 pub async fn webdav_test_connection(
@@ -16,7 +109,7 @@ pub async fn webdav_test_connection(
     password: String,
 ) -> Result<()> {
     let client = build_client(&host, &username, &password)?;
-    let _ = client.list("/", Depth::Number(0)).await.map_err(|e| {
+    let _ = client.list_rsp("/", Depth::Number(0)).await.map_err(|e| {
         anyhow!(rquickjs_playground::tr!(
             "webdav-connection-test-failed",
             e = e
@@ -125,8 +218,11 @@ pub async fn webdav_list_remote_data_files(
             .await
         {
             Ok(entries) => entries,
-            Err(DavError::Decode(DecodeError::StatusMismatched(status)))
-                if status.response_code == 404 || status.response_code == 409 =>
+            Err(error)
+                if matches!(
+                    error.downcast_ref::<WebDavStatusError>(),
+                    Some(status) if status.0 == 404 || status.0 == 409
+                ) =>
             {
                 Vec::new()
             }
@@ -266,7 +362,7 @@ pub async fn webdav_delete_remote_files(
     Ok(())
 }
 
-fn build_client(host: &str, username: &str, password: &str) -> Result<Client> {
+fn build_client(host: &str, username: &str, password: &str) -> Result<WebDavClient> {
     if host.trim().is_empty() || username.trim().is_empty() || password.is_empty() {
         return Err(anyhow!(rquickjs_playground::tr!(
             "webdav-configuration-incomplete"
@@ -291,25 +387,15 @@ fn build_client(host: &str, username: &str, password: &str) -> Result<Client> {
         ))
     })?;
 
-    let client = ClientBuilder::new()
-        .set_host(host.trim().to_string())
-        .set_auth(Auth::Basic(
-            username.trim().to_string(),
-            password.to_string(),
-        ))
-        .set_agent(agent)
-        .build()
-        .map_err(|e| {
-            anyhow!(rquickjs_playground::tr!(
-                "failed-to-build-webdav-client",
-                e = e
-            ))
-        })?;
-
-    Ok(client)
+    Ok(WebDavClient {
+        agent,
+        host: host.trim().to_string(),
+        username: username.trim().to_string(),
+        password: password.to_string(),
+    })
 }
 
-async fn ensure_directory(client: &Client, dir_path: &str) -> Result<()> {
+async fn ensure_directory(client: &WebDavClient, dir_path: &str) -> Result<()> {
     match client.list_raw(dir_path, Depth::Number(0)).await {
         Ok(response) => {
             let code = response.status().as_u16();
@@ -339,7 +425,7 @@ async fn ensure_directory(client: &Client, dir_path: &str) -> Result<()> {
     }
 }
 
-async fn download_file_with_retry(client: &Client, request_path: &str) -> Result<Vec<u8>> {
+async fn download_file_with_retry(client: &WebDavClient, request_path: &str) -> Result<Vec<u8>> {
     const MAX_RETRIES: usize = 3;
 
     for _ in 0..MAX_RETRIES {
@@ -377,21 +463,16 @@ async fn download_file_with_retry(client: &Client, request_path: &str) -> Result
 }
 
 async fn upload_bytes(
-    client: &Client,
+    client: &WebDavClient,
     remote_path: &str,
     data: Vec<u8>,
     content_type: &str,
 ) -> Result<()> {
-    let response = client
-        .start_request(dav_reqwest::Method::PUT, remote_path)
-        .await
-        .map_err(|e| anyhow!(rquickjs_playground::tr!("file-upload-failed", e = e)))?
-        .header(
-            dav_reqwest::header::CONTENT_TYPE,
-            dav_reqwest::header::HeaderValue::from_str(content_type)
-                .map_err(|e| anyhow!(rquickjs_playground::tr!("file-upload-failed", e = e)))?,
-        )
-        .body(data)
+    let request = client
+        .start_request(Method::PUT, remote_path)
+        .header(CONTENT_TYPE, content_type)
+        .body(data);
+    let response = request
         .send()
         .await
         .map_err(|e| anyhow!(rquickjs_playground::tr!("file-upload-failed", e = e)))?;

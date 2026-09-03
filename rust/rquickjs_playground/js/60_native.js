@@ -18,8 +18,38 @@
     throw new TypeError("input 必须是 Uint8Array/ArrayBuffer");
   }
 
+  function httpResponseMetadata(input) {
+    const buffer = input instanceof ArrayBuffer ? input : input?.buffer;
+    if (!(buffer instanceof ArrayBuffer)) return null;
+    const statusCode = Number(buffer.__breezeHttpStatus);
+    const bodyLength = Number(buffer.__breezeHttpBodyLength);
+    if (!Number.isInteger(statusCode) || statusCode < 0 || statusCode > 999) {
+      return null;
+    }
+    return {
+      statusCode,
+      bodyLength: Number.isFinite(bodyLength) && bodyLength >= 0
+        ? Math.floor(bodyLength)
+        : 0,
+    };
+  }
+
   async function put(input) {
     const arr = toByteArray(input);
+    const response = httpResponseMetadata(input);
+    if (
+      response &&
+      typeof globalThis.__native_buffer_put_raw_with_http_response === "function"
+    ) {
+      try {
+        return globalThis.__native_buffer_put_raw_with_http_response(
+          arr,
+          response.statusCode,
+          response.bodyLength,
+        );
+      } catch (_) {
+      }
+    }
     if (typeof globalThis.__native_buffer_put_raw === "function") {
       try {
         const id = globalThis.__native_buffer_put_raw(arr);

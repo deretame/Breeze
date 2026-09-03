@@ -144,6 +144,8 @@
     "proxyTypeSocks5": "SOCKS5",
     "updateAccelerate": "更新下载加速",
     "updateAccelerateSubtitle": "开启后优先使用代理加速 GitHub 更新链接",
+    "retryDownloadUntilSuccess": "下载失败后持续重试",
+    "retryDownloadUntilSuccessSubtitle": "下载失败时持续重试直到成功；返回 404 或空数据时停止重试",
     "sync": "同步",
     "syncConfig": "同步配置",
     "syncConfigSubtitle": "进入页面，配置地址与鉴权信息",

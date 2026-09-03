@@ -523,6 +523,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后优先使用代理加速 GitHub 更新链接'
 	String get updateAccelerateSubtitle => '开启后优先使用代理加速 GitHub 更新链接';
 
+	/// zh-CN: '下载失败后持续重试'
+	String get retryDownloadUntilSuccess => '下载失败后持续重试';
+
+	/// zh-CN: '下载失败时持续重试直到成功；返回 404 或空数据时停止重试'
+	String get retryDownloadUntilSuccessSubtitle => '下载失败时持续重试直到成功；返回 404 或空数据时停止重试';
+
 	/// zh-CN: '同步'
 	String get sync => '同步';
 
@@ -3915,6 +3921,8 @@ extension on Translations {
 			'settings.proxyTypeSocks5' => 'SOCKS5',
 			'settings.updateAccelerate' => '更新下载加速',
 			'settings.updateAccelerateSubtitle' => '开启后优先使用代理加速 GitHub 更新链接',
+			'settings.retryDownloadUntilSuccess' => '下载失败后持续重试',
+			'settings.retryDownloadUntilSuccessSubtitle' => '下载失败时持续重试直到成功；返回 404 或空数据时停止重试',
 			'settings.sync' => '同步',
 			'settings.syncConfig' => '同步配置',
 			'settings.syncConfigSubtitle' => '进入页面，配置地址与鉴权信息',
@@ -4288,10 +4296,10 @@ extension on Translations {
 			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
 			'reader.webtoonScrollDistance' => '条漫滚动距离',
 			'reader.webtoonScrollInterval' => '条漫滚动间隔',
-			'reader.singlePageScrollInterval' => '单页式滚动间隔',
-			'reader.preload' => '预加载',
 			_ => null,
 		} ?? switch (path) {
+			'reader.singlePageScrollInterval' => '单页式滚动间隔',
+			'reader.preload' => '预加载',
 			'reader.preloadImageCount' => '预加载图片数量',
 			'reader.preloadImageCountSubtitle' => '提前下载当前阅读位置之后的图片',
 			'reader.preloadChapterCount' => '预加载章节数量',
@@ -4802,10 +4810,10 @@ extension on Translations {
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话',
 			'comicFollow.latestCount' => ({required Object count}) => '最新 ${count} 话',
 			'comicFollow.fetchFailed' => '获取失败',
-			'comicFollow.newChaptersShort' => ({required Object diff}) => '新增 ${diff} 话',
-			'comicFollow.update' => '更新',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.newChaptersShort' => ({required Object diff}) => '新增 ${diff} 话',
+			'comicFollow.update' => '更新',
 			'comicFollow.retry' => '重试',
 			'comicFollow.updateChannelName' => '漫画更新提醒',
 			'comicFollow.updateChannelDesc' => '追更漫画检测到新章节时推送',

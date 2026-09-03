@@ -31,6 +31,37 @@ class QjsCancelTasksByGroupResult {
           failedRuntimeGroups == other.failedRuntimeGroups;
 }
 
+class QjsFetchImageResult {
+  final Uint8List bytes;
+  final int? statusCode;
+  final BigInt? responseBodyLength;
+  final String? error;
+
+  const QjsFetchImageResult({
+    required this.bytes,
+    this.statusCode,
+    this.responseBodyLength,
+    this.error,
+  });
+
+  @override
+  int get hashCode =>
+      bytes.hashCode ^
+      statusCode.hashCode ^
+      responseBodyLength.hashCode ^
+      error.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QjsFetchImageResult &&
+          runtimeType == other.runtimeType &&
+          bytes == other.bytes &&
+          statusCode == other.statusCode &&
+          responseBodyLength == other.responseBodyLength &&
+          error == other.error;
+}
+
 class QjsRuntimeBuildRequest {
   final String runtimeName;
   final bool injectFilesystem;

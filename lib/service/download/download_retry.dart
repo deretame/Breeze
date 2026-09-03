@@ -1,7 +1,7 @@
 import 'package:zephyr/main.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 
-/// 下载操作在首次尝试失败后，最多静默重试的次数。
+/// 下载操作在首次尝试失败后，默认最多静默重试的次数。
 const downloadSilentRetryCount = 3;
 
 Future<T> retryDownloadOperation<T>({
@@ -9,6 +9,7 @@ Future<T> retryDownloadOperation<T>({
   required Future<T> Function() action,
   required Future<void> Function() ensureTaskRunning,
   bool Function(Object error)? shouldRetry,
+  bool Function()? shouldRetryUntilSuccess,
   Duration retryDelay = const Duration(seconds: 1),
 }) async {
   Object? lastError;
@@ -20,8 +21,9 @@ Future<T> retryDownloadOperation<T>({
     try {
       return await action();
     } catch (error, stackTrace) {
+      final retryForever = shouldRetryUntilSuccess?.call() ?? false;
       if (_isDownloadCancellation(error) ||
-          attempt >= downloadSilentRetryCount ||
+          (!retryForever && attempt >= downloadSilentRetryCount) ||
           shouldRetry?.call(error) == false) {
         Error.throwWithStackTrace(error, stackTrace);
       }
@@ -30,7 +32,9 @@ Future<T> retryDownloadOperation<T>({
       lastStackTrace = stackTrace;
       final retryNumber = attempt + 1;
       logger.w(
-        '$operation 失败，准备静默重试 ($retryNumber/$downloadSilentRetryCount)',
+        retryForever
+            ? '$operation 失败，准备持续重试 (第 $retryNumber 次)'
+            : '$operation 失败，准备静默重试 ($retryNumber/$downloadSilentRetryCount)',
         error: error,
         stackTrace: stackTrace,
       );

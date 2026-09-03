@@ -56,6 +56,7 @@ Future<String> downloadCoverAsset({
   required String cartoonId,
   required String qjsName,
   required String qjsTaskGroupKey,
+  bool Function()? shouldRetryUntilSuccess,
 }) {
   return downloadPicture(
     from: from,
@@ -64,6 +65,7 @@ Future<String> downloadCoverAsset({
     cartoonId: cartoonId,
     pictureType: PictureType.cover,
     retry: true,
+    shouldRetryUntilSuccess: shouldRetryUntilSuccess,
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
   );
@@ -76,6 +78,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
   required String qjsRuntimeName,
   required String qjsTaskGroupKey,
   required Future<void> Function() ensureTaskRunning,
+  bool Function()? shouldRetryUntilSuccess,
   required DownloadProgressReporter reporter,
   Future<void> Function(Object error, DownloadImageJob job)? onError,
   Future<void> Function(int completed, int downloaded, int reused)? onProgress,
@@ -126,6 +129,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
           qjsRuntimeName: qjsRuntimeName,
           qjsTaskGroupKey: qjsTaskGroupKey,
           ensureTaskRunning: ensureTaskRunning,
+          shouldRetryUntilSuccess: shouldRetryUntilSuccess,
           onError: onError,
           pictureType: PictureType.page,
         );
@@ -172,6 +176,7 @@ Future<DownloadPictureResult> _downloadSingleJob({
   required String qjsRuntimeName,
   required String qjsTaskGroupKey,
   required Future<void> Function() ensureTaskRunning,
+  bool Function()? shouldRetryUntilSuccess,
   Future<void> Function(Object error, DownloadImageJob job)? onError,
   PictureType pictureType = PictureType.comic,
 }) async {
@@ -179,9 +184,11 @@ Future<DownloadPictureResult> _downloadSingleJob({
     final result = await retryDownloadOperation<DownloadPictureResult>(
       operation: '下载图片 ${job.path}',
       ensureTaskRunning: ensureTaskRunning,
+      shouldRetryUntilSuccess: shouldRetryUntilSuccess,
       shouldRetry: (error) {
-        return error is! DownloadImageJobException ||
-            error.result.status != DownloadPictureResultStatus.notFound;
+        if (error is! DownloadImageJobException) return true;
+        return error.result.status != DownloadPictureResultStatus.notFound &&
+            error.result.status != DownloadPictureResultStatus.emptyData;
       },
       action: () async {
         final result = await downloadPictureResult(

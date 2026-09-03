@@ -122,6 +122,28 @@ pub fn native_buffer_put_raw(bytes: Vec<u8>) -> u64 {
     id
 }
 
+pub fn native_buffer_put_raw_with_http_response(
+    bytes: Vec<u8>,
+    status_code: u16,
+    body_length: u64,
+) -> u64 {
+    let id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
+    let mut pool = native_pool()
+        .lock()
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
+    pool.insert(
+        id,
+        NativeBufferEntry::with_http_response(
+            bytes,
+            NativeBufferHttpResponse {
+                status_code,
+                body_length,
+            },
+        ),
+    );
+    id
+}
+
 pub fn native_buffer_take(id: u64) -> String {
     let mut pool = native_pool()
         .lock()
@@ -137,6 +159,16 @@ pub fn native_buffer_take_raw(id: u64) -> Option<Vec<u8>> {
         .lock()
         .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
     pool.remove(&id).map(|entry| entry.bytes)
+}
+
+pub fn native_buffer_take_with_http_response(
+    id: u64,
+) -> Option<(Vec<u8>, Option<NativeBufferHttpResponse>)> {
+    let mut pool = native_pool()
+        .lock()
+        .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
+    pool.remove(&id)
+        .map(|entry| (entry.bytes, entry.http_response))
 }
 
 /// 复制 native buffer 的内容但保留原 buffer，供同步的 `Request/Response.clone()` 使用。

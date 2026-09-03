@@ -144,6 +144,8 @@
     "proxyTypeSocks5": "SOCKS5",
     "updateAccelerate": "Update acceleration",
     "updateAccelerateSubtitle": "Use proxy to accelerate GitHub update links",
+    "retryDownloadUntilSuccess": "Keep retrying failed downloads",
+    "retryDownloadUntilSuccessSubtitle": "Retry failed downloads until they succeed; stop on 404 or empty data",
     "sync": "Sync",
     "syncConfig": "Sync config",
     "syncConfigSubtitle": "Enter page to configure address and auth",

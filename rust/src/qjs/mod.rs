@@ -22,6 +22,14 @@ type QjsRuntimeMap = HashMap<String, Arc<AsyncHostRuntime>>;
 type QjsInFlightTaskMap = HashMap<String, HashSet<u64>>;
 type QjsTrackedTaskMap = HashMap<String, HashMap<u64, Arc<TrackedQjsTask>>>;
 
+#[derive(Clone, Debug)]
+pub struct QjsFetchImageResult {
+    pub bytes: Vec<u8>,
+    pub status_code: Option<u16>,
+    pub response_body_length: Option<u64>,
+    pub error: Option<String>,
+}
+
 static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
 static QJS_IN_FLIGHT_TASKS: OnceLock<RwLock<QjsInFlightTaskMap>> = OnceLock::new();
 static QJS_TRACKED_TASKS: OnceLock<RwLock<QjsTrackedTaskMap>> = OnceLock::new();
@@ -146,8 +154,11 @@ fn is_task_group_cancelled(runtime_name: &str, task_group_key: &str) -> bool {
 }
 
 #[derive(Clone)]
-enum TrackedQjsTaskOutput {
-    Bytes(Vec<u8>),
+struct TrackedQjsTaskOutput {
+    bytes: Vec<u8>,
+    status_code: Option<u16>,
+    response_body_length: Option<u64>,
+    error: Option<String>,
 }
 
 struct TrackedQjsTaskState {
@@ -592,15 +603,55 @@ fn spawn_tracked_task_waiter(
 ) {
     tokio::spawn(async move {
         let outcome = match handle.wait_async().await {
-            Ok(raw) => match parse_ok_json_payload(&raw) {
-                Ok(data) => value_to_bytes(&data).map(TrackedQjsTaskOutput::Bytes),
-                Err(err) => Err(err.to_string()),
-            },
+            Ok(raw) => parse_tracked_task_output(&raw),
             Err(err) => Err(err.to_string()),
         };
 
         state.complete(outcome);
     });
+}
+
+fn parse_tracked_task_output(raw: &str) -> Result<TrackedQjsTaskOutput, String> {
+    let payload: Value =
+        serde_json::from_str(raw).map_err(|e| format!("解析 JS 任务结果失败: {e}"))?;
+    if payload.get("ok").and_then(Value::as_bool) == Some(true) {
+        return value_to_task_output(payload.get("data").unwrap_or(&Value::Null));
+    }
+
+    let error = payload
+        .get("error")
+        .and_then(Value::as_str)
+        .unwrap_or("执行失败")
+        .to_string();
+    let stack = payload.get("stack").and_then(Value::as_str).unwrap_or("");
+    let debug_scope = payload
+        .get("debug_scope")
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    let error = format_qjs_error_message(&error, stack, debug_scope);
+    let error = if is_cancelled_error_text(&error) {
+        QJS_RUNTIME_CANCELLED_ERROR_CODE.to_string()
+    } else {
+        error
+    };
+
+    Ok(TrackedQjsTaskOutput {
+        bytes: Vec::new(),
+        status_code: value_u16(&payload, "httpStatusCode"),
+        response_body_length: value_u64(&payload, "httpResponseBodyLength"),
+        error: Some(error),
+    })
+}
+
+fn value_u16(value: &Value, key: &str) -> Option<u16> {
+    value
+        .get(key)
+        .and_then(Value::as_u64)
+        .and_then(|value| u16::try_from(value).ok())
+}
+
+fn value_u64(value: &Value, key: &str) -> Option<u64> {
+    value.get(key).and_then(Value::as_u64)
 }
 
 async fn create_qjs_runtime_with_options(
@@ -797,37 +848,6 @@ fn is_cancelled_error_text(message: &str) -> bool {
         || message.contains(&rquickjs_playground::tr!("cancelled"))
         || message.contains(&rquickjs_playground::tr!("task-cancelled"))
         || message.contains(&rquickjs_playground::tr!("user-cancelled"))
-}
-
-fn parse_ok_json_payload(raw: &str) -> Result<Value> {
-    let payload: Value = serde_json::from_str(raw)
-        .context(rquickjs_playground::tr!("failed-to-parse-js-return-json-2"))?;
-    if payload.get("ok").and_then(Value::as_bool) == Some(true) {
-        Ok(payload.get("data").cloned().unwrap_or(Value::Null))
-    } else {
-        let error_message = payload
-            .get("error")
-            .and_then(Value::as_str)
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| rquickjs_playground::tr!("execution-failed"));
-        let error_stack = payload.get("stack").and_then(Value::as_str).unwrap_or("");
-        let debug_scope = payload
-            .get("debug_scope")
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        let error_message = format_qjs_error_message(&error_message, error_stack, debug_scope);
-        if is_cancelled_error_text(&error_message) {
-            tracing::info!(
-                "{}",
-                rquickjs_playground::tr!(
-                    "qjs-task-cancelled-parsing-return-body",
-                    error_message = error_message
-                )
-            );
-            return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
-        }
-        Err(anyhow!("{}", error_message))
-    }
 }
 
 fn simplify_stack_message(raw: &str) -> String {
@@ -1145,8 +1165,58 @@ async fn wait_tracked_task_bytes(runtime_name: &str, task_id: u64) -> Result<Vec
 
     let outcome = task.state.wait().await?;
     let _ = remove_tracked_task(runtime_name, task_id).await;
-    match outcome {
-        TrackedQjsTaskOutput::Bytes(bytes) => Ok(bytes),
+    if let Some(error) = outcome.error {
+        return Err(anyhow!(error));
+    }
+    Ok(outcome.bytes)
+}
+
+async fn wait_tracked_task_result(runtime_name: &str, task_id: u64) -> Result<QjsFetchImageResult> {
+    let task: Arc<TrackedQjsTask> = get_tracked_task(runtime_name, task_id)
+        .await
+        .ok_or_else(|| anyhow!("任务不存在: {task_id}"))?;
+
+    let outcome = task.state.wait().await?;
+    let _ = remove_tracked_task(runtime_name, task_id).await;
+    Ok(QjsFetchImageResult {
+        bytes: outcome.bytes,
+        status_code: outcome.status_code,
+        response_body_length: outcome.response_body_length,
+        error: outcome.error,
+    })
+}
+
+async fn start_qjs_task(
+    runtime_name: &str,
+    task_group_key: &str,
+    is_once: bool,
+    bundle_js: Option<String>,
+    bundle_url: Option<String>,
+    fn_path: &str,
+    args_json: &str,
+) -> Result<u64> {
+    if !task_group_key.is_empty() {
+        clear_task_group_cancelled(runtime_name, task_group_key);
+    }
+
+    if is_once {
+        let bundle_input = match (bundle_js, bundle_url) {
+            (Some(js), _) => js,
+            (None, Some(url)) => load_bundle_js_from_url(&url).await?,
+            (None, None) => {
+                return Err(anyhow!("once 模式必须提供 bundle_js 或 bundle_url"));
+            }
+        };
+        call_bundle_once_start_by_input(
+            runtime_name,
+            &bundle_input,
+            fn_path,
+            args_json,
+            task_group_key,
+        )
+        .await
+    } else {
+        call_current_bundle_start_by_json(runtime_name, fn_path, args_json, task_group_key).await
     }
 }
 
@@ -1174,42 +1244,71 @@ pub async fn qjs_task_call(
     fn_path: String,
     args_json: String,
 ) -> Result<Vec<u8>> {
-    if !task_group_key.is_empty() {
-        clear_task_group_cancelled(&runtime_name, &task_group_key);
-    }
-
-    let task_id = if is_once {
-        let bundle_input = match (bundle_js, bundle_url) {
-            (Some(js), _) => js,
-            (None, Some(url)) => load_bundle_js_from_url(&url).await?,
-            (None, None) => {
-                return Err(anyhow!("once 模式必须提供 bundle_js 或 bundle_url"));
-            }
-        };
-        call_bundle_once_start_by_input(
-            &runtime_name,
-            &bundle_input,
-            &fn_path,
-            &args_json,
-            &task_group_key,
-        )
-        .await?
-    } else {
-        call_current_bundle_start_by_json(&runtime_name, &fn_path, &args_json, &task_group_key)
-            .await?
-    };
+    let task_id = start_qjs_task(
+        &runtime_name,
+        &task_group_key,
+        is_once,
+        bundle_js,
+        bundle_url,
+        &fn_path,
+        &args_json,
+    )
+    .await?;
 
     wait_tracked_task_bytes(&runtime_name, task_id).await
 }
 
-fn value_to_bytes(data: &Value) -> Result<Vec<u8>, String> {
+pub async fn qjs_fetch_image(
+    runtime_name: String,
+    task_group_key: String,
+    is_once: bool,
+    bundle_js: Option<String>,
+    bundle_url: Option<String>,
+    fn_path: String,
+    args_json: String,
+) -> Result<QjsFetchImageResult> {
+    let task_id = start_qjs_task(
+        &runtime_name,
+        &task_group_key,
+        is_once,
+        bundle_js,
+        bundle_url,
+        &fn_path,
+        &args_json,
+    )
+    .await?;
+
+    wait_tracked_task_result(&runtime_name, task_id).await
+}
+
+fn value_to_task_output(data: &Value) -> Result<TrackedQjsTaskOutput, String> {
     if let Some(obj) = data.as_object() {
         if let Some(id) = obj.get("nativeBufferId").and_then(Value::as_u64) {
-            return rquickjs_playground::web_runtime::native_buffer_take_raw(id)
-                .ok_or_else(|| "native buffer 不存在或已被消费".to_string());
+            let (bytes, stored_response) =
+                rquickjs_playground::web_runtime::native_buffer_take_with_http_response(id)
+                    .ok_or_else(|| "native buffer 不存在或已被消费".to_string())?;
+            let status_code = value_u16(data, "httpStatusCode")
+                .or_else(|| value_u16(data, "statusCode"))
+                .or_else(|| stored_response.map(|response| response.status_code));
+            let response_body_length = value_u64(data, "httpResponseBodyLength")
+                .or_else(|| value_u64(data, "bodyLength"))
+                .or_else(|| stored_response.map(|response| response.body_length));
+            return Ok(TrackedQjsTaskOutput {
+                bytes,
+                status_code,
+                response_body_length,
+                error: None,
+            });
         }
     }
-    serde_json::to_vec(data).map_err(|e| format!("序列化结果为字节失败: {e}"))
+    let bytes = serde_json::to_vec(data).map_err(|e| format!("序列化结果为字节失败: {e}"))?;
+    Ok(TrackedQjsTaskOutput {
+        bytes,
+        status_code: value_u16(data, "httpStatusCode").or_else(|| value_u16(data, "statusCode")),
+        response_body_length: value_u64(data, "httpResponseBodyLength")
+            .or_else(|| value_u64(data, "bodyLength")),
+        error: None,
+    })
 }
 
 pub async fn qjs_clear_bundle(runtime_name: String) -> Result<bool> {

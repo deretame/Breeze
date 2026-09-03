@@ -363,6 +363,14 @@
         return globalThis.native.take(id).then((bytes) => {
           const out = new Uint8Array(bytes.length);
           out.set(bytes);
+          Object.defineProperty(out.buffer, "__breezeHttpStatus", {
+            value: this.status,
+            enumerable: false,
+          });
+          Object.defineProperty(out.buffer, "__breezeHttpBodyLength", {
+            value: this.offloadedBytes,
+            enumerable: false,
+          });
           return out.buffer;
         });
       }

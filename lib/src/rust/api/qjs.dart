@@ -42,6 +42,25 @@ Future<Uint8List> qjsTaskCall({
   argsJson: argsJson,
 );
 
+/// 调用插件图片函数，并保留 Rust reqwest 返回的 HTTP 状态与响应体长度。
+Future<QjsFetchImageResult> qjsFetchImage({
+  required String runtimeName,
+  required String taskGroupKey,
+  required bool isOnce,
+  String? bundleJs,
+  String? bundleUrl,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImage(
+  runtimeName: runtimeName,
+  taskGroupKey: taskGroupKey,
+  isOnce: isOnce,
+  bundleJs: bundleJs,
+  bundleUrl: bundleUrl,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
+
 Future<bool> qjsClearBundle({required String runtimeName}) =>
     RustLib.instance.api.crateApiQjsQjsClearBundle(runtimeName: runtimeName);
 

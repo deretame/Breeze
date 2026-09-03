@@ -44,4 +44,25 @@ void main() {
 
     expect(attempts, 1);
   });
+
+  test('keeps retrying until success when enabled', () async {
+    var attempts = 0;
+
+    final result = await retryDownloadOperation<int>(
+      operation: 'test operation',
+      ensureTaskRunning: () async {},
+      shouldRetryUntilSuccess: () => true,
+      retryDelay: Duration.zero,
+      action: () async {
+        attempts++;
+        if (attempts < 5) {
+          throw StateError('temporary failure');
+        }
+        return 42;
+      },
+    );
+
+    expect(result, 42);
+    expect(attempts, 5);
+  });
 }

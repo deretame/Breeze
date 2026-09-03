@@ -581,7 +581,16 @@ async fn http_request_inner_async(
         let mut pool = native_pool()
             .lock()
             .expect(&crate::tr!("failed-to-lock-native-buffer-pool"));
-        pool.insert(native_buffer_id, NativeBufferEntry::new(body_bytes));
+        pool.insert(
+            native_buffer_id,
+            NativeBufferEntry::with_http_response(
+                body_bytes,
+                NativeBufferHttpResponse {
+                    status_code: status.as_u16(),
+                    body_length: body_len as u64,
+                },
+            ),
+        );
     }
 
     Ok(json!({

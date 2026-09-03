@@ -124,12 +124,22 @@ Future<void> _runRuntimeInitIfNeeded(String runtimeName) async {
 ///
 /// 内部按需走常驻 bundle(非 once)或一次性 debug 池(once,`bundleUrl`/`bundleJs` 二选一),
 /// 并维护取消用的 runtime 跟踪。
-Future<Uint8List> _runQjsTask({
+Future<T> _runQjsTask<T>({
   required String pluginId,
   required String fnPath,
   required String argsJson,
   String? runtimeName,
   String? taskGroupKey,
+  required Future<T> Function({
+    required String runtimeName,
+    required String taskGroupKey,
+    required bool isOnce,
+    String? bundleJs,
+    String? bundleUrl,
+    required String fnPath,
+    required String argsJson,
+  })
+  call,
 }) async {
   if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
     if (isDownloadCancelSignaled(taskGroupKey)) {
@@ -163,8 +173,8 @@ Future<Uint8List> _runQjsTask({
     await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
   }
 
-  // qjsTaskCall 按普通 Uint8List 返回，避免 Dart 与 Rust 共享堆内存。
-  final waitFuture = qjsTaskCall(
+  // QJS 结果通过 FRB 返回，避免 Dart 与 Rust 共享堆内存。
+  final waitFuture = call(
     runtimeName: resolvedRuntimeName,
     taskGroupKey: taskGroupKey ?? '',
     isOnce: useCallOnce,
@@ -214,12 +224,13 @@ Future<String> executeQjsCall({
   String? runtimeName,
   String? taskGroupKey,
 }) async {
-  final bytes = await _runQjsTask(
+  final bytes = await _runQjsTask<Uint8List>(
     pluginId: pluginId,
     fnPath: fnPath,
     argsJson: argsJson,
     runtimeName: runtimeName,
     taskGroupKey: taskGroupKey,
+    call: qjsTaskCall,
   );
   return utf8.decode(bytes, allowMalformed: true);
 }
@@ -231,12 +242,29 @@ Future<Uint8List> executeQjsFetchImageBytes({
   required String argsJson,
   String? runtimeName,
   String? taskGroupKey,
-}) => _runQjsTask(
+}) => _runQjsTask<Uint8List>(
   pluginId: pluginId,
   fnPath: fnPath,
   argsJson: argsJson,
   runtimeName: runtimeName,
   taskGroupKey: taskGroupKey,
+  call: qjsTaskCall,
+);
+
+/// 调用插件图片函数，并返回 Rust reqwest 采集的 HTTP 结果信息。
+Future<QjsFetchImageResult> executeQjsFetchImageResult({
+  required String pluginId,
+  required String fnPath,
+  required String argsJson,
+  String? runtimeName,
+  String? taskGroupKey,
+}) => _runQjsTask<QjsFetchImageResult>(
+  pluginId: pluginId,
+  fnPath: fnPath,
+  argsJson: argsJson,
+  runtimeName: runtimeName,
+  taskGroupKey: taskGroupKey,
+  call: qjsFetchImage,
 );
 
 bool _shouldUseQjsCallOnce(String pluginId) {

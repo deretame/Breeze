@@ -182,6 +182,7 @@ Future<String> downloadPicture({
   String? qjsName,
   String qjsTaskGroupKey = '',
   bool retry = false,
+  bool Function()? shouldRetryUntilSuccess,
   Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
   final result = await downloadPictureResult(
@@ -194,9 +195,11 @@ Future<String> downloadPicture({
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
     retry: retry,
+    shouldRetryUntilSuccess: shouldRetryUntilSuccess,
     extern: extern,
   );
   if (result.status == DownloadPictureResultStatus.notFound ||
+      result.status == DownloadPictureResultStatus.emptyData ||
       result.status == DownloadPictureResultStatus.failed) {
     return '404';
   }
@@ -213,6 +216,7 @@ Future<DownloadPictureResult> downloadPictureResult({
   String? qjsName,
   String qjsTaskGroupKey = '',
   bool retry = false,
+  bool Function()? shouldRetryUntilSuccess,
   Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
   final resolvedFrom = normalizePluginId(from);
@@ -283,6 +287,7 @@ Future<DownloadPictureResult> downloadPictureResult({
       url,
       source: resolvedFrom,
       retry: retry,
+      shouldRetryUntilSuccess: shouldRetryUntilSuccess,
       qjsName: qjsName,
       qjsTaskGroupKey: qjsTaskGroupKey,
       extern: extern,
@@ -296,6 +301,13 @@ Future<DownloadPictureResult> downloadPictureResult({
       logger.w('下载图片资源不存在: source=$resolvedFrom url=$url');
       return DownloadPictureResult(
         status: DownloadPictureResultStatus.notFound,
+        error: e,
+      );
+    }
+    if (e is DownloadPictureEmptyDataException) {
+      logger.w('下载图片返回空数据: source=$resolvedFrom url=$url');
+      return DownloadPictureResult(
+        status: DownloadPictureResultStatus.emptyData,
         error: e,
       );
     }
@@ -428,6 +440,7 @@ Future<Uint8List> downloadImageWithRetry(
   required String source,
   bool retry = false,
   int maxRetries = 10,
+  bool Function()? shouldRetryUntilSuccess,
   String? qjsName,
   String qjsTaskGroupKey = '',
   Map<String, dynamic> extern = const <String, dynamic>{},
@@ -455,13 +468,48 @@ Future<Uint8List> downloadImageWithRetry(
       if (externPayload.isNotEmpty) {
         args["extern"] = externPayload;
       }
-      final bytes = await executeQjsFetchImageBytes(
+      final result = await executeQjsFetchImageResult(
         pluginId: pluginId,
         runtimeName: runtimeName,
         fnPath: 'fetchImageBytes',
         argsJson: jsonEncode(args),
         taskGroupKey: qjsTaskGroupKey.isEmpty ? null : qjsTaskGroupKey,
       );
+
+      if (result.error != null) {
+        throw DownloadPictureHttpException(
+          url,
+          result.error!,
+          statusCode: result.statusCode,
+          responseBodyLength: result.responseBodyLength,
+        );
+      }
+
+      final statusCode = result.statusCode;
+      if (statusCode == 404 || statusCode == 422) {
+        throw DownloadPictureNotFoundException(
+          url,
+          DownloadPictureHttpException(
+            url,
+            'HTTP $statusCode',
+            statusCode: statusCode,
+            responseBodyLength: result.responseBodyLength,
+          ),
+        );
+      }
+      if (statusCode != null && (statusCode < 200 || statusCode >= 300)) {
+        throw DownloadPictureHttpException(
+          url,
+          'HTTP $statusCode',
+          statusCode: statusCode,
+          responseBodyLength: result.responseBodyLength,
+        );
+      }
+
+      final bytes = result.bytes;
+      if (bytes.isEmpty) {
+        throw DownloadPictureEmptyDataException(url);
+      }
 
       return bytes;
     } catch (e) {
@@ -471,9 +519,26 @@ Future<Uint8List> downloadImageWithRetry(
       if (_isQjsRuntimeCancelledError(e)) {
         throw const DownloadTaskCancelledException();
       }
+      if (e is DownloadPictureEmptyDataException) {
+        logger.w('下载图片返回空数据，停止重试: $url');
+        rethrow;
+      }
+      if (e is DownloadPictureHttpException) {
+        if (e.statusCode == 404 || e.statusCode == 422) {
+          logger.w('下载图片资源不存在，跳过: $url');
+          throw DownloadPictureNotFoundException(url, e);
+        }
+        logger.w(
+          '图片请求失败，将按重试策略处理: $url '
+          '(status=${e.statusCode}, bodyLength=${e.responseBodyLength})',
+          error: e,
+        );
+      }
       logger.w('fetchImageBytes failed source=$source url=$url error=$e');
       final errText = e.toString();
-      final isNotFound = errText.contains('422') || errText.contains('404');
+      final isNotFound = e is DownloadPictureHttpException
+          ? e.statusCode == 404 || e.statusCode == 422
+          : errText.contains('422') || errText.contains('404');
       if (isNotFound) {
         logger.w('下载图片资源不存在，跳过: $url');
         throw DownloadPictureNotFoundException(url, e);
@@ -485,7 +550,9 @@ Future<Uint8List> downloadImageWithRetry(
         logger.e('下载图片失败: $e, URL: $url, 准备重试...($attempts/$maxRetries)');
       }
 
-      if (!retry || attempts >= maxRetries) {
+      final retryForever = shouldRetryUntilSuccess?.call() ?? false;
+      if ((!retry && !retryForever) ||
+          (!retryForever && attempts >= maxRetries)) {
         rethrow;
       }
 
@@ -506,7 +573,13 @@ bool _isDownloadTaskCancelledError(Object error) {
       error.toString().contains(downloadTaskCancelledMessage);
 }
 
-enum DownloadPictureResultStatus { existing, downloaded, notFound, failed }
+enum DownloadPictureResultStatus {
+  existing,
+  downloaded,
+  notFound,
+  emptyData,
+  failed,
+}
 
 class DownloadPictureResult {
   const DownloadPictureResult({
@@ -534,6 +607,36 @@ class DownloadPictureNotFoundException implements Exception {
 
   @override
   String toString() => '图片资源不存在: $url';
+}
+
+class DownloadPictureHttpException implements Exception {
+  const DownloadPictureHttpException(
+    this.url,
+    this.message, {
+    this.statusCode,
+    this.responseBodyLength,
+  });
+
+  final String url;
+  final String message;
+  final int? statusCode;
+  final BigInt? responseBodyLength;
+
+  @override
+  String toString() {
+    final status = statusCode == null ? '' : ' HTTP $statusCode';
+    final bodyLength = responseBodyLength?.toString() ?? '未知';
+    return '图片请求失败$status (响应体 $bodyLength 字节): $url: $message';
+  }
+}
+
+class DownloadPictureEmptyDataException implements Exception {
+  const DownloadPictureEmptyDataException(this.url);
+
+  final String url;
+
+  @override
+  String toString() => '图片下载返回空数据: $url';
 }
 
 Future<void> _delayWithCancel({

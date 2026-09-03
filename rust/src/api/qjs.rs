@@ -1,7 +1,7 @@
 use anyhow::Result;
 use flutter_rust_bridge::{DartFnFuture, frb};
 
-pub use crate::qjs::{QjsCancelTasksByGroupResult, QjsRuntimeBuildRequest};
+pub use crate::qjs::{QjsCancelTasksByGroupResult, QjsFetchImageResult, QjsRuntimeBuildRequest};
 
 #[frb]
 pub async fn qjs_replace_bundle(
@@ -30,6 +30,29 @@ pub async fn qjs_task_call(
     args_json: String,
 ) -> Result<Vec<u8>> {
     crate::qjs::qjs_task_call(
+        runtime_name,
+        task_group_key,
+        is_once,
+        bundle_js,
+        bundle_url,
+        fn_path,
+        args_json,
+    )
+    .await
+}
+
+/// 调用插件图片函数，并保留 Rust reqwest 返回的 HTTP 状态与响应体长度。
+#[frb]
+pub async fn qjs_fetch_image(
+    runtime_name: String,
+    task_group_key: String,
+    is_once: bool,
+    bundle_js: Option<String>,
+    bundle_url: Option<String>,
+    fn_path: String,
+    args_json: String,
+) -> Result<QjsFetchImageResult> {
+    crate::qjs::qjs_fetch_image(
         runtime_name,
         task_group_key,
         is_once,

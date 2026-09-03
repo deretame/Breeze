@@ -51,10 +51,29 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
       .slice(0, 120);
     const appendSourceUrl = (source, logicalName) =>
       `${String(source || "")}\n//# sourceURL=${sanitizeSourceName(logicalName)}.cjs`;
+    const attachHttpResponseMetadata = (target, source) => {
+      const response = source?.response;
+      const statusCode = Number(
+        source?.__breezeHttpStatusCode ?? source?.status ?? response?.status,
+      );
+      const bodyLength = Number(
+        source?.__breezeHttpResponseBodyLength ??
+        response?.data?.byteLength ??
+        response?.data?.length,
+      );
+      if (Number.isInteger(statusCode) && statusCode >= 0 && statusCode <= 999) {
+        target.__breezeHttpStatusCode = statusCode;
+      }
+      if (Number.isFinite(bodyLength) && bodyLength >= 0) {
+        target.__breezeHttpResponseBodyLength = Math.floor(bodyLength);
+      }
+      return target;
+    };
     const withInvokeContextError = (err, ctx) => {
       const scope = `bundle:${ctx?.name || "?"} fn:${ctx?.fnPath || "?"} args:${ctx?.args || "[]"} source:${ctx?.sourceName || "?"}`;
 
       if (err instanceof Error) {
+        attachHttpResponseMetadata(err, err);
         err.__bundle_scope = scope;
         return err;
       }
@@ -64,6 +83,7 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
       if (typeof Error.captureStackTrace === "function") {
         Error.captureStackTrace(enriched, withInvokeContextError);
       }
+      attachHttpResponseMetadata(enriched, err);
       enriched.__bundle_scope = scope;
       return enriched;
     };
@@ -1595,9 +1615,22 @@ fn build_bundle_call_once_script(
     Ok(format!(
         r#"
         (async () => {{
+          const getHttpResponseMetadata = (value) => {{
+            const buffer = value instanceof ArrayBuffer ? value : value?.buffer;
+            if (!(buffer instanceof ArrayBuffer)) return null;
+            const statusCode = Number(buffer.__breezeHttpStatus);
+            const bodyLength = Number(buffer.__breezeHttpBodyLength);
+            if (!Number.isInteger(statusCode) || statusCode < 0 || statusCode > 999) return null;
+            return [
+              statusCode,
+              Number.isFinite(bodyLength) && bodyLength >= 0 ? Math.floor(bodyLength) : 0,
+            ];
+          }};
           const encodeHostData = (value) => {{
             if (
               (
+                typeof globalThis.__native_buffer_put_raw_with_http_response === "function"
+                ||
                 typeof globalThis.__native_buffer_put_raw === "function"
                 || typeof globalThis.__native_buffer_put === "function"
               )
@@ -1611,10 +1644,25 @@ fn build_bundle_call_once_script(
               if (value instanceof Uint8Array) bytes = value;
               else if (value instanceof ArrayBuffer) bytes = new Uint8Array(value);
               else bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+              const httpResponse = getHttpResponseMetadata(value);
               let id;
+              if (
+                httpResponse &&
+                typeof globalThis.__native_buffer_put_raw_with_http_response === "function"
+              ) {{
+                try {{
+                  id = globalThis.__native_buffer_put_raw_with_http_response(
+                    bytes,
+                    httpResponse[0],
+                    httpResponse[1],
+                  );
+                }} catch (_err) {{}}
+              }}
               if (typeof globalThis.__native_buffer_put_binary === "function") {{
                 try {{
-                  id = globalThis.__native_buffer_put_binary(bytes);
+                  if (id === undefined || id === null) {{
+                    id = globalThis.__native_buffer_put_binary(bytes);
+                  }}
                 }} catch (_err) {{}}
               }}
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put_raw === "function") {{
@@ -1639,6 +1687,8 @@ fn build_bundle_call_once_script(
                 tag: Object.prototype.toString.call(value),
                 ctor: value && value.constructor ? String(value.constructor.name || "") : "",
                 byteLength: Number(bytes.byteLength || 0),
+                httpStatusCode: httpResponse ? httpResponse[0] : null,
+                httpResponseBodyLength: httpResponse ? httpResponse[1] : null,
               }};
             }}
             return value;
@@ -1661,7 +1711,11 @@ fn build_bundle_call_once_script(
             const base = Error.isError(err) ? err.message : String(err || "执行失败");
             const stack = Error.isError(err) ? (err.stack || "") : "";
             const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
-            return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
+            const httpStatusCode = Error.isError(err) ? Number(err.__breezeHttpStatusCode) : NaN;
+            const httpResponseBodyLength = Error.isError(err) ? Number(err.__breezeHttpResponseBodyLength) : NaN;
+            return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope,
+              httpStatusCode: Number.isInteger(httpStatusCode) ? httpStatusCode : null,
+              httpResponseBodyLength: Number.isFinite(httpResponseBodyLength) ? Math.floor(httpResponseBodyLength) : null }});
           }}
         }})()
         "#
@@ -1758,9 +1812,22 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
     Ok(format!(
         r#"
         (async () => {{
+          const getHttpResponseMetadata = (value) => {{
+            const buffer = value instanceof ArrayBuffer ? value : value?.buffer;
+            if (!(buffer instanceof ArrayBuffer)) return null;
+            const statusCode = Number(buffer.__breezeHttpStatus);
+            const bodyLength = Number(buffer.__breezeHttpBodyLength);
+            if (!Number.isInteger(statusCode) || statusCode < 0 || statusCode > 999) return null;
+            return [
+              statusCode,
+              Number.isFinite(bodyLength) && bodyLength >= 0 ? Math.floor(bodyLength) : 0,
+            ];
+          }};
           const encodeHostData = (value) => {{
             if (
               (
+                typeof globalThis.__native_buffer_put_raw_with_http_response === "function"
+                ||
                 typeof globalThis.__native_buffer_put_raw === "function"
                 || typeof globalThis.__native_buffer_put === "function"
               )
@@ -1774,10 +1841,25 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
               if (value instanceof Uint8Array) bytes = value;
               else if (value instanceof ArrayBuffer) bytes = new Uint8Array(value);
               else bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+              const httpResponse = getHttpResponseMetadata(value);
               let id;
+              if (
+                httpResponse &&
+                typeof globalThis.__native_buffer_put_raw_with_http_response === "function"
+              ) {{
+                try {{
+                  id = globalThis.__native_buffer_put_raw_with_http_response(
+                    bytes,
+                    httpResponse[0],
+                    httpResponse[1],
+                  );
+                }} catch (_err) {{}}
+              }}
               if (typeof globalThis.__native_buffer_put_binary === "function") {{
                 try {{
-                  id = globalThis.__native_buffer_put_binary(bytes);
+                  if (id === undefined || id === null) {{
+                    id = globalThis.__native_buffer_put_binary(bytes);
+                  }}
                 }} catch (_err) {{}}
               }}
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put_raw === "function") {{
@@ -1802,6 +1884,8 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
                 tag: Object.prototype.toString.call(value),
                 ctor: value && value.constructor ? String(value.constructor.name || "") : "",
                 byteLength: Number(bytes.byteLength || 0),
+                httpStatusCode: httpResponse ? httpResponse[0] : null,
+                httpResponseBodyLength: httpResponse ? httpResponse[1] : null,
               }};
             }}
             return value;
@@ -1817,7 +1901,11 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
             const base = Error.isError(err) ? err.message : String(err || "执行失败");
             const stack = Error.isError(err) ? (err.stack || "") : "";
             const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
-            return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
+            const httpStatusCode = Error.isError(err) ? Number(err.__breezeHttpStatusCode) : NaN;
+            const httpResponseBodyLength = Error.isError(err) ? Number(err.__breezeHttpResponseBodyLength) : NaN;
+            return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope,
+              httpStatusCode: Number.isInteger(httpStatusCode) ? httpStatusCode : null,
+              httpResponseBodyLength: Number.isFinite(httpResponseBodyLength) ? Math.floor(httpResponseBodyLength) : null }});
           }}
         }})()
         "#

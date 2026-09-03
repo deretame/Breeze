@@ -246,6 +246,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get proxyTypeSocks5 => 'SOCKS5';
 	@override String get updateAccelerate => 'Update acceleration';
 	@override String get updateAccelerateSubtitle => 'Use proxy to accelerate GitHub update links';
+	@override String get retryDownloadUntilSuccess => 'Keep retrying failed downloads';
+	@override String get retryDownloadUntilSuccessSubtitle => 'Retry failed downloads until they succeed; stop on 404 or empty data';
 	@override String get sync => 'Sync';
 	@override String get syncConfig => 'Sync config';
 	@override String get syncConfigSubtitle => 'Enter page to configure address and auth';
@@ -1654,6 +1656,8 @@ extension on TranslationsEnUs {
 			'settings.proxyTypeSocks5' => 'SOCKS5',
 			'settings.updateAccelerate' => 'Update acceleration',
 			'settings.updateAccelerateSubtitle' => 'Use proxy to accelerate GitHub update links',
+			'settings.retryDownloadUntilSuccess' => 'Keep retrying failed downloads',
+			'settings.retryDownloadUntilSuccessSubtitle' => 'Retry failed downloads until they succeed; stop on 404 or empty data',
 			'settings.sync' => 'Sync',
 			'settings.syncConfig' => 'Sync config',
 			'settings.syncConfigSubtitle' => 'Enter page to configure address and auth',
@@ -2027,10 +2031,10 @@ extension on TranslationsEnUs {
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
 			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
 			'reader.singlePageScrollInterval' => 'Single page scroll interval',
-			'reader.preload' => 'Preload',
-			'reader.preloadImageCount' => 'Preloaded image count',
 			_ => null,
 		} ?? switch (path) {
+			'reader.preload' => 'Preload',
+			'reader.preloadImageCount' => 'Preloaded image count',
 			'reader.preloadImageCountSubtitle' => 'Download images after the current reading position in advance',
 			'reader.preloadChapterCount' => 'Preloaded chapter count',
 			'reader.preloadChapterCountSubtitle' => 'Load following chapter information in advance',
@@ -2541,10 +2545,10 @@ extension on TranslationsEnUs {
 			'comicFollow.latestCount' => ({required Object count}) => 'Latest ${count} chapters',
 			'comicFollow.fetchFailed' => 'Fetch failed',
 			'comicFollow.newChaptersShort' => ({required Object diff}) => '${diff} new',
-			'comicFollow.update' => 'Update',
-			'comicFollow.retry' => 'Retry',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.update' => 'Update',
+			'comicFollow.retry' => 'Retry',
 			'comicFollow.updateChannelName' => 'Comic update reminder',
 			'comicFollow.updateChannelDesc' => 'Pushed when followed comics have new chapters',
 			'comicFollow.updateTitle' => 'Follow update',

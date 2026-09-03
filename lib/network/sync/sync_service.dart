@@ -661,6 +661,7 @@ Map<String, Map<String, dynamic>> _extractSyncableSettingsBlocks(
       'comicChoice': json['comicChoice'],
       'disableBika': json['disableBika'],
       'updateAccelerate': json['updateAccelerate'],
+      'retryDownloadUntilSuccess': json['retryDownloadUntilSuccess'],
       'searchHistory': json['searchHistory'],
     },
     _readerBlockName: _toJsonMap(json['readSetting']),

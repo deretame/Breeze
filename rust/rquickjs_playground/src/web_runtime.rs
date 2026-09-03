@@ -66,8 +66,9 @@ pub use self::http::{
 };
 pub use self::native_buffer::{
     native_buffer_clone_raw, native_buffer_clone_typed, native_buffer_free, native_buffer_put,
-    native_buffer_put_binary, native_buffer_put_raw, native_buffer_take, native_buffer_take_raw,
-    native_buffer_take_typed, native_exec, native_exec_chain,
+    native_buffer_put_binary, native_buffer_put_raw, native_buffer_put_raw_with_http_response,
+    native_buffer_take, native_buffer_take_raw, native_buffer_take_typed,
+    native_buffer_take_with_http_response, native_exec, native_exec_chain,
 };
 pub use self::state::{
     fetch_state_can_clone, fetch_state_register, fetch_state_take_offloaded,
@@ -219,6 +220,10 @@ pub fn install_host_bindings(
     globals.set(
         "__native_buffer_put_binary",
         Func::from(native_buffer_put_binary),
+    )?;
+    globals.set(
+        "__native_buffer_put_raw_with_http_response",
+        Func::from(native_buffer_put_raw_with_http_response),
     )?;
     globals.set("__native_buffer_take", Func::from(native_buffer_take))?;
     globals.set(
@@ -473,6 +478,13 @@ struct PendingAbortTaskMeta {
 struct NativeBufferEntry {
     bytes: Vec<u8>,
     created_at: Instant,
+    http_response: Option<NativeBufferHttpResponse>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct NativeBufferHttpResponse {
+    pub status_code: u16,
+    pub body_length: u64,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -497,6 +509,15 @@ impl NativeBufferEntry {
         Self {
             bytes,
             created_at: Instant::now(),
+            http_response: None,
+        }
+    }
+
+    fn with_http_response(bytes: Vec<u8>, response: NativeBufferHttpResponse) -> Self {
+        Self {
+            bytes,
+            created_at: Instant::now(),
+            http_response: Some(response),
         }
     }
 }

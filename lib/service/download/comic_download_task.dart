@@ -39,6 +39,14 @@ Future<void> unifiedDownloadTask(
   final runtimeName = runtimeNameForPluginId(pluginId);
   final taskKey = task.taskKey;
   const taskRepository = DownloadTaskRepository();
+  bool shouldRetryUntilSuccess() {
+    return objectbox.userSettingBox
+            .get(1)
+            ?.globalSetting
+            .retryDownloadUntilSuccess ??
+        false;
+  }
+
   Timer? progressTimer;
   bool running = true;
 
@@ -146,6 +154,7 @@ Future<void> unifiedDownloadTask(
         cartoonId: task.comicId,
         qjsName: runtimeName,
         qjsTaskGroupKey: taskKey,
+        shouldRetryUntilSuccess: shouldRetryUntilSuccess,
       );
     }
 
@@ -281,6 +290,7 @@ Future<void> unifiedDownloadTask(
           await retryDownloadOperation<UnifiedPluginChapterResponse>(
             operation: '获取章节 ${chapter.displayName}',
             ensureTaskRunning: ensureTaskRunning,
+            shouldRetryUntilSuccess: shouldRetryUntilSuccess,
             action: () => _getChapterByPlugin(
               from: from,
               pluginId: pluginId,
@@ -325,6 +335,7 @@ Future<void> unifiedDownloadTask(
         qjsRuntimeName: runtimeName,
         qjsTaskGroupKey: taskKey,
         ensureTaskRunning: ensureTaskRunning,
+        shouldRetryUntilSuccess: shouldRetryUntilSuccess,
         reporter: reporter,
         concurrency: 5,
         onProgress: (completed, downloaded, reused) async {

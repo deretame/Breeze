@@ -41,6 +41,18 @@ class ContentNetworkSettingPage extends StatelessWidget {
             type: state.proxySetting.type,
             currentProxy: state.proxySetting.address,
           ),
+          SwitchListTile(
+            secondary: const Icon(Icons.download_outlined),
+            title: Text(t.settings.retryDownloadUntilSuccess),
+            subtitle: Text(t.settings.retryDownloadUntilSuccessSubtitle),
+            thumbIcon: kSettingSwitchThumbIcon,
+            value: state.retryDownloadUntilSuccess,
+            onChanged: (value) {
+              cubit.updateState(
+                (current) => current.copyWith(retryDownloadUntilSuccess: value),
+              );
+            },
+          ),
           // _updateAccelerate(state, cubit),
           const SizedBox(height: 32),
         ],

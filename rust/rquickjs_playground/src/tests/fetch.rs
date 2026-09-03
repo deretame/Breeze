@@ -554,7 +554,9 @@ fn fetch_auto_offload_octet_stream_arraybuffer() {
               offloaded: res.offloaded === true,
               len: bytes.length,
               first: bytes[0],
-              last: bytes[bytes.length - 1]
+              last: bytes[bytes.length - 1],
+              metadataStatus: ab.__breezeHttpStatus,
+              metadataLength: ab.__breezeHttpBodyLength
             }});
           }})()
         "#,
@@ -569,6 +571,8 @@ fn fetch_auto_offload_octet_stream_arraybuffer() {
     assert_eq!(parsed["len"], 10);
     assert_eq!(parsed["first"], 0);
     assert_eq!(parsed["last"], 255);
+    assert_eq!(parsed["metadataStatus"], 200);
+    assert_eq!(parsed["metadataLength"], 10);
 
     let _ = tx.send(());
     let _ = handle.join();

@@ -35,8 +35,8 @@ enum MenuOption { export, cloudCollect, follow }
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
   final String from;
-  final String pluginId;
   final ComicEntryType type;
+  final Map<String, dynamic>? extern;
   final String? collectionTargetId;
   final String? collectionTargetName;
 
@@ -44,16 +44,15 @@ class ComicInfoPage extends StatelessWidget {
     super.key,
     required this.comicId,
     required this.from,
-    this.pluginId = '',
     required this.type,
+    this.extern,
     this.collectionTargetId,
     this.collectionTargetName,
   });
 
   @override
   Widget build(BuildContext context) {
-    final resolvedPluginId =
-        (pluginId.trim().isNotEmpty ? pluginId : from.trim()).trim();
+    final resolvedFrom = from.trim();
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -61,9 +60,9 @@ class ComicInfoPage extends StatelessWidget {
             ..add(
               GetComicInfoEvent(
                 comicId: comicId,
-                from: from,
-                pluginId: resolvedPluginId,
+                from: resolvedFrom,
                 type: type,
+                extern: extern,
               ),
             ),
         ),
@@ -72,8 +71,8 @@ class ComicInfoPage extends StatelessWidget {
       child: _ComicInfo(
         comicId: comicId,
         type: type,
-        from: from,
-        pluginId: resolvedPluginId,
+        from: resolvedFrom,
+        extern: extern,
         collectionTargetId: collectionTargetId,
         collectionTargetName: collectionTargetName,
       ),
@@ -85,7 +84,7 @@ class _ComicInfo extends StatefulWidget {
   final String comicId;
   final ComicEntryType type;
   final String from;
-  final String pluginId;
+  final Map<String, dynamic>? extern;
   final String? collectionTargetId;
   final String? collectionTargetName;
 
@@ -93,7 +92,7 @@ class _ComicInfo extends StatefulWidget {
     required this.comicId,
     required this.type,
     required this.from,
-    required this.pluginId,
+    this.extern,
     this.collectionTargetId,
     this.collectionTargetName,
   });
@@ -154,8 +153,7 @@ class _ComicInfoState extends State<_ComicInfo>
           ),
           Expanded(child: Container()),
           BlocSelector<ComicFollowCubit, ComicFollowState, bool>(
-            selector: (state) =>
-                state.isFollowing(widget.pluginId, widget.comicId),
+            selector: (state) => state.isFollowing(widget.from, widget.comicId),
             builder: (context, isFollowing) {
               return IconButton(
                 icon: Icon(
@@ -191,7 +189,7 @@ class _ComicInfoState extends State<_ComicInfo>
             },
             itemBuilder: (BuildContext context) {
               final isFollowing = context.read<ComicFollowCubit>().isFollowing(
-                widget.pluginId,
+                widget.from,
                 widget.comicId,
               );
               final menuItems = <FluentPopupMenuItem<MenuOption>>[
@@ -278,8 +276,8 @@ class _ComicInfoState extends State<_ComicInfo>
                     GetComicInfoEvent(
                       comicId: widget.comicId,
                       from: widget.from,
-                      pluginId: widget.pluginId,
                       type: _type,
+                      extern: widget.extern,
                     ),
                   );
                 },
@@ -295,7 +293,6 @@ class _ComicInfoState extends State<_ComicInfo>
                 context,
                 widget.comicId,
                 widget.from,
-                widget.pluginId,
                 chapters: state.allInfo!.eps,
               );
               return _infoView(state.allInfo!);
@@ -359,8 +356,8 @@ class _ComicInfoState extends State<_ComicInfo>
               GetComicInfoEvent(
                 comicId: widget.comicId,
                 from: widget.from,
-                pluginId: widget.pluginId,
                 type: _type,
+                extern: widget.extern,
               ),
             );
             setState(() {
@@ -404,7 +401,6 @@ class _ComicInfoState extends State<_ComicInfo>
                     ComicOperationWidget(
                       normalInfo: normalComicAllInfo,
                       from: widget.from,
-                      pluginId: widget.pluginId,
                       collectionTargetId: widget.collectionTargetId,
                       collectionTargetName: widget.collectionTargetName,
                       comicInfo: comicInfoDyn,
@@ -671,7 +667,7 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     final cubit = context.read<ComicFollowCubit>();
-    if (!cubit.isFollowing(widget.pluginId, widget.comicId)) {
+    if (!cubit.isFollowing(widget.from, widget.comicId)) {
       return;
     }
     if (_followSyncedForCurrentInfo) {
@@ -679,7 +675,7 @@ class _ComicInfoState extends State<_ComicInfo>
     }
     _followSyncedForCurrentInfo = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      cubit.markAsRead(widget.pluginId, widget.comicId, info.eps.length);
+      cubit.markAsRead(widget.from, widget.comicId, info.eps.length);
     });
   }
 
@@ -696,7 +692,7 @@ class _ComicInfoState extends State<_ComicInfo>
     }
 
     await context.read<ComicFollowCubit>().addOrUpdateFollow(
-      source: widget.pluginId,
+      source: widget.from,
       comicId: widget.comicId,
       info: info,
       lastChapterCount: info.eps.length,
@@ -714,7 +710,7 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     final isFollowing = context.read<ComicFollowCubit>().isFollowing(
-      widget.pluginId,
+      widget.from,
       widget.comicId,
     );
     await _toggleFollow(isFollowing);
@@ -729,11 +725,11 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     final followCubit = context.read<ComicFollowCubit>();
-    if (followCubit.isFollowing(widget.pluginId, widget.comicId)) {
+    if (followCubit.isFollowing(widget.from, widget.comicId)) {
       return;
     }
     await followCubit.addOrUpdateFollow(
-      source: widget.pluginId,
+      source: widget.from,
       comicId: widget.comicId,
       info: info,
       lastChapterCount: info.eps.length,
@@ -765,7 +761,7 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     await context.read<ComicFollowCubit>().removeFollow(
-      widget.pluginId,
+      widget.from,
       widget.comicId,
     );
     _followSyncedForCurrentInfo = false;
@@ -890,7 +886,6 @@ class _ComicInfoState extends State<_ComicInfo>
       final next = await toggleCloudComicFavorite(
         context: context,
         from: widget.from,
-        pluginId: widget.pluginId,
         comicId: info.comicInfo.id,
         currentStatus: _isCloudCollected,
         legacyAllowCollected: info.allowCollected,

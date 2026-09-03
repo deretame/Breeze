@@ -158,7 +158,6 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
         comicId: info.id,
         type: ComicEntryType.normal,
         from: pluginId,
-        pluginId: pluginId,
       ),
     );
   }
@@ -356,7 +355,6 @@ class ComicSimplifyEntry extends StatelessWidget {
         comicId: info.id,
         type: type,
         from: pluginId,
-        pluginId: pluginId,
         collectionTargetId: collectionTargetId,
         collectionTargetName: collectionTargetName,
       ),

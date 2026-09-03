@@ -197,7 +197,6 @@ class _ComicFollowPageContent extends StatelessWidget {
       ComicInfoRoute(
         comicId: follow.comicId,
         from: follow.source,
-        pluginId: follow.source,
         type: ComicEntryType.normal,
       ),
     );

@@ -242,7 +242,6 @@ class DiscoverRouter {
       ComicInfoRoute(
         comicId: comicId,
         from: source,
-        pluginId: source,
         type: ComicEntryType.normal,
       ),
     );

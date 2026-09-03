@@ -60,6 +60,7 @@ Future<PluginComicDetail> getComicDetailByPlugin(
   String comicId,
   String from, {
   String? pluginId,
+  Map<String, dynamic>? extern,
 }) async {
   final resolvedPluginId =
       (pluginId?.trim().isNotEmpty == true ? pluginId!.trim() : from.trim())
@@ -71,7 +72,7 @@ Future<PluginComicDetail> getComicDetailByPlugin(
     from: resolvedPluginId,
     fnPath: 'getComicDetail',
     core: payload,
-    extern: const <String, dynamic>{},
+    extern: extern,
   );
   final detail = UnifiedPluginDetailResponse.fromMap(map);
   final normalInfo = normal.NormalComicAllInfo.fromJson(detail.normal);

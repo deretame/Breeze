@@ -214,7 +214,6 @@ class _OldHomePageState extends State<OldHomePage> {
         ComicInfoRoute(
           comicId: comicId,
           from: source,
-          pluginId: source,
           type: ComicEntryType.normal,
         ),
       );

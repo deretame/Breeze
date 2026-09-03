@@ -43,28 +43,19 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       late dynamic comicInfo;
 
       if (event.type == ComicEntryType.download) {
-        comicInfo =
-            objectbox.unifiedDownloadBox
-                .query(
-                  UnifiedComicDownload_.uniqueKey.equals(
-                    '${event.pluginId}:${event.comicId}',
-                  ),
-                )
-                .build()
-                .findFirst() ??
-            objectbox.unifiedDownloadBox
-                .query(
-                  UnifiedComicDownload_.uniqueKey.equals(
-                    '${event.from}:${event.comicId}',
-                  ),
-                )
-                .build()
-                .findFirst();
+        comicInfo = objectbox.unifiedDownloadBox
+            .query(
+              UnifiedComicDownload_.uniqueKey.equals(
+                '${event.from}:${event.comicId}',
+              ),
+            )
+            .build()
+            .findFirst();
         if (comicInfo == null) {
           final pluginResult = await getComicDetailByPlugin(
             event.comicId,
             event.from,
-            pluginId: event.pluginId,
+            extern: event.extern,
           );
           comicInfo = pluginResult.source;
           normalComicInfo = pluginResult.normalInfo;
@@ -77,7 +68,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         final pluginResult = await getComicDetailByPlugin(
           event.comicId,
           event.from,
-          pluginId: event.pluginId,
+          extern: event.extern,
         );
         comicInfo = pluginResult.source;
         normalComicInfo = pluginResult.normalInfo;

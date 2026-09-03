@@ -9,13 +9,14 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:async' as _i53;
 
 import 'package:auto_route/auto_route.dart' as _i44;
-import 'package:collection/collection.dart' as _i52;
-import 'package:flutter/foundation.dart' as _i48;
+import 'package:collection/collection.dart' as _i47;
+import 'package:flutter/foundation.dart' as _i49;
 import 'package:material_ui/material_ui.dart' as _i45;
-import 'package:zephyr/cubit/string_select.dart' as _i50;
+import 'package:zephyr/cubit/string_select.dart' as _i51;
 import 'package:zephyr/debug/coreml_upscale_debug_page.dart' as _i15;
 import 'package:zephyr/debug/qjs_runtime_debug_page.dart' as _i33;
 import 'package:zephyr/debug/show_color.dart' as _i38;
@@ -25,9 +26,9 @@ import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i5;
 import 'package:zephyr/page/change_log_page.dart' as _i8;
 import 'package:zephyr/page/comic_follow/view/comic_follow_page.dart' as _i9;
 import 'package:zephyr/page/comic_info/view/comic_info.dart' as _i10;
-import 'package:zephyr/page/comic_list/models/comic_list_scene.dart' as _i47;
+import 'package:zephyr/page/comic_list/models/comic_list_scene.dart' as _i48;
 import 'package:zephyr/page/comic_list/view/comic_list_page.dart' as _i11;
-import 'package:zephyr/page/comic_read/type/chapter_extern.dart' as _i49;
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart' as _i50;
 import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i12;
 import 'package:zephyr/page/comments/view/comments.dart' as _i13;
 import 'package:zephyr/page/comments/view/plugin_comments_scaffold.dart'
@@ -35,7 +36,7 @@ import 'package:zephyr/page/comments/view/plugin_comments_scaffold.dart'
 import 'package:zephyr/page/discover/view/discover_page.dart' as _i18;
 import 'package:zephyr/page/donwload_task/view/download_task.dart' as _i20;
 import 'package:zephyr/page/download/models/unified_comic_download.dart'
-    as _i51;
+    as _i52;
 import 'package:zephyr/page/download/view/download.dart' as _i19;
 import 'package:zephyr/page/font_setting/view/font_setting_page.dart' as _i21;
 import 'package:zephyr/page/login_page.dart' as _i24;
@@ -226,8 +227,8 @@ class ComicInfoRoute extends _i44.PageRouteInfo<ComicInfoRouteArgs> {
     _i45.Key? key,
     required String comicId,
     required String from,
-    String pluginId = '',
     required _i46.ComicEntryType type,
+    Map<String, dynamic>? extern,
     String? collectionTargetId,
     String? collectionTargetName,
     List<_i44.PageRouteInfo>? children,
@@ -237,8 +238,8 @@ class ComicInfoRoute extends _i44.PageRouteInfo<ComicInfoRouteArgs> {
            key: key,
            comicId: comicId,
            from: from,
-           pluginId: pluginId,
            type: type,
+           extern: extern,
            collectionTargetId: collectionTargetId,
            collectionTargetName: collectionTargetName,
          ),
@@ -255,8 +256,8 @@ class ComicInfoRoute extends _i44.PageRouteInfo<ComicInfoRouteArgs> {
         key: args.key,
         comicId: args.comicId,
         from: args.from,
-        pluginId: args.pluginId,
         type: args.type,
+        extern: args.extern,
         collectionTargetId: args.collectionTargetId,
         collectionTargetName: args.collectionTargetName,
       );
@@ -269,8 +270,8 @@ class ComicInfoRouteArgs {
     this.key,
     required this.comicId,
     required this.from,
-    this.pluginId = '',
     required this.type,
+    this.extern,
     this.collectionTargetId,
     this.collectionTargetName,
   });
@@ -281,9 +282,9 @@ class ComicInfoRouteArgs {
 
   final String from;
 
-  final String pluginId;
-
   final _i46.ComicEntryType type;
+
+  final Map<String, dynamic>? extern;
 
   final String? collectionTargetId;
 
@@ -291,7 +292,7 @@ class ComicInfoRouteArgs {
 
   @override
   String toString() {
-    return 'ComicInfoRouteArgs{key: $key, comicId: $comicId, from: $from, pluginId: $pluginId, type: $type, collectionTargetId: $collectionTargetId, collectionTargetName: $collectionTargetName}';
+    return 'ComicInfoRouteArgs{key: $key, comicId: $comicId, from: $from, type: $type, extern: $extern, collectionTargetId: $collectionTargetId, collectionTargetName: $collectionTargetName}';
   }
 
   @override
@@ -301,8 +302,11 @@ class ComicInfoRouteArgs {
     return key == other.key &&
         comicId == other.comicId &&
         from == other.from &&
-        pluginId == other.pluginId &&
         type == other.type &&
+        const _i47.MapEquality<String, dynamic>().equals(
+          extern,
+          other.extern,
+        ) &&
         collectionTargetId == other.collectionTargetId &&
         collectionTargetName == other.collectionTargetName;
   }
@@ -312,8 +316,8 @@ class ComicInfoRouteArgs {
       key.hashCode ^
       comicId.hashCode ^
       from.hashCode ^
-      pluginId.hashCode ^
       type.hashCode ^
+      const _i47.MapEquality<String, dynamic>().hash(extern) ^
       collectionTargetId.hashCode ^
       collectionTargetName.hashCode;
 }
@@ -324,7 +328,7 @@ class ComicListRoute extends _i44.PageRouteInfo<ComicListRouteArgs> {
   ComicListRoute({
     _i45.Key? key,
     String? title,
-    _i47.ComicListScene? scene,
+    _i48.ComicListScene? scene,
     String? sceneSource,
     String? sceneBundleFnPath,
     String? sceneBundleFnPathFallback,
@@ -376,7 +380,7 @@ class ComicListRouteArgs {
 
   final String? title;
 
-  final _i47.ComicListScene? scene;
+  final _i48.ComicListScene? scene;
 
   final String? sceneSource;
 
@@ -415,17 +419,17 @@ class ComicListRouteArgs {
 /// [_i12.ComicReadPage]
 class ComicReadRoute extends _i44.PageRouteInfo<ComicReadRouteArgs> {
   ComicReadRoute({
-    _i48.Key? key,
+    _i49.Key? key,
     required String comicId,
     required int order,
     String chapterId = '',
     String requestId = '',
     String storageChapterId = '',
     String logicalKey = '',
-    _i49.ChapterExtern chapterExtern = const {},
+    _i50.ChapterExtern chapterExtern = const {},
     required int epsNumber,
     required String from,
-    required _i50.StringSelectCubit stringSelectCubit,
+    required _i51.StringSelectCubit stringSelectCubit,
     required _i46.ComicEntryType type,
     required dynamic comicInfo,
     List<_i44.PageRouteInfo>? children,
@@ -491,7 +495,7 @@ class ComicReadRouteArgs {
     required this.comicInfo,
   });
 
-  final _i48.Key? key;
+  final _i49.Key? key;
 
   final String comicId;
 
@@ -505,13 +509,13 @@ class ComicReadRouteArgs {
 
   final String logicalKey;
 
-  final _i49.ChapterExtern chapterExtern;
+  final _i50.ChapterExtern chapterExtern;
 
   final int epsNumber;
 
   final String from;
 
-  final _i50.StringSelectCubit stringSelectCubit;
+  final _i51.StringSelectCubit stringSelectCubit;
 
   final _i46.ComicEntryType type;
 
@@ -707,7 +711,7 @@ class DiscoverRoute extends _i44.PageRouteInfo<void> {
 class DownloadRoute extends _i44.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i45.Key? key,
-    required _i51.UnifiedComicDownloadInfo downloadInfo,
+    required _i52.UnifiedComicDownloadInfo downloadInfo,
     List<_i44.PageRouteInfo>? children,
   }) : super(
          DownloadRoute.name,
@@ -731,7 +735,7 @@ class DownloadRouteArgs {
 
   final _i45.Key? key;
 
-  final _i51.UnifiedComicDownloadInfo downloadInfo;
+  final _i52.UnifiedComicDownloadInfo downloadInfo;
 
   @override
   String toString() {
@@ -904,11 +908,11 @@ class LoginRouteArgs {
     if (other is! LoginRouteArgs) return false;
     return key == other.key &&
         from == other.from &&
-        const _i52.MapEquality<String, dynamic>().equals(
+        const _i47.MapEquality<String, dynamic>().equals(
           loginScheme,
           other.loginScheme,
         ) &&
-        const _i52.MapEquality<String, dynamic>().equals(
+        const _i47.MapEquality<String, dynamic>().equals(
           loginData,
           other.loginData,
         );
@@ -918,8 +922,8 @@ class LoginRouteArgs {
   int get hashCode =>
       key.hashCode ^
       from.hashCode ^
-      const _i52.MapEquality<String, dynamic>().hash(loginScheme) ^
-      const _i52.MapEquality<String, dynamic>().hash(loginData);
+      const _i47.MapEquality<String, dynamic>().hash(loginScheme) ^
+      const _i47.MapEquality<String, dynamic>().hash(loginData);
 }
 
 /// generated route for
@@ -1335,7 +1339,7 @@ class SearchAggregateResultRouteArgs {
     return key == other.key &&
         searchEvent == other.searchEvent &&
         searchCubit == other.searchCubit &&
-        const _i52.MapEquality<String, bool>().equals(
+        const _i47.MapEquality<String, bool>().equals(
           selectedSources,
           other.selectedSources,
         );
@@ -1346,7 +1350,7 @@ class SearchAggregateResultRouteArgs {
       key.hashCode ^
       searchEvent.hashCode ^
       searchCubit.hashCode ^
-      const _i52.MapEquality<String, bool>().hash(selectedSources);
+      const _i47.MapEquality<String, bool>().hash(selectedSources);
 }
 
 /// generated route for
@@ -1602,10 +1606,10 @@ class WebViewRouteArgs {
     if (identical(this, other)) return true;
     if (other is! WebViewRouteArgs) return false;
     return key == other.key &&
-        const _i52.ListEquality<String>().equals(info, other.info);
+        const _i47.ListEquality<String>().equals(info, other.info);
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ const _i52.ListEquality<String>().hash(info);
+      key.hashCode ^ const _i47.ListEquality<String>().hash(info);
 }

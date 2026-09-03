@@ -36,12 +36,7 @@ class ComicEntryWidget extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         context.pushRoute(
-          ComicInfoRoute(
-            comicId: comic.id,
-            type: type,
-            from: comic.from,
-            pluginId: (comic.source).trim(),
-          ),
+          ComicInfoRoute(comicId: comic.id, type: type, from: comic.from),
         );
       },
       onLongPress: type == ComicEntryType.normal

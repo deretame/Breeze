@@ -18,7 +18,6 @@ import 'package:zephyr/widgets/toast.dart';
 class ComicOperationWidget extends StatefulWidget {
   final NormalComicAllInfo normalInfo;
   final String from;
-  final String pluginId;
   final String? collectionTargetId;
   final String? collectionTargetName;
   final dynamic comicInfo;
@@ -27,7 +26,6 @@ class ComicOperationWidget extends StatefulWidget {
     super.key,
     required this.normalInfo,
     required this.from,
-    required this.pluginId,
     this.collectionTargetId,
     this.collectionTargetName,
     required this.comicInfo,
@@ -72,11 +70,11 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     }
     final followCubit = context.read<ComicFollowCubit>();
     final comicId = comicInfoView.id;
-    if (followCubit.isFollowing(widget.pluginId, comicId)) {
+    if (followCubit.isFollowing(widget.from, comicId)) {
       return;
     }
     await followCubit.addOrUpdateFollow(
-      source: widget.pluginId,
+      source: widget.from,
       comicId: comicId,
       info: normalInfo,
       lastChapterCount: normalInfo.eps.length,
@@ -245,7 +243,6 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       final next = await toggleCloudComicFavorite(
         context: context,
         from: widget.from,
-        pluginId: widget.pluginId,
         comicId: comicInfoView.id,
         currentStatus: isCloudCollected,
         legacyAllowCollected: normalInfo.allowCollected,

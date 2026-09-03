@@ -8,23 +8,13 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 void initHistory(
   BuildContext context,
   String comicId,
-  String from,
-  String pluginId, {
+  String from, {
   List<Ep>? chapters,
 }) {
-  final resolvedPluginId = (pluginId.trim().isNotEmpty ? pluginId : from.trim())
-      .trim();
-  final history =
-      objectbox.unifiedHistoryBox
-          .query(
-            UnifiedComicHistory_.uniqueKey.equals('$resolvedPluginId:$comicId'),
-          )
-          .build()
-          .findFirst() ??
-      objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
-          .build()
-          .findFirst();
+  final history = objectbox.unifiedHistoryBox
+      .query(UnifiedComicHistory_.uniqueKey.equals('${from.trim()}:$comicId'))
+      .build()
+      .findFirst();
 
   if (history?.deleted == true || history == null) {
     return;

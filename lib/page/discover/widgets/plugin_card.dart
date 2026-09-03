@@ -4,6 +4,7 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
+import 'package:zephyr/widgets/plugin_icon.dart';
 
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 
@@ -124,23 +125,13 @@ class PluginCard extends StatelessWidget {
 
     final iconWidget = ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: iconUrl.isNotEmpty
-          ? Image.network(
-              iconUrl,
-              key: ValueKey(iconUrl),
-              fit: BoxFit.cover,
-              headers: const {'User-Agent': 'Breeze/1.0'},
-              errorBuilder: (context, error, stackTrace) {
-                return ColoredBox(
-                  color: colorScheme.surfaceContainerHighest,
-                  child: const Center(child: Icon(Icons.extension_outlined)),
-                );
-              },
-            )
-          : ColoredBox(
-              color: colorScheme.surfaceContainerHighest,
-              child: const Center(child: Icon(Icons.extension_outlined)),
-            ),
+      child: PluginIcon(
+        url: iconUrl,
+        placeholder: ColoredBox(
+          color: colorScheme.surfaceContainerHighest,
+          child: const Center(child: Icon(Icons.extension_outlined)),
+        ),
+      ),
     );
 
     return Opacity(

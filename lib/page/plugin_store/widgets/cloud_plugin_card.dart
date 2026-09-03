@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/plugin_store/models/cloud_plugin_item.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/widgets/plugin_icon.dart';
 
 class CloudPluginCard extends StatelessWidget {
   const CloudPluginCard({
@@ -182,21 +183,14 @@ class _CloudPluginIcon extends StatelessWidget {
         height: 40,
         color: colorScheme.surfaceContainerHigh,
         alignment: Alignment.center,
-        child: iconUrl.trim().isEmpty
-            ? Icon(
-                Icons.extension_outlined,
-                size: 20,
-                color: colorScheme.onSurfaceVariant,
-              )
-            : Image.network(
-                iconUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Icon(
-                  Icons.extension_outlined,
-                  size: 20,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
+        child: PluginIcon(
+          url: iconUrl,
+          placeholder: Icon(
+            Icons.extension_outlined,
+            size: 20,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
       ),
     );
   }

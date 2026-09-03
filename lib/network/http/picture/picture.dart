@@ -39,6 +39,7 @@ Future<String> getCachePicture({
   Map<String, dynamic>? extern,
   int index = 0,
   bool applyRealSr = true,
+  bool usePlugin = true,
 }) async {
   final resolvedFrom = normalizePluginId(from);
   if (resolvedFrom.isEmpty) {
@@ -101,11 +102,29 @@ Future<String> getCachePicture({
   extern = {...?extern};
   extern['priority'] ??= 0;
 
-  final imageData = await downloadImageWithRetry(
-    url,
-    source: resolvedFrom,
-    extern: extern,
-  );
+  final Uint8List imageData;
+  if (usePlugin) {
+    imageData = await downloadImageWithRetry(
+      url,
+      source: resolvedFrom,
+      extern: extern,
+    );
+  } else {
+    // 插件图标在未安装或禁用插件时也需要加载，不依赖插件运行时。
+    final response = await fetch(
+      url,
+      headers: const {'User-Agent': 'Breeze/1.0'},
+    );
+    if (!response.ok) {
+      throw DownloadPictureHttpException(
+        url,
+        response.statusText,
+        statusCode: response.status,
+        responseBodyLength: response.body.length,
+      );
+    }
+    imageData = response.body;
+  }
 
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(

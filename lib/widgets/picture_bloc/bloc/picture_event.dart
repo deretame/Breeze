@@ -9,9 +9,10 @@ sealed class PictureEvent extends Equatable {
 
 class GetPicture extends PictureEvent {
   final PictureInfo pictureInfo;
+  final bool usePlugin;
 
-  const GetPicture(this.pictureInfo);
+  const GetPicture(this.pictureInfo, {this.usePlugin = true});
 
   @override
-  List<Object> get props => [pictureInfo];
+  List<Object> get props => [pictureInfo, usePlugin];
 }

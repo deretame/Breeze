@@ -36,6 +36,7 @@ Future<void> unifiedDownloadTask(
   logger.d('unifiedDownloadTask received payload=${task.toJson()}');
   final pluginId = (task.from).trim();
   final from = pluginId;
+  var comicId = task.comicId;
   final runtimeName = runtimeNameForPluginId(pluginId);
   final taskKey = task.taskKey;
   const taskRepository = DownloadTaskRepository();
@@ -116,10 +117,11 @@ Future<void> unifiedDownloadTask(
     updateTaskStatus(t.download.statusFetchingComicInfo);
     reporter.updateMessage(t.download.statusFetchingComicInfo);
     final detail = await getComicDetailByPlugin(
-      task.comicId,
+      comicId,
       from,
       pluginId: pluginId,
     );
+    comicId = detail.comicId;
 
     final downloadInfo = UnifiedComicDownloadInfo.fromString(detail.source);
     final selectedChapters = _resolveSelectedChapters(
@@ -151,7 +153,7 @@ Future<void> unifiedDownloadTask(
         from: from,
         url: cover.url,
         path: coverFileName,
-        cartoonId: task.comicId,
+        cartoonId: comicId,
         qjsName: runtimeName,
         qjsTaskGroupKey: taskKey,
         shouldRetryUntilSuccess: shouldRetryUntilSuccess,
@@ -183,7 +185,7 @@ Future<void> unifiedDownloadTask(
 
     final completedChapterKeys = _restoreCompletedChapterKeys(
       from: from,
-      comicId: task.comicId,
+      comicId: comicId,
       selectedChapters: selectedChapters,
       checkpointKeys: currentPayload().completedChapterKeys,
     );
@@ -284,7 +286,7 @@ Future<void> unifiedDownloadTask(
       final requestChapterId = _resolveChapterRequestId(chapter);
       final chapterExtern = _resolveChapterExtern(chapter);
       logger.d(
-        'download getChapter plugin=$pluginId comicId=${task.comicId} chapter.id=${chapter.id} order=${chapter.order} requestChapterId=$requestChapterId storageChapterId=${chapter.effectiveStorageId} extern=$chapterExtern',
+        'download getChapter plugin=$pluginId comicId=$comicId chapter.id=${chapter.id} order=${chapter.order} requestChapterId=$requestChapterId storageChapterId=${chapter.effectiveStorageId} extern=$chapterExtern',
       );
       final response =
           await retryDownloadOperation<UnifiedPluginChapterResponse>(
@@ -294,7 +296,7 @@ Future<void> unifiedDownloadTask(
             action: () => _getChapterByPlugin(
               from: from,
               pluginId: pluginId,
-              comicId: task.comicId,
+              comicId: comicId,
               chapterId: requestChapterId,
               runtimeName: runtimeName,
               extern: {...chapterExtern, 'chapterId': requestChapterId},
@@ -306,7 +308,7 @@ Future<void> unifiedDownloadTask(
           DownloadImageJob(
             url: doc.url,
             path: doc.path,
-            cartoonId: task.comicId,
+            cartoonId: comicId,
             chapterId: response.chapter.epId,
             storageChapterId: chapter.effectiveStorageId,
             extern: doc.extern,
@@ -376,7 +378,7 @@ Future<void> unifiedDownloadTask(
       );
       await _saveUnifiedDownloadChapter(
         from: from,
-        task: task,
+        comicId: comicId,
         normalInfo: normalInfo,
         selectedChapter: chapter,
         chapterResponse: response,
@@ -513,13 +515,13 @@ Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
 
 Future<void> _saveUnifiedDownloadChapter({
   required String from,
-  required DownloadTaskJson task,
+  required String comicId,
   required normal.NormalComicAllInfo normalInfo,
   required DownloadChapter selectedChapter,
   required UnifiedPluginChapterResponse chapterResponse,
 }) async {
   final now = DateTime.now().toUtc();
-  final key = buildDownloadTaskKey(from, task.comicId);
+  final key = buildDownloadTaskKey(from, comicId);
   final existing = objectbox.unifiedDownloadBox
       .query(UnifiedComicDownload_.uniqueKey.equals(key))
       .build()
@@ -586,7 +588,7 @@ Future<void> _saveUnifiedDownloadChapter({
   final entity = UnifiedComicDownload(
     uniqueKey: key,
     source: from,
-    comicId: task.comicId,
+    comicId: comicId,
     title: detail.comicInfo.title,
     description: detail.comicInfo.description,
     cover: jsonEncode(coverMap),
@@ -612,7 +614,7 @@ Future<void> _saveUnifiedDownloadChapter({
       await getDownloadPath(),
       from,
       'original',
-      encodePath(path: task.comicId),
+      encodePath(path: comicId),
     ),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,

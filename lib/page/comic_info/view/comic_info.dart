@@ -110,6 +110,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
   dynamic comicInfoDyn;
   late ComicEntryType _type;
+  late String _comicId;
   bool _loadingComplete = false;
   bool _isReversed = false;
   String _title = "";
@@ -124,6 +125,7 @@ class _ComicInfoState extends State<_ComicInfo>
   void initState() {
     super.initState();
     _type = type;
+    _comicId = widget.comicId;
   }
 
   @override
@@ -153,7 +155,7 @@ class _ComicInfoState extends State<_ComicInfo>
           ),
           Expanded(child: Container()),
           BlocSelector<ComicFollowCubit, ComicFollowState, bool>(
-            selector: (state) => state.isFollowing(widget.from, widget.comicId),
+            selector: (state) => state.isFollowing(widget.from, _comicId),
             builder: (context, isFollowing) {
               return IconButton(
                 icon: Icon(
@@ -190,7 +192,7 @@ class _ComicInfoState extends State<_ComicInfo>
             itemBuilder: (BuildContext context) {
               final isFollowing = context.read<ComicFollowCubit>().isFollowing(
                 widget.from,
-                widget.comicId,
+                _comicId,
               );
               final menuItems = <FluentPopupMenuItem<MenuOption>>[
                 FluentPopupMenuItem<MenuOption>(
@@ -274,7 +276,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 onRetry: () {
                   context.read<GetComicInfoBloc>().add(
                     GetComicInfoEvent(
-                      comicId: widget.comicId,
+                      comicId: _comicId,
                       from: widget.from,
                       type: _type,
                       extern: widget.extern,
@@ -285,13 +287,14 @@ class _ComicInfoState extends State<_ComicInfo>
             case GetComicInfoStatus.success:
               comicInfoDyn = state.comicInfo;
               _currentInfo = state.allInfo;
+              _comicId = state.comicId ?? _comicId;
               if (!_cloudFavoriteStateOverridden) {
                 _isCloudCollected = state.allInfo?.isFavourite ?? false;
               }
               _syncLocalCollectStatus(state.allInfo!);
               initHistory(
                 context,
-                widget.comicId,
+                _comicId,
                 widget.from,
                 chapters: state.allInfo!.eps,
               );
@@ -310,7 +313,7 @@ class _ComicInfoState extends State<_ComicInfo>
                   hasHistory: stringSelectDate.isNotEmpty,
                   onPressed: () => goToComicRead(
                     context,
-                    widget.comicId,
+                    _comicId,
                     widget.type,
                     comicInfoDyn,
                     widget.from,
@@ -354,7 +357,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
             context.read<GetComicInfoBloc>().add(
               GetComicInfoEvent(
-                comicId: widget.comicId,
+                comicId: _comicId,
                 from: widget.from,
                 type: _type,
                 extern: widget.extern,
@@ -381,7 +384,7 @@ class _ComicInfoState extends State<_ComicInfo>
                       onCoverTap: clickCoverToStartReading
                           ? () => goToComicRead(
                               context,
-                              widget.comicId,
+                              _comicId,
                               _type,
                               comicInfoDyn,
                               widget.from,
@@ -390,7 +393,7 @@ class _ComicInfoState extends State<_ComicInfo>
                       onContinueRead: hasHistory
                           ? () => goToComicRead(
                               context,
-                              widget.comicId,
+                              _comicId,
                               _type,
                               comicInfoDyn,
                               widget.from,
@@ -462,7 +465,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         allInfo: comicInfoDyn,
                         epsLength: normalComicAllInfo.eps.length,
                         type: _type,
-                        comicId: widget.comicId,
+                        comicId: _comicId,
                         from: widget.from,
                         isReversed: _isReversed,
                       ),
@@ -503,7 +506,7 @@ class _ComicInfoState extends State<_ComicInfo>
   }
 
   String _buildZipFileName() {
-    final rawName = _title.trim().isEmpty ? widget.comicId : _title.trim();
+    final rawName = _title.trim().isEmpty ? _comicId : _title.trim();
     final safeName = rawName.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_');
     return '$safeName.zip';
   }
@@ -624,7 +627,7 @@ class _ComicInfoState extends State<_ComicInfo>
         }
 
         await exportComic(
-          widget.comicId,
+          _comicId,
           ExportType.zip,
           widget.from,
           path: iosZipPath,
@@ -642,7 +645,7 @@ class _ComicInfoState extends State<_ComicInfo>
           : exportDir;
 
       final exportedPath = await exportComic(
-        widget.comicId,
+        _comicId,
         exportType,
         widget.from,
         path: exportPath,
@@ -667,7 +670,7 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     final cubit = context.read<ComicFollowCubit>();
-    if (!cubit.isFollowing(widget.from, widget.comicId)) {
+    if (!cubit.isFollowing(widget.from, _comicId)) {
       return;
     }
     if (_followSyncedForCurrentInfo) {
@@ -675,7 +678,7 @@ class _ComicInfoState extends State<_ComicInfo>
     }
     _followSyncedForCurrentInfo = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      cubit.markAsRead(widget.from, widget.comicId, info.eps.length);
+      cubit.markAsRead(widget.from, _comicId, info.eps.length);
     });
   }
 
@@ -693,7 +696,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
     await context.read<ComicFollowCubit>().addOrUpdateFollow(
       source: widget.from,
-      comicId: widget.comicId,
+      comicId: _comicId,
       info: info,
       lastChapterCount: info.eps.length,
     );
@@ -711,7 +714,7 @@ class _ComicInfoState extends State<_ComicInfo>
     }
     final isFollowing = context.read<ComicFollowCubit>().isFollowing(
       widget.from,
-      widget.comicId,
+      _comicId,
     );
     await _toggleFollow(isFollowing);
   }
@@ -725,12 +728,12 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     final followCubit = context.read<ComicFollowCubit>();
-    if (followCubit.isFollowing(widget.from, widget.comicId)) {
+    if (followCubit.isFollowing(widget.from, _comicId)) {
       return;
     }
     await followCubit.addOrUpdateFollow(
       source: widget.from,
-      comicId: widget.comicId,
+      comicId: _comicId,
       info: info,
       lastChapterCount: info.eps.length,
     );
@@ -760,10 +763,7 @@ class _ComicInfoState extends State<_ComicInfo>
     if (!mounted) {
       return;
     }
-    await context.read<ComicFollowCubit>().removeFollow(
-      widget.from,
-      widget.comicId,
-    );
+    await context.read<ComicFollowCubit>().removeFollow(widget.from, _comicId);
     _followSyncedForCurrentInfo = false;
     if (mounted) {
       showSuccessToast(t.comicInfo.unfollowed);

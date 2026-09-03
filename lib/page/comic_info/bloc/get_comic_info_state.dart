@@ -6,12 +6,14 @@ final class GetComicInfoState extends Equatable {
   final GetComicInfoStatus status;
   final normal.NormalComicAllInfo? allInfo;
   final dynamic comicInfo; // 用来存储漫画的原本的信息
+  final String? comicId;
   final String result;
 
   const GetComicInfoState({
     this.status = GetComicInfoStatus.initial,
     this.allInfo,
     this.comicInfo,
+    this.comicId,
     this.result = '',
   });
 
@@ -19,21 +21,23 @@ final class GetComicInfoState extends Equatable {
     GetComicInfoStatus? status,
     normal.NormalComicAllInfo? allInfo,
     dynamic comicInfo,
+    String? comicId,
     String? result,
   }) {
     return GetComicInfoState(
       status: status ?? this.status,
       allInfo: allInfo ?? this.allInfo,
       comicInfo: comicInfo ?? this.comicInfo,
+      comicId: comicId ?? this.comicId,
       result: result ?? this.result,
     );
   }
 
   @override
   String toString() {
-    return 'GetComicInfoState { status: $status, allInfo: $allInfo, result: $result }';
+    return 'GetComicInfoState { status: $status, allInfo: $allInfo, comicId: $comicId, result: $result }';
   }
 
   @override
-  List<Object?> get props => [status, allInfo, result];
+  List<Object?> get props => [status, allInfo, comicId, result];
 }

@@ -40,7 +40,8 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       emit(state.copyWith(status: GetComicInfoStatus.initial));
 
       late normal.NormalComicAllInfo normalComicInfo;
-      late dynamic comicInfo;
+      late String resolvedComicId;
+      dynamic comicInfo;
 
       if (event.type == ComicEntryType.download) {
         comicInfo = objectbox.unifiedDownloadBox
@@ -51,20 +52,9 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
             )
             .build()
             .findFirst();
-        if (comicInfo == null) {
-          final pluginResult = await getComicDetailByPlugin(
-            event.comicId,
-            event.from,
-            extern: event.extern,
-          );
-          comicInfo = pluginResult.source;
-          normalComicInfo = pluginResult.normalInfo;
-        } else {
-          normalComicInfo = _localizeDownloadDetail(
-            comicInfo as UnifiedComicDownload,
-          );
-        }
-      } else {
+      }
+
+      if (comicInfo == null) {
         final pluginResult = await getComicDetailByPlugin(
           event.comicId,
           event.from,
@@ -72,6 +62,11 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         );
         comicInfo = pluginResult.source;
         normalComicInfo = pluginResult.normalInfo;
+        resolvedComicId = pluginResult.comicId;
+      } else {
+        final download = comicInfo as UnifiedComicDownload;
+        normalComicInfo = _localizeDownloadDetail(download);
+        resolvedComicId = download.comicId;
       }
 
       emit(
@@ -79,6 +74,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
           status: GetComicInfoStatus.success,
           allInfo: normalComicInfo,
           comicInfo: comicInfo,
+          comicId: resolvedComicId,
         ),
       );
     } catch (e, s) {

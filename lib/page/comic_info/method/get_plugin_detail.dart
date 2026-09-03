@@ -11,6 +11,8 @@ class PluginComicDetail {
 
   final normal.NormalComicAllInfo normalInfo;
   final PluginComicDetailSource source;
+
+  String get comicId => source.comicId;
 }
 
 class PluginComicDetailSource {

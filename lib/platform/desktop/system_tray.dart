@@ -5,10 +5,13 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 
 Future<void> initSystemTray() async {
-  if (!Platform.isWindows) return;
+  if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) return;
 
   try {
-    await trayManager.setIcon('asset/image/app_icon.ico');
+    final iconPath = Platform.isWindows
+        ? 'asset/image/app_icon.ico'
+        : 'asset/image/app-icon.png';
+    await trayManager.setIcon(iconPath);
     await trayManager.setToolTip('Zephyr');
 
     Menu menu = Menu(

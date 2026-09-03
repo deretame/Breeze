@@ -1,4 +1,5 @@
 use anyhow::{Context, Result, anyhow};
+use ciborium::ser::into_writer;
 use dashmap::DashMap;
 use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use flutter_rust_bridge::DartFnFuture;
@@ -11,6 +12,7 @@ use rquickjs_playground::{
     register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
     set_http_requests_blocked as set_http_requests_blocked_global, wrap_http_client,
 };
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -23,11 +25,40 @@ type QjsInFlightTaskMap = HashMap<String, HashSet<u64>>;
 type QjsTrackedTaskMap = HashMap<String, HashMap<u64, Arc<TrackedQjsTask>>>;
 
 #[derive(Clone, Debug)]
-pub struct QjsFetchImageResult {
+struct QjsFetchImageResult {
     pub bytes: Vec<u8>,
     pub status_code: Option<u16>,
     pub response_body_length: Option<u64>,
     pub error: Option<String>,
+}
+
+const QJS_FETCH_IMAGE_RESULT_CBOR_VERSION: u8 = 1;
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct QjsFetchImageResultCbor {
+    version: u8,
+    #[serde(with = "serde_bytes")]
+    bytes: Vec<u8>,
+    status_code: Option<u16>,
+    response_body_length: Option<u64>,
+    error: Option<String>,
+}
+
+impl QjsFetchImageResult {
+    fn into_cbor(self) -> Result<Vec<u8>, String> {
+        let payload = QjsFetchImageResultCbor {
+            version: QJS_FETCH_IMAGE_RESULT_CBOR_VERSION,
+            bytes: self.bytes,
+            status_code: self.status_code,
+            response_body_length: self.response_body_length,
+            error: self.error,
+        };
+        let mut encoded = Vec::new();
+        into_writer(&payload, &mut encoded)
+            .map_err(|error| format!("编码 CBOR 结果失败: {error}"))?;
+        Ok(encoded)
+    }
 }
 
 static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
@@ -1171,19 +1202,21 @@ async fn wait_tracked_task_bytes(runtime_name: &str, task_id: u64) -> Result<Vec
     Ok(outcome.bytes)
 }
 
-async fn wait_tracked_task_result(runtime_name: &str, task_id: u64) -> Result<QjsFetchImageResult> {
+async fn wait_tracked_task_result(runtime_name: &str, task_id: u64) -> Result<Vec<u8>> {
     let task: Arc<TrackedQjsTask> = get_tracked_task(runtime_name, task_id)
         .await
         .ok_or_else(|| anyhow!("任务不存在: {task_id}"))?;
 
     let outcome = task.state.wait().await?;
     let _ = remove_tracked_task(runtime_name, task_id).await;
-    Ok(QjsFetchImageResult {
+    QjsFetchImageResult {
         bytes: outcome.bytes,
         status_code: outcome.status_code,
         response_body_length: outcome.response_body_length,
         error: outcome.error,
-    })
+    }
+    .into_cbor()
+    .map_err(|error| anyhow!(error))
 }
 
 async fn start_qjs_task(
@@ -1266,7 +1299,7 @@ pub async fn qjs_fetch_image(
     bundle_url: Option<String>,
     fn_path: String,
     args_json: String,
-) -> Result<QjsFetchImageResult> {
+) -> Result<Vec<u8>> {
     let task_id = start_qjs_task(
         &runtime_name,
         &task_group_key,
@@ -1726,11 +1759,21 @@ pub fn opencc_convert(text: String, config: String) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::{
-        HostCacheEntry, handle_cache_compare_and_set, handle_cache_get, handle_cache_set_if_absent,
-        host_cache_store_cell, is_cancelled_error_text, scoped_route_key,
+        HostCacheEntry, QjsFetchImageResult, QjsFetchImageResultCbor, handle_cache_compare_and_set,
+        handle_cache_get, handle_cache_set_if_absent, host_cache_store_cell,
+        is_cancelled_error_text, scoped_route_key,
     };
+    use ciborium::de::from_reader;
     use serde_json::json;
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::thread;
     use std::time::{Duration, Instant};
+
+    use super::{
+        configure_http_client, current_http_client_config, qjs_drop_runtime, qjs_fetch_image,
+    };
+    use rquickjs_playground::HttpClientConfig;
 
     #[test]
     fn cancelled_detection_should_not_match_timeout_diagnostics() {
@@ -1745,6 +1788,146 @@ mod tests {
         assert!(is_cancelled_error_text(&rquickjs_playground::tr!(
             "task-cancelled-2"
         )));
+    }
+
+    #[test]
+    fn qjs_fetch_image_result_is_encoded_as_versioned_cbor() {
+        let encoded = QjsFetchImageResult {
+            bytes: vec![0, 1, 255],
+            status_code: Some(404),
+            response_body_length: Some(3),
+            error: Some("HTTP 404".to_string()),
+        }
+        .into_cbor()
+        .expect("encode CBOR result");
+
+        let decoded: QjsFetchImageResultCbor =
+            from_reader(encoded.as_slice()).expect("decode CBOR result");
+
+        assert_eq!(
+            decoded,
+            QjsFetchImageResultCbor {
+                version: 1,
+                bytes: vec![0, 1, 255],
+                status_code: Some(404),
+                response_body_length: Some(3),
+                error: Some("HTTP 404".to_string()),
+            }
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn qjs_fetch_image_should_forward_reqwest_404_to_result() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind local HTTP test server");
+        listener
+            .set_nonblocking(true)
+            .expect("configure local HTTP test server");
+        let address = listener.local_addr().expect("read local HTTP test address");
+        let body = vec![0, 1, 255];
+        let expected_body = body.clone();
+        let server = thread::spawn(move || {
+            let deadline = Instant::now() + Duration::from_secs(10);
+            loop {
+                match listener.accept() {
+                    Ok((mut stream, _)) => {
+                        stream
+                            .set_nonblocking(false)
+                            .expect("configure local HTTP connection");
+                        let mut request = Vec::new();
+                        let mut chunk = [0_u8; 1024];
+                        while !request.windows(4).any(|window| window == b"\r\n\r\n") {
+                            let read = stream.read(&mut chunk).expect("read local HTTP request");
+                            if read == 0 {
+                                return false;
+                            }
+                            request.extend_from_slice(&chunk[..read]);
+                        }
+                        let header = format!(
+                            "HTTP/1.1 404 Not Found\r\nContent-Length: {}\r\nContent-Type: application/octet-stream\r\nConnection: close\r\n\r\n",
+                            expected_body.len()
+                        );
+                        stream
+                            .write_all(header.as_bytes())
+                            .expect("write local HTTP test response headers");
+                        stream
+                            .write_all(&expected_body)
+                            .expect("write local HTTP test response body");
+                        stream.flush().expect("flush local HTTP test response");
+                        return true;
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        if Instant::now() >= deadline {
+                            return false;
+                        }
+                        thread::sleep(Duration::from_millis(10));
+                    }
+                    Err(_) => return false,
+                }
+            }
+        });
+
+        let previous_config = current_http_client_config();
+        let test_config = HttpClientConfig {
+            use_http_proxy: false,
+            use_socks5_proxy: false,
+            http_proxy: None,
+            socks5_proxy: None,
+            disable_tls_verify: previous_config.disable_tls_verify,
+            allow_private_network: true,
+        };
+        configure_http_client(test_config.clone()).expect("configure local HTTP test client");
+
+        let bundle = r#"
+            module.exports = {
+              fetchImageBytes: async ({ url }) => {
+                const response = await fetch(url);
+                if (!response.ok) {
+                  const error = new Error(`Request failed with status code ${response.status}`);
+                  error.response = {
+                    status: response.status,
+                    data: await response.arrayBuffer(),
+                  };
+                  throw error;
+                }
+                return response.arrayBuffer();
+              },
+            };
+        "#;
+        let runtime_name = format!("test-qjs-fetch-image-404-{}", address.port());
+        let result = qjs_fetch_image(
+            runtime_name.clone(),
+            "test-404".to_string(),
+            true,
+            Some(bundle.to_string()),
+            None,
+            "fetchImageBytes".to_string(),
+            serde_json::json!({
+                "url": format!("http://{address}/not-found"),
+            })
+            .to_string(),
+        )
+        .await;
+
+        configure_http_client(previous_config).expect("restore HTTP client configuration");
+        assert!(
+            qjs_drop_runtime(runtime_name).await.is_ok(),
+            "drop test QJS runtime"
+        );
+        assert!(server.join().expect("join local HTTP test server"));
+
+        let encoded = result.expect("qjs_fetch_image should return CBOR result");
+        let decoded: QjsFetchImageResultCbor =
+            from_reader(encoded.as_slice()).expect("decode CBOR result");
+        assert_eq!(decoded.version, 1);
+        assert_eq!(decoded.bytes, Vec::<u8>::new());
+        assert_eq!(decoded.status_code, Some(404));
+        assert_eq!(decoded.response_body_length, Some(3));
+        assert!(
+            decoded
+                .error
+                .as_deref()
+                .is_some_and(|error| error.contains("status code 404"))
+        );
     }
 
     #[test]

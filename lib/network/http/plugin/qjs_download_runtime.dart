@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cbor/simple.dart' as cbor;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_fetch_image_result.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
@@ -251,21 +253,24 @@ Future<Uint8List> executeQjsFetchImageBytes({
   call: qjsTaskCall,
 );
 
-/// 调用插件图片函数，并返回 Rust reqwest 采集的 HTTP 结果信息。
-Future<QjsFetchImageResult> executeQjsFetchImageResult({
+/// 调用插件图片函数，并解码 Rust reqwest 返回的 CBOR 结果信息。
+Future<QjsFetchImageHttpResult> executeQjsFetchImageResult({
   required String pluginId,
   required String fnPath,
   required String argsJson,
   String? runtimeName,
   String? taskGroupKey,
-}) => _runQjsTask<QjsFetchImageResult>(
-  pluginId: pluginId,
-  fnPath: fnPath,
-  argsJson: argsJson,
-  runtimeName: runtimeName,
-  taskGroupKey: taskGroupKey,
-  call: qjsFetchImage,
-);
+}) async {
+  final encoded = await _runQjsTask<Uint8List>(
+    pluginId: pluginId,
+    fnPath: fnPath,
+    argsJson: argsJson,
+    runtimeName: runtimeName,
+    taskGroupKey: taskGroupKey,
+    call: qjsFetchImage,
+  );
+  return QjsFetchImageHttpResult.fromCbor(cbor.cbor.decode(encoded));
+}
 
 bool _shouldUseQjsCallOnce(String pluginId) {
   // return true;

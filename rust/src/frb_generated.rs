@@ -3366,17 +3366,6 @@ impl SseDecode for Option<crate::qjs::QjsRuntimeBundleBuild> {
     }
 }
 
-impl SseDecode for Option<u16> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        if (<bool>::sse_decode(deserializer)) {
-            return Some(<u16>::sse_decode(deserializer));
-        } else {
-            return None;
-        }
-    }
-}
-
 impl SseDecode for Option<u64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3425,22 +3414,6 @@ impl SseDecode for crate::qjs::QjsCancelTasksByGroupResult {
             cancelled: var_cancelled,
             not_found: var_notFound,
             failed_runtime_groups: var_failedRuntimeGroups,
-        };
-    }
-}
-
-impl SseDecode for crate::qjs::QjsFetchImageResult {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_bytes = <Vec<u8>>::sse_decode(deserializer);
-        let mut var_statusCode = <Option<u16>>::sse_decode(deserializer);
-        let mut var_responseBodyLength = <Option<u64>>::sse_decode(deserializer);
-        let mut var_error = <Option<String>>::sse_decode(deserializer);
-        return crate::qjs::QjsFetchImageResult {
-            bytes: var_bytes,
-            status_code: var_statusCode,
-            response_body_length: var_responseBodyLength,
-            error: var_error,
         };
     }
 }
@@ -3940,29 +3913,6 @@ impl flutter_rust_bridge::IntoIntoDart<crate::qjs::QjsCancelTasksByGroupResult>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::qjs::QjsFetchImageResult {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [
-            self.bytes.into_into_dart().into_dart(),
-            self.status_code.into_into_dart().into_dart(),
-            self.response_body_length.into_into_dart().into_dart(),
-            self.error.into_into_dart().into_dart(),
-        ]
-        .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::qjs::QjsFetchImageResult
-{
-}
-impl flutter_rust_bridge::IntoIntoDart<crate::qjs::QjsFetchImageResult>
-    for crate::qjs::QjsFetchImageResult
-{
-    fn into_into_dart(self) -> crate::qjs::QjsFetchImageResult {
-        self
-    }
-}
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::qjs::QjsRuntimeBuildRequest {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -4340,16 +4290,6 @@ impl SseEncode for Option<crate::qjs::QjsRuntimeBundleBuild> {
     }
 }
 
-impl SseEncode for Option<u16> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <bool>::sse_encode(self.is_some(), serializer);
-        if let Some(value) = self {
-            <u16>::sse_encode(value, serializer);
-        }
-    }
-}
-
 impl SseEncode for Option<u64> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4386,16 +4326,6 @@ impl SseEncode for crate::qjs::QjsCancelTasksByGroupResult {
         <i32>::sse_encode(self.cancelled, serializer);
         <i32>::sse_encode(self.not_found, serializer);
         <Vec<String>>::sse_encode(self.failed_runtime_groups, serializer);
-    }
-}
-
-impl SseEncode for crate::qjs::QjsFetchImageResult {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Vec<u8>>::sse_encode(self.bytes, serializer);
-        <Option<u16>>::sse_encode(self.status_code, serializer);
-        <Option<u64>>::sse_encode(self.response_body_length, serializer);
-        <Option<String>>::sse_encode(self.error, serializer);
     }
 }
 

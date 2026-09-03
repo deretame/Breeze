@@ -620,7 +620,7 @@ class DownloadPictureHttpException implements Exception {
   final String url;
   final String message;
   final int? statusCode;
-  final BigInt? responseBodyLength;
+  final int? responseBodyLength;
 
   @override
   String toString() {

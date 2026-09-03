@@ -243,7 +243,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<bool> crateApiQjsQjsDropRuntime({required String runtimeName});
 
-  Future<QjsFetchImageResult> crateApiQjsQjsFetchImage({
+  Future<Uint8List> crateApiQjsQjsFetchImage({
     required String runtimeName,
     required String taskGroupKey,
     required bool isOnce,
@@ -1836,7 +1836,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<QjsFetchImageResult> crateApiQjsQjsFetchImage({
+  Future<Uint8List> crateApiQjsQjsFetchImage({
     required String runtimeName,
     required String taskGroupKey,
     required bool isOnce,
@@ -1864,7 +1864,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_qjs_fetch_image_result,
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsFetchImageConstMeta,
@@ -3127,12 +3127,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int dco_decode_box_autoadd_u_16(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
   BigInt dco_decode_box_autoadd_u_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_u_64(raw);
@@ -3309,12 +3303,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int? dco_decode_opt_box_autoadd_u_16(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_u_16(raw);
-  }
-
-  @protected
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
@@ -3352,20 +3340,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       cancelled: dco_decode_i_32(arr[0]),
       notFound: dco_decode_i_32(arr[1]),
       failedRuntimeGroups: dco_decode_list_String(arr[2]),
-    );
-  }
-
-  @protected
-  QjsFetchImageResult dco_decode_qjs_fetch_image_result(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return QjsFetchImageResult(
-      bytes: dco_decode_list_prim_u_8_strict(arr[0]),
-      statusCode: dco_decode_opt_box_autoadd_u_16(arr[1]),
-      responseBodyLength: dco_decode_opt_box_autoadd_u_64(arr[2]),
-      error: dco_decode_opt_String(arr[3]),
     );
   }
 
@@ -3630,12 +3604,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int sse_decode_box_autoadd_u_16(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_u_16(deserializer));
-  }
-
-  @protected
   BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_64(deserializer));
@@ -3889,17 +3857,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_u_16(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -3948,23 +3905,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       cancelled: var_cancelled,
       notFound: var_notFound,
       failedRuntimeGroups: var_failedRuntimeGroups,
-    );
-  }
-
-  @protected
-  QjsFetchImageResult sse_decode_qjs_fetch_image_result(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_bytes = sse_decode_list_prim_u_8_strict(deserializer);
-    var var_statusCode = sse_decode_opt_box_autoadd_u_16(deserializer);
-    var var_responseBodyLength = sse_decode_opt_box_autoadd_u_64(deserializer);
-    var var_error = sse_decode_opt_String(deserializer);
-    return QjsFetchImageResult(
-      bytes: var_bytes,
-      statusCode: var_statusCode,
-      responseBodyLength: var_responseBodyLength,
-      error: var_error,
     );
   }
 
@@ -4299,12 +4239,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_16(self, serializer);
-  }
-
-  @protected
   void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_64(self, serializer);
@@ -4519,16 +4453,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_u_16(self, serializer);
-    }
-  }
-
-  @protected
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -4569,18 +4493,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.cancelled, serializer);
     sse_encode_i_32(self.notFound, serializer);
     sse_encode_list_String(self.failedRuntimeGroups, serializer);
-  }
-
-  @protected
-  void sse_encode_qjs_fetch_image_result(
-    QjsFetchImageResult self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_prim_u_8_strict(self.bytes, serializer);
-    sse_encode_opt_box_autoadd_u_16(self.statusCode, serializer);
-    sse_encode_opt_box_autoadd_u_64(self.responseBodyLength, serializer);
-    sse_encode_opt_String(self.error, serializer);
   }
 
   @protected

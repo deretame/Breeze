@@ -1711,8 +1711,13 @@ fn build_bundle_call_once_script(
             const base = Error.isError(err) ? err.message : String(err || "执行失败");
             const stack = Error.isError(err) ? (err.stack || "") : "";
             const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
-            const httpStatusCode = Error.isError(err) ? Number(err.__breezeHttpStatusCode) : NaN;
-            const httpResponseBodyLength = Error.isError(err) ? Number(err.__breezeHttpResponseBodyLength) : NaN;
+            const httpStatusCode = Error.isError(err)
+              ? Number(err.__breezeHttpStatusCode ?? err.status ?? err.response?.status)
+              : NaN;
+            const responseData = Error.isError(err) ? err.response?.data : null;
+            const httpResponseBodyLength = Error.isError(err)
+              ? Number(err.__breezeHttpResponseBodyLength ?? responseData?.byteLength)
+              : NaN;
             return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope,
               httpStatusCode: Number.isInteger(httpStatusCode) ? httpStatusCode : null,
               httpResponseBodyLength: Number.isFinite(httpResponseBodyLength) ? Math.floor(httpResponseBodyLength) : null }});
@@ -1901,8 +1906,13 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
             const base = Error.isError(err) ? err.message : String(err || "执行失败");
             const stack = Error.isError(err) ? (err.stack || "") : "";
             const debugScope = Error.isError(err) ? (err.__bundle_scope || "") : "";
-            const httpStatusCode = Error.isError(err) ? Number(err.__breezeHttpStatusCode) : NaN;
-            const httpResponseBodyLength = Error.isError(err) ? Number(err.__breezeHttpResponseBodyLength) : NaN;
+            const httpStatusCode = Error.isError(err)
+              ? Number(err.__breezeHttpStatusCode ?? err.status ?? err.response?.status)
+              : NaN;
+            const responseData = Error.isError(err) ? err.response?.data : null;
+            const httpResponseBodyLength = Error.isError(err)
+              ? Number(err.__breezeHttpResponseBodyLength ?? responseData?.byteLength)
+              : NaN;
             return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope,
               httpStatusCode: Number.isInteger(httpStatusCode) ? httpStatusCode : null,
               httpResponseBodyLength: Number.isFinite(httpResponseBodyLength) ? Math.floor(httpResponseBodyLength) : null }});

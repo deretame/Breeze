@@ -42,8 +42,8 @@ Future<Uint8List> qjsTaskCall({
   argsJson: argsJson,
 );
 
-/// 调用插件图片函数，并保留 Rust reqwest 返回的 HTTP 状态与响应体长度。
-Future<QjsFetchImageResult> qjsFetchImage({
+/// 调用插件图片函数，并以 CBOR 返回 Rust reqwest 采集的 HTTP 结果信息。
+Future<Uint8List> qjsFetchImage({
   required String runtimeName,
   required String taskGroupKey,
   required bool isOnce,

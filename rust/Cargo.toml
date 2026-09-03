@@ -71,7 +71,9 @@ brotli = "8.0.4"
 sevenz-rust = "0.6.1"
 webp = "0.3.1"
 serde = { version = "1.0.228", features = ["derive"] }
+serde_bytes = "0.11.19"
 serde-xml-rs = "0.8.2"
+ciborium = "0.2.2"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 
 [target.'cfg(target_os = "android")'.dependencies]

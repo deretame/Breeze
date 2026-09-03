@@ -76,6 +76,7 @@ dependencies:
   # 安全、工具与运行时
   encrypter_plus: ^5.1.0 # 安全: AES/RSA 加密
   crypto: ^3.0.6 # 安全: 摘要与哈希
+  cbor: ^6.5.1 # 序列化: Rust/Dart 二进制数据交换
   uuid: ^4.4.2 # 工具: UUID 生成
   logger: ^2.5.0 # 工具: 日志输出
   stack_trace: ^1.12.0 # 工具: 堆栈处理

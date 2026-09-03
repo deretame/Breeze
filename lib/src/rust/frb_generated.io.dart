@@ -125,9 +125,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  int dco_decode_box_autoadd_u_16(dynamic raw);
-
-  @protected
   BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
@@ -194,9 +191,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
-
-  @protected
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
@@ -209,9 +203,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QjsCancelTasksByGroupResult dco_decode_qjs_cancel_tasks_by_group_result(
     dynamic raw,
   );
-
-  @protected
-  QjsFetchImageResult dco_decode_qjs_fetch_image_result(dynamic raw);
 
   @protected
   QjsRuntimeBuildRequest dco_decode_qjs_runtime_build_request(dynamic raw);
@@ -333,9 +324,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
-
-  @protected
   BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
@@ -412,9 +400,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
-
-  @protected
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
@@ -425,11 +410,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   QjsCancelTasksByGroupResult sse_decode_qjs_cancel_tasks_by_group_result(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  QjsFetchImageResult sse_decode_qjs_fetch_image_result(
     SseDeserializer deserializer,
   );
 
@@ -589,9 +569,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
-
-  @protected
   void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
@@ -679,9 +656,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer);
-
-  @protected
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
@@ -696,12 +670,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_qjs_cancel_tasks_by_group_result(
     QjsCancelTasksByGroupResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_qjs_fetch_image_result(
-    QjsFetchImageResult self,
     SseSerializer serializer,
   );
 

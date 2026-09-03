@@ -1,3 +1,4 @@
+use crate::decode;
 use anyhow::{Context, Result, anyhow};
 use ciborium::ser::into_writer;
 use dashmap::DashMap;
@@ -17,7 +18,7 @@ use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
-use tokio::sync::{Mutex as AsyncMutex, Notify, RwLock};
+use tokio::sync::{Mutex as AsyncMutex, Notify, RwLock, Semaphore};
 use tokio::time;
 
 type QjsRuntimeMap = HashMap<String, Arc<AsyncHostRuntime>>;
@@ -72,6 +73,7 @@ const BIKA_PLUGIN_UUID: &str = "0a0e5858-a467-4702-994a-79e608a4589d";
 const JM_PLUGIN_UUID: &str = "bf99008d-010b-4f17-ac7c-61a9b57dc3d9";
 const QJS_RUNTIME_CANCELLED_ERROR_CODE: &str = "__QJS_RUNTIME_CANCELLED__";
 const BRIDGE_ROUTE_OPENCC_CONVERT: &str = "opencc.convert";
+const BRIDGE_ROUTE_CROP_IMAGE_BY_REGIONS: &str = "image.crop_by_regions";
 const BRIDGE_ROUTE_CACHE_GET: &str = "cache.get";
 const BRIDGE_ROUTE_CACHE_SET: &str = "cache.set";
 const BRIDGE_ROUTE_CACHE_GET_SYNC: &str = "cache.get.sync";
@@ -84,12 +86,14 @@ const BRIDGE_ROUTE_RUNTIME_IS_TASK_GROUP_CANCELLED: &str = "runtime.is_task_grou
 const HOST_CACHE_VALUE_MAX_BYTES: usize = 500 * 1024;
 const CANCELLED_GROUP_TTL: Duration = Duration::from_secs(120);
 const REGISTERED_DART_CALLBACK_TIMEOUT: Duration = Duration::from_secs(15);
+const MAX_IMAGE_CROP_CONCURRENCY: usize = 4;
 
 static HOST_CACHE_STORE: OnceLock<DashMap<String, HostCacheEntry>> = OnceLock::new();
 static HOST_CACHE_GC_STARTED: OnceLock<()> = OnceLock::new();
 static HOST_CACHE_GC_ENABLED: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 static CANCELLED_TASK_GROUPS: OnceLock<DashMap<String, Instant>> = OnceLock::new();
+static IMAGE_CROP_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_IMAGE_CROP_CONCURRENCY);
 
 #[derive(Clone)]
 struct HostCacheEntry {
@@ -1698,6 +1702,45 @@ pub fn init_rust_functions() -> Result<()> {
         Ok(json!(out))
     })?;
 
+    register_bridge_route_async_handler(
+        BRIDGE_ROUTE_CROP_IMAGE_BY_REGIONS,
+        |_, args| async move {
+            let mut args = args.into_iter();
+            let image_data = args
+                .next()
+                .ok_or_else(|| anyhow!("image.crop_by_regions 缺少 imageData 参数"))?;
+            let regions = args
+                .next()
+                .ok_or_else(|| anyhow!("image.crop_by_regions 缺少 regions 参数"))?;
+            if args.next().is_some() {
+                return Err(anyhow!(
+                    "image.crop_by_regions 只接受 imageData 和 regions 两个参数"
+                ));
+            }
+
+            let permit = IMAGE_CROP_SEMAPHORE
+                .acquire()
+                .await
+                .map_err(|err| anyhow!("image crop limiter closed: {err}"))?;
+
+            let cropped = rquickjs_playground::global_handle()
+                .spawn_blocking(move || {
+                    // 许可必须覆盖参数解码、图片解码、裁剪、WebP 编码和返回值序列化的整个生命周期。
+                    let _permit = permit;
+                    let image_data: Vec<u8> = serde_json::from_value(image_data)
+                        .context("image.crop_by_regions 的 imageData 必须是字节数组")?;
+                    let regions: Vec<decode::ImageCropRegion> = serde_json::from_value(regions)
+                        .context("image.crop_by_regions 的 regions 参数格式无效")?;
+                    let cropped = decode::crop_image_by_regions(image_data, regions)?;
+                    serde_json::to_value(cropped).context("序列化 image.crop_by_regions 返回值失败")
+                })
+                .await
+                .map_err(|err| anyhow!("image crop task failed: {err}"))??;
+
+            Ok(cropped)
+        },
+    )?;
+
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_GET, |runtime, args| {
         handle_cache_get(&runtime, &args)
     })?;
@@ -1764,14 +1807,16 @@ mod tests {
         is_cancelled_error_text, scoped_route_key,
     };
     use ciborium::de::from_reader;
-    use serde_json::json;
-    use std::io::{Read, Write};
+    use image::{DynamicImage, ImageFormat, RgbaImage};
+    use serde_json::{Value, json};
+    use std::io::{Cursor, Read, Write};
     use std::net::TcpListener;
     use std::thread;
     use std::time::{Duration, Instant};
 
     use super::{
-        configure_http_client, current_http_client_config, qjs_drop_runtime, qjs_fetch_image,
+        configure_http_client, current_http_client_config, init_rust_functions, qjs_drop_runtime,
+        qjs_fetch_image, qjs_task_call,
     };
     use rquickjs_playground::HttpClientConfig;
 
@@ -1928,6 +1973,65 @@ mod tests {
                 .as_deref()
                 .is_some_and(|error| error.contains("status code 404"))
         );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn qjs_crop_image_bridge_route_accepts_binary_input() {
+        init_rust_functions().expect("register Rust bridge routes");
+
+        let source = RgbaImage::from_raw(2, 1, vec![255, 0, 0, 255, 0, 255, 0, 255])
+            .expect("create test image");
+        let mut encoded_source = Cursor::new(Vec::new());
+        DynamicImage::ImageRgba8(source)
+            .write_to(&mut encoded_source, ImageFormat::Png)
+            .expect("encode test image");
+        let image_json =
+            serde_json::to_string(encoded_source.get_ref()).expect("serialize test image bytes");
+        let bundle = format!(
+            r#"
+                module.exports = {{
+                  run: async () => {{
+                    const result = await bridge.call(
+                      "image.crop_by_regions",
+                      new Uint8Array({image_json}),
+                      [
+                        {{ number: 2, x: 1, y: 0, width: 1, height: 1 }},
+                        {{ number: 1, x: 0, y: 0, width: 1, height: 1 }},
+                      ],
+                    );
+                    const data = result[0].imgData;
+                    return {{
+                      count: result.length,
+                      numbers: result.map((item) => item.number),
+                      isByteArray: Array.isArray(data),
+                      isWebp: data[0] === 82 && data[1] === 73 && data[2] === 70 && data[3] === 70
+                        && data[8] === 87 && data[9] === 69 && data[10] === 66 && data[11] === 80,
+                    }};
+                  }},
+                }};
+            "#
+        );
+        let runtime_name = format!("test-qjs-crop-image-{}", std::process::id());
+        let result = qjs_task_call(
+            runtime_name.clone(),
+            "test-crop-image".to_string(),
+            true,
+            Some(bundle),
+            None,
+            "run".to_string(),
+            "[]".to_string(),
+        )
+        .await;
+        qjs_drop_runtime(runtime_name)
+            .await
+            .expect("drop test QJS runtime");
+
+        let output = result.expect("call crop image bridge route");
+        let parsed: Value = serde_json::from_slice(&output).expect("parse route result");
+        assert_eq!(parsed["count"], 2);
+        assert_eq!(parsed["numbers"], json!([2, 1]));
+        assert_eq!(parsed["isByteArray"], true);
+        assert_eq!(parsed["isWebp"], true);
     }
 
     #[test]

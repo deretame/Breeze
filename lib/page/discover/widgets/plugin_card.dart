@@ -1,14 +1,12 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/page/discover/cubit/discover_cubit.dart';
+import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
-import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/plugin_icon.dart';
-
-import 'package:zephyr/page/setting/common/setting_ui.dart';
-
-import 'package:zephyr/page/discover/cubit/discover_cubit.dart';
 
 class PluginCard extends StatelessWidget {
   const PluginCard({
@@ -117,12 +115,6 @@ class PluginCard extends StatelessWidget {
         info['iconUrl']?.toString().trim() ??
         creator['coverUrl']?.toString().trim() ??
         '';
-    final pluginDescribe = info['describe']?.toString().trim() ?? '';
-    final creatorDescribe = creator['describe']?.toString().trim() ?? '';
-    final description = pluginDescribe.isNotEmpty
-        ? pluginDescribe
-        : creatorDescribe;
-
     final iconWidget = ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: PluginIcon(
@@ -140,10 +132,10 @@ class PluginCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
-            isThreeLine: true,
+            isThreeLine: false,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
-              vertical: 8,
+              vertical: 6,
             ),
             leading: SizedBox(width: 48, height: 48, child: iconWidget),
             title: Text(
@@ -152,14 +144,15 @@ class PluginCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
-            subtitle: Text(
-              isEnabled ? description : t.discover.disabled,
-              softWrap: true,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 13,
-              ),
-            ),
+            subtitle: isEnabled
+                ? null
+                : Text(
+                    t.discover.disabled,
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
+                  ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -195,57 +188,56 @@ class PluginCard extends StatelessWidget {
           ),
           if (rawFunctions.isNotEmpty && isEnabled)
             Padding(
-              padding: const EdgeInsets.only(left: 84, right: 20, bottom: 16),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: rawFunctions.map((function) {
-                  final id = function['id']?.toString().trim() ?? '';
-                  final text =
-                      function['title']?.toString().trim() ??
-                      t.discover.unnamed;
-                  var action = asJsonMap(function['action']);
-                  if (action.isEmpty && id.isNotEmpty) {
-                    action = {
-                      'type': 'openPluginFunction',
-                      'payload': {
-                        'id': id,
-                        'title': text,
-                        'presentation': 'page',
-                      },
-                    };
-                  }
-                  final enabled = action.isNotEmpty;
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: enabled ? () => onAction(action) : null,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withValues(
-                          alpha: 0.6,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        text.let(convertChineseForDisplay),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: enabled
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+              padding: const EdgeInsets.only(
+                left: 20,
+                top: 2,
+                right: 20,
+                bottom: 12,
               ),
+              child: _buildFunctionButtons(context, rawFunctions, colorScheme),
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFunctionButtons(
+    BuildContext context,
+    List<Map<String, dynamic>> rawFunctions,
+    ColorScheme colorScheme,
+  ) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: rawFunctions.map((function) {
+        final id = function['id']?.toString().trim() ?? '';
+        final text = function['title']?.toString().trim() ?? t.discover.unnamed;
+        var action = asJsonMap(function['action']);
+        if (action.isEmpty && id.isNotEmpty) {
+          action = {
+            'type': 'openPluginFunction',
+            'payload': {'id': id, 'title': text, 'presentation': 'page'},
+          };
+        }
+        final enabled = action.isNotEmpty;
+        return ActionChip(
+          label: Text(text.let(convertChineseForDisplay)),
+          onPressed: enabled ? () => onAction(action) : null,
+          backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.16),
+          disabledColor: colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.35,
+          ),
+          side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.1)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+          visualDensity: VisualDensity.compact,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: colorScheme.primary.withValues(alpha: 0.78),
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      }).toList(),
     );
   }
 }

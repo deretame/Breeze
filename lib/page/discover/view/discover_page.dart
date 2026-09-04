@@ -1,17 +1,16 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
-import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/widgets/toast.dart';
-
 import 'package:zephyr/page/discover/cubit/discover_cubit.dart';
 import 'package:zephyr/page/discover/service/discover_router.dart';
-import 'package:zephyr/page/discover/widgets/plugin_card.dart';
 import 'package:zephyr/page/discover/view/plugin_order_dialog.dart';
+import 'package:zephyr/page/discover/widgets/plugin_card.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
 class DiscoverPage extends StatelessWidget {
@@ -95,10 +94,8 @@ class _DiscoverView extends StatelessWidget {
                 ),
               )
             else
-              for (var i = 0; i < plugins.length; i++) ...[
-                _buildPluginCard(context, plugins[i], state),
-                if (i != plugins.length - 1)
-                  const Divider(height: 1, indent: 80, endIndent: 16),
+              for (final plugin in plugins) ...[
+                _buildPluginCard(context, plugin, state),
               ],
           ],
         );
@@ -116,19 +113,26 @@ class _DiscoverView extends StatelessWidget {
         state.infoStates[plugin.uuid] ??
         const DiscoverPluginInfoState(loading: true);
 
-    return PluginCard(
-      pluginUuid: plugin.uuid,
-      pluginState: plugin,
-      infoState: infoState,
-      isToggling: state.togglingUuids.contains(plugin.uuid),
-      onSearch: () => _openPluginSearch(context, plugin.uuid),
-      onSettings: (title) => _openPluginSettings(context, plugin.uuid, title),
-      onToggleEnabled: (enabled) => cubit.toggleEnabled(plugin.uuid, enabled),
-      onRetry: () => cubit.retryLoadInfo(plugin.uuid),
-      onAction: (action) => DiscoverRouter.route(
-        context,
-        action: DiscoverRouter.attachSource(action, plugin.uuid),
-        currentFrom: cubit.currentFrom,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: PluginCard(
+        pluginUuid: plugin.uuid,
+        pluginState: plugin,
+        infoState: infoState,
+        isToggling: state.togglingUuids.contains(plugin.uuid),
+        onSearch: () => _openPluginSearch(context, plugin.uuid),
+        onSettings: (title) => _openPluginSettings(context, plugin.uuid, title),
+        onToggleEnabled: (enabled) => cubit.toggleEnabled(plugin.uuid, enabled),
+        onRetry: () => cubit.retryLoadInfo(plugin.uuid),
+        onAction: (action) => DiscoverRouter.route(
+          context,
+          action: DiscoverRouter.attachSource(action, plugin.uuid),
+          currentFrom: cubit.currentFrom,
+        ),
       ),
     );
   }

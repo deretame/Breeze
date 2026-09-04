@@ -1,5 +1,5 @@
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/page/search_result/models/unified_plugin_search.dart';
 import 'package:zephyr/util/json/json_sanitize.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/path_util.dart';

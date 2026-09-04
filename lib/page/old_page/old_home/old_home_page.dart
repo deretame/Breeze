@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
@@ -739,7 +739,7 @@ class _PluginFunctionDialogContentState
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       setState(() {
         _scheme = envelope.scheme;
-        _data = asMap(envelope.data);
+        _data = asJsonMap(envelope.data);
         _loading = false;
       });
     } catch (e) {

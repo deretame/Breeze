@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global_setting.dart';
@@ -12,7 +12,6 @@ import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/plugin/favorite_workflow.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
@@ -346,10 +345,16 @@ class _ComicInfoState extends State<_ComicInfo>
 
     _syncFollowIfNeeded(normalComicAllInfo);
 
+    final previewCapability = ComicPreviewCapability.fromInfo(
+      normalComicAllInfo,
+    );
+    final showPreview =
+        _type != ComicEntryType.download && previewCapability.enabled;
+
     return BlocSelector<StringSelectCubit, String, bool>(
       selector: (state) => state.isNotEmpty,
       builder: (context, hasHistory) {
-        return RefreshIndicator(
+        final refreshable = RefreshIndicator(
           onRefresh: () async {
             _type = ComicEntryType.normal;
             _followSyncedForCurrentInfo = false;
@@ -367,128 +372,179 @@ class _ComicInfoState extends State<_ComicInfo>
               _loadingComplete = false;
             });
           },
-          child: ListView.builder(
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 180),
-            itemCount: 1,
-            itemBuilder: (context, index) => Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1120),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ComicParticularsWidget(
-                      comicInfo: comicInfo,
-                      from: widget.from,
-                      type: _type,
-                      onCoverTap: clickCoverToStartReading
-                          ? () => goToComicRead(
-                              context,
-                              _comicId,
-                              _type,
-                              comicInfoDyn,
-                              widget.from,
-                            )
-                          : null,
-                      onContinueRead: hasHistory
-                          ? () => goToComicRead(
-                              context,
-                              _comicId,
-                              _type,
-                              comicInfoDyn,
-                              widget.from,
-                            )
-                          : null,
-                    ),
-                    _buildDivider(context),
-                    ComicOperationWidget(
-                      normalInfo: normalComicAllInfo,
-                      from: widget.from,
-                      collectionTargetId: widget.collectionTargetId,
-                      collectionTargetName: widget.collectionTargetName,
-                      comicInfo: comicInfoDyn,
-                    ),
-                    if (comicInfo.metadata.isNotEmpty ||
-                        comicInfo.description.trim().isNotEmpty) ...[
-                      _buildDivider(context),
-                      _SectionCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final meta in comicInfo.metadata) ...[
-                              AllChipWidget(
-                                comicId: comicInfo.id,
-                                metadata: meta,
-                                from: widget.from,
-                              ),
-                              const SizedBox(height: 6),
-                            ],
-                            if (comicInfo.description.trim().isNotEmpty)
-                              _DescriptionCard(
-                                description: comicInfo.description.let(
-                                  convertChineseForDisplay,
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 8),
+                sliver: _constrainedSliver(
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ComicParticularsWidget(
+                          comicInfo: comicInfo,
+                          from: widget.from,
+                          type: _type,
+                          onCoverTap: clickCoverToStartReading
+                              ? () => goToComicRead(
+                                  context,
+                                  _comicId,
+                                  _type,
+                                  comicInfoDyn,
+                                  widget.from,
+                                )
+                              : null,
+                          onContinueRead: hasHistory
+                              ? () => goToComicRead(
+                                  context,
+                                  _comicId,
+                                  _type,
+                                  comicInfoDyn,
+                                  widget.from,
+                                )
+                              : null,
+                        ),
+                        _buildDivider(context),
+                        ComicOperationWidget(
+                          normalInfo: normalComicAllInfo,
+                          from: widget.from,
+                          collectionTargetId: widget.collectionTargetId,
+                          collectionTargetName: widget.collectionTargetName,
+                          comicInfo: comicInfoDyn,
+                        ),
+                        if (comicInfo.metadata.isNotEmpty ||
+                            comicInfo.description.trim().isNotEmpty) ...[
+                          _buildDivider(context),
+                          _SectionCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (final meta in comicInfo.metadata) ...[
+                                  AllChipWidget(
+                                    comicId: comicInfo.id,
+                                    metadata: meta,
+                                    from: widget.from,
+                                  ),
+                                  const SizedBox(height: 6),
+                                ],
+                                if (comicInfo.description.trim().isNotEmpty)
+                                  _DescriptionCard(
+                                    description: comicInfo.description.let(
+                                      convertChineseForDisplay,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (comicInfo.creator.name.trim().isNotEmpty ||
+                            comicInfo.creator.avatar.url.trim().isNotEmpty) ...[
+                          _buildDivider(context),
+                          _SectionCard(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 460,
+                                ),
+                                child: CreatorInfoWidget(
+                                  creator: comicInfo.creator,
+                                  from: widget.from,
+                                  imageKey: comicInfo.id,
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    if (comicInfo.creator.name.trim().isNotEmpty ||
-                        comicInfo.creator.avatar.url.trim().isNotEmpty) ...[
-                      _buildDivider(context),
-                      _SectionCard(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 460),
-                            child: CreatorInfoWidget(
-                              creator: comicInfo.creator,
-                              from: widget.from,
-                              imageKey: comicInfo.id,
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                    _buildDivider(context),
-                    _SectionCard(
-                      title: t.comicInfo.chapterList,
-                      trailing: _EpisodeHeaderBadge(
-                        label: t.comicInfo.episodeCount(
-                          count: normalComicAllInfo.eps.length,
-                        ),
-                        icon: _isReversed ? Icons.south : Icons.north,
-                        onTap: _toggleOrder,
-                      ),
-                      child: _EpisodeListSection(
-                        episodes: displayEps,
-                        allInfo: comicInfoDyn,
-                        epsLength: normalComicAllInfo.eps.length,
-                        type: _type,
-                        comicId: _comicId,
-                        from: widget.from,
-                        isReversed: _isReversed,
-                      ),
-                    ),
-                    if (normalComicAllInfo.recommend.isNotEmpty) ...[
-                      _buildDivider(context),
-                      if (_resolveRecommendItems(
-                        normalComicAllInfo.recommend,
-                      ).isNotEmpty)
+                        ],
+                        _buildDivider(context),
                         _SectionCard(
-                          title: t.comicInfo.related,
-                          child: RecommendWidget(
-                            comicList: _resolveRecommendItems(
-                              normalComicAllInfo.recommend,
+                          title: t.comicInfo.chapterList,
+                          trailing: _EpisodeHeaderBadge(
+                            label: t.comicInfo.episodeCount(
+                              count: normalComicAllInfo.eps.length,
                             ),
+                            icon: _isReversed ? Icons.south : Icons.north,
+                            onTap: _toggleOrder,
+                          ),
+                          child: _EpisodeListSection(
+                            episodes: displayEps,
+                            allInfo: comicInfoDyn,
+                            epsLength: normalComicAllInfo.eps.length,
+                            type: _type,
+                            comicId: _comicId,
+                            from: widget.from,
+                            isReversed: _isReversed,
                           ),
                         ),
-                    ],
-                  ],
+                        if (normalComicAllInfo.recommend.isNotEmpty &&
+                            _resolveRecommendItems(
+                              normalComicAllInfo.recommend,
+                            ).isNotEmpty) ...[
+                          _buildDivider(context),
+                          _SectionCard(
+                            title: t.comicInfo.related,
+                            child: RecommendWidget(
+                              comicList: _resolveRecommendItems(
+                                normalComicAllInfo.recommend,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
+              if (showPreview) ...[
+                _constrainedSliver(const ComicPreviewSliver()),
+              ],
+              const SliverPadding(
+                padding: EdgeInsets.only(bottom: 180),
+                sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+              ),
+            ],
+          ),
+        );
+
+        if (!showPreview) return refreshable;
+
+        return BlocProvider(
+          key: ValueKey('preview:${widget.from}:$_comicId'),
+          create: (_) => ComicPreviewBloc(
+            comicId: _comicId,
+            from: widget.from,
+            capability: previewCapability,
+            extern: widget.extern ?? const <String, dynamic>{},
+          )..add(const LoadComicPreview()),
+          child: Builder(
+            builder: (context) => NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification.metrics.pixels >=
+                    notification.metrics.maxScrollExtent * 0.9) {
+                  context.read<ComicPreviewBloc>().add(
+                    const LoadComicPreview(loadMore: true),
+                  );
+                }
+                return false;
+              },
+              child: refreshable,
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _constrainedSliver(Widget sliver) {
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final horizontalPadding = ((constraints.crossAxisExtent - 1120) / 2)
+            .clamp(20.0, double.infinity)
+            .toDouble();
+        return SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          sliver: sliver,
         );
       },
     );

@@ -6,3 +6,4 @@ export 'package:zephyr/page/comic_info/widgets/eps.dart';
 export 'package:zephyr/page/comic_info/widgets/export_type_dialog.dart';
 export 'package:zephyr/page/comic_info/widgets/particulars.dart';
 export 'package:zephyr/page/comic_info/widgets/recommend.dart';
+export 'package:zephyr/page/comic_info/widgets/comic_preview.dart';

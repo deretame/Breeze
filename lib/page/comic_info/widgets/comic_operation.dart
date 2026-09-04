@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/network/http/plugin/favorite_workflow.dart';
+import 'package:zephyr/page/comic_info/models/favorite_workflow.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';

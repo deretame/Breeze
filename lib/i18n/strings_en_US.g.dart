@@ -555,6 +555,7 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String confirmUnfollowContent({required Object title}) => 'Stop following "${title}"?';
 	@override String get noChapters => 'No chapter information';
 	@override String get chapterList => 'Chapters';
+	@override String get preview => 'Preview';
 	@override String episodeCount({required Object count}) => '${count} Episodes';
 	@override String episodeFallback({required Object index}) => '${index}';
 	@override String episodeLabel({required Object index}) => '${index}';
@@ -1947,6 +1948,7 @@ extension on TranslationsEnUs {
 			'comicInfo.confirmUnfollowContent' => ({required Object title}) => 'Stop following "${title}"?',
 			'comicInfo.noChapters' => 'No chapter information',
 			'comicInfo.chapterList' => 'Chapters',
+			'comicInfo.preview' => 'Preview',
 			'comicInfo.episodeCount' => ({required Object count}) => '${count} Episodes',
 			'comicInfo.episodeFallback' => ({required Object index}) => '${index}',
 			'comicInfo.episodeLabel' => ({required Object index}) => '${index}',
@@ -2030,9 +2032,9 @@ extension on TranslationsEnUs {
 			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
 			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
-			'reader.singlePageScrollInterval' => 'Single page scroll interval',
 			_ => null,
 		} ?? switch (path) {
+			'reader.singlePageScrollInterval' => 'Single page scroll interval',
 			'reader.preload' => 'Preload',
 			'reader.preloadImageCount' => 'Preloaded image count',
 			'reader.preloadImageCountSubtitle' => 'Download images after the current reading position in advance',
@@ -2544,9 +2546,9 @@ extension on TranslationsEnUs {
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '${diff} new chapters, ${total} total',
 			'comicFollow.latestCount' => ({required Object count}) => 'Latest ${count} chapters',
 			'comicFollow.fetchFailed' => 'Fetch failed',
-			'comicFollow.newChaptersShort' => ({required Object diff}) => '${diff} new',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.newChaptersShort' => ({required Object diff}) => '${diff} new',
 			'comicFollow.update' => 'Update',
 			'comicFollow.retry' => 'Retry',
 			'comicFollow.updateChannelName' => 'Comic update reminder',

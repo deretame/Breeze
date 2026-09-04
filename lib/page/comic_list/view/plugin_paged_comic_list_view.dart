@@ -4,10 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
 
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -17,7 +18,7 @@ typedef PluginPageCoreBuilder = Map<String, dynamic> Function(int page);
 typedef PluginPageExternBuilder = Map<String, dynamic> Function(int page);
 
 Map<String, dynamic> _sanitizePluginItemMap(dynamic item) {
-  return asMap(replaceNestedNullList(asMap(item)));
+  return asJsonMap(replaceNestedNullList(asJsonMap(item)));
 }
 
 enum PluginPagedComicListStatus {
@@ -118,12 +119,14 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
         extern: externBuilder(page),
       );
       final envelope = UnifiedPluginEnvelope.fromMap(pluginResponse);
-      final data = asMap(envelope.data);
+      final data = asJsonMap(envelope.data);
       final source = envelope.source.trim().isNotEmpty
           ? envelope.source.trim()
           : pluginId;
-      final items = asList(data['items']).map(_sanitizePluginItemMap).toList();
-      final raw = replaceNestedNullList(asMap(data['raw']));
+      final items = asJsonList(
+        data['items'],
+      ).map(_sanitizePluginItemMap).toList();
+      final raw = replaceNestedNullList(asJsonMap(data['raw']));
       final listLikeKeys = ['content', 'list'];
 
       List<UnifiedComicListItem> nextItems = items
@@ -131,7 +134,9 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
           .toList();
       if (nextItems.isEmpty) {
         for (final key in listLikeKeys) {
-          final rawList = asList(raw[key]).map(_sanitizePluginItemMap).toList();
+          final rawList = asJsonList(
+            raw[key],
+          ).map(_sanitizePluginItemMap).toList();
           if (rawList.isNotEmpty) {
             nextItems = rawList
                 .map(

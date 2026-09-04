@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -72,7 +72,7 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
       final settingsSections = asJsonList(
         settingsEnvelope.scheme['sections'],
       ).map((item) => asJsonMap(item)).toList();
-      final values = asMap(settingsEnvelope.data['values']);
+      final values = asJsonMap(settingsEnvelope.data['values']);
       final canShowUserInfo = settingsEnvelope.data['canShowUserInfo'] == true;
 
       List<Map<String, dynamic>> actions = const [];
@@ -133,7 +133,7 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       emit(
         state.copyWith(
-          userInfo: asMap(envelope.data),
+          userInfo: asJsonMap(envelope.data),
           loadingUserInfo: false,
           userInfoError: '',
         ),

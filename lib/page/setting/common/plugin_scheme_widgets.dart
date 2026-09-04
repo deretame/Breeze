@@ -2,11 +2,12 @@ import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/util/json/json_value.dart';
 
 class PluginSettingSchemeSection extends StatefulWidget {
   const PluginSettingSchemeSection({
@@ -65,10 +66,10 @@ class _PluginSettingSchemeSectionState
         }
 
         final envelope = snapshot.data!;
-        final sections = asList(
+        final sections = asJsonList(
           envelope.scheme['sections'],
-        ).map((item) => asMap(item)).toList();
-        final values = asMap(envelope.data['values']);
+        ).map((item) => asJsonMap(item)).toList();
+        final values = asJsonMap(envelope.data['values']);
         final widgets = <Widget>[];
 
         for (final section in sections) {
@@ -81,7 +82,9 @@ class _PluginSettingSchemeSectionState
               ),
             );
           }
-          final fields = asList(section['fields']).map((item) => asMap(item));
+          final fields = asJsonList(
+            section['fields'],
+          ).map((item) => asJsonMap(item));
           for (final field in fields) {
             widgets.add(_buildField(field, values));
           }
@@ -99,7 +102,7 @@ class _PluginSettingSchemeSectionState
     final value = values[key];
 
     if (kind == 'select') {
-      final options = asList(
+      final options = asJsonList(
         field['options'],
       ).map((e) => e.toString()).toList();
       final current =
@@ -203,9 +206,9 @@ class _PluginAdvancedActionSectionState
           return const SizedBox.shrink();
         }
 
-        final actions = asList(
+        final actions = asJsonList(
           snapshot.data!.scheme['actions'],
-        ).map((item) => asMap(item)).toList();
+        ).map((item) => asJsonMap(item)).toList();
         if (actions.isEmpty) {
           return const SizedBox.shrink();
         }

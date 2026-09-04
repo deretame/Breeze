@@ -440,6 +440,7 @@
     "confirmUnfollowContent": "确定不再追更《$title》吗？",
     "noChapters": "暂无章节信息",
     "chapterList": "章节目录",
+    "preview": "预览",
     "episodeCount": "$count 话",
     "episodeFallback": "$index",
     "episodeLabel": "$index",

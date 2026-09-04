@@ -60,6 +60,12 @@ export type ChapterPayload = {
   extern?: StringMap;
 };
 
+export type PreviewPayload = {
+  comicId?: string;
+  page?: number;
+  extern?: StringMap;
+};
+
 export type ReadSnapshotPayload = {
   comicId?: string;
   chapterId?: string | number;
@@ -528,6 +534,7 @@ export type ComicDetailNormal = {
     metadata: MetadataListItem[];
     extern: StringMap;
   };
+  preview?: PreviewCapability;
   eps: ChapterSummary[];
   recommend: RecommendItem[];
   totalViews: number;
@@ -540,6 +547,11 @@ export type ComicDetailNormal = {
   allowCollected: boolean;
   allowDownload: boolean;
   extern: StringMap;
+};
+
+export type PreviewCapability = {
+  enabled: boolean;
+  extern?: StringMap;
 };
 
 export type ComicDetailData = {
@@ -653,6 +665,31 @@ export type ChapterContentContract = {
     source: string;
   };
   data: ChapterContent;
+};
+
+export type PreviewItem = {
+  id: string;
+  name: string;
+  path: string;
+  url: string;
+  extern: StringMap;
+};
+
+export type PreviewContentContract = {
+  source: string;
+  comicId: string;
+  extern: StringMap | null;
+  scheme: {
+    version: "1.0.0";
+    type: "previewContent";
+    source: string;
+  };
+  data: {
+    preview: {
+      items: PreviewItem[];
+      paging: PagingInfo;
+    };
+  };
 };
 
 export type ReadSnapshotContract = {

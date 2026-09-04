@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
@@ -272,7 +272,7 @@ class ComicListCubit extends Cubit<ComicListState> {
   }
 
   ListFilterBundle _parseFilterBundle(UnifiedPluginEnvelope envelope) {
-    final values = asMap(envelope.data['values']);
+    final values = asJsonMap(envelope.data['values']);
     final defaults = <String, String>{};
     values.forEach((key, value) {
       defaults[key] = value?.toString() ?? '';

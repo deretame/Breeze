@@ -1,7 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/util/json/json_value.dart';
 
 class PluginFunctionState {
   const PluginFunctionState({
@@ -58,7 +59,7 @@ class PluginFunctionCubit extends Cubit<PluginFunctionState> {
           loading: false,
           error: '',
           scheme: envelope.scheme,
-          data: asMap(envelope.data),
+          data: asJsonMap(envelope.data),
         ),
       );
     } catch (e) {

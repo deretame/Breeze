@@ -439,6 +439,7 @@
     "confirmUnfollowContent": "Stop following \"$title\"?",
     "noChapters": "No chapter information",
     "chapterList": "Chapters",
+    "preview": "Preview",
     "episodeCount": "$count Episodes",
     "episodeFallback": "$index",
     "episodeLabel": "$index",

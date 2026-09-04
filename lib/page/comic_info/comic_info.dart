@@ -1,4 +1,5 @@
 export 'package:zephyr/page/comic_info/bloc/get_comic_info_bloc.dart';
+export 'package:zephyr/page/comic_info/bloc/comic_preview_bloc.dart';
 export 'package:zephyr/page/comic_info/method/method.dart';
 export 'package:zephyr/page/comic_info/models/models.dart';
 export 'package:zephyr/page/comic_info/view/view.dart';

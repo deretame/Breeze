@@ -15,6 +15,9 @@ String normalComicAllInfoToJson(NormalComicAllInfo data) =>
 abstract class NormalComicAllInfo with _$NormalComicAllInfo {
   const factory NormalComicAllInfo({
     @JsonKey(name: 'comicInfo') required ComicInfo comicInfo,
+    @JsonKey(name: 'preview')
+    @Default({})
+    Map<String, dynamic> preview,
     @JsonKey(name: 'eps') required List<Ep> eps,
     @JsonKey(name: 'recommend') required List<Recommend> recommend,
     @JsonKey(name: 'totalViews') @Default(0) int totalViews,

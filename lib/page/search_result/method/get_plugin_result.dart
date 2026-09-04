@@ -1,9 +1,9 @@
 import 'package:zephyr/widgets/comic_entry/models/models.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/page/search_result/models/comic_number.dart';
+import 'package:zephyr/page/search_result/models/unified_plugin_search.dart';
 
 Future<BlocState> getPluginSearchResult(
   SearchEvent event,

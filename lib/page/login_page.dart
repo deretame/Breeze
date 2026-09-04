@@ -1,13 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/util/json/json_value.dart';
 
 @RoutePage()
 class LoginPage extends StatefulWidget {
@@ -85,7 +86,9 @@ class _LoginPageState extends State<LoginPage> {
     Map<String, dynamic> scheme,
     Map<String, dynamic>? data,
   ) {
-    final fields = asList(scheme['fields']).map((item) => asMap(item)).toList();
+    final fields = asJsonList(
+      scheme['fields'],
+    ).map((item) => asJsonMap(item)).toList();
     if (fields.length < 2) {
       if (mounted) {
         setState(() {
@@ -161,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
         extern: const <String, dynamic>{},
       );
 
-      final _ = asMap(result['raw']);
+      final _ = asJsonMap(result['raw']);
       showSuccessToast(t.login.loginSuccess);
 
       if (!mounted) return;

@@ -9,6 +9,7 @@ part of 'normal_comic_all_info.dart';
 _NormalComicAllInfo _$NormalComicAllInfoFromJson(Map<String, dynamic> json) =>
     _NormalComicAllInfo(
       comicInfo: ComicInfo.fromJson(json['comicInfo'] as Map<String, dynamic>),
+      preview: json['preview'] as Map<String, dynamic>? ?? const {},
       eps: (json['eps'] as List<dynamic>)
           .map((e) => Ep.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -30,6 +31,7 @@ _NormalComicAllInfo _$NormalComicAllInfoFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
     <String, dynamic>{
       'comicInfo': instance.comicInfo.toJson(),
+      'preview': instance.preview,
       'eps': instance.eps.map((e) => e.toJson()).toList(),
       'recommend': instance.recommend.map((e) => e.toJson()).toList(),
       'totalViews': instance.totalViews,

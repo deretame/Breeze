@@ -1417,6 +1417,9 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '章节目录'
 	String get chapterList => '章节目录';
 
+	/// zh-CN: '预览'
+	String get preview => '预览';
+
 	/// zh-CN: '$count 话'
 	String episodeCount({required Object count}) => '${count} 话';
 
@@ -4213,6 +4216,7 @@ extension on Translations {
 			'comicInfo.confirmUnfollowContent' => ({required Object title}) => '确定不再追更《${title}》吗？',
 			'comicInfo.noChapters' => '暂无章节信息',
 			'comicInfo.chapterList' => '章节目录',
+			'comicInfo.preview' => '预览',
 			'comicInfo.episodeCount' => ({required Object count}) => '${count} 话',
 			'comicInfo.episodeFallback' => ({required Object index}) => '${index}',
 			'comicInfo.episodeLabel' => ({required Object index}) => '${index}',
@@ -4295,9 +4299,9 @@ extension on Translations {
 			'reader.autoReadSmooth' => '平滑滚动',
 			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
 			'reader.webtoonScrollDistance' => '条漫滚动距离',
-			'reader.webtoonScrollInterval' => '条漫滚动间隔',
 			_ => null,
 		} ?? switch (path) {
+			'reader.webtoonScrollInterval' => '条漫滚动间隔',
 			'reader.singlePageScrollInterval' => '单页式滚动间隔',
 			'reader.preload' => '预加载',
 			'reader.preloadImageCount' => '预加载图片数量',
@@ -4809,9 +4813,9 @@ extension on Translations {
 			'comicFollow.latestChapterFailed' => '最新章节获取失败',
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话',
 			'comicFollow.latestCount' => ({required Object count}) => '最新 ${count} 话',
-			'comicFollow.fetchFailed' => '获取失败',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.fetchFailed' => '获取失败',
 			'comicFollow.newChaptersShort' => ({required Object diff}) => '新增 ${diff} 话',
 			'comicFollow.update' => '更新',
 			'comicFollow.retry' => '重试',

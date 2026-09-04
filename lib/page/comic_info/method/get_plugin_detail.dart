@@ -1,10 +1,13 @@
 import 'dart:convert';
 
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
+import 'package:zephyr/page/comic_info/models/unified_plugin_detail.dart';
+import 'package:zephyr/page/comic_info/models/unified_plugin_preview.dart';
+import 'package:zephyr/page/comic_read/model/unified_plugin_chapter.dart';
+import 'package:zephyr/util/json/json_value.dart';
 
 class PluginComicDetail {
   const PluginComicDetail({required this.normalInfo, required this.source});
@@ -26,7 +29,7 @@ class PluginComicDetailSource {
   final normal.NormalComicAllInfo normalInfo;
   final Map<String, dynamic> raw;
 
-  Map<String, dynamic> get rawComicInfo => asMap(raw['comicInfo']);
+  Map<String, dynamic> get rawComicInfo => asJsonMap(raw['comicInfo']);
 
   List<normal.Ep> get eps => normalInfo.eps;
 
@@ -119,6 +122,25 @@ Future<UnifiedPluginChapterResponse> getComicChapterByPlugin(
   return UnifiedPluginChapterResponse.fromMap(map);
 }
 
+Future<UnifiedPluginPreviewResponse> getComicPreviewByPlugin(
+  String comicId,
+  int page,
+  String from, {
+  String? pluginId,
+  Map<String, dynamic> extern = const <String, dynamic>{},
+}) async {
+  final resolvedPluginId =
+      (pluginId?.trim().isNotEmpty == true ? pluginId!.trim() : from.trim())
+          .trim();
+  final map = await callUnifiedComicPlugin(
+    from: resolvedPluginId,
+    fnPath: 'getPreview',
+    core: {'comicId': comicId, 'page': page},
+    extern: extern,
+  );
+  return UnifiedPluginPreviewResponse.fromMap(map);
+}
+
 List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   dynamic comicInfo,
   String from,
@@ -151,7 +173,7 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
         requestId: ep['taskChapterId']?.toString() ?? '',
         storageChapterId: storageChapterId,
         logicalKey: ep['logicalKey']?.toString() ?? '',
-        extern: asMap(ep['extern']),
+        extern: asJsonMap(ep['extern']),
       );
     }).toList();
   }

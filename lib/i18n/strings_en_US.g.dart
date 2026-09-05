@@ -1309,11 +1309,24 @@ class _Translations$comicFollow$en_US extends Translations$comicFollow$zh_CN {
 	@override String get unfollow => 'Unfollow';
 	@override String unfollowConfirm({required Object title}) => 'Stop following "${title}"?';
 	@override String get unfollowed => 'Unfollowed';
+	@override String get all => 'All';
+	@override String get unread => 'Updated and unread';
+	@override String get sort => 'Sort';
+	@override String get lastRead => 'Last read';
+	@override String get lastUpdate => 'Latest update check';
+	@override String checkTime({required Object time}) => 'Check time: ${time}';
+	@override String get notRead => 'Not read yet';
+	@override String lastReadChapter({required Object chapter}) => 'Read to: ${chapter}';
+	@override String latestChapter({required Object count, required Object chapter}) => 'Latest: ${count} / ${chapter}';
+	@override String get noUnread => 'No updated unread comics';
+	@override String get showAll => 'Show all';
 	@override String get latestChapterFailed => 'Failed to get latest chapter';
 	@override String newChapters({required Object diff, required Object total}) => '${diff} new chapters, ${total} total';
+	@override String newUnreadChapters({required Object diff, required Object total}) => '${diff} new unread chapters, ${total} total';
 	@override String latestCount({required Object count}) => 'Latest ${count} chapters';
 	@override String get fetchFailed => 'Fetch failed';
 	@override String newChaptersShort({required Object diff}) => '${diff} new';
+	@override String newUnreadChaptersShort({required Object diff}) => '${diff} unread';
 	@override String get update => 'Update';
 	@override String get retry => 'Retry';
 	@override String get updateChannelName => 'Comic update reminder';
@@ -2542,13 +2555,26 @@ extension on TranslationsEnUs {
 			'comicFollow.unfollow' => 'Unfollow',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => 'Stop following "${title}"?',
 			'comicFollow.unfollowed' => 'Unfollowed',
-			'comicFollow.latestChapterFailed' => 'Failed to get latest chapter',
-			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '${diff} new chapters, ${total} total',
-			'comicFollow.latestCount' => ({required Object count}) => 'Latest ${count} chapters',
-			'comicFollow.fetchFailed' => 'Fetch failed',
+			'comicFollow.all' => 'All',
+			'comicFollow.unread' => 'Updated and unread',
+			'comicFollow.sort' => 'Sort',
+			'comicFollow.lastRead' => 'Last read',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.lastUpdate' => 'Latest update check',
+			'comicFollow.checkTime' => ({required Object time}) => 'Check time: ${time}',
+			'comicFollow.notRead' => 'Not read yet',
+			'comicFollow.lastReadChapter' => ({required Object chapter}) => 'Read to: ${chapter}',
+			'comicFollow.latestChapter' => ({required Object count, required Object chapter}) => 'Latest: ${count} / ${chapter}',
+			'comicFollow.noUnread' => 'No updated unread comics',
+			'comicFollow.showAll' => 'Show all',
+			'comicFollow.latestChapterFailed' => 'Failed to get latest chapter',
+			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '${diff} new chapters, ${total} total',
+			'comicFollow.newUnreadChapters' => ({required Object diff, required Object total}) => '${diff} new unread chapters, ${total} total',
+			'comicFollow.latestCount' => ({required Object count}) => 'Latest ${count} chapters',
+			'comicFollow.fetchFailed' => 'Fetch failed',
 			'comicFollow.newChaptersShort' => ({required Object diff}) => '${diff} new',
+			'comicFollow.newUnreadChaptersShort' => ({required Object diff}) => '${diff} unread',
 			'comicFollow.update' => 'Update',
 			'comicFollow.retry' => 'Retry',
 			'comicFollow.updateChannelName' => 'Comic update reminder',

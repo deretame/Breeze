@@ -1050,6 +1050,9 @@ class ComicFollow {
   /// 检测到的最新章节数
   int detectedChapterCount;
 
+  /// 检测到的最新章节名称
+  String detectedChapterTitle;
+
   /// 是否有更新
   bool hasUpdate;
 
@@ -1084,6 +1087,7 @@ class ComicFollow {
     required this.metadata,
     required this.lastChapterCount,
     required this.detectedChapterCount,
+    this.detectedChapterTitle = '',
     required this.hasUpdate,
     this.lastCheckFailed = false,
     required this.updateTime,
@@ -1106,6 +1110,7 @@ class ComicFollow {
     String? metadata,
     int? lastChapterCount,
     int? detectedChapterCount,
+    String? detectedChapterTitle,
     bool? hasUpdate,
     bool? lastCheckFailed,
     DateTime? updateTime,
@@ -1127,6 +1132,7 @@ class ComicFollow {
       metadata: metadata ?? this.metadata,
       lastChapterCount: lastChapterCount ?? this.lastChapterCount,
       detectedChapterCount: detectedChapterCount ?? this.detectedChapterCount,
+      detectedChapterTitle: detectedChapterTitle ?? this.detectedChapterTitle,
       hasUpdate: hasUpdate ?? this.hasUpdate,
       lastCheckFailed: lastCheckFailed ?? this.lastCheckFailed,
       updateTime: updateTime ?? this.updateTime,

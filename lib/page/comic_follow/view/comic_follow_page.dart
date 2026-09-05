@@ -15,8 +15,23 @@ import 'package:zephyr/widgets/error_view.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
-class ComicFollowPage extends StatelessWidget {
+class ComicFollowPage extends StatefulWidget {
   const ComicFollowPage({super.key});
+
+  @override
+  State<ComicFollowPage> createState() => _ComicFollowPageState();
+}
+
+class _ComicFollowPageState extends State<ComicFollowPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ComicFollowCubit>().refreshHistories();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,20 +116,105 @@ class _ComicFollowPageContent extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, ComicFollowState state) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final maxContentWidth = constraints.maxWidth > 1400
-            ? 1400.0
-            : (constraints.maxWidth > 900 ? 1100.0 : double.infinity);
-        final horizontalPadding = maxContentWidth == double.infinity
-            ? 16.0
-            : (constraints.maxWidth - maxContentWidth) / 2;
+    final visibleItems = state.visibleItems;
+    if (visibleItems.isEmpty && state.filter == ComicFollowFilter.unread) {
+      return Column(
+        children: [
+          _buildToolbar(context, state),
+          Expanded(child: _buildFilteredEmptyView(context)),
+        ],
+      );
+    }
 
-        if (constraints.maxWidth >= 720) {
-          return _buildGrid(context, state, horizontalPadding);
-        }
-        return _buildList(context, state, horizontalPadding);
-      },
+    return Column(
+      children: [
+        _buildToolbar(context, state),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxContentWidth = constraints.maxWidth > 1400
+                  ? 1400.0
+                  : (constraints.maxWidth > 900 ? 1100.0 : double.infinity);
+              final horizontalPadding = maxContentWidth == double.infinity
+                  ? 16.0
+                  : (constraints.maxWidth - maxContentWidth) / 2;
+
+              if (constraints.maxWidth >= 720) {
+                return _buildGrid(context, state, horizontalPadding);
+              }
+              return _buildList(context, state, horizontalPadding);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToolbar(BuildContext context, ComicFollowState state) {
+    final cubit = context.read<ComicFollowCubit>();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Row(
+        children: [
+          ChoiceChip(
+            label: Text(t.comicFollow.all),
+            selected: state.filter == ComicFollowFilter.all,
+            onSelected: (_) => cubit.setFilter(ComicFollowFilter.all),
+          ),
+          const SizedBox(width: 8),
+          ChoiceChip(
+            label: Text(t.comicFollow.unread),
+            selected: state.filter == ComicFollowFilter.unread,
+            onSelected: (_) => cubit.setFilter(ComicFollowFilter.unread),
+          ),
+          const Spacer(),
+          PopupMenuButton<ComicFollowSort>(
+            tooltip: t.comicFollow.sort,
+            initialValue: state.sort,
+            onSelected: cubit.setSort,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: ComicFollowSort.lastRead,
+                child: Text(t.comicFollow.lastRead),
+              ),
+              PopupMenuItem(
+                value: ComicFollowSort.update,
+                child: Text(t.comicFollow.lastUpdate),
+              ),
+            ],
+            child: const Icon(Icons.sort),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilteredEmptyView(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: 64,
+            color: context.theme.colorScheme.outlineVariant,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            t.comicFollow.noUnread,
+            style: context.theme.textTheme.titleMedium?.copyWith(
+              color: context.theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => context.read<ComicFollowCubit>().setFilter(
+              ComicFollowFilter.all,
+            ),
+            child: Text(t.comicFollow.showAll),
+          ),
+        ],
+      ),
     );
   }
 
@@ -133,11 +233,15 @@ class _ComicFollowPageContent extends StatelessWidget {
           horizontalPadding,
           88,
         ),
-        itemCount: state.items.length,
+        itemCount: state.visibleItems.length,
         itemBuilder: (context, index) {
-          final follow = state.items[index];
+          final follow = state.visibleItems[index];
           return _ComicFollowListItem(
+            key: ValueKey(follow.uniqueKey),
             follow: follow,
+            history: state.historyFor(follow),
+            hasUnreadUpdate: state.hasUnreadUpdate(follow),
+            unreadChapterCount: state.unreadChapterCount(follow),
             onTap: () => _openComicDetail(context, follow),
             onLongPress: () => _confirmRemove(context, follow),
             onRetry: follow.lastCheckFailed
@@ -174,11 +278,15 @@ class _ComicFollowPageContent extends StatelessWidget {
           mainAxisSpacing: 16,
           childAspectRatio: 0.72,
         ),
-        itemCount: state.items.length,
+        itemCount: state.visibleItems.length,
         itemBuilder: (context, index) {
-          final follow = state.items[index];
+          final follow = state.visibleItems[index];
           return _ComicFollowGridItem(
+            key: ValueKey(follow.uniqueKey),
             follow: follow,
+            history: state.historyFor(follow),
+            hasUnreadUpdate: state.hasUnreadUpdate(follow),
+            unreadChapterCount: state.unreadChapterCount(follow),
             onTap: () => _openComicDetail(context, follow),
             onLongPress: () => _confirmRemove(context, follow),
             onRetry: follow.lastCheckFailed
@@ -192,14 +300,20 @@ class _ComicFollowPageContent extends StatelessWidget {
     );
   }
 
-  void _openComicDetail(BuildContext context, ComicFollow follow) {
-    context.pushRoute(
+  Future<void> _openComicDetail(
+    BuildContext context,
+    ComicFollow follow,
+  ) async {
+    await context.pushRoute(
       ComicInfoRoute(
         comicId: follow.comicId,
         from: follow.source,
         type: ComicEntryType.normal,
       ),
     );
+    if (context.mounted) {
+      await context.read<ComicFollowCubit>().refreshHistories();
+    }
   }
 
   Future<void> _confirmRemove(BuildContext context, ComicFollow follow) async {
@@ -232,13 +346,20 @@ class _ComicFollowPageContent extends StatelessWidget {
 
 class _ComicFollowListItem extends StatelessWidget {
   const _ComicFollowListItem({
+    super.key,
     required this.follow,
+    required this.history,
+    required this.hasUnreadUpdate,
+    required this.unreadChapterCount,
     required this.onTap,
     required this.onLongPress,
     required this.onRetry,
   });
 
   final ComicFollow follow;
+  final UnifiedComicHistory? history;
+  final bool hasUnreadUpdate;
+  final int unreadChapterCount;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback? onRetry;
@@ -259,7 +380,7 @@ class _ComicFollowListItem extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: follow.hasUpdate
+            color: hasUnreadUpdate
                 ? theme.colorScheme.primary
                 : theme.colorScheme.outlineVariant,
           ),
@@ -267,7 +388,7 @@ class _ComicFollowListItem extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (follow.hasUpdate)
+            if (hasUnreadUpdate)
               Container(
                 width: 4,
                 height: coverHeight,
@@ -281,10 +402,10 @@ class _ComicFollowListItem extends StatelessWidget {
               ),
             ClipRRect(
               borderRadius: BorderRadius.only(
-                topLeft: follow.hasUpdate
+                topLeft: hasUnreadUpdate
                     ? Radius.zero
                     : const Radius.circular(12),
-                bottomLeft: follow.hasUpdate
+                bottomLeft: hasUnreadUpdate
                     ? Radius.zero
                     : const Radius.circular(12),
               ),
@@ -315,25 +436,32 @@ class _ComicFollowListItem extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              if (follow.hasUpdate) ...[
+                              if (hasUnreadUpdate) ...[
                                 const SizedBox(width: 8),
-                                _UpdateBadge(
-                                  count:
-                                      follow.detectedChapterCount -
-                                      follow.lastChapterCount,
-                                ),
+                                _UpdateBadge(count: unreadChapterCount),
                               ],
                             ],
                           ),
                           const SizedBox(height: 10),
                           _buildStatusLine(theme),
+                          if (hasUnreadUpdate &&
+                              follow.detectedChapterTitle
+                                  .trim()
+                                  .isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _buildLatestChapterLine(theme),
+                          ],
+                          const SizedBox(height: 6),
+                          _buildReadingLine(theme),
                         ],
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            _formatUpdateTime(follow.updateTime),
+                            t.comicFollow.checkTime(
+                              time: _formatCheckTime(follow.updateTime),
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -371,8 +499,8 @@ class _ComicFollowListItem extends StatelessWidget {
       );
     }
 
-    if (follow.hasUpdate) {
-      final diff = follow.detectedChapterCount - follow.lastChapterCount;
+    if (hasUnreadUpdate) {
+      final diff = unreadChapterCount;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
@@ -380,7 +508,7 @@ class _ComicFollowListItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          t.comicFollow.newChapters(
+          t.comicFollow.newUnreadChapters(
             diff: diff,
             total: follow.detectedChapterCount,
           ),
@@ -392,9 +520,43 @@ class _ComicFollowListItem extends StatelessWidget {
       );
     }
 
+    if (follow.detectedChapterTitle.trim().isNotEmpty) {
+      return _buildLatestChapterLine(theme);
+    }
+
     return Text(
       t.comicFollow.latestCount(count: follow.detectedChapterCount),
       style: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildReadingLine(ThemeData theme) {
+    final label = history == null || history!.chapterTitle.trim().isEmpty
+        ? t.comicFollow.notRead
+        : t.comicFollow.lastReadChapter(chapter: history!.chapterTitle);
+    return Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildLatestChapterLine(ThemeData theme) {
+    final title = follow.detectedChapterTitle.trim();
+    if (title.isEmpty) return const SizedBox.shrink();
+    return Text(
+      t.comicFollow.latestChapter(
+        count: follow.detectedChapterCount,
+        chapter: title,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
     );
@@ -440,21 +602,33 @@ class _ComicFollowListItem extends StatelessWidget {
     return const <String, dynamic>{};
   }
 
-  String _formatUpdateTime(DateTime time) {
+  String _formatCheckTime(DateTime time) {
     final local = time.toLocal();
-    return '${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    return '${local.year.toString().padLeft(4, '0')}-'
+        '${local.month.toString().padLeft(2, '0')}-'
+        '${local.day.toString().padLeft(2, '0')} '
+        '${local.hour.toString().padLeft(2, '0')}:'
+        '${local.minute.toString().padLeft(2, '0')}:'
+        '${local.second.toString().padLeft(2, '0')}';
   }
 }
 
 class _ComicFollowGridItem extends StatelessWidget {
   const _ComicFollowGridItem({
+    super.key,
     required this.follow,
+    required this.history,
+    required this.hasUnreadUpdate,
+    required this.unreadChapterCount,
     required this.onTap,
     required this.onLongPress,
     required this.onRetry,
   });
 
   final ComicFollow follow;
+  final UnifiedComicHistory? history;
+  final bool hasUnreadUpdate;
+  final int unreadChapterCount;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final VoidCallback? onRetry;
@@ -472,7 +646,7 @@ class _ComicFollowGridItem extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: follow.hasUpdate
+            color: hasUnreadUpdate
                 ? theme.colorScheme.primary
                 : theme.colorScheme.outlineVariant,
           ),
@@ -490,7 +664,7 @@ class _ComicFollowGridItem extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     _buildCover(),
-                    if (follow.hasUpdate)
+                    if (hasUnreadUpdate)
                       Positioned(top: 8, right: 8, child: _UpdateBadge()),
                   ],
                 ),
@@ -511,13 +685,22 @@ class _ComicFollowGridItem extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   _buildStatusLine(theme),
+                  if (hasUnreadUpdate &&
+                      follow.detectedChapterTitle.trim().isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    _buildLatestChapterLine(theme),
+                  ],
+                  const SizedBox(height: 4),
+                  _buildReadingLine(theme),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
-                          _formatUpdateTime(follow.updateTime),
+                          t.comicFollow.checkTime(
+                            time: _formatCheckTime(follow.updateTime),
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodySmall?.copyWith(
@@ -556,8 +739,8 @@ class _ComicFollowGridItem extends StatelessWidget {
       );
     }
 
-    if (follow.hasUpdate) {
-      final diff = follow.detectedChapterCount - follow.lastChapterCount;
+    if (hasUnreadUpdate) {
+      final diff = unreadChapterCount;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
@@ -565,7 +748,7 @@ class _ComicFollowGridItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          t.comicFollow.newChaptersShort(diff: diff),
+          t.comicFollow.newUnreadChaptersShort(diff: diff),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w700,
@@ -574,8 +757,42 @@ class _ComicFollowGridItem extends StatelessWidget {
       );
     }
 
+    if (follow.detectedChapterTitle.trim().isNotEmpty) {
+      return _buildLatestChapterLine(theme);
+    }
+
     return Text(
       t.comicFollow.latestCount(count: follow.detectedChapterCount),
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildReadingLine(ThemeData theme) {
+    final label = history == null || history!.chapterTitle.trim().isEmpty
+        ? t.comicFollow.notRead
+        : t.comicFollow.lastReadChapter(chapter: history!.chapterTitle);
+    return Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildLatestChapterLine(ThemeData theme) {
+    final title = follow.detectedChapterTitle.trim();
+    if (title.isEmpty) return const SizedBox.shrink();
+    return Text(
+      t.comicFollow.latestChapter(
+        count: follow.detectedChapterCount,
+        chapter: title,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
@@ -620,9 +837,14 @@ class _ComicFollowGridItem extends StatelessWidget {
     return const <String, dynamic>{};
   }
 
-  String _formatUpdateTime(DateTime time) {
+  String _formatCheckTime(DateTime time) {
     final local = time.toLocal();
-    return '${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+    return '${local.year.toString().padLeft(4, '0')}-'
+        '${local.month.toString().padLeft(2, '0')}-'
+        '${local.day.toString().padLeft(2, '0')} '
+        '${local.hour.toString().padLeft(2, '0')}:'
+        '${local.minute.toString().padLeft(2, '0')}:'
+        '${local.second.toString().padLeft(2, '0')}';
   }
 }
 

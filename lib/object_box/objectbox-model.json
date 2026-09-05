@@ -1658,7 +1658,7 @@
     },
     {
       "id": "22:1286366745902983298",
-      "lastPropertyId": "18:2143015246988481925",
+      "lastPropertyId": "19:6866878886811610493",
       "name": "ComicFollow",
       "properties": [
         {
@@ -1753,6 +1753,11 @@
           "id": "18:2143015246988481925",
           "name": "schemaVersion",
           "type": 6
+        },
+        {
+          "id": "19:6866878886811610493",
+          "name": "detectedChapterTitle",
+          "type": 9
         }
       ],
       "relations": []

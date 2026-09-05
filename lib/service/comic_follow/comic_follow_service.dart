@@ -11,6 +11,16 @@ const _kComicUpdateChannelId = 'comic_update_channel';
 final _kComicUpdateChannelName = t.comicFollow.updateChannelName;
 final _kComicUpdateChannelDesc = t.comicFollow.updateChannelDesc;
 
+class ComicFollowDetection {
+  const ComicFollowDetection({
+    required this.chapterCount,
+    required this.latestChapterTitle,
+  });
+
+  final int chapterCount;
+  final String latestChapterTitle;
+}
+
 class ComicFollowService {
   static final ComicFollowService instance = ComicFollowService._();
 
@@ -39,6 +49,14 @@ class ComicFollowService {
     }
   }
 
+  /// 查询未删除的阅读历史，供追更页关联阅读进度和最后阅读时间。
+  Map<String, UnifiedComicHistory> listActiveHistories() {
+    return {
+      for (final history in objectbox.unifiedHistoryBox.getAll())
+        if (!history.deleted) history.uniqueKey: history,
+    };
+  }
+
   /// 按 uniqueKey 查询追更记录（包含已删除的），用于更新或复活旧记录
   ComicFollow? getFollowByUniqueKey(String uniqueKey) {
     final query = objectbox.comicFollowBox
@@ -51,15 +69,24 @@ class ComicFollowService {
     }
   }
 
-  /// 检测单部漫画的当前章节数，失败时返回 null，最多重试 3 次
-  Future<int?> detectChapterCount(ComicFollow follow) async {
+  /// 检测单部漫画的当前章节，失败时返回 null，最多重试 3 次
+  Future<ComicFollowDetection?> detectChapter(ComicFollow follow) async {
     for (var attempt = 0; attempt < _kMaxRetryCount; attempt++) {
       try {
         final result = await getComicDetailByPlugin(
           follow.comicId,
           follow.source,
         );
-        return result.normalInfo.eps.length;
+        final eps = result.normalInfo.eps;
+        final latest = eps.isEmpty
+            ? null
+            : eps.reduce(
+                (left, right) => left.order >= right.order ? left : right,
+              );
+        return ComicFollowDetection(
+          chapterCount: eps.length,
+          latestChapterTitle: latest?.name ?? '',
+        );
       } catch (e, s) {
         logger.w(
           '追更检测失败 ${follow.source}:${follow.comicId} (attempt ${attempt + 1}/$_kMaxRetryCount)',

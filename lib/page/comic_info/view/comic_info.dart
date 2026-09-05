@@ -118,7 +118,6 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _cloudFavoriteStateOverridden = false;
   bool _isLocalCollected = false;
   String _localCollectSyncedFor = '';
-  bool _followSyncedForCurrentInfo = false;
 
   @override
   void initState() {
@@ -343,8 +342,6 @@ class _ComicInfoState extends State<_ComicInfo>
       displayEps = displayEps.reversed.toList();
     }
 
-    _syncFollowIfNeeded(normalComicAllInfo);
-
     final previewCapability = ComicPreviewCapability.fromInfo(
       normalComicAllInfo,
     );
@@ -357,7 +354,6 @@ class _ComicInfoState extends State<_ComicInfo>
         final refreshable = RefreshIndicator(
           onRefresh: () async {
             _type = ComicEntryType.normal;
-            _followSyncedForCurrentInfo = false;
             _isReversed = false;
 
             context.read<GetComicInfoBloc>().add(
@@ -721,23 +717,6 @@ class _ComicInfoState extends State<_ComicInfo>
   // 切换章节列表的倒序/正序显示
   void _toggleOrder() => setState(() => _isReversed = !_isReversed);
 
-  void _syncFollowIfNeeded(NormalComicAllInfo info) {
-    if (_type == ComicEntryType.download) {
-      return;
-    }
-    final cubit = context.read<ComicFollowCubit>();
-    if (!cubit.isFollowing(widget.from, _comicId)) {
-      return;
-    }
-    if (_followSyncedForCurrentInfo) {
-      return;
-    }
-    _followSyncedForCurrentInfo = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      cubit.markAsRead(widget.from, _comicId, info.eps.length);
-    });
-  }
-
   Future<void> _toggleFollow(bool isFollowing) async {
     final info = _currentInfo;
     if (info == null) {
@@ -756,7 +735,6 @@ class _ComicInfoState extends State<_ComicInfo>
       info: info,
       lastChapterCount: info.eps.length,
     );
-    _followSyncedForCurrentInfo = true;
     if (mounted) {
       showSuccessToast(t.comicInfo.followed);
     }
@@ -820,7 +798,6 @@ class _ComicInfoState extends State<_ComicInfo>
       return;
     }
     await context.read<ComicFollowCubit>().removeFollow(widget.from, _comicId);
-    _followSyncedForCurrentInfo = false;
     if (mounted) {
       showSuccessToast(t.comicInfo.unfollowed);
     }

@@ -1973,7 +1973,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(22, 1286366745902983298),
     name: 'ComicFollow',
-    lastPropertyId: const obx_int.IdUid(18, 2143015246988481925),
+    lastPropertyId: const obx_int.IdUid(19, 6866878886811610493),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -2083,6 +2083,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(18, 2143015246988481925),
         name: 'schemaVersion',
         type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 6866878886811610493),
+        name: 'detectedChapterTitle',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -4676,7 +4682,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final creatorOffset = fbb.writeString(object.creator);
         final titleMetaOffset = fbb.writeString(object.titleMeta);
         final metadataOffset = fbb.writeString(object.metadata);
-        fbb.startTable(19);
+        final detectedChapterTitleOffset = fbb.writeString(
+          object.detectedChapterTitle,
+        );
+        fbb.startTable(20);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uniqueKeyOffset);
         fbb.addOffset(2, sourceOffset);
@@ -4695,6 +4704,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(15, object.createdAt.millisecondsSinceEpoch);
         fbb.addInt64(16, object.updatedAt.millisecondsSinceEpoch);
         fbb.addInt64(17, object.schemaVersion);
+        fbb.addOffset(18, detectedChapterTitleOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -4746,6 +4756,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           26,
           0,
         );
+        final detectedChapterTitleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 40, '');
         final hasUpdateParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -4786,6 +4799,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           metadata: metadataParam,
           lastChapterCount: lastChapterCountParam,
           detectedChapterCount: detectedChapterCountParam,
+          detectedChapterTitle: detectedChapterTitleParam,
           hasUpdate: hasUpdateParam,
           updateTime: updateTimeParam,
           deleted: deletedParam,
@@ -6407,5 +6421,10 @@ class ComicFollow_ {
   /// See [ComicFollow.schemaVersion].
   static final schemaVersion = obx.QueryIntegerProperty<ComicFollow>(
     _entities[18].properties[17],
+  );
+
+  /// See [ComicFollow.detectedChapterTitle].
+  static final detectedChapterTitle = obx.QueryStringProperty<ComicFollow>(
+    _entities[18].properties[18],
   );
 }

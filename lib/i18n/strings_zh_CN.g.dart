@@ -3355,11 +3355,47 @@ class Translations$comicFollow$zh_CN {
 	/// zh-CN: '已取消追更'
 	String get unfollowed => '已取消追更';
 
+	/// zh-CN: '全部'
+	String get all => '全部';
+
+	/// zh-CN: '已更新未看'
+	String get unread => '已更新未看';
+
+	/// zh-CN: '排序'
+	String get sort => '排序';
+
+	/// zh-CN: '最后阅读'
+	String get lastRead => '最后阅读';
+
+	/// zh-CN: '最近检测更新'
+	String get lastUpdate => '最近检测更新';
+
+	/// zh-CN: '检测时间：$time'
+	String checkTime({required Object time}) => '检测时间：${time}';
+
+	/// zh-CN: '尚未阅读'
+	String get notRead => '尚未阅读';
+
+	/// zh-CN: '看到：$chapter'
+	String lastReadChapter({required Object chapter}) => '看到：${chapter}';
+
+	/// zh-CN: '最新：$count 话 / $chapter'
+	String latestChapter({required Object count, required Object chapter}) => '最新：${count} 话 / ${chapter}';
+
+	/// zh-CN: '暂无已更新未看内容'
+	String get noUnread => '暂无已更新未看内容';
+
+	/// zh-CN: '显示全部'
+	String get showAll => '显示全部';
+
 	/// zh-CN: '最新章节获取失败'
 	String get latestChapterFailed => '最新章节获取失败';
 
 	/// zh-CN: '新增 $diff 话，共 $total 话'
 	String newChapters({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话';
+
+	/// zh-CN: '新增 $diff 话未阅读，共 $total 话'
+	String newUnreadChapters({required Object diff, required Object total}) => '新增 ${diff} 话未阅读，共 ${total} 话';
 
 	/// zh-CN: '最新 $count 话'
 	String latestCount({required Object count}) => '最新 ${count} 话';
@@ -3369,6 +3405,9 @@ class Translations$comicFollow$zh_CN {
 
 	/// zh-CN: '新增 $diff 话'
 	String newChaptersShort({required Object diff}) => '新增 ${diff} 话';
+
+	/// zh-CN: '新增 $diff 话未阅读'
+	String newUnreadChaptersShort({required Object diff}) => '新增 ${diff} 话未阅读';
 
 	/// zh-CN: '更新'
 	String get update => '更新';
@@ -4810,13 +4849,26 @@ extension on Translations {
 			'comicFollow.unfollow' => '取消追更',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => '确定不再追更《${title}》吗？',
 			'comicFollow.unfollowed' => '已取消追更',
-			'comicFollow.latestChapterFailed' => '最新章节获取失败',
-			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话',
-			'comicFollow.latestCount' => ({required Object count}) => '最新 ${count} 话',
+			'comicFollow.all' => '全部',
+			'comicFollow.unread' => '已更新未看',
+			'comicFollow.sort' => '排序',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.lastRead' => '最后阅读',
+			'comicFollow.lastUpdate' => '最近检测更新',
+			'comicFollow.checkTime' => ({required Object time}) => '检测时间：${time}',
+			'comicFollow.notRead' => '尚未阅读',
+			'comicFollow.lastReadChapter' => ({required Object chapter}) => '看到：${chapter}',
+			'comicFollow.latestChapter' => ({required Object count, required Object chapter}) => '最新：${count} 话 / ${chapter}',
+			'comicFollow.noUnread' => '暂无已更新未看内容',
+			'comicFollow.showAll' => '显示全部',
+			'comicFollow.latestChapterFailed' => '最新章节获取失败',
+			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话',
+			'comicFollow.newUnreadChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话未阅读，共 ${total} 话',
+			'comicFollow.latestCount' => ({required Object count}) => '最新 ${count} 话',
 			'comicFollow.fetchFailed' => '获取失败',
 			'comicFollow.newChaptersShort' => ({required Object diff}) => '新增 ${diff} 话',
+			'comicFollow.newUnreadChaptersShort' => ({required Object diff}) => '新增 ${diff} 话未阅读',
 			'comicFollow.update' => '更新',
 			'comicFollow.retry' => '重试',
 			'comicFollow.updateChannelName' => '漫画更新提醒',

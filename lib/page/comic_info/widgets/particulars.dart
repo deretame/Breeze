@@ -41,7 +41,6 @@ class ComicParticularsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stringSelectDate = context.watch<StringSelectCubit>().state;
     final pictureInfo = PictureInfo(
       from: from,
       url: comicInfo.cover.url,
@@ -60,7 +59,6 @@ class ComicParticularsWidget extends StatelessWidget {
             comicInfo: comicInfo,
             from: from,
             type: type,
-            stringSelectDate: stringSelectDate,
             onContinueRead: onContinueRead,
           );
 
@@ -106,14 +104,12 @@ class _InfoColumn extends StatefulWidget {
     required this.comicInfo,
     required this.from,
     required this.type,
-    required this.stringSelectDate,
     required this.onContinueRead,
   });
 
   final ComicInfo comicInfo;
   final String from;
   final ComicEntryType type;
-  final String stringSelectDate;
   final VoidCallback? onContinueRead;
 
   @override
@@ -311,12 +307,50 @@ class _InfoColumnState extends State<_InfoColumn> {
               )
               .toList(),
         ),
-        if (widget.stringSelectDate.isNotEmpty) ...[
-          const SizedBox(height: 14),
-          Material(
+        _ContinueReadingBanner(onContinueRead: widget.onContinueRead),
+      ],
+    );
+  }
+
+  String _resolvePluginDisplayName(String pluginIdRaw) {
+    final pluginId = _normalizePluginId(pluginIdRaw);
+    if (pluginId.isEmpty) {
+      return pluginIdRaw.trim();
+    }
+    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
+    final name = info?['name']?.toString().trim() ?? '';
+    return name.isNotEmpty ? name : pluginId;
+  }
+
+  String _normalizePluginId(String raw) {
+    var value = raw.trim();
+    while (value.length >= 2 && value.startsWith('(') && value.endsWith(')')) {
+      value = value.substring(1, value.length - 1).trim();
+    }
+    return value;
+  }
+}
+
+class _ContinueReadingBanner extends StatelessWidget {
+  const _ContinueReadingBanner({required this.onContinueRead});
+
+  final VoidCallback? onContinueRead;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<StringSelectCubit, String, String>(
+      selector: (state) => state,
+      builder: (context, stringSelectDate) {
+        if (stringSelectDate.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 14),
+          child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: widget.onContinueRead,
+              onTap: onContinueRead,
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
@@ -370,7 +404,7 @@ class _InfoColumnState extends State<_InfoColumn> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            widget.stringSelectDate,
+                            stringSelectDate,
                             style: context.theme.textTheme.bodyMedium?.copyWith(
                               color: context.textColor,
                               fontWeight: FontWeight.w700,
@@ -379,7 +413,7 @@ class _InfoColumnState extends State<_InfoColumn> {
                         ],
                       ),
                     ),
-                    if (widget.onContinueRead != null) ...[
+                    if (onContinueRead != null) ...[
                       const SizedBox(width: 8),
                       Text(
                         t.comicInfo.continueRead,
@@ -400,27 +434,9 @@ class _InfoColumnState extends State<_InfoColumn> {
               ),
             ),
           ),
-        ],
-      ],
+        );
+      },
     );
-  }
-
-  String _resolvePluginDisplayName(String pluginIdRaw) {
-    final pluginId = _normalizePluginId(pluginIdRaw);
-    if (pluginId.isEmpty) {
-      return pluginIdRaw.trim();
-    }
-    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
-    final name = info?['name']?.toString().trim() ?? '';
-    return name.isNotEmpty ? name : pluginId;
-  }
-
-  String _normalizePluginId(String raw) {
-    var value = raw.trim();
-    while (value.length >= 2 && value.startsWith('(') && value.endsWith(')')) {
-      value = value.substring(1, value.length - 1).trim();
-    }
-    return value;
   }
 }
 

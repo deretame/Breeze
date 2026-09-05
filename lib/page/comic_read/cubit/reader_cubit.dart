@@ -6,11 +6,16 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   // 切换菜单显隐
   void updateMenuVisible({bool? visible}) {
-    emit(state.copyWith(isMenuVisible: visible ?? !state.isMenuVisible));
+    final nextVisible = visible ?? !state.isMenuVisible;
+    if (state.isMenuVisible == nextVisible) return;
+    emit(state.copyWith(isMenuVisible: nextVisible));
   }
 
   // 更新总页数
-  void updateTotalSlots(int total) => emit(state.copyWith(totalSlots: total));
+  void updateTotalSlots(int total) {
+    if (state.totalSlots == total) return;
+    emit(state.copyWith(totalSlots: total));
+  }
 
   // 更新当前全局槽位（同步计算滑块值）
   void updateCurrentSlot(int index) {
@@ -27,12 +32,18 @@ class ReaderCubit extends Cubit<ReaderState> {
   }
 
   // 滑块拖动逻辑
-  void updateSliderChanged(double value) =>
-      emit(state.copyWith(sliderValue: value));
+  void updateSliderChanged(double value) {
+    if (state.sliderValue == value) return;
+    emit(state.copyWith(sliderValue: value));
+  }
 
-  void updateSliderRolling(bool rolling) =>
-      emit(state.copyWith(isSliderRolling: rolling));
+  void updateSliderRolling(bool rolling) {
+    if (state.isSliderRolling == rolling) return;
+    emit(state.copyWith(isSliderRolling: rolling));
+  }
 
-  void updateIsComicRolling(bool rolling) =>
-      emit(state.copyWith(isComicRolling: rolling));
+  void updateIsComicRolling(bool rolling) {
+    if (state.isComicRolling == rolling) return;
+    emit(state.copyWith(isComicRolling: rolling));
+  }
 }

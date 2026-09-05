@@ -61,6 +61,7 @@ dependencies:
   gal: ^2.3.2 # 媒体: 保存到系统相册
   pool: ^1.5.2 # 工具: 并发资源池
   window_manager: ^0.5.1 # 桌面: 窗口控制
+  screen_retriever: ^0.2.2 # 桌面: 屏幕信息
   tray_manager: ^0.5.2 # 桌面: 系统托盘
   win32: ^6.0.1 # 平台: Windows API
   battery_plus: ^7.0.0 # 设备: 电池信息

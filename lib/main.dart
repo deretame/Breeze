@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:desktop_webview_linux/desktop_webview_linux.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -470,10 +471,12 @@ class MyApp extends StatefulWidget with WindowListener {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
+class _MyAppState extends State<MyApp>
+    with WindowListener, TrayListener, WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       windowManager.addListener(this);
       _init();
@@ -496,6 +499,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       windowManager.removeListener(this);
       trayManager.removeListener(this);
@@ -525,6 +529,15 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   void onWindowUnmaximize() {
     super.onWindowUnmaximize();
     WindowLogic.saveWindowStateImmediately(context);
+  }
+
+  /// 应用级退出请求不一定经过窗口关闭回调，退出前补存一次窗口状态。
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      await WindowLogic.saveWindowStateImmediately(context);
+    }
+    return AppExitResponse.exit;
   }
 
   /// 立即隐藏窗口再退出，让用户感知不到 Dart VM 清理的延迟

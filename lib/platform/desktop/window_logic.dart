@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:screen_retriever/screen_retriever.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -38,7 +40,8 @@ class WindowLogic {
   static const _windowMaximizedPrefsKey = 'desktop_window_maximized';
   static const _closeBehaviorPrefsKey = 'desktop_close_behavior';
 
-  static DateTime lastSaveTime = DateTime.now();
+  static const _saveDebounceDuration = Duration(milliseconds: 500);
+  static Timer? _saveTimer;
 
   /// 初始化窗口并恢复上次的状态
   static Future<void> initWindow(BuildContext context) async {
@@ -60,13 +63,12 @@ class WindowLogic {
     // 这种值不能直接使用，否则窗口会创建在屏幕外。
     final savedX = state.windowX;
     final savedY = state.windowY;
-    final bool isPositionValid =
-        savedX != 0 &&
-        savedY != 0 &&
-        savedX > -10000 &&
-        savedY > -10000 &&
-        savedX < 10000 &&
-        savedY < 10000;
+    final isPositionValid = await _isSavedPositionValid(
+      x: savedX,
+      y: savedY,
+      width: width,
+      height: height,
+    );
 
     logger.d(
       'initWindow: $width x $height @ $savedX,$savedY (valid=$isPositionValid), maximized=$wasMaximized',
@@ -100,42 +102,39 @@ class WindowLogic {
   }
 
   /// 保存当前窗口状态
-  static Future<void> saveWindowState(BuildContext context) async {
-    return _saveWindowState(context, throttle: true);
+  static void saveWindowState(BuildContext context) {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(_saveDebounceDuration, () {
+      _saveTimer = null;
+      unawaited(_saveWindowState(context));
+    });
   }
 
   /// 退出或隐藏前立即保存一次，避免节流漏掉最后一次最大化状态变化。
   static Future<void> saveWindowStateImmediately(BuildContext context) async {
-    return _saveWindowState(context, throttle: false);
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    await _saveWindowState(context);
   }
 
-  static Future<void> _saveWindowState(
-    BuildContext context, {
-    required bool throttle,
-  }) async {
+  static Future<void> _saveWindowState(BuildContext context) async {
     if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
       return;
     }
-    // 一秒钟最多更新一次
-    final now = DateTime.now();
-    if (throttle && now.difference(lastSaveTime).inMilliseconds < 1000) {
-      return;
-    }
-    lastSaveTime = now;
 
     if (!context.mounted) return;
     final globalSettingCubit = context.read<GlobalSettingCubit>();
+    // 窗口最小化时，Windows、macOS 和 Linux 可能会返回虚拟的屏幕外坐标。
+    // 直接跳过保存，保留最近一次正常窗口状态，避免下次启动窗口跑到屏幕外。
+    if (await windowManager.isMinimized()) return;
+
     final maximized = await windowManager.isMaximized();
     await _saveWindowMaximized(maximized);
     final current = globalSettingCubit.state;
-
-    // 窗口最小化时，Windows 会报告 (-16000,-16000) 这种幽灵坐标。
-    // 此时不应保存位置和大小，避免下次启动窗口跑到屏幕外。
-    final minimized = await windowManager.isMinimized();
-    final size = (maximized || minimized)
+    final size = maximized
         ? Size(current.windowWidth, current.windowHeight)
         : await windowManager.getSize();
-    final pos = (maximized || minimized)
+    final pos = maximized
         ? Offset(current.windowX, current.windowY)
         : await windowManager.getPosition();
 
@@ -147,6 +146,51 @@ class WindowLogic {
         windowY: pos.dy,
       ),
     );
+  }
+
+  /// 判断保存的窗口中心是否仍在可见屏幕区域内。
+  ///
+  /// 坐标超出范围或窗口已完全离开屏幕时，启动时应重新居中，避免窗口无法找回。
+  static Future<bool> _isSavedPositionValid({
+    required double x,
+    required double y,
+    required double width,
+    required double height,
+  }) async {
+    if (!x.isFinite ||
+        !y.isFinite ||
+        !width.isFinite ||
+        !height.isFinite ||
+        width <= 0 ||
+        height <= 0 ||
+        x == 0 ||
+        y == 0) {
+      return false;
+    }
+
+    try {
+      final windowRect = Rect.fromLTWH(x, y, width, height);
+      final displays = await screenRetriever.getAllDisplays();
+      return displays.any((display) {
+        final visiblePosition = display.visiblePosition;
+        final visibleSize = display.visibleSize ?? display.size;
+        if (visiblePosition == null ||
+            visibleSize.width <= 0 ||
+            visibleSize.height <= 0) {
+          return false;
+        }
+        final visibleRect = Rect.fromLTWH(
+          visiblePosition.dx,
+          visiblePosition.dy,
+          visibleSize.width,
+          visibleSize.height,
+        );
+        return visibleRect.contains(windowRect.center);
+      });
+    } catch (error, stackTrace) {
+      logger.w('检查保存的窗口位置失败，将在启动时居中: $error', stackTrace: stackTrace);
+      return false;
+    }
   }
 
   static Future<bool> _loadWindowMaximized() async {

@@ -183,8 +183,6 @@ class _DownloadingTaskTile extends StatelessWidget {
               Text(
                 progressMessage,
                 style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             if (progress != null) ...[
               const SizedBox(height: 4),
@@ -274,8 +272,6 @@ class _PendingTaskTile extends StatelessWidget {
               Text(
                 progressMessage,
                 style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
           ],
         ),

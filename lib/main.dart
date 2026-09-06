@@ -556,10 +556,6 @@ class _MyAppState extends State<MyApp>
 
   @override
   void onWindowClose() async {
-    if (Platform.isLinux) {
-      await _forceExit();
-      return;
-    }
     final closeBehavior = await WindowLogic.loadCloseBehavior();
     switch (closeBehavior) {
       case DesktopCloseBehavior.hide:

@@ -588,6 +588,9 @@ class _MyAppState extends State<MyApp>
         break;
     }
 
+    if (Platform.isLinux) {
+      await windowManager.show();
+    }
     final dialogContext = appRouter.navigatorKey.currentContext;
     if (dialogContext == null || !dialogContext.mounted) {
       await _forceExit();

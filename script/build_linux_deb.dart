@@ -189,9 +189,7 @@ Future<void> _writeControl({
   final debianDir = Directory('$debRoot${Platform.pathSeparator}DEBIAN');
   await debianDir.create(recursive: true);
 
-  final depends = shlibDeps.isEmpty
-      ? ''
-      : '\nDepends: ${shlibDeps.join(', ')}\n';
+  final depends = shlibDeps.isEmpty ? '' : 'Depends: ${shlibDeps.join(', ')}\n';
 
   await File('${debianDir.path}${Platform.pathSeparator}control').writeAsString(
     'Package: breeze\n'
@@ -201,11 +199,11 @@ Future<void> _writeControl({
     'Architecture: $architecture\n'
     'Maintainer: Breeze Developers <dev@breeze.app>\n'
     'Installed-Size: ${_installedSize(debRoot)}\n'
+    '$depends'
     'Description: Third-party client for Bika and JM comics\n'
     ' A modern, feature-rich Flutter client for reading comics from\n'
     ' Bika (哔咔) and JM (禁漫), with built-in upscaling, plugins and\n'
     ' desktop system-tray support.\n'
-    '$depends',
   );
 
   final postinst = '''#!/bin/sh

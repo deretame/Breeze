@@ -238,9 +238,14 @@ int _installedSize(String debRoot) {
   return total;
 }
 
-/// 用 dpkg-shlibdeps 从 ELF 自动推导运行时依赖。
 Future<List<String>> _resolveShlibDeps(String staging, String bundlePath) async {
+  final debianDir = Directory('$staging${Platform.pathSeparator}debian');
   try {
+    await debianDir.create(recursive: true);
+    await File('${debianDir.path}${Platform.pathSeparator}control').writeAsString(
+      'Package: breeze\n',
+    );
+
     final mainBinary = '$bundlePath/breeze';
     final soFiles = Directory('$bundlePath/lib')
         .listSync()
@@ -272,6 +277,10 @@ Future<List<String>> _resolveShlibDeps(String staging, String bundlePath) async 
       color: _yellow,
     );
     return const [];
+  } finally {
+    if (debianDir.existsSync()) {
+      await debianDir.delete(recursive: true);
+    }
   }
 }
 

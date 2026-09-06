@@ -59,7 +59,6 @@ static void my_application_activate(GApplication* application) {
 #endif
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
-    gtk_widget_realize(GTK_WIDGET(window));
     gtk_header_bar_set_title(header_bar, "zephyr");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
@@ -89,14 +88,14 @@ static void my_application_activate(GApplication* application) {
                            self);
   gtk_widget_realize(GTK_WIDGET(view));
 
-  fl_register_plugins(FL_PLUGIN_REGISTRY(view));
-
   FlEngine* engine = fl_view_get_engine(view);
   self->window_channel = fl_method_channel_new(
       fl_engine_get_binary_messenger(engine), "breeze/linux/window",
       FL_METHOD_CODEC(fl_standard_method_codec_new()));
   g_signal_connect(window, "delete_event", G_CALLBACK(on_window_delete_event),
                    self);
+
+  fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }

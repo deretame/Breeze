@@ -10,6 +10,7 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  FlMethodChannel* window_channel;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
@@ -17,6 +18,18 @@ G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
+}
+
+static gboolean on_window_delete_event(GtkWidget* widget,
+                                       GdkEvent* event,
+                                       gpointer user_data) {
+  MyApplication* self = MY_APPLICATION(user_data);
+  if (self->window_channel != nullptr) {
+    fl_method_channel_invoke_method(self->window_channel,
+                                    "windowCloseRequested", nullptr, nullptr,
+                                    nullptr, nullptr);
+  }
+  return TRUE;
 }
 
 // Implements GApplication::activate.
@@ -76,6 +89,13 @@ static void my_application_activate(GApplication* application) {
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
+  FlEngine* engine = fl_view_get_engine(view);
+  self->window_channel = fl_method_channel_new(
+      fl_engine_get_binary_messenger(engine), "breeze/linux/window",
+      FL_METHOD_CODEC(fl_standard_method_codec_new()));
+  g_signal_connect(window, "delete_event", G_CALLBACK(on_window_delete_event),
+                   self);
+
   gtk_widget_grab_focus(GTK_WIDGET(view));
 }
 
@@ -122,6 +142,7 @@ static void my_application_shutdown(GApplication* application) {
 static void my_application_dispose(GObject* object) {
   MyApplication* self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
+  g_clear_object(&self->window_channel);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 

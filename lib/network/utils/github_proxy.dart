@@ -8,6 +8,7 @@ List<String> mirrorBaseUrls = [
 ];
 
 const breezeLatestReleaseApi = 'https://api.windy-78.site/breeze';
+const breezeGithubApi = 'https://api.windy-78.site/github';
 
 const _breezeLatestReleaseUrl =
     'https://api.github.com/repos/deretame/Breeze/releases/latest';

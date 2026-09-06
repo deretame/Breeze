@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
@@ -8,10 +7,13 @@ import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/network/http/wind_http.dart';
+import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/service/update/json/github_release_json.dart';
 import 'package:zephyr/util/error_filter.dart';
 
-const _releasesApiUrl = 'https://api.github.com/repos/deretame/Breeze/releases';
+const _proxyReleasesApiUrl = '$breezeGithubApi/repos/deretame/Breeze/releases';
+const _githubReleasesApiUrl =
+    'https://api.github.com/repos/deretame/Breeze/releases';
 
 @RoutePage()
 class ChangelogPage extends StatefulWidget {
@@ -22,10 +24,7 @@ class ChangelogPage extends StatefulWidget {
 }
 
 class _ChangelogPageState extends State<ChangelogPage> {
-  final EasyRefreshController _refreshController = EasyRefreshController(
-    controlFinishRefresh: true,
-    controlFinishLoad: true,
-  );
+  final ScrollController _scrollController = ScrollController();
 
   List<GithubReleaseJson> _releases = [];
   bool _isLoading = true; // 首次加载状态
@@ -35,67 +34,87 @@ class _ChangelogPageState extends State<ChangelogPage> {
   int _page = 1;
   static const int _perPage = 20; // 每次请求多少条
   bool _hasMore = true; // 是否还有更多数据
+  bool _isFetching = false;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_handleScroll);
     // 首次进入自动刷新
     _fetchReleases(refresh: true);
   }
 
   @override
   void dispose() {
-    _refreshController.dispose();
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
     super.dispose();
+  }
+
+  void _handleScroll() {
+    if (!_scrollController.hasClients ||
+        !_hasMore ||
+        _isFetching ||
+        _scrollController.position.pixels <
+            _scrollController.position.maxScrollExtent - 400) {
+      return;
+    }
+    _fetchReleases();
   }
 
   /// 获取数据
   /// [refresh] 为 true 代表下拉刷新（重置页码），false 代表上拉加载（页码+1）
   Future<void> _fetchReleases({bool refresh = false}) async {
+    if (_isFetching) return;
+    _isFetching = true;
+    if (!refresh && mounted) {
+      setState(() {});
+    }
+
     try {
       final requestPage = refresh ? 1 : _page;
 
-      final response = await fetch(
-        _releasesApiUrl,
-        query: {'page': requestPage, 'per_page': _perPage},
-        headers: {'Accept': 'application/vnd.github.v3+json'},
-      );
+      List<GithubReleaseJson>? newData;
+      for (final url in [_proxyReleasesApiUrl, _githubReleasesApiUrl]) {
+        try {
+          final response = await fetch(
+            url,
+            query: {'page': requestPage, 'per_page': _perPage},
+            headers: {'Accept': 'application/vnd.github.v3+json'},
+          );
 
-      if (response.ok) {
-        final List<GithubReleaseJson> newData = githubReleaseJsonFromJson(
-          response.text,
-        );
+          if (response.ok) {
+            newData = githubReleaseJsonFromJson(response.text);
+            break;
+          }
+        } catch (_) {
+          // 当前请求失败时继续尝试下一个地址。
+        }
+      }
 
+      final releases = newData;
+      if (releases != null) {
         if (mounted) {
           setState(() {
             if (refresh) {
-              _releases = newData;
+              _releases = releases;
               _errorMsg = null; // 刷新成功清除错误
             } else {
-              _releases.addAll(newData);
+              _releases.addAll(releases);
             }
 
             // 更新页码和是否还有更多数据
             _page = requestPage + 1;
             // 如果返回的数据条数少于每页最大条数，说明没有下一页了
-            _hasMore = newData.length >= _perPage;
+            _hasMore = releases.length >= _perPage;
 
             // 首次加载完成
             _isLoading = false;
           });
         }
-
-        // 告诉 EasyRefresh 动作完成了
-        if (refresh) {
-          _refreshController.finishRefresh();
-          _refreshController.resetFooter(); // 重置底部状态
-        } else {
-          _refreshController.finishLoad(
-            _hasMore ? IndicatorResult.success : IndicatorResult.noMore,
-          );
-        }
       } else {
-        throw Exception('Status: ${response.status}');
+        throw Exception('所有更新日志请求地址均失败');
       }
     } catch (e) {
       if (mounted) {
@@ -112,12 +131,10 @@ class _ChangelogPageState extends State<ChangelogPage> {
           );
         }
       }
-
-      // 结束 EasyRefresh 状态
-      if (refresh) {
-        _refreshController.finishRefresh(IndicatorResult.fail);
-      } else {
-        _refreshController.finishLoad(IndicatorResult.fail);
+    } finally {
+      _isFetching = false;
+      if (mounted) {
+        setState(() {});
       }
     }
   }
@@ -187,35 +204,34 @@ class _ChangelogPageState extends State<ChangelogPage> {
     }
 
     if (_releases.isEmpty) {
-      return EasyRefresh(
-        header: const MaterialHeader(),
+      return RefreshIndicator(
         onRefresh: () => _fetchReleases(refresh: true),
-        child: Center(child: Text(t.changelog.empty)),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.sizeOf(context).height * 0.8,
+              child: Center(child: Text(t.changelog.empty)),
+            ),
+          ],
+        ),
       );
     }
 
-    return EasyRefresh(
-      controller: _refreshController,
-      header: const MaterialHeader(),
-      footer: const MaterialFooter(),
-      // 下拉刷新
-      onRefresh: () async {
-        await _fetchReleases(refresh: true);
-      },
-
-      // 上拉加载
-      onLoad: () async {
-        if (!_hasMore) {
-          _refreshController.finishLoad(IndicatorResult.noMore);
-          return;
-        }
-        await _fetchReleases(refresh: false);
-      },
-
+    return RefreshIndicator(
+      onRefresh: () => _fetchReleases(refresh: true),
       child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: _releases.length,
+        itemCount: _releases.length + (_hasMore ? 1 : 0),
         itemBuilder: (context, index) {
+          if (index == _releases.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
           final release = _releases[index];
           return Container(
             key: ValueKey(release.id), // 添加 Key 提高性能

@@ -660,7 +660,7 @@ class _MyAppState extends State<MyApp>
 
   @override
   void onTrayIconMouseDown() {
-    NativeWindow.show();
+    showMainWindow();
   }
 
   @override
@@ -671,7 +671,7 @@ class _MyAppState extends State<MyApp>
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     if (menuItem.key == 'show_window') {
-      NativeWindow.show();
+      showMainWindow();
     } else if (menuItem.key == 'exit_app') {
       // 真正退出：清理资源后退出
       _performGracefulExit();

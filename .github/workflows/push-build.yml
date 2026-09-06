@@ -215,6 +215,17 @@ jobs:
           name: linux-flatpak
           path: breeze.flatpak
 
+      - name: 构建 Linux .deb
+        run: |
+          sudo apt-get install -y dpkg-dev
+          fvm dart ./script/build_linux_deb.dart --package-only
+
+      - name: 上传 Linux deb
+        uses: actions/upload-artifact@v6
+        with:
+          name: linux-deb
+          path: build-deb/breeze_*.deb
+
   # ══════════════════════════════════════════
   # 3. Windows 构建
   # ══════════════════════════════════════════

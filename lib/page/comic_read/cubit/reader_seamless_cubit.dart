@@ -91,7 +91,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       chapterOrder: initialOrder,
       readSetting: readSetting,
     );
-    emit(
+    _emit(
       state.copyWith(
         currentChapterOrder: initialOrder,
         currentChapterStartSlot: contextByOrder?.chapterStartSlot ?? 0,
@@ -820,6 +820,10 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
 
   // ==================== 内部：状态更新辅助 ====================
 
+  void _emit(ReaderSeamlessState nextState) {
+    if (!isClosed) emit(nextState);
+  }
+
   void _addLoadedChapter({
     required int order,
     required NormalComicEpInfo epInfo,
@@ -827,7 +831,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     final updated = List<SeamlessChapter>.from(state.loadedChapters)
       ..add(SeamlessChapter(order: order, epInfo: epInfo));
     _sortLoadedChapters(updated);
-    emit(state.copyWith(loadedChapters: updated));
+    _emit(state.copyWith(loadedChapters: updated));
   }
 
   void _sortLoadedChapters(List<SeamlessChapter> list) {
@@ -842,7 +846,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   }
 
   void _addLoadingOrder(int order) {
-    emit(
+    _emit(
       state.copyWith(
         loadingChapterOrders: {...state.loadingChapterOrders, order},
       ),
@@ -850,7 +854,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   }
 
   void _removeLoadingOrder(int order) {
-    emit(
+    _emit(
       state.copyWith(
         loadingChapterOrders: state.loadingChapterOrders
             .where((o) => o != order)
@@ -860,7 +864,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   }
 
   void _addPrefetchingOrder(int order) {
-    emit(
+    _emit(
       state.copyWith(
         prefetchingChapterOrders: {...state.prefetchingChapterOrders, order},
       ),
@@ -868,7 +872,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   }
 
   void _removePrefetchingOrder(int order) {
-    emit(
+    _emit(
       state.copyWith(
         prefetchingChapterOrders: state.prefetchingChapterOrders
             .where((o) => o != order)
@@ -878,7 +882,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   }
 
   void _setPrefetchedChapterInfo(int order, NormalComicEpInfo info) {
-    emit(
+    _emit(
       state.copyWith(
         prefetchedChapterInfoByOrder: {
           ...state.prefetchedChapterInfoByOrder,
@@ -890,7 +894,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
 
   void _removePrefetchedChapterInfo(int order) {
     final updated = {...state.prefetchedChapterInfoByOrder}..remove(order);
-    emit(state.copyWith(prefetchedChapterInfoByOrder: updated));
+    _emit(state.copyWith(prefetchedChapterInfoByOrder: updated));
   }
 
   void _ensureEdgeTransitionsVisible({bool notify = true}) {
@@ -924,14 +928,14 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     }
 
     if (notify) {
-      emit(
+      _emit(
         state.copyWith(
           visibleTransitionNextOrders: updatedVisible,
           transitionStatusByNextOrder: updatedStatus,
         ),
       );
     } else {
-      emit(
+      _emit(
         state.copyWith(
           visibleTransitionNextOrders: updatedVisible,
           transitionStatusByNextOrder: updatedStatus,
@@ -963,7 +967,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         state.currentChapterSlotCount != slotContext.chapterImageCount;
     if (!chapterChanged) return;
 
-    emit(
+    _emit(
       state.copyWith(
         currentChapterOrder: chapter.order,
         currentChapterStartSlot: slotContext.chapterStartSlot,
@@ -974,7 +978,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
 
   bool _revealTransition({required int nextOrder}) {
     if (state.visibleTransitionNextOrders.contains(nextOrder)) return false;
-    emit(
+    _emit(
       state.copyWith(
         visibleTransitionNextOrders: {
           ...state.visibleTransitionNextOrders,
@@ -987,7 +991,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
 
   void _setTransitionStatus(int nextOrder, SeamlessTransitionStatus status) {
     if (state.transitionStatusByNextOrder[nextOrder] == status) return;
-    emit(
+    _emit(
       state.copyWith(
         transitionStatusByNextOrder: {
           ...state.transitionStatusByNextOrder,

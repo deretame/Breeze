@@ -36,7 +36,8 @@ class PluginFunctionCubit extends Cubit<PluginFunctionState> {
   PluginFunctionCubit() : super(const PluginFunctionState());
 
   Future<void> load({required String from, required String functionId}) async {
-    emit(
+    if (isClosed) return;
+    _emit(
       state.copyWith(
         loading: true,
         error: '',
@@ -54,7 +55,7 @@ class PluginFunctionCubit extends Cubit<PluginFunctionState> {
       );
 
       final envelope = UnifiedPluginEnvelope.fromMap(response);
-      emit(
+      _emit(
         state.copyWith(
           loading: false,
           error: '',
@@ -63,9 +64,13 @@ class PluginFunctionCubit extends Cubit<PluginFunctionState> {
         ),
       );
     } catch (e) {
-      emit(
+      _emit(
         state.copyWith(loading: false, error: normalizeSearchErrorMessage(e)),
       );
     }
+  }
+
+  void _emit(PluginFunctionState nextState) {
+    if (!isClosed) emit(nextState);
   }
 }

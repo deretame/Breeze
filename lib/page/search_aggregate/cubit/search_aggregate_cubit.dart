@@ -62,13 +62,14 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
   int _searchVersion = 0;
 
   Future<void> search() async {
+    if (isClosed) return;
     final int searchVersion = ++_searchVersion;
     final selected = state.selectedSources.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toList();
 
-    emit(
+    _emit(
       state.copyWith(
         status: AggregateSearchStatus.loading,
         results: const <String, List<dynamic>>{},
@@ -78,7 +79,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
     );
 
     if (selected.isEmpty) {
-      emit(
+      _emit(
         state.copyWith(
           status: AggregateSearchStatus.success,
           results: const <String, List<dynamic>>{},
@@ -111,7 +112,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
           if (_isSearchActive(searchVersion)) {
             completed++;
             final allDone = completed >= selected.length;
-            emit(
+            _emit(
               state.copyWith(
                 status: allDone
                     ? AggregateSearchStatus.success
@@ -131,19 +132,22 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
   }
 
   Future<void> toggleSource(String pluginId, bool enabled) async {
+    if (isClosed) return;
     final next = Map<String, bool>.from(state.selectedSources);
     next[pluginId] = enabled;
-    emit(state.copyWith(selectedSources: next));
+    _emit(state.copyWith(selectedSources: next));
     await search();
   }
 
   Future<void> refreshSource(String pluginId) async {
-    if (pluginId.isEmpty || !(state.selectedSources[pluginId] ?? false)) {
+    if (isClosed ||
+        pluginId.isEmpty ||
+        !(state.selectedSources[pluginId] ?? false)) {
       return;
     }
 
     final refreshing = Set<String>.from(state.refreshingSources)..add(pluginId);
-    emit(state.copyWith(refreshingSources: refreshing));
+    _emit(state.copyWith(refreshingSources: refreshing));
 
     final nextResults = Map<String, List<dynamic>>.from(state.results);
     final nextErrors = Map<String, String>.from(state.errors);
@@ -157,7 +161,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
       refreshing.remove(pluginId);
     }
 
-    emit(
+    _emit(
       state.copyWith(
         status: AggregateSearchStatus.success,
         results: nextResults,
@@ -212,18 +216,23 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
   }
 
   Future<void> applySelectedSources(Map<String, bool> selectedSources) async {
-    emit(
+    if (isClosed) return;
+    _emit(
       state.copyWith(selectedSources: Map<String, bool>.from(selectedSources)),
     );
     await search();
   }
 
   void toggleHasResults(bool value) {
-    emit(state.copyWith(showHasResults: value));
+    _emit(state.copyWith(showHasResults: value));
   }
 
   void toggleShowErrors(bool value) {
-    emit(state.copyWith(showErrors: value));
+    _emit(state.copyWith(showErrors: value));
+  }
+
+  void _emit(AggregateSearchState nextState) {
+    if (!isClosed) emit(nextState);
   }
 }
 

@@ -152,8 +152,7 @@ Future<String> _assembleDebRoot({
     await root.delete(recursive: true);
   }
 
-  // 1. bundle（先建 opt 父目录：cp -r src dst 要求 dst 的父目录存在，
-  //    且 dst 不存在时才会把内容拷成 dst 本身）
+  // 1. bundle
   final optDir = Directory('$staging${sep}opt');
   await optDir.create(recursive: true);
   await _run('cp', ['-r', bundlePath, debRoot], cwd: projectRoot);

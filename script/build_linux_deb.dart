@@ -243,7 +243,7 @@ Future<List<String>> _resolveShlibDeps(String staging, String bundlePath) async 
   try {
     await debianDir.create(recursive: true);
     await File('${debianDir.path}${Platform.pathSeparator}control').writeAsString(
-      'Package: breeze\n',
+      'Source: breeze\nPackage: breeze\nArchitecture: any\n',
     );
 
     final mainBinary = '$bundlePath/breeze';

@@ -61,8 +61,6 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
   void _handleClose() {
     if (Platform.isWindows) {
       NativeWindow.close();
-    } else if (Platform.isLinux) {
-      exit(0);
     } else {
       windowManager.close();
     }

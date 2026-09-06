@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:zephyr/main.dart';
 
 class PluginWebLoginFlowConfig {
   const PluginWebLoginFlowConfig({
@@ -97,13 +97,13 @@ class ExternalChromiumLoginSession {
   static Future<ExternalChromiumLoginSession?> start({
     required String openUrl,
   }) async {
-    debugPrint('[WebLoginFallback] start requested url=$openUrl');
+    logger.d('[WebLoginFallback] start requested url=$openUrl');
     final browser = await _detectBrowser();
     if (browser == null) {
-      debugPrint('[WebLoginFallback] no chromium browser detected');
+      logger.d('[WebLoginFallback] no chromium browser detected');
       return null;
     }
-    debugPrint(
+    logger.d(
       '[WebLoginFallback] browser detected: ${browser.name} -> ${browser.executable}',
     );
     final debugPort = await _allocateFreePort();
@@ -126,12 +126,12 @@ class ExternalChromiumLoginSession {
       useHostSpawn: browser.useHostSpawn,
     );
     if (!started) {
-      debugPrint(
+      logger.d(
         '[WebLoginFallback] failed to start browser: ${browser.executable}',
       );
       return null;
     }
-    debugPrint('[WebLoginFallback] browser launched, debugPort=$debugPort');
+    logger.d('[WebLoginFallback] browser launched, debugPort=$debugPort');
     return ExternalChromiumLoginSession._(
       browserName: browser.name,
       browserExecutable: browser.executable,
@@ -144,7 +144,7 @@ class ExternalChromiumLoginSession {
   Future<List<Map<String, dynamic>>> fetchCookies() async {
     final wsUrl = await _fetchBrowserWsUrl(debugPort);
     if (wsUrl == null || wsUrl.isEmpty) {
-      debugPrint(
+      logger.d(
         '[WebLoginFallback] cdp ws endpoint unavailable on port=$debugPort',
       );
       return const [];
@@ -184,8 +184,12 @@ class ExternalChromiumLoginSession {
       timeout.cancel();
       unawaited(ws.close());
       return cookies;
-    } catch (e) {
-      debugPrint('[WebLoginFallback] fetchCookies websocket failed: $e');
+    } catch (e, stackTrace) {
+      logger.e(
+        '[WebLoginFallback] fetchCookies websocket failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return const [];
     }
   }
@@ -204,14 +208,14 @@ class ExternalChromiumLoginSession {
     if (Platform.isWindows) {
       final resolvedFromPath = await _detectWindowsBrowserFromKnownPaths();
       if (resolvedFromPath != null) {
-        debugPrint(
+        logger.d(
           '[WebLoginFallback] browser from known paths: ${resolvedFromPath.executable}',
         );
         return resolvedFromPath;
       }
       final resolvedFromRegistry = await _detectWindowsBrowserFromRegistry();
       if (resolvedFromRegistry != null) {
-        debugPrint(
+        logger.d(
           '[WebLoginFallback] browser from registry: ${resolvedFromRegistry.executable}',
         );
         return resolvedFromRegistry;
@@ -219,7 +223,7 @@ class ExternalChromiumLoginSession {
       for (final candidate in _windowsCandidates) {
         final resolved = await _which(candidate, useHostSpawn: false);
         if (resolved != null && resolved.isNotEmpty) {
-          debugPrint('[WebLoginFallback] browser from PATH: $resolved');
+          logger.d('[WebLoginFallback] browser from PATH: $resolved');
           return BrowserCandidate(name: candidate, executable: resolved);
         }
       }
@@ -439,9 +443,7 @@ class ExternalChromiumLoginSession {
     final data = await _fetchJsonMap(uri);
     final ws = data['webSocketDebuggerUrl']?.toString().trim();
     if (ws == null || ws.isEmpty) {
-      debugPrint(
-        '[WebLoginFallback] /json/version has no webSocketDebuggerUrl',
-      );
+      logger.d('[WebLoginFallback] /json/version has no webSocketDebuggerUrl');
       return null;
     }
     return ws;

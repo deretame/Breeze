@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/event/webview_observe_bus.dart';
 
@@ -157,7 +158,7 @@ class _WebViewPageState extends State<WebViewPage> {
       errorDescription: errorDescription,
     );
     WebViewObserveBus.emit(event);
-    debugPrint(
+    logger.d(
       '[WebViewObserve] platform=${event.platform} trigger=${event.trigger} '
       'url=${event.url} cookies=${event.cookies.length}',
     );
@@ -187,8 +188,12 @@ class _WebViewPageState extends State<WebViewPage> {
               ),
             )
             .toList(growable: false);
-      } catch (e) {
-        debugPrint('[WebViewObserve] linux getAllCookies failed: $e');
+      } catch (e, stackTrace) {
+        logger.e(
+          '[WebViewObserve] linux getAllCookies failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
         return const [];
       }
     }
@@ -218,8 +223,12 @@ class _WebViewPageState extends State<WebViewPage> {
             )
             .toList(growable: false);
       }
-    } catch (e) {
-      debugPrint('[WebViewObserve] getAllCookies failed: $e');
+    } catch (e, stackTrace) {
+      logger.e(
+        '[WebViewObserve] getAllCookies failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
 
     final uri = Uri.tryParse(currentUrl);
@@ -246,8 +255,12 @@ class _WebViewPageState extends State<WebViewPage> {
             ),
           )
           .toList(growable: false);
-    } catch (e) {
-      debugPrint('[WebViewObserve] getCookies(url) failed: $e');
+    } catch (e, stackTrace) {
+      logger.e(
+        '[WebViewObserve] getCookies(url) failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return const [];
     }
   }

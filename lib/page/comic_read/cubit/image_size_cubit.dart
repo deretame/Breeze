@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/method/image_size_cache_store.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
@@ -225,7 +226,7 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
 
   Future<void> debugPrintCacheStats() async {
     final stats = await getCacheStats();
-    debugPrint(
+    logger.d(
       '[ImageSizeCache] source=$sourceTag records=${stats.recordCount} bytes=${stats.fileBytes} path=${stats.filePath}',
     );
   }

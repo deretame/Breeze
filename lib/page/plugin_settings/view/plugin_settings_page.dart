@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/plugin_settings/cubit/plugin_settings_cubit.dart';
 import 'package:zephyr/page/plugin_settings/method/plugin_settings_web_login.dart';
@@ -264,9 +265,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       openUrl: config.openUrl,
     );
     if (session == null) {
-      debugPrint(
-        '[WebLoginFallback] session start failed, open chrome download',
-      );
+      logger.d('[WebLoginFallback] session start failed, open chrome download');
       showErrorToast(t.plugin.chromiumNotFound);
       unawaited(
         launchUrl(
@@ -278,7 +277,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     }
 
     _externalChromiumSession = session;
-    debugPrint(
+    logger.d(
       '[WebLoginFallback] external chromium ready: ${session.browserName} port=${session.debugPort}',
     );
     showSuccessToast(t.plugin.browserSwitched(browser: session.browserName));
@@ -301,21 +300,21 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     }
     _externalLoginPolling = true;
     try {
-      debugPrint(
+      logger.d(
         '[WebLoginFallback] polling cookies from ${session.browserName} port=${session.debugPort}',
       );
       final cookies = await session.fetchCookies();
-      debugPrint('[WebLoginFallback] fetched cookies count=${cookies.length}');
+      logger.d('[WebLoginFallback] fetched cookies count=${cookies.length}');
       if (cookies.isEmpty) {
         return;
       }
       if (config.redirectWatchUrl.isNotEmpty) {
         final urls = await session.fetchOpenPageUrls();
-        debugPrint('[WebLoginFallback] open pages count=${urls.length}');
+        logger.d('[WebLoginFallback] open pages count=${urls.length}');
         final reached = urls.any(
           (url) => matchesRedirectWatchUrl(url, config.redirectWatchUrl),
         );
-        debugPrint(
+        logger.d(
           '[WebLoginFallback] redirect target reached=$reached target=${config.redirectWatchUrl}',
         );
         if (!reached) {
@@ -345,7 +344,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         domainOf: (snapshot) => snapshot.domain as String?,
       );
       if (cookie.isEmpty) {
-        debugPrint('[WebLoginFallback] cookie header is empty after filtering');
+        logger.d('[WebLoginFallback] cookie header is empty after filtering');
         return;
       }
 
@@ -353,8 +352,12 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
           ? config.redirectWatchUrl
           : config.openUrl;
       await _submitCookieWithConfig(config, cookie: cookie, url: submitUrl);
-    } catch (e) {
-      debugPrint('[PluginSettings] External chromium cookie poll failed: $e');
+    } catch (e, stackTrace) {
+      logger.e(
+        '[PluginSettings] External chromium cookie poll failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     } finally {
       _externalLoginPolling = false;
     }
@@ -407,7 +410,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       return;
     }
     final cookieNames = extractCookieNames(cookie);
-    debugPrint(
+    logger.d(
       '[PluginSettings] setCookie fn=${config.setCookieFnPath} '
       'count=${cookieNames.length} names=${cookieNames.join(',')}',
     );
@@ -428,8 +431,12 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       if (mounted) {
         await context.read<PluginSettingsCubit>().load(widget.from);
       }
-    } catch (e) {
-      debugPrint('[PluginSettings] Web login cookie sync failed: $e');
+    } catch (e, stackTrace) {
+      logger.e(
+        '[PluginSettings] Web login cookie sync failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     } finally {
       _submittingWebCookie = false;
     }

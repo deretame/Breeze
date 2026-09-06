@@ -32,9 +32,30 @@ class DownloadImageJobException implements Exception {
 
   @override
   String toString() {
-    final suffix = result.error == null ? '' : ': ${result.error}';
-    return '图片下载失败 path=${job.path} url=${job.url}$suffix';
+    final processedError = result.error?.toString().trim() ?? 'null';
+    final rawError = _formatRawDownloadError(result.error);
+    final rawStackTrace = result.errorStackTrace?.toString().trim();
+    final stackSuffix = rawStackTrace == null || rawStackTrace.isEmpty
+        ? ''
+        : '\nrawStackTrace:\n$rawStackTrace';
+    return '图片下载失败 path=${job.path} url=${job.url} '
+        'status=${result.status.name}\n'
+        'processedError=$processedError\n'
+        'rawError=$rawError$stackSuffix';
   }
+}
+
+String _formatRawDownloadError(Object? error) {
+  if (error == null) return 'null';
+
+  final buffer = StringBuffer('${error.runtimeType}: $error');
+  if (error is DownloadPictureNotFoundException) {
+    final cause = error.cause;
+    if (cause != null) {
+      buffer.write('\nrawCause=${cause.runtimeType}: $cause');
+    }
+  }
+  return buffer.toString();
 }
 
 class DownloadImageJobsResult {
@@ -214,11 +235,13 @@ Future<DownloadPictureResult> _downloadSingleJob({
       },
     );
     return result;
-  } catch (error) {
+  } catch (error, stackTrace) {
     if (onError != null) {
       await onError(error, job);
-      return const DownloadPictureResult(
+      return DownloadPictureResult(
         status: DownloadPictureResultStatus.failed,
+        error: error,
+        errorStackTrace: stackTrace,
       );
     }
     rethrow;

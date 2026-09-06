@@ -3697,11 +3697,11 @@ class Translations$download$zh_CN {
 	/// zh-CN: '当前章节下载进度: 100%'
 	String get statusDownloadProgressComplete => '当前章节下载进度: 100%';
 
-	/// zh-CN: '漫画进度（按章节）: $completedChapters/$totalChapters 章，当前章节: $currentChapterCompletedImages/$currentChapterTotalImages 页'
-	String statusComicProgress({required Object completedChapters, required Object totalChapters, required Object currentChapterCompletedImages, required Object currentChapterTotalImages}) => '漫画进度（按章节）: ${completedChapters}/${totalChapters} 章，当前章节: ${currentChapterCompletedImages}/${currentChapterTotalImages} 页';
+	/// zh-CN: '漫画进度: $completedChapters/$totalChapters 章，当前章节: $currentChapterCompletedImages/$currentChapterTotalImages 页'
+	String statusComicProgress({required Object completedChapters, required Object totalChapters, required Object currentChapterCompletedImages, required Object currentChapterTotalImages}) => '漫画进度: ${completedChapters}/${totalChapters} 章，当前章节: ${currentChapterCompletedImages}/${currentChapterTotalImages} 页';
 
-	/// zh-CN: '漫画进度（按章节）: $completedChapters/$totalChapters 章'
-	String statusComicProgressChaptersOnly({required Object completedChapters, required Object totalChapters}) => '漫画进度（按章节）: ${completedChapters}/${totalChapters} 章';
+	/// zh-CN: '漫画进度: $completedChapters/$totalChapters 章'
+	String statusComicProgressChaptersOnly({required Object completedChapters, required Object totalChapters}) => '漫画进度: ${completedChapters}/${totalChapters} 章';
 
 	/// zh-CN: '开始下载...'
 	String get statusStartDownload => '开始下载...';
@@ -4947,8 +4947,8 @@ extension on Translations {
 			'download.statusFetchingChapterInfoProgress' => ({required Object completed, required Object total, required Object percent}) => '获取章节信息中... (${completed}/${total}, ${percent}%)',
 			'download.statusDownloadProgress' => ({required Object percent}) => '当前章节下载进度: ${percent}%',
 			'download.statusDownloadProgressComplete' => '当前章节下载进度: 100%',
-			'download.statusComicProgress' => ({required Object completedChapters, required Object totalChapters, required Object currentChapterCompletedImages, required Object currentChapterTotalImages}) => '漫画进度（按章节）: ${completedChapters}/${totalChapters} 章，当前章节: ${currentChapterCompletedImages}/${currentChapterTotalImages} 页',
-			'download.statusComicProgressChaptersOnly' => ({required Object completedChapters, required Object totalChapters}) => '漫画进度（按章节）: ${completedChapters}/${totalChapters} 章',
+			'download.statusComicProgress' => ({required Object completedChapters, required Object totalChapters, required Object currentChapterCompletedImages, required Object currentChapterTotalImages}) => '漫画进度: ${completedChapters}/${totalChapters} 章，当前章节: ${currentChapterCompletedImages}/${currentChapterTotalImages} 页',
+			'download.statusComicProgressChaptersOnly' => ({required Object completedChapters, required Object totalChapters}) => '漫画进度: ${completedChapters}/${totalChapters} 章',
 			'download.statusStartDownload' => '开始下载...',
 			'download.statusWaiting' => '等待中',
 			'download.statusCancelling' => '取消中...',

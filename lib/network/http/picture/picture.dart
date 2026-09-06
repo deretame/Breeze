@@ -243,19 +243,20 @@ Future<DownloadPictureResult> downloadPictureResult({
     throw StateError('downloadPicture missing pluginId');
   }
   if (url.isEmpty) {
-    return const DownloadPictureResult(
+    return DownloadPictureResult(
       status: DownloadPictureResultStatus.notFound,
-    );
-  }
-  if (url.contains("404")) {
-    return const DownloadPictureResult(
-      status: DownloadPictureResultStatus.notFound,
+      error: StateError('图片 URL 为空'),
+      errorStackTrace: StackTrace.current,
     );
   }
 
+  // 不能通过 URL 文本判断资源是否不存在，合法文件名也可能包含 404，
+  // 例如 00404.webp。真正的 HTTP 404/422 在请求结果中按状态码处理。
   if (path.trim().isEmpty) {
-    return const DownloadPictureResult(
+    return DownloadPictureResult(
       status: DownloadPictureResultStatus.notFound,
+      error: StateError('图片保存路径为空'),
+      errorStackTrace: StackTrace.current,
     );
   }
 
@@ -312,7 +313,7 @@ Future<DownloadPictureResult> downloadPictureResult({
       extern: extern,
       maxRetries: 10,
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
     if (_isDownloadTaskCancelledError(e) || _isQjsRuntimeCancelledError(e)) {
       rethrow;
     }
@@ -321,6 +322,7 @@ Future<DownloadPictureResult> downloadPictureResult({
       return DownloadPictureResult(
         status: DownloadPictureResultStatus.notFound,
         error: e,
+        errorStackTrace: stackTrace,
       );
     }
     if (e is DownloadPictureEmptyDataException) {
@@ -328,12 +330,14 @@ Future<DownloadPictureResult> downloadPictureResult({
       return DownloadPictureResult(
         status: DownloadPictureResultStatus.emptyData,
         error: e,
+        errorStackTrace: stackTrace,
       );
     }
     logger.w('downloadPicture failed source=$resolvedFrom url=$url', error: e);
     return DownloadPictureResult(
       status: DownloadPictureResultStatus.failed,
       error: e,
+      errorStackTrace: stackTrace,
     );
   }
 
@@ -353,7 +357,7 @@ Future<DownloadPictureResult> downloadPictureResult({
     } else {
       await saveImage(imageData, downloadFilePath, taskId: qjsTaskGroupKey);
     }
-  } catch (e) {
+  } catch (e, stackTrace) {
     if (_isDownloadTaskCancelledError(e) || _isQjsRuntimeCancelledError(e)) {
       rethrow;
     }
@@ -364,14 +368,24 @@ Future<DownloadPictureResult> downloadPictureResult({
     return DownloadPictureResult(
       status: DownloadPictureResultStatus.failed,
       error: e,
+      errorStackTrace: stackTrace,
     );
   }
 
   _throwIfDownloadCancelled(qjsTaskGroupKey);
   final finalFile = File(downloadFilePath);
-  if (!await finalFile.exists() || await finalFile.length() <= 0) {
-    return const DownloadPictureResult(
+  if (!await finalFile.exists()) {
+    return DownloadPictureResult(
       status: DownloadPictureResultStatus.failed,
+      error: StateError('图片保存后文件不存在: $downloadFilePath'),
+      errorStackTrace: StackTrace.current,
+    );
+  }
+  if (await finalFile.length() <= 0) {
+    return DownloadPictureResult(
+      status: DownloadPictureResultStatus.failed,
+      error: StateError('图片保存后文件为空: $downloadFilePath'),
+      errorStackTrace: StackTrace.current,
     );
   }
   if (pictureType == PictureType.page) {
@@ -538,6 +552,10 @@ Future<Uint8List> downloadImageWithRetry(
       if (_isQjsRuntimeCancelledError(e)) {
         throw const DownloadTaskCancelledException();
       }
+      if (e is DownloadPictureNotFoundException) {
+        logger.w('下载图片资源不存在，跳过: $url');
+        rethrow;
+      }
       if (e is DownloadPictureEmptyDataException) {
         logger.w('下载图片返回空数据，停止重试: $url');
         rethrow;
@@ -554,14 +572,6 @@ Future<Uint8List> downloadImageWithRetry(
         );
       }
       logger.w('fetchImageBytes failed source=$source url=$url error=$e');
-      final errText = e.toString();
-      final isNotFound = e is DownloadPictureHttpException
-          ? e.statusCode == 404 || e.statusCode == 422
-          : errText.contains('422') || errText.contains('404');
-      if (isNotFound) {
-        logger.w('下载图片资源不存在，跳过: $url');
-        throw DownloadPictureNotFoundException(url, e);
-      }
 
       if (e is TimeoutException) {
         logger.e('下载图片超时: $url, 准备重试...($attempts/$maxRetries)');
@@ -606,12 +616,14 @@ class DownloadPictureResult {
     this.path = '',
     this.location,
     this.error,
+    this.errorStackTrace,
   });
 
   final DownloadPictureResultStatus status;
   final String path;
   final DownloadAssetLocation? location;
   final Object? error;
+  final StackTrace? errorStackTrace;
 
   bool get isSuccess =>
       status == DownloadPictureResultStatus.existing ||
@@ -625,7 +637,13 @@ class DownloadPictureNotFoundException implements Exception {
   final Object? cause;
 
   @override
-  String toString() => '图片资源不存在: $url';
+  String toString() {
+    final detail = cause?.toString().trim();
+    if (detail == null || detail.isEmpty) {
+      return '图片资源不存在: $url';
+    }
+    return '图片资源不存在: $url（$detail）';
+  }
 }
 
 class DownloadPictureHttpException implements Exception {

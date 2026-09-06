@@ -248,6 +248,9 @@ class _PendingTaskTile extends StatelessWidget {
         ? ''
         : downloadTaskPayloadProgressMessage(payload);
     final statusMessage = task.status == progressMessage ? '' : task.status;
+    final failureMessage = payload?.stateCode == 'failed'
+        ? payload?.lastErrorMessage.trim() ?? ''
+        : '';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -273,6 +276,22 @@ class _PendingTaskTile extends StatelessWidget {
                 progressMessage,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+            if (failureMessage.isNotEmpty)
+              InkWell(
+                onTap: () => _showDownloadFailureDetails(
+                  context,
+                  failureMessage,
+                ),
+                child: Text(
+                  failureMessage,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontSize: 12,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
           ],
         ),
         trailing: Row(
@@ -293,4 +312,23 @@ class _PendingTaskTile extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showDownloadFailureDetails(BuildContext context, String message) {
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(t.download.notificationFailedTitle),
+      content: SizedBox(
+        width: 720,
+        child: SingleChildScrollView(child: SelectableText(message)),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: Text(t.common.ok),
+        ),
+      ],
+    ),
+  );
 }

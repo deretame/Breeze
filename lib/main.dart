@@ -556,6 +556,12 @@ class _MyAppState extends State<MyApp>
 
   @override
   void onWindowClose() async {
+    // Linux 上托盘(AppIndicator)与各桌面环境行为差异大，点 X 一律直接退出进程，
+    // 忽略"隐藏到托盘"等设置，避免出现关不掉/找不到窗口的情况
+    if (Platform.isLinux) {
+      await _forceExit();
+      return;
+    }
     final closeBehavior = await WindowLogic.loadCloseBehavior();
     switch (closeBehavior) {
       case DesktopCloseBehavior.hide:

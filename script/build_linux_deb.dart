@@ -1,18 +1,5 @@
 #!/usr/bin/env dart
 // ignore_for_file: avoid_print
-//
-// Breeze Linux .deb 构建脚本
-//
-// 用法:
-//   dart ./script/build_linux_deb.dart            # flutter build linux --release 后打 deb
-//   dart ./script/build_linux_deb.dart --package-only  # 复用已有 bundle，只打 deb
-//
-// 环境变量:
-//   SENTRY_DSN       存在时注入 --dart-define=sentry_dsn
-//   OUTPUT_DIR       默认 build-deb
-//   VERSION          覆盖版本号(默认取 pubspec.yaml version)
-//
-// 依赖 dpkg-dev(dpkg-shlibdeps / dpkg-deb)，在 Debian/Ubuntu CI 上可直接运行。
 
 import 'dart:convert';
 import 'dart:io';
@@ -82,7 +69,6 @@ String _projectRoot() {
   return Directory(scriptFile.parent.path).parent.path;
 }
 
-/// 从 pubspec.yaml 读取版本，形如 3.0.30+2218 -> 3.0.30（deb 上游版本不允许 +）
 Future<String> _readDebVersion(String projectRoot) async {
   final envVersion = Platform.environment['VERSION']?.trim() ?? '';
   if (envVersion.isNotEmpty) {
@@ -130,11 +116,6 @@ Future<void> _buildLinuxRelease(String projectRoot) async {
   await _run('chmod', ['+x', crashpad.path], cwd: projectRoot);
 }
 
-/// 布局:
-///   /opt/breeze/<bundle>
-///   /usr/bin/breeze -> ../../opt/breeze/breeze
-///   /usr/share/applications/io.github.windy.breeze.desktop
-///   /usr/share/icons/hicolor/512x512/apps/io.github.windy.breeze.png
 Future<String> _assembleDebRoot({
   required String projectRoot,
   required String bundlePath,
@@ -152,22 +133,18 @@ Future<String> _assembleDebRoot({
     await root.delete(recursive: true);
   }
 
-  // 1. bundle
   final optDir = Directory('$staging${sep}opt');
   await optDir.create(recursive: true);
   await _run('cp', ['-r', bundlePath, debRoot], cwd: projectRoot);
-  // 2. /usr/bin 符号链接
   final binDir = Directory('$staging${sep}usr${sep}bin');
   await binDir.create(recursive: true);
   await Link(
     '$staging${sep}usr${sep}bin${sep}breeze',
   ).create('../../opt/breeze/breeze');
-  // 3. desktop 入口
   final appsDir = Directory('$staging${sep}usr${sep}share${sep}applications');
   await appsDir.create(recursive: true);
   await File('$projectRoot${sep}flatpak${sep}io.github.windy.breeze.desktop')
       .copy('${appsDir.path}${sep}io.github.windy.breeze.desktop');
-  // 4. 图标(复用应用图标，512x512)
   final iconsDir = Directory(
     '$staging${sep}usr${sep}share${sep}icons${sep}hicolor'
     '${sep}512x512${sep}apps',

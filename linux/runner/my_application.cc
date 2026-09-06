@@ -24,7 +24,6 @@ static gboolean on_window_delete_event(GtkWidget* widget,
                                        GdkEvent* event,
                                        gpointer user_data) {
   MyApplication* self = MY_APPLICATION(user_data);
-  g_warning("breeze: window close intercepted");
   gtk_widget_hide(widget);
   if (self->window_channel != nullptr) {
     fl_method_channel_invoke_method(self->window_channel,

@@ -98,8 +98,64 @@ impl WebDavClient {
             return Err(WebDavStatusError(status.as_u16()).into());
         }
         let body = response.text().await?;
-        Ok(serde_xml_rs::from_str::<ListMultiStatus>(&body)?.responses)
+        Ok(
+            serde_xml_rs::from_str::<ListMultiStatus>(&strip_xml_ns(&body))?
+                .responses,
+        )
     }
+}
+
+fn strip_xml_ns(xml: &str) -> String {
+    let bytes = xml.as_bytes();
+    let mut out = String::with_capacity(xml.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] != b'<' {
+            let next = xml[i..]
+                .find('<')
+                .map(|offset| i + offset)
+                .unwrap_or(xml.len());
+            out.push_str(&xml[i..next]);
+            i = next;
+            continue;
+        }
+        let mut j = i + 1;
+        let mut closing = false;
+        if j < bytes.len() && bytes[j] == b'/' {
+            closing = true;
+            j += 1;
+        }
+        let name_start = j;
+        while j < bytes.len() {
+            let c = bytes[j];
+            if c.is_ascii_alphanumeric() || c == b'_' || c == b'-' || c == b'.' || c == b':' {
+                j += 1;
+            } else {
+                break;
+            }
+        }
+        let name = &xml[name_start..j];
+        if name.is_empty() {
+            let end = xml[i..]
+                .find('>')
+                .map(|offset| i + offset + 1)
+                .unwrap_or(xml.len());
+            out.push_str(&xml[i..end]);
+            i = end;
+            continue;
+        }
+        out.push('<');
+        if closing {
+            out.push('/');
+        }
+        if let Some(pos) = name.find(':') {
+            out.push_str(&name[pos + 1..]);
+        } else {
+            out.push_str(name);
+        }
+        i = j;
+    }
+    out
 }
 
 #[frb]

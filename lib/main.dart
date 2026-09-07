@@ -487,6 +487,14 @@ class _MyAppState extends State<MyApp>
     trayManager.addListener(this);
     initSystemTray();
 
+    if (Platform.isLinux) {
+      _linuxWindowChannel.setMethodCallHandler((call) async {
+        if (call.method == 'windowCloseRequested') {
+          _handleCloseRequest();
+        }
+      });
+    }
+
     // 启动命名管道监听，用于接收外部退出信号（仅 Windows）
     if (Platform.isWindows) {
       rust_system.startShutdownListener().listen((shouldExit) {
@@ -554,8 +562,20 @@ class _MyAppState extends State<MyApp>
     nuclearKillProcess();
   }
 
+  bool _handlingCloseRequest = false;
+
+  static const MethodChannel _linuxWindowChannel =
+      MethodChannel('breeze/linux/window');
+
   @override
-  void onWindowClose() async {
+  void onWindowClose() {
+    _handleCloseRequest();
+  }
+
+  Future<void> _handleCloseRequest() async {
+    if (_handlingCloseRequest) return;
+    _handlingCloseRequest = true;
+    try {
     final closeBehavior = await WindowLogic.loadCloseBehavior();
     switch (closeBehavior) {
       case DesktopCloseBehavior.hide:
@@ -568,6 +588,9 @@ class _MyAppState extends State<MyApp>
         break;
     }
 
+    if (Platform.isLinux) {
+      await windowManager.show();
+    }
     final dialogContext = appRouter.navigatorKey.currentContext;
     if (dialogContext == null || !dialogContext.mounted) {
       await _forceExit();
@@ -636,6 +659,9 @@ class _MyAppState extends State<MyApp>
         );
       },
     );
+    } finally {
+      _handlingCloseRequest = false;
+    }
   }
 
   /// 隐藏窗口到任务栏托盘，不退出程序
@@ -660,7 +686,7 @@ class _MyAppState extends State<MyApp>
 
   @override
   void onTrayIconMouseDown() {
-    NativeWindow.show();
+    showMainWindow();
   }
 
   @override
@@ -671,7 +697,7 @@ class _MyAppState extends State<MyApp>
   @override
   void onTrayMenuItemClick(MenuItem menuItem) {
     if (menuItem.key == 'show_window') {
-      NativeWindow.show();
+      showMainWindow();
     } else if (menuItem.key == 'exit_app') {
       // 真正退出：清理资源后退出
       _performGracefulExit();

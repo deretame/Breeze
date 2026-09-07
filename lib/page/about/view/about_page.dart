@@ -50,6 +50,10 @@ class _AboutPageState extends State<AboutPage> {
     try {
       final response = await fetch(
         'https://api.github.com/repos/deretame/Breeze/contributors',
+        headers: const {
+          'User-Agent': 'Breeze',
+          'Accept': 'application/vnd.github+json',
+        },
         query: {'per_page': 20},
       );
 

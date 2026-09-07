@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/utils/github_proxy.dart';
 
 import 'package:zephyr/service/update/check_update.dart';
 
@@ -47,25 +48,37 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _fetchContributors() async {
+    const repoPath = '/repos/deretame/Breeze/contributors';
+    final urls = [
+      ...mirrorBaseUrls.map((base) => '${base}https://api.github.com$repoPath'),
+      'https://api.github.com$repoPath',
+    ];
     try {
-      final response = await fetch(
-        'https://api.github.com/repos/deretame/Breeze/contributors',
-        headers: const {
-          'User-Agent': 'Breeze',
-          'Accept': 'application/vnd.github+json',
-        },
-        query: {'per_page': 20},
-      );
-
-      if (response.ok && mounted) {
-        final data = response.json;
-        setState(() {
-          _contributors = List<Map<String, dynamic>>.from(
-            data is List ? data : const [],
+      for (final url in urls) {
+        try {
+          final response = await fetch(
+            url,
+            headers: const {
+              'User-Agent': 'Breeze',
+              'Accept': 'application/vnd.github+json',
+            },
+            query: {'per_page': 20},
           );
-          _contributorsLoading = false;
-        });
-      } else if (mounted) {
+          if (response.ok && mounted) {
+            final data = response.json;
+            setState(() {
+              _contributors = List<Map<String, dynamic>>.from(
+                data is List ? data : const [],
+              );
+              _contributorsLoading = false;
+            });
+            return;
+          }
+        } catch (_) {
+          continue;
+        }
+      }
+      if (mounted) {
         setState(() {
           _contributorsError = t.about.fetchFailed;
           _contributorsLoading = false;

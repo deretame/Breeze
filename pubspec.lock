@@ -1315,13 +1315,14 @@ packages:
     source: hosted
     version: "4.4.0"
   permission_handler_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: permission_handler_windows
-      sha256: caeae01858a0a7d2df67a445ac98e1ad95e55a0e77c73044f4e9b1c8c2289cbd
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
+      path: permission_handler_windows
+      ref: "11aea60"
+      resolved-ref: "11aea6031db442ab2e8c4cf28b02098697cbd8af"
+      url: "https://github.com/deretame/flutter-permission-handler.git"
+    source: git
+    version: "0.2.3"
   persistent_bottom_nav_bar:
     dependency: "direct main"
     description:

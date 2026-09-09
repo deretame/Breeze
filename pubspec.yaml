@@ -98,6 +98,11 @@ dependencies:
 
 dependency_overrides:
   meta: ^1.19.0
+  permission_handler_windows:
+    git:
+      url: https://github.com/deretame/flutter-permission-handler.git
+      ref: 11aea60
+      path: permission_handler_windows
 
 dev_dependencies:
   # 测试与规范

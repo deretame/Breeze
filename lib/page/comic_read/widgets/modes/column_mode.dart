@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
@@ -136,6 +136,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           ),
           scrollCacheExtent: ScrollCacheExtent.pixels(context.screenHeight * 2),
           controller: widget.scrollController,
+          addRepaintBoundaries: false,
         );
 
         // 维护"用户正在滚动"标记：仅由真实拖拽（dragDetails 非空）开始，

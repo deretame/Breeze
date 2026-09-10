@@ -260,6 +260,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
     const typeGroup = XTypeGroup(
       label: 'font',
       extensions: ['ttf', 'otf', 'ttc'],
+      uniformTypeIdentifiers: ['public.font'],
     );
     final file = await openFile(acceptedTypeGroups: [typeGroup]);
     if (file == null) return;

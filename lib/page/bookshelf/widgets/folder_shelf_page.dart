@@ -1093,7 +1093,11 @@ Future<void> _importComic(BuildContext context) async {
     } else {
       final file = await openFile(
         acceptedTypeGroups: [
-          const XTypeGroup(label: 'zip', extensions: ['zip']),
+          const XTypeGroup(
+            label: 'zip',
+            extensions: ['zip'],
+            uniformTypeIdentifiers: ['public.zip-archive'],
+          ),
         ],
       );
       importRoot = file?.path;

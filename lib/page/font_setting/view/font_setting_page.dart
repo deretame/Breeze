@@ -64,6 +64,7 @@ class FontSettingPage extends StatelessWidget {
     const typeGroup = XTypeGroup(
       label: 'font',
       extensions: ['ttf', 'otf', 'ttc'],
+      uniformTypeIdentifiers: ['public.font'],
     );
     final file = await openFile(acceptedTypeGroups: [typeGroup]);
     if (file == null) return;

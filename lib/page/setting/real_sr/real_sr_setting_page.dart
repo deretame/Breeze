@@ -239,7 +239,10 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
   }
 
   Future<void> _importModel() async {
-    const typeGroup = XTypeGroup(label: '7z', extensions: ['7z']);
+    // iOS 没有系统声明的 7z UTI，使用通用数据类型后由导入逻辑校验 7z 魔数。
+    final typeGroup = Platform.isIOS
+        ? const XTypeGroup(label: '7z')
+        : const XTypeGroup(label: '7z', extensions: ['7z']);
     final XFile? file;
     try {
       file = await openFile(acceptedTypeGroups: [typeGroup]);

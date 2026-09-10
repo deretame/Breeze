@@ -267,7 +267,11 @@ class _DataBackupPageState extends State<DataBackupPage> {
     logger.i('非 Android 平台，使用 file_selector');
     final file = await openFile(
       acceptedTypeGroups: [
-        const XTypeGroup(label: 'zip', extensions: ['zip']),
+        const XTypeGroup(
+          label: 'zip',
+          extensions: ['zip'],
+          uniformTypeIdentifiers: ['public.zip-archive'],
+        ),
       ],
     );
     return file?.path;

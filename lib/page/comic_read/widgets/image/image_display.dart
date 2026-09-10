@@ -41,41 +41,34 @@ class _ImageDisplayState extends State<ImageDisplay> {
   @override
   void initState() {
     super.initState();
-    if (isColumn) {
-      _resolveImageMeta();
-    } else {
-      _startEinkDelayIfNeeded(
-        context.read<GlobalSettingCubit>().state.readSetting,
-      );
-    }
+    _resolveImageMeta();
+    _startEinkDelayIfNeeded(
+      context.read<GlobalSettingCubit>().state.readSetting,
+    );
   }
 
   @override
   void didUpdateWidget(covariant ImageDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (widget.isColumn != oldWidget.isColumn ||
+        widget.imagePath != oldWidget.imagePath) {
+      _stopListening();
+      _rawWidth = null;
+      _rawHeight = null;
+      _resolveImageMeta();
+    }
+
     if (widget.isColumn) {
-      if (!oldWidget.isColumn || widget.imagePath != oldWidget.imagePath) {
-        _stopListening();
-        _rawWidth = null;
-        _rawHeight = null;
-        _resolveImageMeta();
-      }
       _einkDelayTimer?.cancel();
       _einkDelayFinished = true;
       _wasRowActive = false;
       return;
     }
 
-    if (oldWidget.isColumn) {
-      _stopListening();
-    }
-
-    if (widget.imagePath != oldWidget.imagePath || oldWidget.isColumn) {
-      _startEinkDelayIfNeeded(
-        context.read<GlobalSettingCubit>().state.readSetting,
-      );
-    }
+    _startEinkDelayIfNeeded(
+      context.read<GlobalSettingCubit>().state.readSetting,
+    );
   }
 
   void _startEinkDelayIfNeeded(ReadSettingState readSetting) {
@@ -202,7 +195,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
-        if (_rawWidth != null && isColumn) {
+        if (_rawWidth != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _updateCubitSize(width);
           });

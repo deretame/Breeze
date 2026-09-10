@@ -515,6 +515,8 @@
     "singlePageRtl": "单页式（从右到左）",
     "doublePage": "双页阅读",
     "doublePageSubtitle": "在当前阅读模式中启用双页并排",
+    "doublePageSeamless": "双页无缝",
+    "doublePageSeamlessSubtitle": "按图片比例适应高度，消除双页之间的中间留白",
     "doublePageLeadingBlank": "首页留白",
     "doublePageLeadingBlankSubtitle": "在每章最前插入一页空白，使配对整体错一位",
     "themeMode": "系统模式",

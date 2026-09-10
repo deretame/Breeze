@@ -1645,6 +1645,12 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '在当前阅读模式中启用双页并排'
 	String get doublePageSubtitle => '在当前阅读模式中启用双页并排';
 
+	/// zh-CN: '双页无缝'
+	String get doublePageSeamless => '双页无缝';
+
+	/// zh-CN: '按图片比例适应高度，消除双页之间的中间留白'
+	String get doublePageSeamlessSubtitle => '按图片比例适应高度，消除双页之间的中间留白';
+
 	/// zh-CN: '首页留白'
 	String get doublePageLeadingBlank => '首页留白';
 
@@ -4328,6 +4334,8 @@ extension on Translations {
 			'reader.singlePageRtl' => '单页式（从右到左）',
 			'reader.doublePage' => '双页阅读',
 			'reader.doublePageSubtitle' => '在当前阅读模式中启用双页并排',
+			'reader.doublePageSeamless' => '双页无缝',
+			'reader.doublePageSeamlessSubtitle' => '按图片比例适应高度，消除双页之间的中间留白',
 			'reader.doublePageLeadingBlank' => '首页留白',
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.themeMode' => '系统模式',
@@ -4336,10 +4344,10 @@ extension on Translations {
 			'reader.autoReadHidePauseButton' => '隐藏暂停按钮',
 			'reader.autoReadHidePauseButtonSubtitle' => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮',
 			'reader.autoReadSmooth' => '平滑滚动',
-			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
-			'reader.webtoonScrollDistance' => '条漫滚动距离',
 			_ => null,
 		} ?? switch (path) {
+			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
+			'reader.webtoonScrollDistance' => '条漫滚动距离',
 			'reader.webtoonScrollInterval' => '条漫滚动间隔',
 			'reader.singlePageScrollInterval' => '单页式滚动间隔',
 			'reader.preload' => '预加载',
@@ -4850,10 +4858,10 @@ extension on Translations {
 			'comicFollow.unfollowConfirm' => ({required Object title}) => '确定不再追更《${title}》吗？',
 			'comicFollow.unfollowed' => '已取消追更',
 			'comicFollow.all' => '全部',
-			'comicFollow.unread' => '已更新未看',
-			'comicFollow.sort' => '排序',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.unread' => '已更新未看',
+			'comicFollow.sort' => '排序',
 			'comicFollow.lastRead' => '最后阅读',
 			'comicFollow.lastUpdate' => '最近检测更新',
 			'comicFollow.checkTime' => ({required Object time}) => '检测时间：${time}',

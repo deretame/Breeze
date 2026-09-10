@@ -30,6 +30,8 @@ Widget buildReadModeSlot({
   required String from,
   required ValueChanged<int>? onTransitionAction,
   required ReadModeTransitionStyle transitionStyle,
+  bool seamlessDoublePage = false,
+  double? viewportHeight,
 }) {
   assert(
     (singleItem == null) != (doublePageSlot == null),
@@ -116,6 +118,8 @@ Widget buildReadModeSlot({
     isRtl: isRtl,
     comicId: comicId,
     from: from,
+    seamlessDoublePage: seamlessDoublePage,
+    viewportHeight: viewportHeight,
   );
 }
 
@@ -186,7 +190,7 @@ Widget _buildRowSingleImage({
         comicId: comicId,
         from: from,
         slotIndex: slotIndex,
-        cacheIndex: item.entryIndex,
+        cacheIndex: _resolveImageCacheIndex(entry, item.entryIndex),
         displayNumber: (entry.chapterPageIndex ?? 0) + 1,
         isColumn: false,
       ),
@@ -209,10 +213,7 @@ Widget _buildColumnDoublePageImage({
   final right = slot.right;
   if (left == null && right == null) return const SizedBox.shrink();
 
-  final panelWidth = ((contentWidth - kDoublePageGap) / 2).clamp(
-    1.0,
-    contentWidth,
-  );
+  final panelWidth = (contentWidth / 2).clamp(1.0, contentWidth);
 
   return BlocSelector<ImageSizeCubit, ImageSizeState, (Size, Size)>(
     selector: (state) => (
@@ -282,8 +283,8 @@ Widget _buildColumnDoublePageImage({
       );
 
       final children = isRtl
-          ? [rightChild, const SizedBox(width: kDoublePageGap), leftChild]
-          : [leftChild, const SizedBox(width: kDoublePageGap), rightChild];
+          ? [rightChild, leftChild]
+          : [leftChild, rightChild];
 
       return Container(
         color: backgroundColor,
@@ -312,11 +313,25 @@ Widget _buildRowDoublePageImage({
   required bool isRtl,
   required String comicId,
   required String from,
+  required bool seamlessDoublePage,
+  required double? viewportHeight,
 }) {
-  final panelWidth = ((contentWidth - kDoublePageGap) / 2).clamp(
-    1.0,
-    contentWidth,
-  );
+  final panelWidth = (contentWidth / 2).clamp(1.0, contentWidth);
+
+  if (seamlessDoublePage) {
+    return _buildSeamlessRowDoublePageImage(
+      context: context,
+      slot: slot,
+      slotIndex: slotIndex,
+      containerWidth: containerWidth,
+      contentWidth: contentWidth,
+      backgroundColor: backgroundColor,
+      isRtl: isRtl,
+      comicId: comicId,
+      from: from,
+      viewportHeight: viewportHeight,
+    );
+  }
 
   final leftChild = SizedBox(
     width: panelWidth,
@@ -327,7 +342,10 @@ Widget _buildRowDoublePageImage({
             comicId: comicId,
             from: from,
             slotIndex: slotIndex,
-            cacheIndex: slot.left!.entryIndex,
+            cacheIndex: _resolveImageCacheIndex(
+              slot.left!.entry,
+              slot.left!.entryIndex,
+            ),
             displayNumber: (slot.left!.entry.chapterPageIndex ?? 0) + 1,
             isColumn: false,
           )
@@ -342,16 +360,17 @@ Widget _buildRowDoublePageImage({
             comicId: comicId,
             from: from,
             slotIndex: slotIndex,
-            cacheIndex: slot.right!.entryIndex,
+            cacheIndex: _resolveImageCacheIndex(
+              slot.right!.entry,
+              slot.right!.entryIndex,
+            ),
             displayNumber: (slot.right!.entry.chapterPageIndex ?? 0) + 1,
             isColumn: false,
           )
         : const SizedBox.shrink(),
   );
 
-  final children = isRtl
-      ? [rightChild, const SizedBox(width: kDoublePageGap), leftChild]
-      : [leftChild, const SizedBox(width: kDoublePageGap), rightChild];
+  final children = isRtl ? [rightChild, leftChild] : [leftChild, rightChild];
 
   return Container(
     color: backgroundColor,
@@ -362,6 +381,120 @@ Widget _buildRowDoublePageImage({
       child: Row(children: children),
     ),
   );
+}
+
+Widget _buildSeamlessRowDoublePageImage({
+  required BuildContext context,
+  required ReadModeDoublePageSlot slot,
+  required int slotIndex,
+  required double containerWidth,
+  required double contentWidth,
+  required Color backgroundColor,
+  required bool isRtl,
+  required String comicId,
+  required String from,
+  required double? viewportHeight,
+}) {
+  final left = slot.left;
+  final right = slot.right;
+  if (left == null && right == null) return const SizedBox.shrink();
+
+  return BlocSelector<ImageSizeCubit, ImageSizeState, (Size, Size)>(
+    selector: (state) => (
+      left != null
+          ? state.getSizeValue(
+              _resolveImageCacheIndex(left.entry, left.entryIndex),
+            )
+          : const Size(0, 0),
+      right != null
+          ? state.getSizeValue(
+              _resolveImageCacheIndex(right.entry, right.entryIndex),
+            )
+          : const Size(0, 0),
+    ),
+    builder: (context, pairSize) {
+      final targetHeight =
+          viewportHeight != null &&
+              viewportHeight.isFinite &&
+              viewportHeight > 0
+          ? viewportHeight
+          : contentWidth;
+      final leftWidth = left == null
+          ? 0.0
+          : targetHeight * _resolveImageWidthRatio(pairSize.$1);
+      final rightWidth = right == null
+          ? 0.0
+          : targetHeight * _resolveImageWidthRatio(pairSize.$2);
+      final naturalWidth = leftWidth + rightWidth;
+      final scale = naturalWidth > contentWidth
+          ? contentWidth / naturalWidth
+          : 1.0;
+      final displayHeight = targetHeight * scale;
+      final displayWidth = naturalWidth * scale;
+
+      final leftChild = SizedBox(
+        width: leftWidth * scale,
+        height: displayHeight,
+        child: left != null
+            ? buildReadModeImage(
+                context: context,
+                entry: left.entry,
+                comicId: comicId,
+                from: from,
+                slotIndex: slotIndex,
+                cacheIndex: _resolveImageCacheIndex(
+                  left.entry,
+                  left.entryIndex,
+                ),
+                displayNumber: (left.entry.chapterPageIndex ?? 0) + 1,
+                isColumn: false,
+              )
+            : const SizedBox.shrink(),
+      );
+      final rightChild = SizedBox(
+        width: rightWidth * scale,
+        height: displayHeight,
+        child: right != null
+            ? buildReadModeImage(
+                context: context,
+                entry: right.entry,
+                comicId: comicId,
+                from: from,
+                slotIndex: slotIndex,
+                cacheIndex: _resolveImageCacheIndex(
+                  right.entry,
+                  right.entryIndex,
+                ),
+                displayNumber: (right.entry.chapterPageIndex ?? 0) + 1,
+                isColumn: false,
+              )
+            : const SizedBox.shrink(),
+      );
+
+      final children = isRtl
+          ? [rightChild, leftChild]
+          : [leftChild, rightChild];
+
+      return Container(
+        color: backgroundColor,
+        width: containerWidth,
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: displayWidth,
+          height: displayHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
+        ),
+      );
+    },
+  );
+}
+
+double _resolveImageWidthRatio(Size size) {
+  if (size.width <= 0 || size.height <= 0) return 1 / 1.2;
+  return size.width / size.height;
 }
 
 int _resolveImageCacheIndex(ReadModeEntry entry, int fallbackIndex) {

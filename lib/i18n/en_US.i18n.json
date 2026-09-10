@@ -514,6 +514,8 @@
     "singlePageRtl": "Single page (RTL)",
     "doublePage": "Double page",
     "doublePageSubtitle": "Enable double-page spread in current reading mode",
+    "doublePageSeamless": "Seamless double page",
+    "doublePageSeamlessSubtitle": "Fit pages by height and remove the gap between them",
     "doublePageLeadingBlank": "Leading blank",
     "doublePageLeadingBlankSubtitle": "Insert a blank page at the start of each chapter to shift page pairing",
     "themeMode": "Theme mode",

@@ -637,6 +637,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get singlePageRtl => 'Single page (RTL)';
 	@override String get doublePage => 'Double page';
 	@override String get doublePageSubtitle => 'Enable double-page spread in current reading mode';
+	@override String get doublePageSeamless => 'Seamless double page';
+	@override String get doublePageSeamlessSubtitle => 'Fit pages by height and remove the gap between them';
 	@override String get doublePageLeadingBlank => 'Leading blank';
 	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
 	@override String get themeMode => 'Theme mode';
@@ -2034,6 +2036,8 @@ extension on TranslationsEnUs {
 			'reader.singlePageRtl' => 'Single page (RTL)',
 			'reader.doublePage' => 'Double page',
 			'reader.doublePageSubtitle' => 'Enable double-page spread in current reading mode',
+			'reader.doublePageSeamless' => 'Seamless double page',
+			'reader.doublePageSeamlessSubtitle' => 'Fit pages by height and remove the gap between them',
 			'reader.doublePageLeadingBlank' => 'Leading blank',
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.themeMode' => 'Theme mode',
@@ -2043,10 +2047,10 @@ extension on TranslationsEnUs {
 			'reader.autoReadHidePauseButtonSubtitle' => 'Keep auto-read running without showing the pause/play button',
 			'reader.autoReadSmooth' => 'Smooth scroll',
 			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
-			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
-			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
 			_ => null,
 		} ?? switch (path) {
+			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
+			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
 			'reader.singlePageScrollInterval' => 'Single page scroll interval',
 			'reader.preload' => 'Preload',
 			'reader.preloadImageCount' => 'Preloaded image count',
@@ -2557,10 +2561,10 @@ extension on TranslationsEnUs {
 			'comicFollow.unfollowed' => 'Unfollowed',
 			'comicFollow.all' => 'All',
 			'comicFollow.unread' => 'Updated and unread',
-			'comicFollow.sort' => 'Sort',
-			'comicFollow.lastRead' => 'Last read',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.sort' => 'Sort',
+			'comicFollow.lastRead' => 'Last read',
 			'comicFollow.lastUpdate' => 'Latest update check',
 			'comicFollow.checkTime' => ({required Object time}) => 'Check time: ${time}',
 			'comicFollow.notRead' => 'Not read yet',

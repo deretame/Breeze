@@ -200,6 +200,9 @@ class _RowModeWidgetState extends State<RowModeWidget> {
                   from: widget.from,
                   onTransitionAction: widget.onTransitionAction,
                   transitionStyle: transitionStyle,
+                  seamlessDoublePage:
+                      isDoublePage && readSetting.doublePageSeamless,
+                  viewportHeight: constraints.maxHeight,
                 );
               },
             );

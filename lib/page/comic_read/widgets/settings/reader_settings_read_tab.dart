@@ -97,6 +97,19 @@ class _ReadModeSection extends StatelessWidget {
             changePageIndex(0);
           },
         ),
+        if (globalSettingState.readSetting.doublePageMode &&
+            globalSettingState.readSetting.readMode != 0)
+          _SettingsSwitchTile(
+            title: t.reader.doublePageSeamless,
+            subtitle: t.reader.doublePageSeamlessSubtitle,
+            value: globalSettingState.readSetting.doublePageSeamless,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(doublePageSeamless: value),
+              );
+              changePageIndex(0);
+            },
+          ),
         if (globalSettingState.readSetting.doublePageMode)
           _SettingsSwitchTile(
             title: t.reader.doublePageLeadingBlank,

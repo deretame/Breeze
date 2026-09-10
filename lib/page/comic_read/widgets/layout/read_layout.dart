@@ -6,9 +6,6 @@ const int kReadModeColumn = 0;
 const int kReadModeRowLtr = 1;
 const int kReadModeRowRtl = 2;
 
-/// 双页模式下左右页之间的间距。
-const double kDoublePageGap = 6.0;
-
 /// 阅读器通用动画时长。
 const Duration kReaderAnimationDuration = Duration(milliseconds: 300);
 

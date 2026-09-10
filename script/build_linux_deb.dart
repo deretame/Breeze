@@ -95,7 +95,7 @@ Future<void> _buildLinuxRelease(String projectRoot) async {
     'build',
     'linux',
     '--release',
-    '--split-debug-info=${projectRoot}${Platform.pathSeparator}build${Platform.pathSeparator}symbols',
+    '--split-debug-info=$projectRoot${Platform.pathSeparator}build${Platform.pathSeparator}symbols',
   ];
   if (sentryDsn.isNotEmpty) {
     args.add('--dart-define=sentry_dsn=$sentryDsn');
@@ -126,7 +126,7 @@ Future<String> _assembleDebRoot({
       Platform.environment['OUTPUT_DIR']?.trim().isNotEmpty == true
           ? Platform.environment['OUTPUT_DIR']!.trim()
           : 'build-deb';
-  final staging = '$projectRoot${sep}${outputDir}${sep}package';
+  final staging = '$projectRoot$sep$outputDir${sep}package';
   final debRoot = '$staging${sep}opt${sep}breeze';
   final root = Directory(staging);
   if (root.existsSync()) {
@@ -315,7 +315,7 @@ Future<void> main(List<String> args) async {
   );
 
   final debFile = File(
-    '$projectRoot${sep}${outputDir}${sep}breeze_${version}_$architecture.deb',
+    '$projectRoot$sep$outputDir${sep}breeze_${version}_$architecture.deb',
   );
   await _run(
     'dpkg-deb',

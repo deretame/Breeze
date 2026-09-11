@@ -31,6 +31,13 @@ Widget buildReadModeImage({
       : entry.chapterId!;
 
   return ReadImageWidget(
+    key: ValueKey((
+      entry.chapterId,
+      entry.chapterOrder,
+      entry.chapterPageIndex,
+      entry.doc!.fileServer,
+      entry.doc!.path,
+    )),
     pictureInfo: PictureInfo(
       from: from,
       url: entry.doc!.fileServer,

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'picture_info.dart';
@@ -9,19 +9,14 @@ part of 'picture_info.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$PictureInfo {
 
- String get from;// 从那个漫画网站获取的
- String get url;// 网址
- String get path;// 路径
- String get cartoonId;// 漫画id
- String get chapterId;// 章节id
- PictureType get pictureType;// 图片类型
- Map<String, dynamic> get extern;
+ String get from; String get url; String get path; String get cartoonId; String get chapterId; PictureType get pictureType; Map<String, dynamic> get extern;
 /// Create a copy of PictureInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,16 +29,21 @@ $PictureInfoCopyWith<PictureInfo> get copyWith => _$PictureInfoCopyWithImpl<Pict
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as PictureInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PictureInfo&&(identical(other.from, _this.from) || other.from == _this.from)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.cartoonId, _this.cartoonId) || other.cartoonId == _this.cartoonId)&&(identical(other.chapterId, _this.chapterId) || other.chapterId == _this.chapterId)&&(identical(other.pictureType, _this.pictureType) || other.pictureType == _this.pictureType)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as PictureInfo;
+  return Object.hash(runtimeType,_this.from,_this.url,_this.path,_this.cartoonId,_this.chapterId,_this.pictureType,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType, extern: $extern)';
+  final _this = this as PictureInfo;
+  return 'PictureInfo(from: ${_this.from}, url: ${_this.url}, path: ${_this.path}, cartoonId: ${_this.cartoonId}, chapterId: ${_this.chapterId}, pictureType: ${_this.pictureType}, extern: ${_this.extern})';
 }
 
 
@@ -72,7 +72,7 @@ class _$PictureInfoCopyWithImpl<$Res>
 /// Create a copy of PictureInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(PictureInfo(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
@@ -221,23 +221,16 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 @JsonSerializable()
 
 class _PictureInfo implements PictureInfo {
-  const _PictureInfo({this.from = '', this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic, final  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
+  const _PictureInfo({this.from = '', this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic,  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
   factory _PictureInfo.fromJson(Map<String, dynamic> json) => _$PictureInfoFromJson(json);
 
 @override@JsonKey() final  String from;
-// 从那个漫画网站获取的
 @override@JsonKey() final  String url;
-// 网址
 @override@JsonKey() final  String path;
-// 路径
 @override@JsonKey() final  String cartoonId;
-// 漫画id
 @override@JsonKey() final  String chapterId;
-// 章节id
 @override@JsonKey() final  PictureType pictureType;
-// 图片类型
  final  Map<String, dynamic> _extern;
-// 图片类型
 @override@JsonKey() Map<String, dynamic> get extern {
   if (_extern is EqualUnmodifiableMapView) return _extern;
   // ignore: implicit_dynamic_type
@@ -258,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType, extern: $extern)';
+    return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType, extern: $extern)';
 }
 
 

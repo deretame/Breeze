@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'comments_cubit.dart';
@@ -9,6 +9,7 @@ part of 'comments_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $CommentsViewStateCopyWith<CommentsViewState> get copyWith => _$CommentsViewStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentsViewState&&const DeepCollectionEquality().equals(other.topItems, topItems)&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.loading, loading) || other.loading == loading)&&(identical(other.loadingMore, loadingMore) || other.loadingMore == loadingMore)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.canCommentComic, canCommentComic) || other.canCommentComic == canCommentComic)&&(identical(other.canCommentReply, canCommentReply) || other.canCommentReply == canCommentReply)&&(identical(other.posting, posting) || other.posting == posting)&&(identical(other.replyMode, replyMode) || other.replyMode == replyMode)&&(identical(other.page, page) || other.page == page)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.expandedIds, expandedIds)&&const DeepCollectionEquality().equals(other.replyItems, replyItems)&&const DeepCollectionEquality().equals(other.replyLoading, replyLoading)&&const DeepCollectionEquality().equals(other.replyHasReachedMax, replyHasReachedMax)&&const DeepCollectionEquality().equals(other.replyPage, replyPage)&&(identical(other.noticeMessage, noticeMessage) || other.noticeMessage == noticeMessage)&&(identical(other.noticeId, noticeId) || other.noticeId == noticeId));
+  final _this = this as CommentsViewState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentsViewState&&const DeepCollectionEquality().equals(other.topItems, _this.topItems)&&const DeepCollectionEquality().equals(other.items, _this.items)&&(identical(other.loading, _this.loading) || other.loading == _this.loading)&&(identical(other.loadingMore, _this.loadingMore) || other.loadingMore == _this.loadingMore)&&(identical(other.hasReachedMax, _this.hasReachedMax) || other.hasReachedMax == _this.hasReachedMax)&&(identical(other.canCommentComic, _this.canCommentComic) || other.canCommentComic == _this.canCommentComic)&&(identical(other.canCommentReply, _this.canCommentReply) || other.canCommentReply == _this.canCommentReply)&&(identical(other.posting, _this.posting) || other.posting == _this.posting)&&(identical(other.replyMode, _this.replyMode) || other.replyMode == _this.replyMode)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.error, _this.error) || other.error == _this.error)&&const DeepCollectionEquality().equals(other.expandedIds, _this.expandedIds)&&const DeepCollectionEquality().equals(other.replyItems, _this.replyItems)&&const DeepCollectionEquality().equals(other.replyLoading, _this.replyLoading)&&const DeepCollectionEquality().equals(other.replyHasReachedMax, _this.replyHasReachedMax)&&const DeepCollectionEquality().equals(other.replyPage, _this.replyPage)&&(identical(other.noticeMessage, _this.noticeMessage) || other.noticeMessage == _this.noticeMessage)&&(identical(other.noticeId, _this.noticeId) || other.noticeId == _this.noticeId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(topItems),const DeepCollectionEquality().hash(items),loading,loadingMore,hasReachedMax,canCommentComic,canCommentReply,posting,replyMode,page,error,const DeepCollectionEquality().hash(expandedIds),const DeepCollectionEquality().hash(replyItems),const DeepCollectionEquality().hash(replyLoading),const DeepCollectionEquality().hash(replyHasReachedMax),const DeepCollectionEquality().hash(replyPage),noticeMessage,noticeId);
+int get hashCode {
+  final _this = this as CommentsViewState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.topItems),const DeepCollectionEquality().hash(_this.items),_this.loading,_this.loadingMore,_this.hasReachedMax,_this.canCommentComic,_this.canCommentReply,_this.posting,_this.replyMode,_this.page,_this.error,const DeepCollectionEquality().hash(_this.expandedIds),const DeepCollectionEquality().hash(_this.replyItems),const DeepCollectionEquality().hash(_this.replyLoading),const DeepCollectionEquality().hash(_this.replyHasReachedMax),const DeepCollectionEquality().hash(_this.replyPage),_this.noticeMessage,_this.noticeId);
+}
 
 @override
 String toString() {
-  return 'CommentsViewState(topItems: $topItems, items: $items, loading: $loading, loadingMore: $loadingMore, hasReachedMax: $hasReachedMax, canCommentComic: $canCommentComic, canCommentReply: $canCommentReply, posting: $posting, replyMode: $replyMode, page: $page, error: $error, expandedIds: $expandedIds, replyItems: $replyItems, replyLoading: $replyLoading, replyHasReachedMax: $replyHasReachedMax, replyPage: $replyPage, noticeMessage: $noticeMessage, noticeId: $noticeId)';
+  final _this = this as CommentsViewState;
+  return 'CommentsViewState(topItems: ${_this.topItems}, items: ${_this.items}, loading: ${_this.loading}, loadingMore: ${_this.loadingMore}, hasReachedMax: ${_this.hasReachedMax}, canCommentComic: ${_this.canCommentComic}, canCommentReply: ${_this.canCommentReply}, posting: ${_this.posting}, replyMode: ${_this.replyMode}, page: ${_this.page}, error: ${_this.error}, expandedIds: ${_this.expandedIds}, replyItems: ${_this.replyItems}, replyLoading: ${_this.replyLoading}, replyHasReachedMax: ${_this.replyHasReachedMax}, replyPage: ${_this.replyPage}, noticeMessage: ${_this.noticeMessage}, noticeId: ${_this.noticeId})';
 }
 
 
@@ -63,7 +69,7 @@ class _$CommentsViewStateCopyWithImpl<$Res>
 /// Create a copy of CommentsViewState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? topItems = null,Object? items = null,Object? loading = null,Object? loadingMore = null,Object? hasReachedMax = null,Object? canCommentComic = null,Object? canCommentReply = null,Object? posting = null,Object? replyMode = null,Object? page = null,Object? error = freezed,Object? expandedIds = null,Object? replyItems = null,Object? replyLoading = null,Object? replyHasReachedMax = null,Object? replyPage = null,Object? noticeMessage = null,Object? noticeId = null,}) {
-  return _then(_self.copyWith(
+  return _then(CommentsViewState(
 topItems: null == topItems ? _self.topItems : topItems // ignore: cast_nullable_to_non_nullable
 as List<CommentItem>,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<CommentItem>,loading: null == loading ? _self.loading : loading // ignore: cast_nullable_to_non_nullable
@@ -223,7 +229,7 @@ return $default(_that.topItems,_that.items,_that.loading,_that.loadingMore,_that
 
 
 class _CommentsViewState implements CommentsViewState {
-  const _CommentsViewState({final  List<CommentItem> topItems = const <CommentItem>[], final  List<CommentItem> items = const <CommentItem>[], this.loading = false, this.loadingMore = false, this.hasReachedMax = false, this.canCommentComic = false, this.canCommentReply = false, this.posting = false, this.replyMode = 'lazy', this.page = 1, this.error, final  Set<String> expandedIds = const <String>{}, final  Map<String, List<CommentItem>> replyItems = const <String, List<CommentItem>>{}, final  Map<String, bool> replyLoading = const <String, bool>{}, final  Map<String, bool> replyHasReachedMax = const <String, bool>{}, final  Map<String, int> replyPage = const <String, int>{}, this.noticeMessage = '', this.noticeId = 0}): _topItems = topItems,_items = items,_expandedIds = expandedIds,_replyItems = replyItems,_replyLoading = replyLoading,_replyHasReachedMax = replyHasReachedMax,_replyPage = replyPage;
+  const _CommentsViewState({ List<CommentItem> topItems = const <CommentItem>[],  List<CommentItem> items = const <CommentItem>[], this.loading = false, this.loadingMore = false, this.hasReachedMax = false, this.canCommentComic = false, this.canCommentReply = false, this.posting = false, this.replyMode = 'lazy', this.page = 1, this.error,  Set<String> expandedIds = const <String>{},  Map<String, List<CommentItem>> replyItems = const <String, List<CommentItem>>{},  Map<String, bool> replyLoading = const <String, bool>{},  Map<String, bool> replyHasReachedMax = const <String, bool>{},  Map<String, int> replyPage = const <String, int>{}, this.noticeMessage = '', this.noticeId = 0}): _topItems = topItems,_items = items,_expandedIds = expandedIds,_replyItems = replyItems,_replyLoading = replyLoading,_replyHasReachedMax = replyHasReachedMax,_replyPage = replyPage;
   
 
  final  List<CommentItem> _topItems;
@@ -297,16 +303,18 @@ _$CommentsViewStateCopyWith<_CommentsViewState> get copyWith => __$CommentsViewS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentsViewState&&const DeepCollectionEquality().equals(other._topItems, _topItems)&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.loading, loading) || other.loading == loading)&&(identical(other.loadingMore, loadingMore) || other.loadingMore == loadingMore)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.canCommentComic, canCommentComic) || other.canCommentComic == canCommentComic)&&(identical(other.canCommentReply, canCommentReply) || other.canCommentReply == canCommentReply)&&(identical(other.posting, posting) || other.posting == posting)&&(identical(other.replyMode, replyMode) || other.replyMode == replyMode)&&(identical(other.page, page) || other.page == page)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other._expandedIds, _expandedIds)&&const DeepCollectionEquality().equals(other._replyItems, _replyItems)&&const DeepCollectionEquality().equals(other._replyLoading, _replyLoading)&&const DeepCollectionEquality().equals(other._replyHasReachedMax, _replyHasReachedMax)&&const DeepCollectionEquality().equals(other._replyPage, _replyPage)&&(identical(other.noticeMessage, noticeMessage) || other.noticeMessage == noticeMessage)&&(identical(other.noticeId, noticeId) || other.noticeId == noticeId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentsViewState&&const DeepCollectionEquality().equals(other.topItems, _topItems)&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.loading, loading) || other.loading == loading)&&(identical(other.loadingMore, loadingMore) || other.loadingMore == loadingMore)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.canCommentComic, canCommentComic) || other.canCommentComic == canCommentComic)&&(identical(other.canCommentReply, canCommentReply) || other.canCommentReply == canCommentReply)&&(identical(other.posting, posting) || other.posting == posting)&&(identical(other.replyMode, replyMode) || other.replyMode == replyMode)&&(identical(other.page, page) || other.page == page)&&(identical(other.error, error) || other.error == error)&&const DeepCollectionEquality().equals(other.expandedIds, _expandedIds)&&const DeepCollectionEquality().equals(other.replyItems, _replyItems)&&const DeepCollectionEquality().equals(other.replyLoading, _replyLoading)&&const DeepCollectionEquality().equals(other.replyHasReachedMax, _replyHasReachedMax)&&const DeepCollectionEquality().equals(other.replyPage, _replyPage)&&(identical(other.noticeMessage, noticeMessage) || other.noticeMessage == noticeMessage)&&(identical(other.noticeId, noticeId) || other.noticeId == noticeId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_topItems),const DeepCollectionEquality().hash(_items),loading,loadingMore,hasReachedMax,canCommentComic,canCommentReply,posting,replyMode,page,error,const DeepCollectionEquality().hash(_expandedIds),const DeepCollectionEquality().hash(_replyItems),const DeepCollectionEquality().hash(_replyLoading),const DeepCollectionEquality().hash(_replyHasReachedMax),const DeepCollectionEquality().hash(_replyPage),noticeMessage,noticeId);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_topItems),const DeepCollectionEquality().hash(_items),loading,loadingMore,hasReachedMax,canCommentComic,canCommentReply,posting,replyMode,page,error,const DeepCollectionEquality().hash(_expandedIds),const DeepCollectionEquality().hash(_replyItems),const DeepCollectionEquality().hash(_replyLoading),const DeepCollectionEquality().hash(_replyHasReachedMax),const DeepCollectionEquality().hash(_replyPage),noticeMessage,noticeId);
+}
 
 @override
 String toString() {
-  return 'CommentsViewState(topItems: $topItems, items: $items, loading: $loading, loadingMore: $loadingMore, hasReachedMax: $hasReachedMax, canCommentComic: $canCommentComic, canCommentReply: $canCommentReply, posting: $posting, replyMode: $replyMode, page: $page, error: $error, expandedIds: $expandedIds, replyItems: $replyItems, replyLoading: $replyLoading, replyHasReachedMax: $replyHasReachedMax, replyPage: $replyPage, noticeMessage: $noticeMessage, noticeId: $noticeId)';
+    return 'CommentsViewState(topItems: $topItems, items: $items, loading: $loading, loadingMore: $loadingMore, hasReachedMax: $hasReachedMax, canCommentComic: $canCommentComic, canCommentReply: $canCommentReply, posting: $posting, replyMode: $replyMode, page: $page, error: $error, expandedIds: $expandedIds, replyItems: $replyItems, replyLoading: $replyLoading, replyHasReachedMax: $replyHasReachedMax, replyPage: $replyPage, noticeMessage: $noticeMessage, noticeId: $noticeId)';
 }
 
 

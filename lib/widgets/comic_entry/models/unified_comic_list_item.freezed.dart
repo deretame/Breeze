@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'unified_comic_list_item.dart';
@@ -9,6 +9,7 @@ part of 'unified_comic_list_item.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $UnifiedComicListItemCopyWith<UnifiedComicListItem> get copyWith => _$UnifiedCom
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnifiedComicListItem&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.raw, raw)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as UnifiedComicListItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnifiedComicListItem&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.subtitle, _this.subtitle) || other.subtitle == _this.subtitle)&&(identical(other.finished, _this.finished) || other.finished == _this.finished)&&(identical(other.likesCount, _this.likesCount) || other.likesCount == _this.likesCount)&&(identical(other.viewsCount, _this.viewsCount) || other.viewsCount == _this.viewsCount)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.cover, _this.cover) || other.cover == _this.cover)&&const DeepCollectionEquality().equals(other.metadata, _this.metadata)&&const DeepCollectionEquality().equals(other.raw, _this.raw)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,updatedAt,cover,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(raw),const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as UnifiedComicListItem;
+  return Object.hash(runtimeType,_this.source,_this.id,_this.title,_this.subtitle,_this.finished,_this.likesCount,_this.viewsCount,_this.updatedAt,_this.cover,const DeepCollectionEquality().hash(_this.metadata),const DeepCollectionEquality().hash(_this.raw),const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'UnifiedComicListItem(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
+  final _this = this as UnifiedComicListItem;
+  return 'UnifiedComicListItem(source: ${_this.source}, id: ${_this.id}, title: ${_this.title}, subtitle: ${_this.subtitle}, finished: ${_this.finished}, likesCount: ${_this.likesCount}, viewsCount: ${_this.viewsCount}, updatedAt: ${_this.updatedAt}, cover: ${_this.cover}, metadata: ${_this.metadata}, raw: ${_this.raw}, extern: ${_this.extern})';
 }
 
 
@@ -66,7 +72,7 @@ class _$UnifiedComicListItemCopyWithImpl<$Res>
 /// Create a copy of UnifiedComicListItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? source = null,Object? id = null,Object? title = null,Object? subtitle = null,Object? finished = null,Object? likesCount = null,Object? viewsCount = null,Object? updatedAt = null,Object? cover = null,Object? metadata = null,Object? raw = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(UnifiedComicListItem(
 source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -229,7 +235,7 @@ return $default(_that.source,_that.id,_that.title,_that.subtitle,_that.finished,
 @JsonSerializable()
 
 class _UnifiedComicListItem extends UnifiedComicListItem {
-  const _UnifiedComicListItem({@JsonKey(fromJson: stringFromDynamic) required this.source, @JsonKey(fromJson: stringFromDynamic) required this.id, @JsonKey(fromJson: stringFromDynamic) required this.title, @JsonKey(fromJson: stringFromDynamic) required this.subtitle, @JsonKey(fromJson: boolFromDynamic) required this.finished, @JsonKey(fromJson: intFromDynamic) required this.likesCount, @JsonKey(fromJson: intFromDynamic) required this.viewsCount, @JsonKey(fromJson: stringFromDynamic) required this.updatedAt, @JsonKey(fromJson: _coverFromDynamic, toJson: _coverToDynamic) required this.cover, @JsonKey(fromJson: _metadataListFromDynamic, toJson: _metadataListToDynamic) required final  List<UnifiedComicMetadata> metadata, @JsonKey(fromJson: mapFromDynamic) required final  Map<String, dynamic> raw, @JsonKey(fromJson: mapFromDynamic) required final  Map<String, dynamic> extern}): _metadata = metadata,_raw = raw,_extern = extern,super._();
+  const _UnifiedComicListItem({@JsonKey(fromJson: stringFromDynamic) required this.source, @JsonKey(fromJson: stringFromDynamic) required this.id, @JsonKey(fromJson: stringFromDynamic) required this.title, @JsonKey(fromJson: stringFromDynamic) required this.subtitle, @JsonKey(fromJson: boolFromDynamic) required this.finished, @JsonKey(fromJson: intFromDynamic) required this.likesCount, @JsonKey(fromJson: intFromDynamic) required this.viewsCount, @JsonKey(fromJson: stringFromDynamic) required this.updatedAt, @JsonKey(fromJson: _coverFromDynamic, toJson: _coverToDynamic) required this.cover, @JsonKey(fromJson: _metadataListFromDynamic, toJson: _metadataListToDynamic) required  List<UnifiedComicMetadata> metadata, @JsonKey(fromJson: mapFromDynamic) required  Map<String, dynamic> raw, @JsonKey(fromJson: mapFromDynamic) required  Map<String, dynamic> extern}): _metadata = metadata,_raw = raw,_extern = extern,super._();
   factory _UnifiedComicListItem.fromJson(Map<String, dynamic> json) => _$UnifiedComicListItemFromJson(json);
 
 @override@JsonKey(fromJson: stringFromDynamic) final  String source;
@@ -276,16 +282,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnifiedComicListItem&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._raw, _raw)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnifiedComicListItem&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, _metadata)&&const DeepCollectionEquality().equals(other.raw, _raw)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,updatedAt,cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_raw),const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,updatedAt,cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_raw),const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'UnifiedComicListItem(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
+    return 'UnifiedComicListItem(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
 }
 
 
@@ -360,16 +368,21 @@ $UnifiedComicCoverCopyWith<UnifiedComicCover> get copyWith => _$UnifiedComicCove
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnifiedComicCover&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as UnifiedComicCover;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnifiedComicCover&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.path, _this.path) || other.path == _this.path)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,path,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as UnifiedComicCover;
+  return Object.hash(runtimeType,_this.id,_this.url,_this.path,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'UnifiedComicCover(id: $id, url: $url, path: $path, extern: $extern)';
+  final _this = this as UnifiedComicCover;
+  return 'UnifiedComicCover(id: ${_this.id}, url: ${_this.url}, path: ${_this.path}, extern: ${_this.extern})';
 }
 
 
@@ -398,7 +411,7 @@ class _$UnifiedComicCoverCopyWithImpl<$Res>
 /// Create a copy of UnifiedComicCover
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? path = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(UnifiedComicCover(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
@@ -544,7 +557,7 @@ return $default(_that.id,_that.url,_that.path,_that.extern);case _:
 @JsonSerializable()
 
 class _UnifiedComicCover extends UnifiedComicCover {
-  const _UnifiedComicCover({@JsonKey(fromJson: stringFromDynamic) required this.id, @JsonKey(fromJson: stringFromDynamic) required this.url, @JsonKey(fromJson: stringFromDynamic) required this.path, @JsonKey(fromJson: mapFromDynamic) required final  Map<String, dynamic> extern}): _extern = extern,super._();
+  const _UnifiedComicCover({@JsonKey(fromJson: stringFromDynamic) required this.id, @JsonKey(fromJson: stringFromDynamic) required this.url, @JsonKey(fromJson: stringFromDynamic) required this.path, @JsonKey(fromJson: mapFromDynamic) required  Map<String, dynamic> extern}): _extern = extern,super._();
   factory _UnifiedComicCover.fromJson(Map<String, dynamic> json) => _$UnifiedComicCoverFromJson(json);
 
 @override@JsonKey(fromJson: stringFromDynamic) final  String id;
@@ -571,16 +584,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnifiedComicCover&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnifiedComicCover&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,path,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,id,url,path,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'UnifiedComicCover(id: $id, url: $url, path: $path, extern: $extern)';
+    return 'UnifiedComicCover(id: $id, url: $url, path: $path, extern: $extern)';
 }
 
 
@@ -638,16 +653,21 @@ $UnifiedComicMetadataCopyWith<UnifiedComicMetadata> get copyWith => _$UnifiedCom
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnifiedComicMetadata&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.value, value));
+  final _this = this as UnifiedComicMetadata;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnifiedComicMetadata&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.value, _this.value));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,name,const DeepCollectionEquality().hash(value));
+int get hashCode {
+  final _this = this as UnifiedComicMetadata;
+  return Object.hash(runtimeType,_this.type,_this.name,const DeepCollectionEquality().hash(_this.value));
+}
 
 @override
 String toString() {
-  return 'UnifiedComicMetadata(type: $type, name: $name, value: $value)';
+  final _this = this as UnifiedComicMetadata;
+  return 'UnifiedComicMetadata(type: ${_this.type}, name: ${_this.name}, value: ${_this.value})';
 }
 
 
@@ -676,7 +696,7 @@ class _$UnifiedComicMetadataCopyWithImpl<$Res>
 /// Create a copy of UnifiedComicMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? name = null,Object? value = null,}) {
-  return _then(_self.copyWith(
+  return _then(UnifiedComicMetadata(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -821,7 +841,7 @@ return $default(_that.type,_that.name,_that.value);case _:
 @JsonSerializable()
 
 class _UnifiedComicMetadata extends UnifiedComicMetadata {
-  const _UnifiedComicMetadata({@JsonKey(fromJson: stringFromDynamic) required this.type, @JsonKey(fromJson: stringFromDynamic) required this.name, @JsonKey(fromJson: _metadataValueFromDynamic) required final  List<Object> value}): _value = value,super._();
+  const _UnifiedComicMetadata({@JsonKey(fromJson: stringFromDynamic) required this.type, @JsonKey(fromJson: stringFromDynamic) required this.name, @JsonKey(fromJson: _metadataValueFromDynamic) required  List<Object> value}): _value = value,super._();
   factory _UnifiedComicMetadata.fromJson(Map<String, dynamic> json) => _$UnifiedComicMetadataFromJson(json);
 
 @override@JsonKey(fromJson: stringFromDynamic) final  String type;
@@ -847,16 +867,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnifiedComicMetadata&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._value, _value));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UnifiedComicMetadata&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.value, _value));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,name,const DeepCollectionEquality().hash(_value));
+int get hashCode {
+    return Object.hash(runtimeType,type,name,const DeepCollectionEquality().hash(_value));
+}
 
 @override
 String toString() {
-  return 'UnifiedComicMetadata(type: $type, name: $name, value: $value)';
+    return 'UnifiedComicMetadata(type: $type, name: $name, value: $value)';
 }
 
 

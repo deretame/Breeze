@@ -278,10 +278,8 @@ class _PendingTaskTile extends StatelessWidget {
               ),
             if (failureMessage.isNotEmpty)
               InkWell(
-                onTap: () => _showDownloadFailureDetails(
-                  context,
-                  failureMessage,
-                ),
+                onTap: () =>
+                    _showDownloadFailureDetails(context, failureMessage),
                 child: Text(
                   failureMessage,
                   style: TextStyle(

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'github_release_json.dart';
@@ -9,6 +9,7 @@ part of 'github_release_json.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $GithubReleaseJsonCopyWith<GithubReleaseJson> get copyWith => _$GithubReleaseJso
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GithubReleaseJson&&(identical(other.url, url) || other.url == url)&&(identical(other.assetsUrl, assetsUrl) || other.assetsUrl == assetsUrl)&&(identical(other.uploadUrl, uploadUrl) || other.uploadUrl == uploadUrl)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.tagName, tagName) || other.tagName == tagName)&&(identical(other.targetCommitish, targetCommitish) || other.targetCommitish == targetCommitish)&&(identical(other.name, name) || other.name == name)&&(identical(other.draft, draft) || other.draft == draft)&&(identical(other.prerelease, prerelease) || other.prerelease == prerelease)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&const DeepCollectionEquality().equals(other.assets, assets)&&(identical(other.tarballUrl, tarballUrl) || other.tarballUrl == tarballUrl)&&(identical(other.zipballUrl, zipballUrl) || other.zipballUrl == zipballUrl)&&(identical(other.body, body) || other.body == body));
+  final _this = this as GithubReleaseJson;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GithubReleaseJson&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.assetsUrl, _this.assetsUrl) || other.assetsUrl == _this.assetsUrl)&&(identical(other.uploadUrl, _this.uploadUrl) || other.uploadUrl == _this.uploadUrl)&&(identical(other.htmlUrl, _this.htmlUrl) || other.htmlUrl == _this.htmlUrl)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.nodeId, _this.nodeId) || other.nodeId == _this.nodeId)&&(identical(other.tagName, _this.tagName) || other.tagName == _this.tagName)&&(identical(other.targetCommitish, _this.targetCommitish) || other.targetCommitish == _this.targetCommitish)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.draft, _this.draft) || other.draft == _this.draft)&&(identical(other.prerelease, _this.prerelease) || other.prerelease == _this.prerelease)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.publishedAt, _this.publishedAt) || other.publishedAt == _this.publishedAt)&&const DeepCollectionEquality().equals(other.assets, _this.assets)&&(identical(other.tarballUrl, _this.tarballUrl) || other.tarballUrl == _this.tarballUrl)&&(identical(other.zipballUrl, _this.zipballUrl) || other.zipballUrl == _this.zipballUrl)&&(identical(other.body, _this.body) || other.body == _this.body));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,assetsUrl,uploadUrl,htmlUrl,id,author,nodeId,tagName,targetCommitish,name,draft,prerelease,createdAt,publishedAt,const DeepCollectionEquality().hash(assets),tarballUrl,zipballUrl,body);
+int get hashCode {
+  final _this = this as GithubReleaseJson;
+  return Object.hash(runtimeType,_this.url,_this.assetsUrl,_this.uploadUrl,_this.htmlUrl,_this.id,_this.author,_this.nodeId,_this.tagName,_this.targetCommitish,_this.name,_this.draft,_this.prerelease,_this.createdAt,_this.publishedAt,const DeepCollectionEquality().hash(_this.assets),_this.tarballUrl,_this.zipballUrl,_this.body);
+}
 
 @override
 String toString() {
-  return 'GithubReleaseJson(url: $url, assetsUrl: $assetsUrl, uploadUrl: $uploadUrl, htmlUrl: $htmlUrl, id: $id, author: $author, nodeId: $nodeId, tagName: $tagName, targetCommitish: $targetCommitish, name: $name, draft: $draft, prerelease: $prerelease, createdAt: $createdAt, publishedAt: $publishedAt, assets: $assets, tarballUrl: $tarballUrl, zipballUrl: $zipballUrl, body: $body)';
+  final _this = this as GithubReleaseJson;
+  return 'GithubReleaseJson(url: ${_this.url}, assetsUrl: ${_this.assetsUrl}, uploadUrl: ${_this.uploadUrl}, htmlUrl: ${_this.htmlUrl}, id: ${_this.id}, author: ${_this.author}, nodeId: ${_this.nodeId}, tagName: ${_this.tagName}, targetCommitish: ${_this.targetCommitish}, name: ${_this.name}, draft: ${_this.draft}, prerelease: ${_this.prerelease}, createdAt: ${_this.createdAt}, publishedAt: ${_this.publishedAt}, assets: ${_this.assets}, tarballUrl: ${_this.tarballUrl}, zipballUrl: ${_this.zipballUrl}, body: ${_this.body})';
 }
 
 
@@ -66,7 +72,7 @@ class _$GithubReleaseJsonCopyWithImpl<$Res>
 /// Create a copy of GithubReleaseJson
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? url = null,Object? assetsUrl = null,Object? uploadUrl = null,Object? htmlUrl = null,Object? id = null,Object? author = null,Object? nodeId = null,Object? tagName = null,Object? targetCommitish = null,Object? name = null,Object? draft = null,Object? prerelease = null,Object? createdAt = null,Object? publishedAt = null,Object? assets = null,Object? tarballUrl = null,Object? zipballUrl = null,Object? body = null,}) {
-  return _then(_self.copyWith(
+  return _then(GithubReleaseJson(
 url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,assetsUrl: null == assetsUrl ? _self.assetsUrl : assetsUrl // ignore: cast_nullable_to_non_nullable
 as String,uploadUrl: null == uploadUrl ? _self.uploadUrl : uploadUrl // ignore: cast_nullable_to_non_nullable
@@ -235,7 +241,7 @@ return $default(_that.url,_that.assetsUrl,_that.uploadUrl,_that.htmlUrl,_that.id
 @JsonSerializable()
 
 class _GithubReleaseJson implements GithubReleaseJson {
-  const _GithubReleaseJson({@JsonKey(name: "url") required this.url, @JsonKey(name: "assets_url") required this.assetsUrl, @JsonKey(name: "upload_url") required this.uploadUrl, @JsonKey(name: "html_url") required this.htmlUrl, @JsonKey(name: "id") required this.id, @JsonKey(name: "author") required this.author, @JsonKey(name: "node_id") required this.nodeId, @JsonKey(name: "tag_name") required this.tagName, @JsonKey(name: "target_commitish") required this.targetCommitish, @JsonKey(name: "name") required this.name, @JsonKey(name: "draft") required this.draft, @JsonKey(name: "prerelease") required this.prerelease, @JsonKey(name: "created_at") required this.createdAt, @JsonKey(name: "published_at") required this.publishedAt, @JsonKey(name: "assets") required final  List<Asset> assets, @JsonKey(name: "tarball_url") required this.tarballUrl, @JsonKey(name: "zipball_url") required this.zipballUrl, @JsonKey(name: "body") required this.body}): _assets = assets;
+  const _GithubReleaseJson({@JsonKey(name: "url") required this.url, @JsonKey(name: "assets_url") required this.assetsUrl, @JsonKey(name: "upload_url") required this.uploadUrl, @JsonKey(name: "html_url") required this.htmlUrl, @JsonKey(name: "id") required this.id, @JsonKey(name: "author") required this.author, @JsonKey(name: "node_id") required this.nodeId, @JsonKey(name: "tag_name") required this.tagName, @JsonKey(name: "target_commitish") required this.targetCommitish, @JsonKey(name: "name") required this.name, @JsonKey(name: "draft") required this.draft, @JsonKey(name: "prerelease") required this.prerelease, @JsonKey(name: "created_at") required this.createdAt, @JsonKey(name: "published_at") required this.publishedAt, @JsonKey(name: "assets") required  List<Asset> assets, @JsonKey(name: "tarball_url") required this.tarballUrl, @JsonKey(name: "zipball_url") required this.zipballUrl, @JsonKey(name: "body") required this.body}): _assets = assets;
   factory _GithubReleaseJson.fromJson(Map<String, dynamic> json) => _$GithubReleaseJsonFromJson(json);
 
 @override@JsonKey(name: "url") final  String url;
@@ -276,16 +282,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GithubReleaseJson&&(identical(other.url, url) || other.url == url)&&(identical(other.assetsUrl, assetsUrl) || other.assetsUrl == assetsUrl)&&(identical(other.uploadUrl, uploadUrl) || other.uploadUrl == uploadUrl)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.tagName, tagName) || other.tagName == tagName)&&(identical(other.targetCommitish, targetCommitish) || other.targetCommitish == targetCommitish)&&(identical(other.name, name) || other.name == name)&&(identical(other.draft, draft) || other.draft == draft)&&(identical(other.prerelease, prerelease) || other.prerelease == prerelease)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&const DeepCollectionEquality().equals(other._assets, _assets)&&(identical(other.tarballUrl, tarballUrl) || other.tarballUrl == tarballUrl)&&(identical(other.zipballUrl, zipballUrl) || other.zipballUrl == zipballUrl)&&(identical(other.body, body) || other.body == body));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GithubReleaseJson&&(identical(other.url, url) || other.url == url)&&(identical(other.assetsUrl, assetsUrl) || other.assetsUrl == assetsUrl)&&(identical(other.uploadUrl, uploadUrl) || other.uploadUrl == uploadUrl)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.tagName, tagName) || other.tagName == tagName)&&(identical(other.targetCommitish, targetCommitish) || other.targetCommitish == targetCommitish)&&(identical(other.name, name) || other.name == name)&&(identical(other.draft, draft) || other.draft == draft)&&(identical(other.prerelease, prerelease) || other.prerelease == prerelease)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&const DeepCollectionEquality().equals(other.assets, _assets)&&(identical(other.tarballUrl, tarballUrl) || other.tarballUrl == tarballUrl)&&(identical(other.zipballUrl, zipballUrl) || other.zipballUrl == zipballUrl)&&(identical(other.body, body) || other.body == body));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,assetsUrl,uploadUrl,htmlUrl,id,author,nodeId,tagName,targetCommitish,name,draft,prerelease,createdAt,publishedAt,const DeepCollectionEquality().hash(_assets),tarballUrl,zipballUrl,body);
+int get hashCode {
+    return Object.hash(runtimeType,url,assetsUrl,uploadUrl,htmlUrl,id,author,nodeId,tagName,targetCommitish,name,draft,prerelease,createdAt,publishedAt,const DeepCollectionEquality().hash(_assets),tarballUrl,zipballUrl,body);
+}
 
 @override
 String toString() {
-  return 'GithubReleaseJson(url: $url, assetsUrl: $assetsUrl, uploadUrl: $uploadUrl, htmlUrl: $htmlUrl, id: $id, author: $author, nodeId: $nodeId, tagName: $tagName, targetCommitish: $targetCommitish, name: $name, draft: $draft, prerelease: $prerelease, createdAt: $createdAt, publishedAt: $publishedAt, assets: $assets, tarballUrl: $tarballUrl, zipballUrl: $zipballUrl, body: $body)';
+    return 'GithubReleaseJson(url: $url, assetsUrl: $assetsUrl, uploadUrl: $uploadUrl, htmlUrl: $htmlUrl, id: $id, author: $author, nodeId: $nodeId, tagName: $tagName, targetCommitish: $targetCommitish, name: $name, draft: $draft, prerelease: $prerelease, createdAt: $createdAt, publishedAt: $publishedAt, assets: $assets, tarballUrl: $tarballUrl, zipballUrl: $zipballUrl, body: $body)';
 }
 
 
@@ -366,16 +374,21 @@ $AssetCopyWith<Asset> get copyWith => _$AssetCopyWithImpl<Asset>(this as Asset, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Asset&&(identical(other.url, url) || other.url == url)&&(identical(other.id, id) || other.id == id)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.label, label)&&(identical(other.uploader, uploader) || other.uploader == uploader)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.state, state) || other.state == state)&&(identical(other.size, size) || other.size == size)&&(identical(other.downloadCount, downloadCount) || other.downloadCount == downloadCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.browserDownloadUrl, browserDownloadUrl) || other.browserDownloadUrl == browserDownloadUrl));
+  final _this = this as Asset;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Asset&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.nodeId, _this.nodeId) || other.nodeId == _this.nodeId)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.label, _this.label)&&(identical(other.uploader, _this.uploader) || other.uploader == _this.uploader)&&(identical(other.contentType, _this.contentType) || other.contentType == _this.contentType)&&(identical(other.state, _this.state) || other.state == _this.state)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.downloadCount, _this.downloadCount) || other.downloadCount == _this.downloadCount)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.browserDownloadUrl, _this.browserDownloadUrl) || other.browserDownloadUrl == _this.browserDownloadUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,id,nodeId,name,const DeepCollectionEquality().hash(label),uploader,contentType,state,size,downloadCount,createdAt,updatedAt,browserDownloadUrl);
+int get hashCode {
+  final _this = this as Asset;
+  return Object.hash(runtimeType,_this.url,_this.id,_this.nodeId,_this.name,const DeepCollectionEquality().hash(_this.label),_this.uploader,_this.contentType,_this.state,_this.size,_this.downloadCount,_this.createdAt,_this.updatedAt,_this.browserDownloadUrl);
+}
 
 @override
 String toString() {
-  return 'Asset(url: $url, id: $id, nodeId: $nodeId, name: $name, label: $label, uploader: $uploader, contentType: $contentType, state: $state, size: $size, downloadCount: $downloadCount, createdAt: $createdAt, updatedAt: $updatedAt, browserDownloadUrl: $browserDownloadUrl)';
+  final _this = this as Asset;
+  return 'Asset(url: ${_this.url}, id: ${_this.id}, nodeId: ${_this.nodeId}, name: ${_this.name}, label: ${_this.label}, uploader: ${_this.uploader}, contentType: ${_this.contentType}, state: ${_this.state}, size: ${_this.size}, downloadCount: ${_this.downloadCount}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, browserDownloadUrl: ${_this.browserDownloadUrl})';
 }
 
 
@@ -404,7 +417,7 @@ class _$AssetCopyWithImpl<$Res>
 /// Create a copy of Asset
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? url = null,Object? id = null,Object? nodeId = null,Object? name = null,Object? label = freezed,Object? uploader = null,Object? contentType = null,Object? state = null,Object? size = null,Object? downloadCount = null,Object? createdAt = null,Object? updatedAt = null,Object? browserDownloadUrl = null,}) {
-  return _then(_self.copyWith(
+  return _then(Asset(
 url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,nodeId: null == nodeId ? _self.nodeId : nodeId // ignore: cast_nullable_to_non_nullable
@@ -598,16 +611,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Asset&&(identical(other.url, url) || other.url == url)&&(identical(other.id, id) || other.id == id)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.label, label)&&(identical(other.uploader, uploader) || other.uploader == uploader)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.state, state) || other.state == state)&&(identical(other.size, size) || other.size == size)&&(identical(other.downloadCount, downloadCount) || other.downloadCount == downloadCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.browserDownloadUrl, browserDownloadUrl) || other.browserDownloadUrl == browserDownloadUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Asset&&(identical(other.url, url) || other.url == url)&&(identical(other.id, id) || other.id == id)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.label, label)&&(identical(other.uploader, uploader) || other.uploader == uploader)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.state, state) || other.state == state)&&(identical(other.size, size) || other.size == size)&&(identical(other.downloadCount, downloadCount) || other.downloadCount == downloadCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.browserDownloadUrl, browserDownloadUrl) || other.browserDownloadUrl == browserDownloadUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,id,nodeId,name,const DeepCollectionEquality().hash(label),uploader,contentType,state,size,downloadCount,createdAt,updatedAt,browserDownloadUrl);
+int get hashCode {
+    return Object.hash(runtimeType,url,id,nodeId,name,const DeepCollectionEquality().hash(label),uploader,contentType,state,size,downloadCount,createdAt,updatedAt,browserDownloadUrl);
+}
 
 @override
 String toString() {
-  return 'Asset(url: $url, id: $id, nodeId: $nodeId, name: $name, label: $label, uploader: $uploader, contentType: $contentType, state: $state, size: $size, downloadCount: $downloadCount, createdAt: $createdAt, updatedAt: $updatedAt, browserDownloadUrl: $browserDownloadUrl)';
+    return 'Asset(url: $url, id: $id, nodeId: $nodeId, name: $name, label: $label, uploader: $uploader, contentType: $contentType, state: $state, size: $size, downloadCount: $downloadCount, createdAt: $createdAt, updatedAt: $updatedAt, browserDownloadUrl: $browserDownloadUrl)';
 }
 
 
@@ -683,16 +698,21 @@ $AuthorCopyWith<Author> get copyWith => _$AuthorCopyWithImpl<Author>(this as Aut
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Author&&(identical(other.login, login) || other.login == login)&&(identical(other.id, id) || other.id == id)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.gravatarId, gravatarId) || other.gravatarId == gravatarId)&&(identical(other.url, url) || other.url == url)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.followersUrl, followersUrl) || other.followersUrl == followersUrl)&&(identical(other.followingUrl, followingUrl) || other.followingUrl == followingUrl)&&(identical(other.gistsUrl, gistsUrl) || other.gistsUrl == gistsUrl)&&(identical(other.starredUrl, starredUrl) || other.starredUrl == starredUrl)&&(identical(other.subscriptionsUrl, subscriptionsUrl) || other.subscriptionsUrl == subscriptionsUrl)&&(identical(other.organizationsUrl, organizationsUrl) || other.organizationsUrl == organizationsUrl)&&(identical(other.reposUrl, reposUrl) || other.reposUrl == reposUrl)&&(identical(other.eventsUrl, eventsUrl) || other.eventsUrl == eventsUrl)&&(identical(other.receivedEventsUrl, receivedEventsUrl) || other.receivedEventsUrl == receivedEventsUrl)&&(identical(other.type, type) || other.type == type)&&(identical(other.userViewType, userViewType) || other.userViewType == userViewType)&&(identical(other.siteAdmin, siteAdmin) || other.siteAdmin == siteAdmin));
+  final _this = this as Author;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Author&&(identical(other.login, _this.login) || other.login == _this.login)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.nodeId, _this.nodeId) || other.nodeId == _this.nodeId)&&(identical(other.avatarUrl, _this.avatarUrl) || other.avatarUrl == _this.avatarUrl)&&(identical(other.gravatarId, _this.gravatarId) || other.gravatarId == _this.gravatarId)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.htmlUrl, _this.htmlUrl) || other.htmlUrl == _this.htmlUrl)&&(identical(other.followersUrl, _this.followersUrl) || other.followersUrl == _this.followersUrl)&&(identical(other.followingUrl, _this.followingUrl) || other.followingUrl == _this.followingUrl)&&(identical(other.gistsUrl, _this.gistsUrl) || other.gistsUrl == _this.gistsUrl)&&(identical(other.starredUrl, _this.starredUrl) || other.starredUrl == _this.starredUrl)&&(identical(other.subscriptionsUrl, _this.subscriptionsUrl) || other.subscriptionsUrl == _this.subscriptionsUrl)&&(identical(other.organizationsUrl, _this.organizationsUrl) || other.organizationsUrl == _this.organizationsUrl)&&(identical(other.reposUrl, _this.reposUrl) || other.reposUrl == _this.reposUrl)&&(identical(other.eventsUrl, _this.eventsUrl) || other.eventsUrl == _this.eventsUrl)&&(identical(other.receivedEventsUrl, _this.receivedEventsUrl) || other.receivedEventsUrl == _this.receivedEventsUrl)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.userViewType, _this.userViewType) || other.userViewType == _this.userViewType)&&(identical(other.siteAdmin, _this.siteAdmin) || other.siteAdmin == _this.siteAdmin));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,login,id,nodeId,avatarUrl,gravatarId,url,htmlUrl,followersUrl,followingUrl,gistsUrl,starredUrl,subscriptionsUrl,organizationsUrl,reposUrl,eventsUrl,receivedEventsUrl,type,userViewType,siteAdmin]);
+int get hashCode {
+  final _this = this as Author;
+  return Object.hashAll([runtimeType,_this.login,_this.id,_this.nodeId,_this.avatarUrl,_this.gravatarId,_this.url,_this.htmlUrl,_this.followersUrl,_this.followingUrl,_this.gistsUrl,_this.starredUrl,_this.subscriptionsUrl,_this.organizationsUrl,_this.reposUrl,_this.eventsUrl,_this.receivedEventsUrl,_this.type,_this.userViewType,_this.siteAdmin]);
+}
 
 @override
 String toString() {
-  return 'Author(login: $login, id: $id, nodeId: $nodeId, avatarUrl: $avatarUrl, gravatarId: $gravatarId, url: $url, htmlUrl: $htmlUrl, followersUrl: $followersUrl, followingUrl: $followingUrl, gistsUrl: $gistsUrl, starredUrl: $starredUrl, subscriptionsUrl: $subscriptionsUrl, organizationsUrl: $organizationsUrl, reposUrl: $reposUrl, eventsUrl: $eventsUrl, receivedEventsUrl: $receivedEventsUrl, type: $type, userViewType: $userViewType, siteAdmin: $siteAdmin)';
+  final _this = this as Author;
+  return 'Author(login: ${_this.login}, id: ${_this.id}, nodeId: ${_this.nodeId}, avatarUrl: ${_this.avatarUrl}, gravatarId: ${_this.gravatarId}, url: ${_this.url}, htmlUrl: ${_this.htmlUrl}, followersUrl: ${_this.followersUrl}, followingUrl: ${_this.followingUrl}, gistsUrl: ${_this.gistsUrl}, starredUrl: ${_this.starredUrl}, subscriptionsUrl: ${_this.subscriptionsUrl}, organizationsUrl: ${_this.organizationsUrl}, reposUrl: ${_this.reposUrl}, eventsUrl: ${_this.eventsUrl}, receivedEventsUrl: ${_this.receivedEventsUrl}, type: ${_this.type}, userViewType: ${_this.userViewType}, siteAdmin: ${_this.siteAdmin})';
 }
 
 
@@ -721,7 +741,7 @@ class _$AuthorCopyWithImpl<$Res>
 /// Create a copy of Author
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? login = null,Object? id = null,Object? nodeId = null,Object? avatarUrl = null,Object? gravatarId = null,Object? url = null,Object? htmlUrl = null,Object? followersUrl = null,Object? followingUrl = null,Object? gistsUrl = null,Object? starredUrl = null,Object? subscriptionsUrl = null,Object? organizationsUrl = null,Object? reposUrl = null,Object? eventsUrl = null,Object? receivedEventsUrl = null,Object? type = null,Object? userViewType = null,Object? siteAdmin = null,}) {
-  return _then(_self.copyWith(
+  return _then(Author(
 login: null == login ? _self.login : login // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,nodeId: null == nodeId ? _self.nodeId : nodeId // ignore: cast_nullable_to_non_nullable
@@ -918,16 +938,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Author&&(identical(other.login, login) || other.login == login)&&(identical(other.id, id) || other.id == id)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.gravatarId, gravatarId) || other.gravatarId == gravatarId)&&(identical(other.url, url) || other.url == url)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.followersUrl, followersUrl) || other.followersUrl == followersUrl)&&(identical(other.followingUrl, followingUrl) || other.followingUrl == followingUrl)&&(identical(other.gistsUrl, gistsUrl) || other.gistsUrl == gistsUrl)&&(identical(other.starredUrl, starredUrl) || other.starredUrl == starredUrl)&&(identical(other.subscriptionsUrl, subscriptionsUrl) || other.subscriptionsUrl == subscriptionsUrl)&&(identical(other.organizationsUrl, organizationsUrl) || other.organizationsUrl == organizationsUrl)&&(identical(other.reposUrl, reposUrl) || other.reposUrl == reposUrl)&&(identical(other.eventsUrl, eventsUrl) || other.eventsUrl == eventsUrl)&&(identical(other.receivedEventsUrl, receivedEventsUrl) || other.receivedEventsUrl == receivedEventsUrl)&&(identical(other.type, type) || other.type == type)&&(identical(other.userViewType, userViewType) || other.userViewType == userViewType)&&(identical(other.siteAdmin, siteAdmin) || other.siteAdmin == siteAdmin));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Author&&(identical(other.login, login) || other.login == login)&&(identical(other.id, id) || other.id == id)&&(identical(other.nodeId, nodeId) || other.nodeId == nodeId)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.gravatarId, gravatarId) || other.gravatarId == gravatarId)&&(identical(other.url, url) || other.url == url)&&(identical(other.htmlUrl, htmlUrl) || other.htmlUrl == htmlUrl)&&(identical(other.followersUrl, followersUrl) || other.followersUrl == followersUrl)&&(identical(other.followingUrl, followingUrl) || other.followingUrl == followingUrl)&&(identical(other.gistsUrl, gistsUrl) || other.gistsUrl == gistsUrl)&&(identical(other.starredUrl, starredUrl) || other.starredUrl == starredUrl)&&(identical(other.subscriptionsUrl, subscriptionsUrl) || other.subscriptionsUrl == subscriptionsUrl)&&(identical(other.organizationsUrl, organizationsUrl) || other.organizationsUrl == organizationsUrl)&&(identical(other.reposUrl, reposUrl) || other.reposUrl == reposUrl)&&(identical(other.eventsUrl, eventsUrl) || other.eventsUrl == eventsUrl)&&(identical(other.receivedEventsUrl, receivedEventsUrl) || other.receivedEventsUrl == receivedEventsUrl)&&(identical(other.type, type) || other.type == type)&&(identical(other.userViewType, userViewType) || other.userViewType == userViewType)&&(identical(other.siteAdmin, siteAdmin) || other.siteAdmin == siteAdmin));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,login,id,nodeId,avatarUrl,gravatarId,url,htmlUrl,followersUrl,followingUrl,gistsUrl,starredUrl,subscriptionsUrl,organizationsUrl,reposUrl,eventsUrl,receivedEventsUrl,type,userViewType,siteAdmin]);
+int get hashCode {
+    return Object.hashAll([runtimeType,login,id,nodeId,avatarUrl,gravatarId,url,htmlUrl,followersUrl,followingUrl,gistsUrl,starredUrl,subscriptionsUrl,organizationsUrl,reposUrl,eventsUrl,receivedEventsUrl,type,userViewType,siteAdmin]);
+}
 
 @override
 String toString() {
-  return 'Author(login: $login, id: $id, nodeId: $nodeId, avatarUrl: $avatarUrl, gravatarId: $gravatarId, url: $url, htmlUrl: $htmlUrl, followersUrl: $followersUrl, followingUrl: $followingUrl, gistsUrl: $gistsUrl, starredUrl: $starredUrl, subscriptionsUrl: $subscriptionsUrl, organizationsUrl: $organizationsUrl, reposUrl: $reposUrl, eventsUrl: $eventsUrl, receivedEventsUrl: $receivedEventsUrl, type: $type, userViewType: $userViewType, siteAdmin: $siteAdmin)';
+    return 'Author(login: $login, id: $id, nodeId: $nodeId, avatarUrl: $avatarUrl, gravatarId: $gravatarId, url: $url, htmlUrl: $htmlUrl, followersUrl: $followersUrl, followingUrl: $followingUrl, gistsUrl: $gistsUrl, starredUrl: $starredUrl, subscriptionsUrl: $subscriptionsUrl, organizationsUrl: $organizationsUrl, reposUrl: $reposUrl, eventsUrl: $eventsUrl, receivedEventsUrl: $receivedEventsUrl, type: $type, userViewType: $userViewType, siteAdmin: $siteAdmin)';
 }
 
 

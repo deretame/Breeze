@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'jm_setting.dart';
@@ -9,6 +9,7 @@ part of 'jm_setting.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $JmSettingStateCopyWith<JmSettingState> get copyWith => _$JmSettingStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.favoriteSet, favoriteSet) || other.favoriteSet == favoriteSet));
+  final _this = this as JmSettingState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmSettingState&&(identical(other.account, _this.account) || other.account == _this.account)&&(identical(other.password, _this.password) || other.password == _this.password)&&(identical(other.userInfo, _this.userInfo) || other.userInfo == _this.userInfo)&&(identical(other.loginStatus, _this.loginStatus) || other.loginStatus == _this.loginStatus)&&(identical(other.favoriteSet, _this.favoriteSet) || other.favoriteSet == _this.favoriteSet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,password,userInfo,loginStatus,favoriteSet);
+int get hashCode {
+  final _this = this as JmSettingState;
+  return Object.hash(runtimeType,_this.account,_this.password,_this.userInfo,_this.loginStatus,_this.favoriteSet);
+}
 
 @override
 String toString() {
-  return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus, favoriteSet: $favoriteSet)';
+  final _this = this as JmSettingState;
+  return 'JmSettingState(account: ${_this.account}, password: ${_this.password}, userInfo: ${_this.userInfo}, loginStatus: ${_this.loginStatus}, favoriteSet: ${_this.favoriteSet})';
 }
 
 
@@ -66,7 +72,7 @@ class _$JmSettingStateCopyWithImpl<$Res>
 /// Create a copy of JmSettingState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? account = null,Object? password = null,Object? userInfo = null,Object? loginStatus = null,Object? favoriteSet = null,}) {
-  return _then(_self.copyWith(
+  return _then(JmSettingState(
 account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,userInfo: null == userInfo ? _self.userInfo : userInfo // ignore: cast_nullable_to_non_nullable
@@ -235,16 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.favoriteSet, favoriteSet) || other.favoriteSet == favoriteSet));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.favoriteSet, favoriteSet) || other.favoriteSet == favoriteSet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,password,userInfo,loginStatus,favoriteSet);
+int get hashCode {
+    return Object.hash(runtimeType,account,password,userInfo,loginStatus,favoriteSet);
+}
 
 @override
 String toString() {
-  return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus, favoriteSet: $favoriteSet)';
+    return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus, favoriteSet: $favoriteSet)';
 }
 
 

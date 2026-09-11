@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'dowload_task_bloc.dart';
@@ -9,6 +9,7 @@ part of 'dowload_task_bloc.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -20,7 +21,7 @@ mixin _$DowloadTaskEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DowloadTaskEvent);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DowloadTaskEvent);
 }
 
 
@@ -29,7 +30,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DowloadTaskEvent()';
+    return 'DowloadTaskEvent()';
 }
 
 
@@ -209,7 +210,7 @@ class _Started implements DowloadTaskEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Started);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Started);
 }
 
 
@@ -218,7 +219,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DowloadTaskEvent.started()';
+    return 'DowloadTaskEvent.started()';
 }
 
 
@@ -231,7 +232,7 @@ String toString() {
 
 
 class _TasksUpdated implements DowloadTaskEvent {
-  const _TasksUpdated(final  List<DownloadTask> tasks): _tasks = tasks;
+  const _TasksUpdated( List<DownloadTask> tasks): _tasks = tasks;
   
 
  final  List<DownloadTask> _tasks;
@@ -252,16 +253,18 @@ _$TasksUpdatedCopyWith<_TasksUpdated> get copyWith => __$TasksUpdatedCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TasksUpdated&&const DeepCollectionEquality().equals(other._tasks, _tasks));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TasksUpdated&&const DeepCollectionEquality().equals(other.tasks, _tasks));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_tasks));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_tasks));
+}
 
 @override
 String toString() {
-  return 'DowloadTaskEvent.tasksUpdated(tasks: $tasks)';
+    return 'DowloadTaskEvent.tasksUpdated(tasks: $tasks)';
 }
 
 
@@ -318,16 +321,18 @@ _$TaskDeletedCopyWith<_TaskDeleted> get copyWith => __$TaskDeletedCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskDeleted&&(identical(other.taskId, taskId) || other.taskId == taskId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TaskDeleted&&(identical(other.taskId, taskId) || other.taskId == taskId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,taskId);
+int get hashCode {
+    return Object.hash(runtimeType,taskId);
+}
 
 @override
 String toString() {
-  return 'DowloadTaskEvent.taskDeleted(taskId: $taskId)';
+    return 'DowloadTaskEvent.taskDeleted(taskId: $taskId)';
 }
 
 
@@ -379,7 +384,7 @@ class _CancelCurrentTask implements DowloadTaskEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CancelCurrentTask);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CancelCurrentTask);
 }
 
 
@@ -388,7 +393,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DowloadTaskEvent.cancelCurrentTask()';
+    return 'DowloadTaskEvent.cancelCurrentTask()';
 }
 
 
@@ -411,7 +416,7 @@ class _ClearCompleted implements DowloadTaskEvent {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClearCompleted);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ClearCompleted);
 }
 
 
@@ -420,7 +425,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DowloadTaskEvent.clearCompleted()';
+    return 'DowloadTaskEvent.clearCompleted()';
 }
 
 
@@ -438,7 +443,7 @@ mixin _$DowloadTaskState {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DowloadTaskState);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is DowloadTaskState);
 }
 
 
@@ -447,7 +452,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DowloadTaskState()';
+    return 'DowloadTaskState()';
 }
 
 
@@ -609,7 +614,7 @@ class _Initial implements DowloadTaskState {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial);
 }
 
 
@@ -618,7 +623,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'DowloadTaskState.initial()';
+    return 'DowloadTaskState.initial()';
 }
 
 
@@ -631,7 +636,7 @@ String toString() {
 
 
 class _Loaded implements DowloadTaskState {
-  const _Loaded({required final  List<DownloadTask> tasks, required this.pendingCount}): _tasks = tasks;
+  const _Loaded({required  List<DownloadTask> tasks, required this.pendingCount}): _tasks = tasks;
   
 
  final  List<DownloadTask> _tasks;
@@ -653,16 +658,18 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._tasks, _tasks)&&(identical(other.pendingCount, pendingCount) || other.pendingCount == pendingCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other.tasks, _tasks)&&(identical(other.pendingCount, pendingCount) || other.pendingCount == pendingCount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_tasks),pendingCount);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_tasks),pendingCount);
+}
 
 @override
 String toString() {
-  return 'DowloadTaskState.loaded(tasks: $tasks, pendingCount: $pendingCount)';
+    return 'DowloadTaskState.loaded(tasks: $tasks, pendingCount: $pendingCount)';
 }
 
 

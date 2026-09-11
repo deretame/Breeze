@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'download_task_json.dart';
@@ -9,6 +9,7 @@ part of 'download_task_json.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $DownloadChapterTaskRefCopyWith<DownloadChapterTaskRef> get copyWith => _$Downlo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadChapterTaskRef&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as DownloadChapterTaskRef;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadChapterTaskRef&&(identical(other.chapterId, _this.chapterId) || other.chapterId == _this.chapterId)&&(identical(other.requestId, _this.requestId) || other.requestId == _this.requestId)&&(identical(other.storageChapterId, _this.storageChapterId) || other.storageChapterId == _this.storageChapterId)&&(identical(other.logicalKey, _this.logicalKey) || other.logicalKey == _this.logicalKey)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.order, _this.order) || other.order == _this.order)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,chapterId,requestId,storageChapterId,logicalKey,title,order,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as DownloadChapterTaskRef;
+  return Object.hash(runtimeType,_this.chapterId,_this.requestId,_this.storageChapterId,_this.logicalKey,_this.title,_this.order,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'DownloadChapterTaskRef(chapterId: $chapterId, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, title: $title, order: $order, extern: $extern)';
+  final _this = this as DownloadChapterTaskRef;
+  return 'DownloadChapterTaskRef(chapterId: ${_this.chapterId}, requestId: ${_this.requestId}, storageChapterId: ${_this.storageChapterId}, logicalKey: ${_this.logicalKey}, title: ${_this.title}, order: ${_this.order}, extern: ${_this.extern})';
 }
 
 
@@ -66,7 +72,7 @@ class _$DownloadChapterTaskRefCopyWithImpl<$Res>
 /// Create a copy of DownloadChapterTaskRef
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? chapterId = null,Object? requestId = null,Object? storageChapterId = null,Object? logicalKey = null,Object? title = null,Object? order = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(DownloadChapterTaskRef(
 chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable
 as String,requestId: null == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
 as String,storageChapterId: null == storageChapterId ? _self.storageChapterId : storageChapterId // ignore: cast_nullable_to_non_nullable
@@ -215,7 +221,7 @@ return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.log
 
 @JsonSerializable(explicitToJson: true)
 class _DownloadChapterTaskRef implements DownloadChapterTaskRef {
-  const _DownloadChapterTaskRef({this.chapterId = '', this.requestId = '', this.storageChapterId = '', this.logicalKey = '', this.title = '', this.order = 0, final  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
+  const _DownloadChapterTaskRef({this.chapterId = '', this.requestId = '', this.storageChapterId = '', this.logicalKey = '', this.title = '', this.order = 0,  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
   factory _DownloadChapterTaskRef.fromJson(Map<String, dynamic> json) => _$DownloadChapterTaskRefFromJson(json);
 
 @override@JsonKey() final  String chapterId;
@@ -245,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadChapterTaskRef&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadChapterTaskRef&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,chapterId,requestId,storageChapterId,logicalKey,title,order,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,chapterId,requestId,storageChapterId,logicalKey,title,order,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'DownloadChapterTaskRef(chapterId: $chapterId, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, title: $title, order: $order, extern: $extern)';
+    return 'DownloadChapterTaskRef(chapterId: $chapterId, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, title: $title, order: $order, extern: $extern)';
 }
 
 
@@ -315,16 +323,21 @@ $DownloadTaskJsonCopyWith<DownloadTaskJson> get copyWith => _$DownloadTaskJsonCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.chapterRefs, chapterRefs)&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.stateCode, stateCode) || other.stateCode == stateCode)&&(identical(other.phaseCode, phaseCode) || other.phaseCode == phaseCode)&&const DeepCollectionEquality().equals(other.completedChapterKeys, completedChapterKeys)&&(identical(other.currentChapterKey, currentChapterKey) || other.currentChapterKey == currentChapterKey)&&(identical(other.completedChapterCount, completedChapterCount) || other.completedChapterCount == completedChapterCount)&&(identical(other.totalChapterCount, totalChapterCount) || other.totalChapterCount == totalChapterCount)&&(identical(other.currentChapterCompletedImages, currentChapterCompletedImages) || other.currentChapterCompletedImages == currentChapterCompletedImages)&&(identical(other.currentChapterReusedImages, currentChapterReusedImages) || other.currentChapterReusedImages == currentChapterReusedImages)&&(identical(other.currentChapterFailedImages, currentChapterFailedImages) || other.currentChapterFailedImages == currentChapterFailedImages)&&(identical(other.currentChapterTotalImages, currentChapterTotalImages) || other.currentChapterTotalImages == currentChapterTotalImages)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.lastErrorCode, lastErrorCode) || other.lastErrorCode == lastErrorCode)&&(identical(other.lastErrorMessage, lastErrorMessage) || other.lastErrorMessage == lastErrorMessage));
+  final _this = this as DownloadTaskJson;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, _this.from) || other.from == _this.from)&&(identical(other.comicId, _this.comicId) || other.comicId == _this.comicId)&&(identical(other.comicName, _this.comicName) || other.comicName == _this.comicName)&&const DeepCollectionEquality().equals(other.chapterRefs, _this.chapterRefs)&&(identical(other.schemaVersion, _this.schemaVersion) || other.schemaVersion == _this.schemaVersion)&&(identical(other.stateCode, _this.stateCode) || other.stateCode == _this.stateCode)&&(identical(other.phaseCode, _this.phaseCode) || other.phaseCode == _this.phaseCode)&&const DeepCollectionEquality().equals(other.completedChapterKeys, _this.completedChapterKeys)&&(identical(other.currentChapterKey, _this.currentChapterKey) || other.currentChapterKey == _this.currentChapterKey)&&(identical(other.completedChapterCount, _this.completedChapterCount) || other.completedChapterCount == _this.completedChapterCount)&&(identical(other.totalChapterCount, _this.totalChapterCount) || other.totalChapterCount == _this.totalChapterCount)&&(identical(other.currentChapterCompletedImages, _this.currentChapterCompletedImages) || other.currentChapterCompletedImages == _this.currentChapterCompletedImages)&&(identical(other.currentChapterReusedImages, _this.currentChapterReusedImages) || other.currentChapterReusedImages == _this.currentChapterReusedImages)&&(identical(other.currentChapterFailedImages, _this.currentChapterFailedImages) || other.currentChapterFailedImages == _this.currentChapterFailedImages)&&(identical(other.currentChapterTotalImages, _this.currentChapterTotalImages) || other.currentChapterTotalImages == _this.currentChapterTotalImages)&&(identical(other.attempt, _this.attempt) || other.attempt == _this.attempt)&&(identical(other.lastErrorCode, _this.lastErrorCode) || other.lastErrorCode == _this.lastErrorCode)&&(identical(other.lastErrorMessage, _this.lastErrorMessage) || other.lastErrorMessage == _this.lastErrorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(chapterRefs),schemaVersion,stateCode,phaseCode,const DeepCollectionEquality().hash(completedChapterKeys),currentChapterKey,completedChapterCount,totalChapterCount,currentChapterCompletedImages,currentChapterReusedImages,currentChapterFailedImages,currentChapterTotalImages,attempt,lastErrorCode,lastErrorMessage);
+int get hashCode {
+  final _this = this as DownloadTaskJson;
+  return Object.hash(runtimeType,_this.from,_this.comicId,_this.comicName,const DeepCollectionEquality().hash(_this.chapterRefs),_this.schemaVersion,_this.stateCode,_this.phaseCode,const DeepCollectionEquality().hash(_this.completedChapterKeys),_this.currentChapterKey,_this.completedChapterCount,_this.totalChapterCount,_this.currentChapterCompletedImages,_this.currentChapterReusedImages,_this.currentChapterFailedImages,_this.currentChapterTotalImages,_this.attempt,_this.lastErrorCode,_this.lastErrorMessage);
+}
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, chapterRefs: $chapterRefs, schemaVersion: $schemaVersion, stateCode: $stateCode, phaseCode: $phaseCode, completedChapterKeys: $completedChapterKeys, currentChapterKey: $currentChapterKey, completedChapterCount: $completedChapterCount, totalChapterCount: $totalChapterCount, currentChapterCompletedImages: $currentChapterCompletedImages, currentChapterReusedImages: $currentChapterReusedImages, currentChapterFailedImages: $currentChapterFailedImages, currentChapterTotalImages: $currentChapterTotalImages, attempt: $attempt, lastErrorCode: $lastErrorCode, lastErrorMessage: $lastErrorMessage)';
+  final _this = this as DownloadTaskJson;
+  return 'DownloadTaskJson(from: ${_this.from}, comicId: ${_this.comicId}, comicName: ${_this.comicName}, chapterRefs: ${_this.chapterRefs}, schemaVersion: ${_this.schemaVersion}, stateCode: ${_this.stateCode}, phaseCode: ${_this.phaseCode}, completedChapterKeys: ${_this.completedChapterKeys}, currentChapterKey: ${_this.currentChapterKey}, completedChapterCount: ${_this.completedChapterCount}, totalChapterCount: ${_this.totalChapterCount}, currentChapterCompletedImages: ${_this.currentChapterCompletedImages}, currentChapterReusedImages: ${_this.currentChapterReusedImages}, currentChapterFailedImages: ${_this.currentChapterFailedImages}, currentChapterTotalImages: ${_this.currentChapterTotalImages}, attempt: ${_this.attempt}, lastErrorCode: ${_this.lastErrorCode}, lastErrorMessage: ${_this.lastErrorMessage})';
 }
 
 
@@ -353,7 +366,7 @@ class _$DownloadTaskJsonCopyWithImpl<$Res>
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? chapterRefs = null,Object? schemaVersion = null,Object? stateCode = null,Object? phaseCode = null,Object? completedChapterKeys = null,Object? currentChapterKey = null,Object? completedChapterCount = null,Object? totalChapterCount = null,Object? currentChapterCompletedImages = null,Object? currentChapterReusedImages = null,Object? currentChapterFailedImages = null,Object? currentChapterTotalImages = null,Object? attempt = null,Object? lastErrorCode = null,Object? lastErrorMessage = null,}) {
-  return _then(_self.copyWith(
+  return _then(DownloadTaskJson(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
@@ -548,16 +561,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.chapterRefs, chapterRefs)&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.stateCode, stateCode) || other.stateCode == stateCode)&&(identical(other.phaseCode, phaseCode) || other.phaseCode == phaseCode)&&const DeepCollectionEquality().equals(other.completedChapterKeys, completedChapterKeys)&&(identical(other.currentChapterKey, currentChapterKey) || other.currentChapterKey == currentChapterKey)&&(identical(other.completedChapterCount, completedChapterCount) || other.completedChapterCount == completedChapterCount)&&(identical(other.totalChapterCount, totalChapterCount) || other.totalChapterCount == totalChapterCount)&&(identical(other.currentChapterCompletedImages, currentChapterCompletedImages) || other.currentChapterCompletedImages == currentChapterCompletedImages)&&(identical(other.currentChapterReusedImages, currentChapterReusedImages) || other.currentChapterReusedImages == currentChapterReusedImages)&&(identical(other.currentChapterFailedImages, currentChapterFailedImages) || other.currentChapterFailedImages == currentChapterFailedImages)&&(identical(other.currentChapterTotalImages, currentChapterTotalImages) || other.currentChapterTotalImages == currentChapterTotalImages)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.lastErrorCode, lastErrorCode) || other.lastErrorCode == lastErrorCode)&&(identical(other.lastErrorMessage, lastErrorMessage) || other.lastErrorMessage == lastErrorMessage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.chapterRefs, chapterRefs)&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.stateCode, stateCode) || other.stateCode == stateCode)&&(identical(other.phaseCode, phaseCode) || other.phaseCode == phaseCode)&&const DeepCollectionEquality().equals(other.completedChapterKeys, completedChapterKeys)&&(identical(other.currentChapterKey, currentChapterKey) || other.currentChapterKey == currentChapterKey)&&(identical(other.completedChapterCount, completedChapterCount) || other.completedChapterCount == completedChapterCount)&&(identical(other.totalChapterCount, totalChapterCount) || other.totalChapterCount == totalChapterCount)&&(identical(other.currentChapterCompletedImages, currentChapterCompletedImages) || other.currentChapterCompletedImages == currentChapterCompletedImages)&&(identical(other.currentChapterReusedImages, currentChapterReusedImages) || other.currentChapterReusedImages == currentChapterReusedImages)&&(identical(other.currentChapterFailedImages, currentChapterFailedImages) || other.currentChapterFailedImages == currentChapterFailedImages)&&(identical(other.currentChapterTotalImages, currentChapterTotalImages) || other.currentChapterTotalImages == currentChapterTotalImages)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.lastErrorCode, lastErrorCode) || other.lastErrorCode == lastErrorCode)&&(identical(other.lastErrorMessage, lastErrorMessage) || other.lastErrorMessage == lastErrorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(chapterRefs),schemaVersion,stateCode,phaseCode,const DeepCollectionEquality().hash(completedChapterKeys),currentChapterKey,completedChapterCount,totalChapterCount,currentChapterCompletedImages,currentChapterReusedImages,currentChapterFailedImages,currentChapterTotalImages,attempt,lastErrorCode,lastErrorMessage);
+int get hashCode {
+    return Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(chapterRefs),schemaVersion,stateCode,phaseCode,const DeepCollectionEquality().hash(completedChapterKeys),currentChapterKey,completedChapterCount,totalChapterCount,currentChapterCompletedImages,currentChapterReusedImages,currentChapterFailedImages,currentChapterTotalImages,attempt,lastErrorCode,lastErrorMessage);
+}
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, chapterRefs: $chapterRefs, schemaVersion: $schemaVersion, stateCode: $stateCode, phaseCode: $phaseCode, completedChapterKeys: $completedChapterKeys, currentChapterKey: $currentChapterKey, completedChapterCount: $completedChapterCount, totalChapterCount: $totalChapterCount, currentChapterCompletedImages: $currentChapterCompletedImages, currentChapterReusedImages: $currentChapterReusedImages, currentChapterFailedImages: $currentChapterFailedImages, currentChapterTotalImages: $currentChapterTotalImages, attempt: $attempt, lastErrorCode: $lastErrorCode, lastErrorMessage: $lastErrorMessage)';
+    return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, chapterRefs: $chapterRefs, schemaVersion: $schemaVersion, stateCode: $stateCode, phaseCode: $phaseCode, completedChapterKeys: $completedChapterKeys, currentChapterKey: $currentChapterKey, completedChapterCount: $completedChapterCount, totalChapterCount: $totalChapterCount, currentChapterCompletedImages: $currentChapterCompletedImages, currentChapterReusedImages: $currentChapterReusedImages, currentChapterFailedImages: $currentChapterFailedImages, currentChapterTotalImages: $currentChapterTotalImages, attempt: $attempt, lastErrorCode: $lastErrorCode, lastErrorMessage: $lastErrorMessage)';
 }
 
 

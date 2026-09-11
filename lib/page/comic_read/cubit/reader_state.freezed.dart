@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'reader_state.dart';
@@ -9,17 +9,13 @@ part of 'reader_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReaderState {
 
- int get currentSlot;// 当前全局槽位
- int get totalSlots;// 总页数/槽位数
- bool get isMenuVisible;// 菜单显隐
- double get sliderValue;// 滑块进度
- bool get isSliderRolling;// 是否正在拖动滑块
- bool get isComicRolling;
+ int get currentSlot; int get totalSlots; bool get isMenuVisible; double get sliderValue; bool get isSliderRolling; bool get isComicRolling;
 /// Create a copy of ReaderState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +26,21 @@ $ReaderStateCopyWith<ReaderState> get copyWith => _$ReaderStateCopyWithImpl<Read
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReaderState&&(identical(other.currentSlot, currentSlot) || other.currentSlot == currentSlot)&&(identical(other.totalSlots, totalSlots) || other.totalSlots == totalSlots)&&(identical(other.isMenuVisible, isMenuVisible) || other.isMenuVisible == isMenuVisible)&&(identical(other.sliderValue, sliderValue) || other.sliderValue == sliderValue)&&(identical(other.isSliderRolling, isSliderRolling) || other.isSliderRolling == isSliderRolling)&&(identical(other.isComicRolling, isComicRolling) || other.isComicRolling == isComicRolling));
+  final _this = this as ReaderState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReaderState&&(identical(other.currentSlot, _this.currentSlot) || other.currentSlot == _this.currentSlot)&&(identical(other.totalSlots, _this.totalSlots) || other.totalSlots == _this.totalSlots)&&(identical(other.isMenuVisible, _this.isMenuVisible) || other.isMenuVisible == _this.isMenuVisible)&&(identical(other.sliderValue, _this.sliderValue) || other.sliderValue == _this.sliderValue)&&(identical(other.isSliderRolling, _this.isSliderRolling) || other.isSliderRolling == _this.isSliderRolling)&&(identical(other.isComicRolling, _this.isComicRolling) || other.isComicRolling == _this.isComicRolling));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,currentSlot,totalSlots,isMenuVisible,sliderValue,isSliderRolling,isComicRolling);
+int get hashCode {
+  final _this = this as ReaderState;
+  return Object.hash(runtimeType,_this.currentSlot,_this.totalSlots,_this.isMenuVisible,_this.sliderValue,_this.isSliderRolling,_this.isComicRolling);
+}
 
 @override
 String toString() {
-  return 'ReaderState(currentSlot: $currentSlot, totalSlots: $totalSlots, isMenuVisible: $isMenuVisible, sliderValue: $sliderValue, isSliderRolling: $isSliderRolling, isComicRolling: $isComicRolling)';
+  final _this = this as ReaderState;
+  return 'ReaderState(currentSlot: ${_this.currentSlot}, totalSlots: ${_this.totalSlots}, isMenuVisible: ${_this.isMenuVisible}, sliderValue: ${_this.sliderValue}, isSliderRolling: ${_this.isSliderRolling}, isComicRolling: ${_this.isComicRolling})';
 }
 
 
@@ -68,7 +69,7 @@ class _$ReaderStateCopyWithImpl<$Res>
 /// Create a copy of ReaderState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? currentSlot = null,Object? totalSlots = null,Object? isMenuVisible = null,Object? sliderValue = null,Object? isSliderRolling = null,Object? isComicRolling = null,}) {
-  return _then(_self.copyWith(
+  return _then(ReaderState(
 currentSlot: null == currentSlot ? _self.currentSlot : currentSlot // ignore: cast_nullable_to_non_nullable
 as int,totalSlots: null == totalSlots ? _self.totalSlots : totalSlots // ignore: cast_nullable_to_non_nullable
 as int,isMenuVisible: null == isMenuVisible ? _self.isMenuVisible : isMenuVisible // ignore: cast_nullable_to_non_nullable
@@ -220,15 +221,10 @@ class _ReaderState implements ReaderState {
   
 
 @override@JsonKey() final  int currentSlot;
-// 当前全局槽位
 @override@JsonKey() final  int totalSlots;
-// 总页数/槽位数
 @override@JsonKey() final  bool isMenuVisible;
-// 菜单显隐
 @override@JsonKey() final  double sliderValue;
-// 滑块进度
 @override@JsonKey() final  bool isSliderRolling;
-// 是否正在拖动滑块
 @override@JsonKey() final  bool isComicRolling;
 
 /// Create a copy of ReaderState
@@ -241,16 +237,18 @@ _$ReaderStateCopyWith<_ReaderState> get copyWith => __$ReaderStateCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReaderState&&(identical(other.currentSlot, currentSlot) || other.currentSlot == currentSlot)&&(identical(other.totalSlots, totalSlots) || other.totalSlots == totalSlots)&&(identical(other.isMenuVisible, isMenuVisible) || other.isMenuVisible == isMenuVisible)&&(identical(other.sliderValue, sliderValue) || other.sliderValue == sliderValue)&&(identical(other.isSliderRolling, isSliderRolling) || other.isSliderRolling == isSliderRolling)&&(identical(other.isComicRolling, isComicRolling) || other.isComicRolling == isComicRolling));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReaderState&&(identical(other.currentSlot, currentSlot) || other.currentSlot == currentSlot)&&(identical(other.totalSlots, totalSlots) || other.totalSlots == totalSlots)&&(identical(other.isMenuVisible, isMenuVisible) || other.isMenuVisible == isMenuVisible)&&(identical(other.sliderValue, sliderValue) || other.sliderValue == sliderValue)&&(identical(other.isSliderRolling, isSliderRolling) || other.isSliderRolling == isSliderRolling)&&(identical(other.isComicRolling, isComicRolling) || other.isComicRolling == isComicRolling));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,currentSlot,totalSlots,isMenuVisible,sliderValue,isSliderRolling,isComicRolling);
+int get hashCode {
+    return Object.hash(runtimeType,currentSlot,totalSlots,isMenuVisible,sliderValue,isSliderRolling,isComicRolling);
+}
 
 @override
 String toString() {
-  return 'ReaderState(currentSlot: $currentSlot, totalSlots: $totalSlots, isMenuVisible: $isMenuVisible, sliderValue: $sliderValue, isSliderRolling: $isSliderRolling, isComicRolling: $isComicRolling)';
+    return 'ReaderState(currentSlot: $currentSlot, totalSlots: $totalSlots, isMenuVisible: $isMenuVisible, sliderValue: $sliderValue, isSliderRolling: $isSliderRolling, isComicRolling: $isComicRolling)';
 }
 
 

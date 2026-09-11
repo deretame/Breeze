@@ -20,8 +20,8 @@ Future<void> initSystemTray() async {
     final iconPath = Platform.isWindows
         ? 'asset/image/app_icon.ico'
         : (Platform.isLinux && _runningInSandbox())
-              ? 'io.github.windy.breeze'
-              : 'asset/image/app-icon.png';
+        ? 'io.github.windy.breeze'
+        : 'asset/image/app-icon.png';
     await trayManager.setIcon(iconPath);
 
     final Menu menu = Menu(

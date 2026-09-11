@@ -98,10 +98,7 @@ impl WebDavClient {
             return Err(WebDavStatusError(status.as_u16()).into());
         }
         let body = response.text().await?;
-        Ok(
-            serde_xml_rs::from_str::<ListMultiStatus>(&strip_xml_ns(&body))?
-                .responses,
-        )
+        Ok(serde_xml_rs::from_str::<ListMultiStatus>(&strip_xml_ns(&body))?.responses)
     }
 }
 

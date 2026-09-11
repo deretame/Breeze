@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'bika_setting.dart';
@@ -9,6 +9,7 @@ part of 'bika_setting.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $BikaSettingStateCopyWith<BikaSettingState> get copyWith => _$BikaSettingStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BikaSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.authorization, authorization) || other.authorization == authorization)&&(identical(other.level, level) || other.level == level)&&(identical(other.proxy, proxy) || other.proxy == proxy)&&(identical(other.imageQuality, imageQuality) || other.imageQuality == imageQuality)&&const DeepCollectionEquality().equals(other.shieldCategoryMap, shieldCategoryMap)&&const DeepCollectionEquality().equals(other.shieldHomePageCategoriesMap, shieldHomePageCategoriesMap)&&(identical(other.signIn, signIn) || other.signIn == signIn)&&(identical(other.brevity, brevity) || other.brevity == brevity)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
+  final _this = this as BikaSettingState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BikaSettingState&&(identical(other.account, _this.account) || other.account == _this.account)&&(identical(other.password, _this.password) || other.password == _this.password)&&(identical(other.authorization, _this.authorization) || other.authorization == _this.authorization)&&(identical(other.level, _this.level) || other.level == _this.level)&&(identical(other.proxy, _this.proxy) || other.proxy == _this.proxy)&&(identical(other.imageQuality, _this.imageQuality) || other.imageQuality == _this.imageQuality)&&const DeepCollectionEquality().equals(other.shieldCategoryMap, _this.shieldCategoryMap)&&const DeepCollectionEquality().equals(other.shieldHomePageCategoriesMap, _this.shieldHomePageCategoriesMap)&&(identical(other.signIn, _this.signIn) || other.signIn == _this.signIn)&&(identical(other.brevity, _this.brevity) || other.brevity == _this.brevity)&&(identical(other.slowDownload, _this.slowDownload) || other.slowDownload == _this.slowDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,password,authorization,level,proxy,imageQuality,const DeepCollectionEquality().hash(shieldCategoryMap),const DeepCollectionEquality().hash(shieldHomePageCategoriesMap),signIn,brevity,slowDownload);
+int get hashCode {
+  final _this = this as BikaSettingState;
+  return Object.hash(runtimeType,_this.account,_this.password,_this.authorization,_this.level,_this.proxy,_this.imageQuality,const DeepCollectionEquality().hash(_this.shieldCategoryMap),const DeepCollectionEquality().hash(_this.shieldHomePageCategoriesMap),_this.signIn,_this.brevity,_this.slowDownload);
+}
 
 @override
 String toString() {
-  return 'BikaSettingState(account: $account, password: $password, authorization: $authorization, level: $level, proxy: $proxy, imageQuality: $imageQuality, shieldCategoryMap: $shieldCategoryMap, shieldHomePageCategoriesMap: $shieldHomePageCategoriesMap, signIn: $signIn, brevity: $brevity, slowDownload: $slowDownload)';
+  final _this = this as BikaSettingState;
+  return 'BikaSettingState(account: ${_this.account}, password: ${_this.password}, authorization: ${_this.authorization}, level: ${_this.level}, proxy: ${_this.proxy}, imageQuality: ${_this.imageQuality}, shieldCategoryMap: ${_this.shieldCategoryMap}, shieldHomePageCategoriesMap: ${_this.shieldHomePageCategoriesMap}, signIn: ${_this.signIn}, brevity: ${_this.brevity}, slowDownload: ${_this.slowDownload})';
 }
 
 
@@ -66,7 +72,7 @@ class _$BikaSettingStateCopyWithImpl<$Res>
 /// Create a copy of BikaSettingState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? account = null,Object? password = null,Object? authorization = null,Object? level = null,Object? proxy = null,Object? imageQuality = null,Object? shieldCategoryMap = null,Object? shieldHomePageCategoriesMap = null,Object? signIn = null,Object? brevity = null,Object? slowDownload = null,}) {
-  return _then(_self.copyWith(
+  return _then(BikaSettingState(
 account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,authorization: null == authorization ? _self.authorization : authorization // ignore: cast_nullable_to_non_nullable
@@ -219,7 +225,7 @@ return $default(_that.account,_that.password,_that.authorization,_that.level,_th
 @JsonSerializable()
 
 class _BikaSettingState implements BikaSettingState {
-  const _BikaSettingState({this.account = '', this.password = '', this.authorization = '', this.level = 0, this.proxy = 3, this.imageQuality = 'original', final  Map<String, bool> shieldCategoryMap = const <String, bool>{}, final  Map<String, bool> shieldHomePageCategoriesMap = const <String, bool>{}, this.signIn = false, this.brevity = false, this.slowDownload = false}): _shieldCategoryMap = shieldCategoryMap,_shieldHomePageCategoriesMap = shieldHomePageCategoriesMap;
+  const _BikaSettingState({this.account = '', this.password = '', this.authorization = '', this.level = 0, this.proxy = 3, this.imageQuality = 'original',  Map<String, bool> shieldCategoryMap = const <String, bool>{},  Map<String, bool> shieldHomePageCategoriesMap = const <String, bool>{}, this.signIn = false, this.brevity = false, this.slowDownload = false}): _shieldCategoryMap = shieldCategoryMap,_shieldHomePageCategoriesMap = shieldHomePageCategoriesMap;
   factory _BikaSettingState.fromJson(Map<String, dynamic> json) => _$BikaSettingStateFromJson(json);
 
 @override@JsonKey() final  String account;
@@ -259,16 +265,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BikaSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.authorization, authorization) || other.authorization == authorization)&&(identical(other.level, level) || other.level == level)&&(identical(other.proxy, proxy) || other.proxy == proxy)&&(identical(other.imageQuality, imageQuality) || other.imageQuality == imageQuality)&&const DeepCollectionEquality().equals(other._shieldCategoryMap, _shieldCategoryMap)&&const DeepCollectionEquality().equals(other._shieldHomePageCategoriesMap, _shieldHomePageCategoriesMap)&&(identical(other.signIn, signIn) || other.signIn == signIn)&&(identical(other.brevity, brevity) || other.brevity == brevity)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BikaSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.authorization, authorization) || other.authorization == authorization)&&(identical(other.level, level) || other.level == level)&&(identical(other.proxy, proxy) || other.proxy == proxy)&&(identical(other.imageQuality, imageQuality) || other.imageQuality == imageQuality)&&const DeepCollectionEquality().equals(other.shieldCategoryMap, _shieldCategoryMap)&&const DeepCollectionEquality().equals(other.shieldHomePageCategoriesMap, _shieldHomePageCategoriesMap)&&(identical(other.signIn, signIn) || other.signIn == signIn)&&(identical(other.brevity, brevity) || other.brevity == brevity)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,password,authorization,level,proxy,imageQuality,const DeepCollectionEquality().hash(_shieldCategoryMap),const DeepCollectionEquality().hash(_shieldHomePageCategoriesMap),signIn,brevity,slowDownload);
+int get hashCode {
+    return Object.hash(runtimeType,account,password,authorization,level,proxy,imageQuality,const DeepCollectionEquality().hash(_shieldCategoryMap),const DeepCollectionEquality().hash(_shieldHomePageCategoriesMap),signIn,brevity,slowDownload);
+}
 
 @override
 String toString() {
-  return 'BikaSettingState(account: $account, password: $password, authorization: $authorization, level: $level, proxy: $proxy, imageQuality: $imageQuality, shieldCategoryMap: $shieldCategoryMap, shieldHomePageCategoriesMap: $shieldHomePageCategoriesMap, signIn: $signIn, brevity: $brevity, slowDownload: $slowDownload)';
+    return 'BikaSettingState(account: $account, password: $password, authorization: $authorization, level: $level, proxy: $proxy, imageQuality: $imageQuality, shieldCategoryMap: $shieldCategoryMap, shieldHomePageCategoriesMap: $shieldHomePageCategoriesMap, signIn: $signIn, brevity: $brevity, slowDownload: $slowDownload)';
 }
 
 

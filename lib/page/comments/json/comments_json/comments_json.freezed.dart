@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'comments_json.dart';
@@ -9,6 +9,7 @@ part of 'comments_json.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $CommentsJsonCopyWith<CommentsJson> get copyWith => _$CommentsJsonCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentsJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
+  final _this = this as CommentsJson;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentsJson&&(identical(other.code, _this.code) || other.code == _this.code)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.data, _this.data) || other.data == _this.data));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code,message,data);
+int get hashCode {
+  final _this = this as CommentsJson;
+  return Object.hash(runtimeType,_this.code,_this.message,_this.data);
+}
 
 @override
 String toString() {
-  return 'CommentsJson(code: $code, message: $message, data: $data)';
+  final _this = this as CommentsJson;
+  return 'CommentsJson(code: ${_this.code}, message: ${_this.message}, data: ${_this.data})';
 }
 
 
@@ -66,7 +72,7 @@ class _$CommentsJsonCopyWithImpl<$Res>
 /// Create a copy of CommentsJson
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? code = null,Object? message = null,Object? data = null,}) {
-  return _then(_self.copyWith(
+  return _then(CommentsJson(
 code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
 as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
@@ -240,16 +246,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentsJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentsJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code,message,data);
+int get hashCode {
+    return Object.hash(runtimeType,code,message,data);
+}
 
 @override
 String toString() {
-  return 'CommentsJson(code: $code, message: $message, data: $data)';
+    return 'CommentsJson(code: $code, message: $message, data: $data)';
 }
 
 
@@ -315,16 +323,21 @@ $DataCopyWith<Data> get copyWith => _$DataCopyWithImpl<Data>(this as Data, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Data&&(identical(other.comments, comments) || other.comments == comments)&&const DeepCollectionEquality().equals(other.topComments, topComments));
+  final _this = this as Data;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Data&&(identical(other.comments, _this.comments) || other.comments == _this.comments)&&const DeepCollectionEquality().equals(other.topComments, _this.topComments));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comments,const DeepCollectionEquality().hash(topComments));
+int get hashCode {
+  final _this = this as Data;
+  return Object.hash(runtimeType,_this.comments,const DeepCollectionEquality().hash(_this.topComments));
+}
 
 @override
 String toString() {
-  return 'Data(comments: $comments, topComments: $topComments)';
+  final _this = this as Data;
+  return 'Data(comments: ${_this.comments}, topComments: ${_this.topComments})';
 }
 
 
@@ -353,7 +366,7 @@ class _$DataCopyWithImpl<$Res>
 /// Create a copy of Data
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? comments = null,Object? topComments = null,}) {
-  return _then(_self.copyWith(
+  return _then(Data(
 comments: null == comments ? _self.comments : comments // ignore: cast_nullable_to_non_nullable
 as Comments,topComments: null == topComments ? _self.topComments : topComments // ignore: cast_nullable_to_non_nullable
 as List<TopComment>,
@@ -506,7 +519,7 @@ return $default(_that.comments,_that.topComments);case _:
 @JsonSerializable()
 
 class _Data implements Data {
-  const _Data({@JsonKey(name: "comments") required this.comments, @JsonKey(name: "topComments") required final  List<TopComment> topComments}): _topComments = topComments;
+  const _Data({@JsonKey(name: "comments") required this.comments, @JsonKey(name: "topComments") required  List<TopComment> topComments}): _topComments = topComments;
   factory _Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 
 @override@JsonKey(name: "comments") final  Comments comments;
@@ -531,16 +544,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Data&&(identical(other.comments, comments) || other.comments == comments)&&const DeepCollectionEquality().equals(other._topComments, _topComments));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Data&&(identical(other.comments, comments) || other.comments == comments)&&const DeepCollectionEquality().equals(other.topComments, _topComments));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comments,const DeepCollectionEquality().hash(_topComments));
+int get hashCode {
+    return Object.hash(runtimeType,comments,const DeepCollectionEquality().hash(_topComments));
+}
 
 @override
 String toString() {
-  return 'Data(comments: $comments, topComments: $topComments)';
+    return 'Data(comments: $comments, topComments: $topComments)';
 }
 
 
@@ -605,16 +620,21 @@ $CommentsCopyWith<Comments> get copyWith => _$CommentsCopyWithImpl<Comments>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Comments&&const DeepCollectionEquality().equals(other.docs, docs)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.pages, pages) || other.pages == pages));
+  final _this = this as Comments;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Comments&&const DeepCollectionEquality().equals(other.docs, _this.docs)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.limit, _this.limit) || other.limit == _this.limit)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.pages, _this.pages) || other.pages == _this.pages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(docs),total,limit,page,pages);
+int get hashCode {
+  final _this = this as Comments;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.docs),_this.total,_this.limit,_this.page,_this.pages);
+}
 
 @override
 String toString() {
-  return 'Comments(docs: $docs, total: $total, limit: $limit, page: $page, pages: $pages)';
+  final _this = this as Comments;
+  return 'Comments(docs: ${_this.docs}, total: ${_this.total}, limit: ${_this.limit}, page: ${_this.page}, pages: ${_this.pages})';
 }
 
 
@@ -643,7 +663,7 @@ class _$CommentsCopyWithImpl<$Res>
 /// Create a copy of Comments
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? docs = null,Object? total = null,Object? limit = null,Object? page = null,Object? pages = null,}) {
-  return _then(_self.copyWith(
+  return _then(Comments(
 docs: null == docs ? _self.docs : docs // ignore: cast_nullable_to_non_nullable
 as List<Doc>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
@@ -790,7 +810,7 @@ return $default(_that.docs,_that.total,_that.limit,_that.page,_that.pages);case 
 @JsonSerializable()
 
 class _Comments implements Comments {
-  const _Comments({@JsonKey(name: "docs") required final  List<Doc> docs, @JsonKey(name: "total") required this.total, @JsonKey(name: "limit") required this.limit, @JsonKey(name: "page") required this.page, @JsonKey(name: "pages") required this.pages}): _docs = docs;
+  const _Comments({@JsonKey(name: "docs") required  List<Doc> docs, @JsonKey(name: "total") required this.total, @JsonKey(name: "limit") required this.limit, @JsonKey(name: "page") required this.page, @JsonKey(name: "pages") required this.pages}): _docs = docs;
   factory _Comments.fromJson(Map<String, dynamic> json) => _$CommentsFromJson(json);
 
  final  List<Doc> _docs;
@@ -818,16 +838,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Comments&&const DeepCollectionEquality().equals(other._docs, _docs)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.pages, pages) || other.pages == pages));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Comments&&const DeepCollectionEquality().equals(other.docs, _docs)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.pages, pages) || other.pages == pages));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_docs),total,limit,page,pages);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_docs),total,limit,page,pages);
+}
 
 @override
 String toString() {
-  return 'Comments(docs: $docs, total: $total, limit: $limit, page: $page, pages: $pages)';
+    return 'Comments(docs: $docs, total: $total, limit: $limit, page: $page, pages: $pages)';
 }
 
 
@@ -886,16 +908,21 @@ $DocCopyWith<Doc> get copyWith => _$DocCopyWithImpl<Doc>(this as Doc, _$identity
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.docId, docId) || other.docId == docId)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.commentsCount, commentsCount) || other.commentsCount == commentsCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
+  final _this = this as Doc;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.comic, _this.comic) || other.comic == _this.comic)&&(identical(other.totalComments, _this.totalComments) || other.totalComments == _this.totalComments)&&(identical(other.isTop, _this.isTop) || other.isTop == _this.isTop)&&(identical(other.hide, _this.hide) || other.hide == _this.hide)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.docId, _this.docId) || other.docId == _this.docId)&&(identical(other.likesCount, _this.likesCount) || other.likesCount == _this.likesCount)&&(identical(other.commentsCount, _this.commentsCount) || other.commentsCount == _this.commentsCount)&&(identical(other.isLiked, _this.isLiked) || other.isLiked == _this.isLiked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,user,comic,totalComments,isTop,hide,createdAt,docId,likesCount,commentsCount,isLiked);
+int get hashCode {
+  final _this = this as Doc;
+  return Object.hash(runtimeType,_this.id,_this.content,_this.user,_this.comic,_this.totalComments,_this.isTop,_this.hide,_this.createdAt,_this.docId,_this.likesCount,_this.commentsCount,_this.isLiked);
+}
 
 @override
 String toString() {
-  return 'Doc(id: $id, content: $content, user: $user, comic: $comic, totalComments: $totalComments, isTop: $isTop, hide: $hide, createdAt: $createdAt, docId: $docId, likesCount: $likesCount, commentsCount: $commentsCount, isLiked: $isLiked)';
+  final _this = this as Doc;
+  return 'Doc(id: ${_this.id}, content: ${_this.content}, user: ${_this.user}, comic: ${_this.comic}, totalComments: ${_this.totalComments}, isTop: ${_this.isTop}, hide: ${_this.hide}, createdAt: ${_this.createdAt}, docId: ${_this.docId}, likesCount: ${_this.likesCount}, commentsCount: ${_this.commentsCount}, isLiked: ${_this.isLiked})';
 }
 
 
@@ -924,7 +951,7 @@ class _$DocCopyWithImpl<$Res>
 /// Create a copy of Doc
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = null,Object? user = null,Object? comic = null,Object? totalComments = null,Object? isTop = null,Object? hide = null,Object? createdAt = null,Object? docId = null,Object? likesCount = null,Object? commentsCount = null,Object? isLiked = null,}) {
-  return _then(_self.copyWith(
+  return _then(Doc(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
@@ -1116,16 +1143,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.docId, docId) || other.docId == docId)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.commentsCount, commentsCount) || other.commentsCount == commentsCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.docId, docId) || other.docId == docId)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.commentsCount, commentsCount) || other.commentsCount == commentsCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,user,comic,totalComments,isTop,hide,createdAt,docId,likesCount,commentsCount,isLiked);
+int get hashCode {
+    return Object.hash(runtimeType,id,content,user,comic,totalComments,isTop,hide,createdAt,docId,likesCount,commentsCount,isLiked);
+}
 
 @override
 String toString() {
-  return 'Doc(id: $id, content: $content, user: $user, comic: $comic, totalComments: $totalComments, isTop: $isTop, hide: $hide, createdAt: $createdAt, docId: $docId, likesCount: $likesCount, commentsCount: $commentsCount, isLiked: $isLiked)';
+    return 'Doc(id: $id, content: $content, user: $user, comic: $comic, totalComments: $totalComments, isTop: $isTop, hide: $hide, createdAt: $createdAt, docId: $docId, likesCount: $likesCount, commentsCount: $commentsCount, isLiked: $isLiked)';
 }
 
 
@@ -1200,16 +1229,21 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.verified, verified) || other.verified == verified)&&(identical(other.exp, exp) || other.exp == exp)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other.characters, characters)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.slogan, slogan) || other.slogan == slogan)&&(identical(other.character, character) || other.character == character));
+  final _this = this as User;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.gender, _this.gender) || other.gender == _this.gender)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.verified, _this.verified) || other.verified == _this.verified)&&(identical(other.exp, _this.exp) || other.exp == _this.exp)&&(identical(other.level, _this.level) || other.level == _this.level)&&const DeepCollectionEquality().equals(other.characters, _this.characters)&&(identical(other.role, _this.role) || other.role == _this.role)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&(identical(other.slogan, _this.slogan) || other.slogan == _this.slogan)&&(identical(other.character, _this.character) || other.character == _this.character));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,gender,name,title,verified,exp,level,const DeepCollectionEquality().hash(characters),role,avatar,slogan,character);
+int get hashCode {
+  final _this = this as User;
+  return Object.hash(runtimeType,_this.id,_this.gender,_this.name,_this.title,_this.verified,_this.exp,_this.level,const DeepCollectionEquality().hash(_this.characters),_this.role,_this.avatar,_this.slogan,_this.character);
+}
 
 @override
 String toString() {
-  return 'User(id: $id, gender: $gender, name: $name, title: $title, verified: $verified, exp: $exp, level: $level, characters: $characters, role: $role, avatar: $avatar, slogan: $slogan, character: $character)';
+  final _this = this as User;
+  return 'User(id: ${_this.id}, gender: ${_this.gender}, name: ${_this.name}, title: ${_this.title}, verified: ${_this.verified}, exp: ${_this.exp}, level: ${_this.level}, characters: ${_this.characters}, role: ${_this.role}, avatar: ${_this.avatar}, slogan: ${_this.slogan}, character: ${_this.character})';
 }
 
 
@@ -1238,7 +1272,7 @@ class _$UserCopyWithImpl<$Res>
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? gender = null,Object? name = null,Object? title = null,Object? verified = null,Object? exp = null,Object? level = null,Object? characters = null,Object? role = null,Object? avatar = freezed,Object? slogan = freezed,Object? character = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -1404,7 +1438,7 @@ return $default(_that.id,_that.gender,_that.name,_that.title,_that.verified,_tha
 @JsonSerializable()
 
 class _User implements User {
-  const _User({@JsonKey(name: "_id") required this.id, @JsonKey(name: "gender") required this.gender, @JsonKey(name: "name") required this.name, @JsonKey(name: "title") required this.title, @JsonKey(name: "verified") required this.verified, @JsonKey(name: "exp") required this.exp, @JsonKey(name: "level") required this.level, @JsonKey(name: "characters") required final  List<String> characters, @JsonKey(name: "role") required this.role, @JsonKey(name: "avatar") this.avatar, @JsonKey(name: "slogan") this.slogan, @JsonKey(name: "character") this.character}): _characters = characters;
+  const _User({@JsonKey(name: "_id") required this.id, @JsonKey(name: "gender") required this.gender, @JsonKey(name: "name") required this.name, @JsonKey(name: "title") required this.title, @JsonKey(name: "verified") required this.verified, @JsonKey(name: "exp") required this.exp, @JsonKey(name: "level") required this.level, @JsonKey(name: "characters") required  List<String> characters, @JsonKey(name: "role") required this.role, @JsonKey(name: "avatar") this.avatar, @JsonKey(name: "slogan") this.slogan, @JsonKey(name: "character") this.character}): _characters = characters;
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override@JsonKey(name: "_id") final  String id;
@@ -1439,16 +1473,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.verified, verified) || other.verified == verified)&&(identical(other.exp, exp) || other.exp == exp)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other._characters, _characters)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.slogan, slogan) || other.slogan == slogan)&&(identical(other.character, character) || other.character == character));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.verified, verified) || other.verified == verified)&&(identical(other.exp, exp) || other.exp == exp)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other.characters, _characters)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.slogan, slogan) || other.slogan == slogan)&&(identical(other.character, character) || other.character == character));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,gender,name,title,verified,exp,level,const DeepCollectionEquality().hash(_characters),role,avatar,slogan,character);
+int get hashCode {
+    return Object.hash(runtimeType,id,gender,name,title,verified,exp,level,const DeepCollectionEquality().hash(_characters),role,avatar,slogan,character);
+}
 
 @override
 String toString() {
-  return 'User(id: $id, gender: $gender, name: $name, title: $title, verified: $verified, exp: $exp, level: $level, characters: $characters, role: $role, avatar: $avatar, slogan: $slogan, character: $character)';
+    return 'User(id: $id, gender: $gender, name: $name, title: $title, verified: $verified, exp: $exp, level: $level, characters: $characters, role: $role, avatar: $avatar, slogan: $slogan, character: $character)';
 }
 
 
@@ -1526,16 +1562,21 @@ $AvatarCopyWith<Avatar> get copyWith => _$AvatarCopyWithImpl<Avatar>(this as Ava
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Avatar&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
+  final _this = this as Avatar;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Avatar&&(identical(other.originalName, _this.originalName) || other.originalName == _this.originalName)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.fileServer, _this.fileServer) || other.fileServer == _this.fileServer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer);
+int get hashCode {
+  final _this = this as Avatar;
+  return Object.hash(runtimeType,_this.originalName,_this.path,_this.fileServer);
+}
 
 @override
 String toString() {
-  return 'Avatar(originalName: $originalName, path: $path, fileServer: $fileServer)';
+  final _this = this as Avatar;
+  return 'Avatar(originalName: ${_this.originalName}, path: ${_this.path}, fileServer: ${_this.fileServer})';
 }
 
 
@@ -1564,7 +1605,7 @@ class _$AvatarCopyWithImpl<$Res>
 /// Create a copy of Avatar
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,}) {
-  return _then(_self.copyWith(
+  return _then(Avatar(
 originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
@@ -1729,16 +1770,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Avatar&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Avatar&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer);
+int get hashCode {
+    return Object.hash(runtimeType,originalName,path,fileServer);
+}
 
 @override
 String toString() {
-  return 'Avatar(originalName: $originalName, path: $path, fileServer: $fileServer)';
+    return 'Avatar(originalName: $originalName, path: $path, fileServer: $fileServer)';
 }
 
 
@@ -1795,16 +1838,21 @@ $TopCommentCopyWith<TopComment> get copyWith => _$TopCommentCopyWithImpl<TopComm
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TopComment&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.commentsCount, commentsCount) || other.commentsCount == commentsCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
+  final _this = this as TopComment;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TopComment&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.content, _this.content) || other.content == _this.content)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.comic, _this.comic) || other.comic == _this.comic)&&(identical(other.isTop, _this.isTop) || other.isTop == _this.isTop)&&(identical(other.hide, _this.hide) || other.hide == _this.hide)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.totalComments, _this.totalComments) || other.totalComments == _this.totalComments)&&(identical(other.likesCount, _this.likesCount) || other.likesCount == _this.likesCount)&&(identical(other.commentsCount, _this.commentsCount) || other.commentsCount == _this.commentsCount)&&(identical(other.isLiked, _this.isLiked) || other.isLiked == _this.isLiked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,user,comic,isTop,hide,createdAt,totalComments,likesCount,commentsCount,isLiked);
+int get hashCode {
+  final _this = this as TopComment;
+  return Object.hash(runtimeType,_this.id,_this.content,_this.user,_this.comic,_this.isTop,_this.hide,_this.createdAt,_this.totalComments,_this.likesCount,_this.commentsCount,_this.isLiked);
+}
 
 @override
 String toString() {
-  return 'TopComment(id: $id, content: $content, user: $user, comic: $comic, isTop: $isTop, hide: $hide, createdAt: $createdAt, totalComments: $totalComments, likesCount: $likesCount, commentsCount: $commentsCount, isLiked: $isLiked)';
+  final _this = this as TopComment;
+  return 'TopComment(id: ${_this.id}, content: ${_this.content}, user: ${_this.user}, comic: ${_this.comic}, isTop: ${_this.isTop}, hide: ${_this.hide}, createdAt: ${_this.createdAt}, totalComments: ${_this.totalComments}, likesCount: ${_this.likesCount}, commentsCount: ${_this.commentsCount}, isLiked: ${_this.isLiked})';
 }
 
 
@@ -1833,7 +1881,7 @@ class _$TopCommentCopyWithImpl<$Res>
 /// Create a copy of TopComment
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = null,Object? user = null,Object? comic = null,Object? isTop = null,Object? hide = null,Object? createdAt = null,Object? totalComments = null,Object? likesCount = null,Object? commentsCount = null,Object? isLiked = null,}) {
-  return _then(_self.copyWith(
+  return _then(TopComment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
 as String,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
@@ -2023,16 +2071,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TopComment&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.commentsCount, commentsCount) || other.commentsCount == commentsCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _TopComment&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.commentsCount, commentsCount) || other.commentsCount == commentsCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,content,user,comic,isTop,hide,createdAt,totalComments,likesCount,commentsCount,isLiked);
+int get hashCode {
+    return Object.hash(runtimeType,id,content,user,comic,isTop,hide,createdAt,totalComments,likesCount,commentsCount,isLiked);
+}
 
 @override
 String toString() {
-  return 'TopComment(id: $id, content: $content, user: $user, comic: $comic, isTop: $isTop, hide: $hide, createdAt: $createdAt, totalComments: $totalComments, likesCount: $likesCount, commentsCount: $commentsCount, isLiked: $isLiked)';
+    return 'TopComment(id: $id, content: $content, user: $user, comic: $comic, isTop: $isTop, hide: $hide, createdAt: $createdAt, totalComments: $totalComments, likesCount: $likesCount, commentsCount: $commentsCount, isLiked: $isLiked)';
 }
 
 

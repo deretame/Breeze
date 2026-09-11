@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'search_status.dart';
@@ -9,6 +9,7 @@ part of 'search_status.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $SearchStatusStateCopyWith<SearchStatusState> get copyWith => _$SearchStatusStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStatusState&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other.sources, sources));
+  final _this = this as SearchStatusState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStatusState&&(identical(other.keyword, _this.keyword) || other.keyword == _this.keyword)&&(identical(other.sort, _this.sort) || other.sort == _this.sort)&&const DeepCollectionEquality().equals(other.sources, _this.sources));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,keyword,sort,const DeepCollectionEquality().hash(sources));
+int get hashCode {
+  final _this = this as SearchStatusState;
+  return Object.hash(runtimeType,_this.keyword,_this.sort,const DeepCollectionEquality().hash(_this.sources));
+}
 
 @override
 String toString() {
-  return 'SearchStatusState(keyword: $keyword, sort: $sort, sources: $sources)';
+  final _this = this as SearchStatusState;
+  return 'SearchStatusState(keyword: ${_this.keyword}, sort: ${_this.sort}, sources: ${_this.sources})';
 }
 
 
@@ -63,7 +69,7 @@ class _$SearchStatusStateCopyWithImpl<$Res>
 /// Create a copy of SearchStatusState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? keyword = null,Object? sort = null,Object? sources = null,}) {
-  return _then(_self.copyWith(
+  return _then(SearchStatusState(
 keyword: null == keyword ? _self.keyword : keyword // ignore: cast_nullable_to_non_nullable
 as String,sort: null == sort ? _self.sort : sort // ignore: cast_nullable_to_non_nullable
 as String,sources: null == sources ? _self.sources : sources // ignore: cast_nullable_to_non_nullable
@@ -208,7 +214,7 @@ return $default(_that.keyword,_that.sort,_that.sources);case _:
 
 
 class _SearchStatusState implements SearchStatusState {
-  const _SearchStatusState({this.keyword = "", this.sort = "dd", final  List<String> sources = const <String>[]}): _sources = sources;
+  const _SearchStatusState({this.keyword = "", this.sort = "dd",  List<String> sources = const <String>[]}): _sources = sources;
   
 
 @override@JsonKey() final  String keyword;
@@ -231,16 +237,18 @@ _$SearchStatusStateCopyWith<_SearchStatusState> get copyWith => __$SearchStatusS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStatusState&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other._sources, _sources));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStatusState&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other.sources, _sources));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,keyword,sort,const DeepCollectionEquality().hash(_sources));
+int get hashCode {
+    return Object.hash(runtimeType,keyword,sort,const DeepCollectionEquality().hash(_sources));
+}
 
 @override
 String toString() {
-  return 'SearchStatusState(keyword: $keyword, sort: $sort, sources: $sources)';
+    return 'SearchStatusState(keyword: $keyword, sort: $sort, sources: $sources)';
 }
 
 

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'comic_simplify_entry_info.dart';
@@ -9,6 +9,7 @@ part of 'comic_simplify_entry_info.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $ComicSimplifyEntryInfoCopyWith<ComicSimplifyEntryInfo> get copyWith => _$ComicS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicSimplifyEntryInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.id, id) || other.id == id)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.path, path) || other.path == path)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&(identical(other.source, source) || other.source == source)&&(identical(other.from, from) || other.from == from));
+  final _this = this as ComicSimplifyEntryInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicSimplifyEntryInfo&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fileServer, _this.fileServer) || other.fileServer == _this.fileServer)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.pictureType, _this.pictureType) || other.pictureType == _this.pictureType)&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.from, _this.from) || other.from == _this.from));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,id,fileServer,path,pictureType,source,from);
+int get hashCode {
+  final _this = this as ComicSimplifyEntryInfo;
+  return Object.hash(runtimeType,_this.title,_this.id,_this.fileServer,_this.path,_this.pictureType,_this.source,_this.from);
+}
 
 @override
 String toString() {
-  return 'ComicSimplifyEntryInfo(title: $title, id: $id, fileServer: $fileServer, path: $path, pictureType: $pictureType, source: $source, from: $from)';
+  final _this = this as ComicSimplifyEntryInfo;
+  return 'ComicSimplifyEntryInfo(title: ${_this.title}, id: ${_this.id}, fileServer: ${_this.fileServer}, path: ${_this.path}, pictureType: ${_this.pictureType}, source: ${_this.source}, from: ${_this.from})';
 }
 
 
@@ -66,7 +72,7 @@ class _$ComicSimplifyEntryInfoCopyWithImpl<$Res>
 /// Create a copy of ComicSimplifyEntryInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? id = null,Object? fileServer = null,Object? path = null,Object? pictureType = null,Object? source = null,Object? from = null,}) {
-  return _then(_self.copyWith(
+  return _then(ComicSimplifyEntryInfo(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
@@ -239,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicSimplifyEntryInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.id, id) || other.id == id)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.path, path) || other.path == path)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&(identical(other.source, source) || other.source == source)&&(identical(other.from, from) || other.from == from));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicSimplifyEntryInfo&&(identical(other.title, title) || other.title == title)&&(identical(other.id, id) || other.id == id)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.path, path) || other.path == path)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&(identical(other.source, source) || other.source == source)&&(identical(other.from, from) || other.from == from));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,id,fileServer,path,pictureType,source,from);
+int get hashCode {
+    return Object.hash(runtimeType,title,id,fileServer,path,pictureType,source,from);
+}
 
 @override
 String toString() {
-  return 'ComicSimplifyEntryInfo(title: $title, id: $id, fileServer: $fileServer, path: $path, pictureType: $pictureType, source: $source, from: $from)';
+    return 'ComicSimplifyEntryInfo(title: $title, id: $id, fileServer: $fileServer, path: $path, pictureType: $pictureType, source: $source, from: $from)';
 }
 
 

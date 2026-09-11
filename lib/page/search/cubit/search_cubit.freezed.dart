@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'search_cubit.dart';
@@ -9,6 +9,7 @@ part of 'search_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $SearchStatesCopyWith<SearchStates> get copyWith => _$SearchStatesCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other.pluginExtern, pluginExtern)&&const DeepCollectionEquality().equals(other.aggregateSources, aggregateSources));
+  final _this = this as SearchStates;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStates&&(identical(other.from, _this.from) || other.from == _this.from)&&(identical(other.searchKeyword, _this.searchKeyword) || other.searchKeyword == _this.searchKeyword)&&(identical(other.sortBy, _this.sortBy) || other.sortBy == _this.sortBy)&&const DeepCollectionEquality().equals(other.pluginExtern, _this.pluginExtern)&&const DeepCollectionEquality().equals(other.aggregateSources, _this.aggregateSources));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(pluginExtern),const DeepCollectionEquality().hash(aggregateSources));
+int get hashCode {
+  final _this = this as SearchStates;
+  return Object.hash(runtimeType,_this.from,_this.searchKeyword,_this.sortBy,const DeepCollectionEquality().hash(_this.pluginExtern),const DeepCollectionEquality().hash(_this.aggregateSources));
+}
 
 @override
 String toString() {
-  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern, aggregateSources: $aggregateSources)';
+  final _this = this as SearchStates;
+  return 'SearchStates(from: ${_this.from}, searchKeyword: ${_this.searchKeyword}, sortBy: ${_this.sortBy}, pluginExtern: ${_this.pluginExtern}, aggregateSources: ${_this.aggregateSources})';
 }
 
 
@@ -66,7 +72,7 @@ class _$SearchStatesCopyWithImpl<$Res>
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? pluginExtern = null,Object? aggregateSources = null,}) {
-  return _then(_self.copyWith(
+  return _then(SearchStates(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
 as String,sortBy: null == sortBy ? _self.sortBy : sortBy // ignore: cast_nullable_to_non_nullable
@@ -213,7 +219,7 @@ return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern,_
 @JsonSerializable()
 
 class _SearchStates implements SearchStates {
-  const _SearchStates({this.from = '', this.searchKeyword = "", this.sortBy = 1, final  Map<String, dynamic> pluginExtern = const <String, dynamic>{}, final  Map<String, bool> aggregateSources = const <String, bool>{}}): _pluginExtern = pluginExtern,_aggregateSources = aggregateSources;
+  const _SearchStates({this.from = '', this.searchKeyword = "", this.sortBy = 1,  Map<String, dynamic> pluginExtern = const <String, dynamic>{},  Map<String, bool> aggregateSources = const <String, bool>{}}): _pluginExtern = pluginExtern,_aggregateSources = aggregateSources;
   factory _SearchStates.fromJson(Map<String, dynamic> json) => _$SearchStatesFromJson(json);
 
 @override@JsonKey() final  String from;
@@ -247,16 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other._pluginExtern, _pluginExtern)&&const DeepCollectionEquality().equals(other._aggregateSources, _aggregateSources));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other.pluginExtern, _pluginExtern)&&const DeepCollectionEquality().equals(other.aggregateSources, _aggregateSources));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(_pluginExtern),const DeepCollectionEquality().hash(_aggregateSources));
+int get hashCode {
+    return Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(_pluginExtern),const DeepCollectionEquality().hash(_aggregateSources));
+}
 
 @override
 String toString() {
-  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern, aggregateSources: $aggregateSources)';
+    return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern, aggregateSources: $aggregateSources)';
 }
 
 

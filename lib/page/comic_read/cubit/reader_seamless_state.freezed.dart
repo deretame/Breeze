@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'reader_seamless_state.dart';
@@ -9,6 +9,7 @@ part of 'reader_seamless_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $ReaderSeamlessStateCopyWith<ReaderSeamlessState> get copyWith => _$ReaderSeamle
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReaderSeamlessState&&const DeepCollectionEquality().equals(other.loadedChapters, loadedChapters)&&const DeepCollectionEquality().equals(other.transitionStatusByNextOrder, transitionStatusByNextOrder)&&const DeepCollectionEquality().equals(other.visibleTransitionNextOrders, visibleTransitionNextOrders)&&const DeepCollectionEquality().equals(other.loadingChapterOrders, loadingChapterOrders)&&const DeepCollectionEquality().equals(other.prefetchingChapterOrders, prefetchingChapterOrders)&&const DeepCollectionEquality().equals(other.prefetchedChapterInfoByOrder, prefetchedChapterInfoByOrder)&&(identical(other.currentChapterOrder, currentChapterOrder) || other.currentChapterOrder == currentChapterOrder)&&(identical(other.currentChapterStartSlot, currentChapterStartSlot) || other.currentChapterStartSlot == currentChapterStartSlot)&&(identical(other.currentChapterSlotCount, currentChapterSlotCount) || other.currentChapterSlotCount == currentChapterSlotCount));
+  final _this = this as ReaderSeamlessState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReaderSeamlessState&&const DeepCollectionEquality().equals(other.loadedChapters, _this.loadedChapters)&&const DeepCollectionEquality().equals(other.transitionStatusByNextOrder, _this.transitionStatusByNextOrder)&&const DeepCollectionEquality().equals(other.visibleTransitionNextOrders, _this.visibleTransitionNextOrders)&&const DeepCollectionEquality().equals(other.loadingChapterOrders, _this.loadingChapterOrders)&&const DeepCollectionEquality().equals(other.prefetchingChapterOrders, _this.prefetchingChapterOrders)&&const DeepCollectionEquality().equals(other.prefetchedChapterInfoByOrder, _this.prefetchedChapterInfoByOrder)&&(identical(other.currentChapterOrder, _this.currentChapterOrder) || other.currentChapterOrder == _this.currentChapterOrder)&&(identical(other.currentChapterStartSlot, _this.currentChapterStartSlot) || other.currentChapterStartSlot == _this.currentChapterStartSlot)&&(identical(other.currentChapterSlotCount, _this.currentChapterSlotCount) || other.currentChapterSlotCount == _this.currentChapterSlotCount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(loadedChapters),const DeepCollectionEquality().hash(transitionStatusByNextOrder),const DeepCollectionEquality().hash(visibleTransitionNextOrders),const DeepCollectionEquality().hash(loadingChapterOrders),const DeepCollectionEquality().hash(prefetchingChapterOrders),const DeepCollectionEquality().hash(prefetchedChapterInfoByOrder),currentChapterOrder,currentChapterStartSlot,currentChapterSlotCount);
+int get hashCode {
+  final _this = this as ReaderSeamlessState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.loadedChapters),const DeepCollectionEquality().hash(_this.transitionStatusByNextOrder),const DeepCollectionEquality().hash(_this.visibleTransitionNextOrders),const DeepCollectionEquality().hash(_this.loadingChapterOrders),const DeepCollectionEquality().hash(_this.prefetchingChapterOrders),const DeepCollectionEquality().hash(_this.prefetchedChapterInfoByOrder),_this.currentChapterOrder,_this.currentChapterStartSlot,_this.currentChapterSlotCount);
+}
 
 @override
 String toString() {
-  return 'ReaderSeamlessState(loadedChapters: $loadedChapters, transitionStatusByNextOrder: $transitionStatusByNextOrder, visibleTransitionNextOrders: $visibleTransitionNextOrders, loadingChapterOrders: $loadingChapterOrders, prefetchingChapterOrders: $prefetchingChapterOrders, prefetchedChapterInfoByOrder: $prefetchedChapterInfoByOrder, currentChapterOrder: $currentChapterOrder, currentChapterStartSlot: $currentChapterStartSlot, currentChapterSlotCount: $currentChapterSlotCount)';
+  final _this = this as ReaderSeamlessState;
+  return 'ReaderSeamlessState(loadedChapters: ${_this.loadedChapters}, transitionStatusByNextOrder: ${_this.transitionStatusByNextOrder}, visibleTransitionNextOrders: ${_this.visibleTransitionNextOrders}, loadingChapterOrders: ${_this.loadingChapterOrders}, prefetchingChapterOrders: ${_this.prefetchingChapterOrders}, prefetchedChapterInfoByOrder: ${_this.prefetchedChapterInfoByOrder}, currentChapterOrder: ${_this.currentChapterOrder}, currentChapterStartSlot: ${_this.currentChapterStartSlot}, currentChapterSlotCount: ${_this.currentChapterSlotCount})';
 }
 
 
@@ -63,7 +69,7 @@ class _$ReaderSeamlessStateCopyWithImpl<$Res>
 /// Create a copy of ReaderSeamlessState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? loadedChapters = null,Object? transitionStatusByNextOrder = null,Object? visibleTransitionNextOrders = null,Object? loadingChapterOrders = null,Object? prefetchingChapterOrders = null,Object? prefetchedChapterInfoByOrder = null,Object? currentChapterOrder = freezed,Object? currentChapterStartSlot = null,Object? currentChapterSlotCount = null,}) {
-  return _then(_self.copyWith(
+  return _then(ReaderSeamlessState(
 loadedChapters: null == loadedChapters ? _self.loadedChapters : loadedChapters // ignore: cast_nullable_to_non_nullable
 as List<SeamlessChapter>,transitionStatusByNextOrder: null == transitionStatusByNextOrder ? _self.transitionStatusByNextOrder : transitionStatusByNextOrder // ignore: cast_nullable_to_non_nullable
 as Map<int, SeamlessTransitionStatus>,visibleTransitionNextOrders: null == visibleTransitionNextOrders ? _self.visibleTransitionNextOrders : visibleTransitionNextOrders // ignore: cast_nullable_to_non_nullable
@@ -214,7 +220,7 @@ return $default(_that.loadedChapters,_that.transitionStatusByNextOrder,_that.vis
 
 
 class _ReaderSeamlessState implements ReaderSeamlessState {
-  const _ReaderSeamlessState({final  List<SeamlessChapter> loadedChapters = const <SeamlessChapter>[], final  Map<int, SeamlessTransitionStatus> transitionStatusByNextOrder = const <int, SeamlessTransitionStatus>{}, final  Set<int> visibleTransitionNextOrders = const <int>{}, final  Set<int> loadingChapterOrders = const <int>{}, final  Set<int> prefetchingChapterOrders = const <int>{}, final  Map<int, NormalComicEpInfo> prefetchedChapterInfoByOrder = const <int, NormalComicEpInfo>{}, this.currentChapterOrder, this.currentChapterStartSlot = 0, this.currentChapterSlotCount = 0}): _loadedChapters = loadedChapters,_transitionStatusByNextOrder = transitionStatusByNextOrder,_visibleTransitionNextOrders = visibleTransitionNextOrders,_loadingChapterOrders = loadingChapterOrders,_prefetchingChapterOrders = prefetchingChapterOrders,_prefetchedChapterInfoByOrder = prefetchedChapterInfoByOrder;
+  const _ReaderSeamlessState({ List<SeamlessChapter> loadedChapters = const <SeamlessChapter>[],  Map<int, SeamlessTransitionStatus> transitionStatusByNextOrder = const <int, SeamlessTransitionStatus>{},  Set<int> visibleTransitionNextOrders = const <int>{},  Set<int> loadingChapterOrders = const <int>{},  Set<int> prefetchingChapterOrders = const <int>{},  Map<int, NormalComicEpInfo> prefetchedChapterInfoByOrder = const <int, NormalComicEpInfo>{}, this.currentChapterOrder, this.currentChapterStartSlot = 0, this.currentChapterSlotCount = 0}): _loadedChapters = loadedChapters,_transitionStatusByNextOrder = transitionStatusByNextOrder,_visibleTransitionNextOrders = visibleTransitionNextOrders,_loadingChapterOrders = loadingChapterOrders,_prefetchingChapterOrders = prefetchingChapterOrders,_prefetchedChapterInfoByOrder = prefetchedChapterInfoByOrder;
   
 
  final  List<SeamlessChapter> _loadedChapters;
@@ -273,16 +279,18 @@ _$ReaderSeamlessStateCopyWith<_ReaderSeamlessState> get copyWith => __$ReaderSea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReaderSeamlessState&&const DeepCollectionEquality().equals(other._loadedChapters, _loadedChapters)&&const DeepCollectionEquality().equals(other._transitionStatusByNextOrder, _transitionStatusByNextOrder)&&const DeepCollectionEquality().equals(other._visibleTransitionNextOrders, _visibleTransitionNextOrders)&&const DeepCollectionEquality().equals(other._loadingChapterOrders, _loadingChapterOrders)&&const DeepCollectionEquality().equals(other._prefetchingChapterOrders, _prefetchingChapterOrders)&&const DeepCollectionEquality().equals(other._prefetchedChapterInfoByOrder, _prefetchedChapterInfoByOrder)&&(identical(other.currentChapterOrder, currentChapterOrder) || other.currentChapterOrder == currentChapterOrder)&&(identical(other.currentChapterStartSlot, currentChapterStartSlot) || other.currentChapterStartSlot == currentChapterStartSlot)&&(identical(other.currentChapterSlotCount, currentChapterSlotCount) || other.currentChapterSlotCount == currentChapterSlotCount));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReaderSeamlessState&&const DeepCollectionEquality().equals(other.loadedChapters, _loadedChapters)&&const DeepCollectionEquality().equals(other.transitionStatusByNextOrder, _transitionStatusByNextOrder)&&const DeepCollectionEquality().equals(other.visibleTransitionNextOrders, _visibleTransitionNextOrders)&&const DeepCollectionEquality().equals(other.loadingChapterOrders, _loadingChapterOrders)&&const DeepCollectionEquality().equals(other.prefetchingChapterOrders, _prefetchingChapterOrders)&&const DeepCollectionEquality().equals(other.prefetchedChapterInfoByOrder, _prefetchedChapterInfoByOrder)&&(identical(other.currentChapterOrder, currentChapterOrder) || other.currentChapterOrder == currentChapterOrder)&&(identical(other.currentChapterStartSlot, currentChapterStartSlot) || other.currentChapterStartSlot == currentChapterStartSlot)&&(identical(other.currentChapterSlotCount, currentChapterSlotCount) || other.currentChapterSlotCount == currentChapterSlotCount));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_loadedChapters),const DeepCollectionEquality().hash(_transitionStatusByNextOrder),const DeepCollectionEquality().hash(_visibleTransitionNextOrders),const DeepCollectionEquality().hash(_loadingChapterOrders),const DeepCollectionEquality().hash(_prefetchingChapterOrders),const DeepCollectionEquality().hash(_prefetchedChapterInfoByOrder),currentChapterOrder,currentChapterStartSlot,currentChapterSlotCount);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_loadedChapters),const DeepCollectionEquality().hash(_transitionStatusByNextOrder),const DeepCollectionEquality().hash(_visibleTransitionNextOrders),const DeepCollectionEquality().hash(_loadingChapterOrders),const DeepCollectionEquality().hash(_prefetchingChapterOrders),const DeepCollectionEquality().hash(_prefetchedChapterInfoByOrder),currentChapterOrder,currentChapterStartSlot,currentChapterSlotCount);
+}
 
 @override
 String toString() {
-  return 'ReaderSeamlessState(loadedChapters: $loadedChapters, transitionStatusByNextOrder: $transitionStatusByNextOrder, visibleTransitionNextOrders: $visibleTransitionNextOrders, loadingChapterOrders: $loadingChapterOrders, prefetchingChapterOrders: $prefetchingChapterOrders, prefetchedChapterInfoByOrder: $prefetchedChapterInfoByOrder, currentChapterOrder: $currentChapterOrder, currentChapterStartSlot: $currentChapterStartSlot, currentChapterSlotCount: $currentChapterSlotCount)';
+    return 'ReaderSeamlessState(loadedChapters: $loadedChapters, transitionStatusByNextOrder: $transitionStatusByNextOrder, visibleTransitionNextOrders: $visibleTransitionNextOrders, loadingChapterOrders: $loadingChapterOrders, prefetchingChapterOrders: $prefetchingChapterOrders, prefetchedChapterInfoByOrder: $prefetchedChapterInfoByOrder, currentChapterOrder: $currentChapterOrder, currentChapterStartSlot: $currentChapterStartSlot, currentChapterSlotCount: $currentChapterSlotCount)';
 }
 
 

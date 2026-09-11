@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'normal_comic_all_info.dart';
@@ -9,6 +9,7 @@ part of 'normal_comic_all_info.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $NormalComicAllInfoCopyWith<NormalComicAllInfo> get copyWith => _$NormalComicAll
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other.preview, preview)&&const DeepCollectionEquality().equals(other.eps, eps)&&const DeepCollectionEquality().equals(other.recommend, recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComments, allowComments) || other.allowComments == allowComments)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowCollected, allowCollected) || other.allowCollected == allowCollected)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as NormalComicAllInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NormalComicAllInfo&&(identical(other.comicInfo, _this.comicInfo) || other.comicInfo == _this.comicInfo)&&const DeepCollectionEquality().equals(other.preview, _this.preview)&&const DeepCollectionEquality().equals(other.eps, _this.eps)&&const DeepCollectionEquality().equals(other.recommend, _this.recommend)&&(identical(other.totalViews, _this.totalViews) || other.totalViews == _this.totalViews)&&(identical(other.totalLikes, _this.totalLikes) || other.totalLikes == _this.totalLikes)&&(identical(other.totalComments, _this.totalComments) || other.totalComments == _this.totalComments)&&(identical(other.isFavourite, _this.isFavourite) || other.isFavourite == _this.isFavourite)&&(identical(other.isLiked, _this.isLiked) || other.isLiked == _this.isLiked)&&(identical(other.allowComments, _this.allowComments) || other.allowComments == _this.allowComments)&&(identical(other.allowLike, _this.allowLike) || other.allowLike == _this.allowLike)&&(identical(other.allowCollected, _this.allowCollected) || other.allowCollected == _this.allowCollected)&&(identical(other.allowDownload, _this.allowDownload) || other.allowDownload == _this.allowDownload)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(preview),const DeepCollectionEquality().hash(eps),const DeepCollectionEquality().hash(recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComments,allowLike,allowCollected,allowDownload,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as NormalComicAllInfo;
+  return Object.hash(runtimeType,_this.comicInfo,const DeepCollectionEquality().hash(_this.preview),const DeepCollectionEquality().hash(_this.eps),const DeepCollectionEquality().hash(_this.recommend),_this.totalViews,_this.totalLikes,_this.totalComments,_this.isFavourite,_this.isLiked,_this.allowComments,_this.allowLike,_this.allowCollected,_this.allowDownload,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'NormalComicAllInfo(comicInfo: $comicInfo, preview: $preview, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComments: $allowComments, allowLike: $allowLike, allowCollected: $allowCollected, allowDownload: $allowDownload, extern: $extern)';
+  final _this = this as NormalComicAllInfo;
+  return 'NormalComicAllInfo(comicInfo: ${_this.comicInfo}, preview: ${_this.preview}, eps: ${_this.eps}, recommend: ${_this.recommend}, totalViews: ${_this.totalViews}, totalLikes: ${_this.totalLikes}, totalComments: ${_this.totalComments}, isFavourite: ${_this.isFavourite}, isLiked: ${_this.isLiked}, allowComments: ${_this.allowComments}, allowLike: ${_this.allowLike}, allowCollected: ${_this.allowCollected}, allowDownload: ${_this.allowDownload}, extern: ${_this.extern})';
 }
 
 
@@ -66,7 +72,7 @@ class _$NormalComicAllInfoCopyWithImpl<$Res>
 /// Create a copy of NormalComicAllInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? comicInfo = null,Object? preview = null,Object? eps = null,Object? recommend = null,Object? totalViews = null,Object? totalLikes = null,Object? totalComments = null,Object? isFavourite = null,Object? isLiked = null,Object? allowComments = null,Object? allowLike = null,Object? allowCollected = null,Object? allowDownload = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(NormalComicAllInfo(
 comicInfo: null == comicInfo ? _self.comicInfo : comicInfo // ignore: cast_nullable_to_non_nullable
 as ComicInfo,preview: null == preview ? _self.preview : preview // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,eps: null == eps ? _self.eps : eps // ignore: cast_nullable_to_non_nullable
@@ -231,7 +237,7 @@ return $default(_that.comicInfo,_that.preview,_that.eps,_that.recommend,_that.to
 @JsonSerializable()
 
 class _NormalComicAllInfo implements NormalComicAllInfo {
-  const _NormalComicAllInfo({@JsonKey(name: 'comicInfo') required this.comicInfo, @JsonKey(name: 'preview') final  Map<String, dynamic> preview = const {}, @JsonKey(name: 'eps') required final  List<Ep> eps, @JsonKey(name: 'recommend') required final  List<Recommend> recommend, @JsonKey(name: 'totalViews') this.totalViews = 0, @JsonKey(name: 'totalLikes') this.totalLikes = 0, @JsonKey(name: 'totalComments') this.totalComments = 0, @JsonKey(name: 'isFavourite') this.isFavourite = false, @JsonKey(name: 'isLiked') this.isLiked = false, @JsonKey(name: 'allowComments') this.allowComments = false, @JsonKey(name: 'allowLike') this.allowLike = false, @JsonKey(name: 'allowCollected') this.allowCollected = false, @JsonKey(name: 'allowDownload') this.allowDownload = true, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _preview = preview,_eps = eps,_recommend = recommend,_extern = extern;
+  const _NormalComicAllInfo({@JsonKey(name: 'comicInfo') required this.comicInfo, @JsonKey(name: 'preview')  Map<String, dynamic> preview = const {}, @JsonKey(name: 'eps') required  List<Ep> eps, @JsonKey(name: 'recommend') required  List<Recommend> recommend, @JsonKey(name: 'totalViews') this.totalViews = 0, @JsonKey(name: 'totalLikes') this.totalLikes = 0, @JsonKey(name: 'totalComments') this.totalComments = 0, @JsonKey(name: 'isFavourite') this.isFavourite = false, @JsonKey(name: 'isLiked') this.isLiked = false, @JsonKey(name: 'allowComments') this.allowComments = false, @JsonKey(name: 'allowLike') this.allowLike = false, @JsonKey(name: 'allowCollected') this.allowCollected = false, @JsonKey(name: 'allowDownload') this.allowDownload = true, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _preview = preview,_eps = eps,_recommend = recommend,_extern = extern;
   factory _NormalComicAllInfo.fromJson(Map<String, dynamic> json) => _$NormalComicAllInfoFromJson(json);
 
 @override@JsonKey(name: 'comicInfo') final  ComicInfo comicInfo;
@@ -286,16 +292,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other._preview, _preview)&&const DeepCollectionEquality().equals(other._eps, _eps)&&const DeepCollectionEquality().equals(other._recommend, _recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComments, allowComments) || other.allowComments == allowComments)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowCollected, allowCollected) || other.allowCollected == allowCollected)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other.preview, _preview)&&const DeepCollectionEquality().equals(other.eps, _eps)&&const DeepCollectionEquality().equals(other.recommend, _recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComments, allowComments) || other.allowComments == allowComments)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowCollected, allowCollected) || other.allowCollected == allowCollected)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(_preview),const DeepCollectionEquality().hash(_eps),const DeepCollectionEquality().hash(_recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComments,allowLike,allowCollected,allowDownload,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(_preview),const DeepCollectionEquality().hash(_eps),const DeepCollectionEquality().hash(_recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComments,allowLike,allowCollected,allowDownload,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'NormalComicAllInfo(comicInfo: $comicInfo, preview: $preview, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComments: $allowComments, allowLike: $allowLike, allowCollected: $allowCollected, allowDownload: $allowDownload, extern: $extern)';
+    return 'NormalComicAllInfo(comicInfo: $comicInfo, preview: $preview, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComments: $allowComments, allowLike: $allowLike, allowCollected: $allowCollected, allowDownload: $allowDownload, extern: $extern)';
 }
 
 
@@ -372,16 +380,21 @@ $ComicInfoActionItemCopyWith<ComicInfoActionItem> get copyWith => _$ComicInfoAct
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfoActionItem&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.onTap, onTap)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as ComicInfoActionItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfoActionItem&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.onTap, _this.onTap)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(onTap),const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as ComicInfoActionItem;
+  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.onTap),const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'ComicInfoActionItem(name: $name, onTap: $onTap, extern: $extern)';
+  final _this = this as ComicInfoActionItem;
+  return 'ComicInfoActionItem(name: ${_this.name}, onTap: ${_this.onTap}, extern: ${_this.extern})';
 }
 
 
@@ -410,7 +423,7 @@ class _$ComicInfoActionItemCopyWithImpl<$Res>
 /// Create a copy of ComicInfoActionItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? onTap = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(ComicInfoActionItem(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,onTap: null == onTap ? _self.onTap : onTap // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
@@ -555,7 +568,7 @@ return $default(_that.name,_that.onTap,_that.extern);case _:
 @JsonSerializable()
 
 class _ComicInfoActionItem implements ComicInfoActionItem {
-  const _ComicInfoActionItem({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'onTap') final  Map<String, dynamic> onTap = const {}, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _onTap = onTap,_extern = extern;
+  const _ComicInfoActionItem({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap = const {}, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _onTap = onTap,_extern = extern;
   factory _ComicInfoActionItem.fromJson(Map<String, dynamic> json) => _$ComicInfoActionItemFromJson(json);
 
 @override@JsonKey(name: 'name') final  String name;
@@ -587,16 +600,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfoActionItem&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._onTap, _onTap)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfoActionItem&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.onTap, _onTap)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_onTap),const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_onTap),const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'ComicInfoActionItem(name: $name, onTap: $onTap, extern: $extern)';
+    return 'ComicInfoActionItem(name: $name, onTap: $onTap, extern: $extern)';
 }
 
 
@@ -653,16 +668,21 @@ $ComicInfoMetadataCopyWith<ComicInfoMetadata> get copyWith => _$ComicInfoMetadat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfoMetadata&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.value, value));
+  final _this = this as ComicInfoMetadata;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfoMetadata&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.value, _this.value));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,name,const DeepCollectionEquality().hash(value));
+int get hashCode {
+  final _this = this as ComicInfoMetadata;
+  return Object.hash(runtimeType,_this.type,_this.name,const DeepCollectionEquality().hash(_this.value));
+}
 
 @override
 String toString() {
-  return 'ComicInfoMetadata(type: $type, name: $name, value: $value)';
+  final _this = this as ComicInfoMetadata;
+  return 'ComicInfoMetadata(type: ${_this.type}, name: ${_this.name}, value: ${_this.value})';
 }
 
 
@@ -691,7 +711,7 @@ class _$ComicInfoMetadataCopyWithImpl<$Res>
 /// Create a copy of ComicInfoMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? name = null,Object? value = null,}) {
-  return _then(_self.copyWith(
+  return _then(ComicInfoMetadata(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
@@ -836,7 +856,7 @@ return $default(_that.type,_that.name,_that.value);case _:
 @JsonSerializable()
 
 class _ComicInfoMetadata implements ComicInfoMetadata {
-  const _ComicInfoMetadata({@JsonKey(name: 'type') required this.type, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'value') required final  List<ComicInfoActionItem> value}): _value = value;
+  const _ComicInfoMetadata({@JsonKey(name: 'type') required this.type, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'value') required  List<ComicInfoActionItem> value}): _value = value;
   factory _ComicInfoMetadata.fromJson(Map<String, dynamic> json) => _$ComicInfoMetadataFromJson(json);
 
 @override@JsonKey(name: 'type') final  String type;
@@ -862,16 +882,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfoMetadata&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._value, _value));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfoMetadata&&(identical(other.type, type) || other.type == type)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.value, _value));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,name,const DeepCollectionEquality().hash(_value));
+int get hashCode {
+    return Object.hash(runtimeType,type,name,const DeepCollectionEquality().hash(_value));
+}
 
 @override
 String toString() {
-  return 'ComicInfoMetadata(type: $type, name: $name, value: $value)';
+    return 'ComicInfoMetadata(type: $type, name: $name, value: $value)';
 }
 
 
@@ -928,16 +950,21 @@ $ComicImageCopyWith<ComicImage> get copyWith => _$ComicImageCopyWithImpl<ComicIm
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as ComicImage;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicImage&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.path, _this.path) || other.path == _this.path)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,name,path,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as ComicImage;
+  return Object.hash(runtimeType,_this.id,_this.url,_this.name,_this.path,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'ComicImage(id: $id, url: $url, name: $name, path: $path, extern: $extern)';
+  final _this = this as ComicImage;
+  return 'ComicImage(id: ${_this.id}, url: ${_this.url}, name: ${_this.name}, path: ${_this.path}, extern: ${_this.extern})';
 }
 
 
@@ -966,7 +993,7 @@ class _$ComicImageCopyWithImpl<$Res>
 /// Create a copy of ComicImage
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? name = null,Object? path = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(ComicImage(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -1113,7 +1140,7 @@ return $default(_that.id,_that.url,_that.name,_that.path,_that.extern);case _:
 @JsonSerializable()
 
 class _ComicImage implements ComicImage {
-  const _ComicImage({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'url') required this.url, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'path') this.path = '', @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _extern = extern;
+  const _ComicImage({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'url') required this.url, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'path') this.path = '', @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _extern = extern;
   factory _ComicImage.fromJson(Map<String, dynamic> json) => _$ComicImageFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -1141,16 +1168,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,name,path,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,id,url,name,path,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'ComicImage(id: $id, url: $url, name: $name, path: $path, extern: $extern)';
+    return 'ComicImage(id: $id, url: $url, name: $name, path: $path, extern: $extern)';
 }
 
 
@@ -1209,16 +1238,21 @@ $CreatorCopyWith<Creator> get copyWith => _$CreatorCopyWithImpl<Creator>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Creator&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&const DeepCollectionEquality().equals(other.onTap, onTap)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as Creator;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Creator&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.avatar, _this.avatar) || other.avatar == _this.avatar)&&const DeepCollectionEquality().equals(other.onTap, _this.onTap)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,avatar,const DeepCollectionEquality().hash(onTap),const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as Creator;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.avatar,const DeepCollectionEquality().hash(_this.onTap),const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'Creator(id: $id, name: $name, avatar: $avatar, onTap: $onTap, extern: $extern)';
+  final _this = this as Creator;
+  return 'Creator(id: ${_this.id}, name: ${_this.name}, avatar: ${_this.avatar}, onTap: ${_this.onTap}, extern: ${_this.extern})';
 }
 
 
@@ -1247,7 +1281,7 @@ class _$CreatorCopyWithImpl<$Res>
 /// Create a copy of Creator
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? avatar = null,Object? onTap = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(Creator(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,avatar: null == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
@@ -1403,7 +1437,7 @@ return $default(_that.id,_that.name,_that.avatar,_that.onTap,_that.extern);case 
 @JsonSerializable()
 
 class _Creator implements Creator {
-  const _Creator({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'avatar') required this.avatar, @JsonKey(name: 'onTap') final  Map<String, dynamic> onTap = const {}, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _onTap = onTap,_extern = extern;
+  const _Creator({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'avatar') required this.avatar, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap = const {}, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _onTap = onTap,_extern = extern;
   factory _Creator.fromJson(Map<String, dynamic> json) => _$CreatorFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -1437,16 +1471,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Creator&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&const DeepCollectionEquality().equals(other._onTap, _onTap)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Creator&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&const DeepCollectionEquality().equals(other.onTap, _onTap)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,avatar,const DeepCollectionEquality().hash(_onTap),const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,avatar,const DeepCollectionEquality().hash(_onTap),const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'Creator(id: $id, name: $name, avatar: $avatar, onTap: $onTap, extern: $extern)';
+    return 'Creator(id: $id, name: $name, avatar: $avatar, onTap: $onTap, extern: $extern)';
 }
 
 
@@ -1514,16 +1550,21 @@ $ComicInfoCopyWith<ComicInfo> get copyWith => _$ComicInfoCopyWithImpl<ComicInfo>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.titleMeta, titleMeta)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.description, description) || other.description == description)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as ComicInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfo&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&const DeepCollectionEquality().equals(other.titleMeta, _this.titleMeta)&&(identical(other.creator, _this.creator) || other.creator == _this.creator)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.cover, _this.cover) || other.cover == _this.cover)&&const DeepCollectionEquality().equals(other.metadata, _this.metadata)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(titleMeta),creator,description,cover,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as ComicInfo;
+  return Object.hash(runtimeType,_this.id,_this.title,const DeepCollectionEquality().hash(_this.titleMeta),_this.creator,_this.description,_this.cover,const DeepCollectionEquality().hash(_this.metadata),const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'ComicInfo(id: $id, title: $title, titleMeta: $titleMeta, creator: $creator, description: $description, cover: $cover, metadata: $metadata, extern: $extern)';
+  final _this = this as ComicInfo;
+  return 'ComicInfo(id: ${_this.id}, title: ${_this.title}, titleMeta: ${_this.titleMeta}, creator: ${_this.creator}, description: ${_this.description}, cover: ${_this.cover}, metadata: ${_this.metadata}, extern: ${_this.extern})';
 }
 
 
@@ -1552,7 +1593,7 @@ class _$ComicInfoCopyWithImpl<$Res>
 /// Create a copy of ComicInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? titleMeta = null,Object? creator = null,Object? description = null,Object? cover = null,Object? metadata = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(ComicInfo(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,titleMeta: null == titleMeta ? _self.titleMeta : titleMeta // ignore: cast_nullable_to_non_nullable
@@ -1720,7 +1761,7 @@ return $default(_that.id,_that.title,_that.titleMeta,_that.creator,_that.descrip
 @JsonSerializable()
 
 class _ComicInfo implements ComicInfo {
-  const _ComicInfo({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'titleMeta') required final  List<ComicInfoActionItem> titleMeta, @JsonKey(name: 'creator') required this.creator, @JsonKey(name: 'description') required this.description, @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata') required final  List<ComicInfoMetadata> metadata, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _titleMeta = titleMeta,_metadata = metadata,_extern = extern;
+  const _ComicInfo({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'titleMeta') required  List<ComicInfoActionItem> titleMeta, @JsonKey(name: 'creator') required this.creator, @JsonKey(name: 'description') required this.description, @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata') required  List<ComicInfoMetadata> metadata, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _titleMeta = titleMeta,_metadata = metadata,_extern = extern;
   factory _ComicInfo.fromJson(Map<String, dynamic> json) => _$ComicInfoFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -1763,16 +1804,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._titleMeta, _titleMeta)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.description, description) || other.description == description)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.titleMeta, _titleMeta)&&(identical(other.creator, creator) || other.creator == creator)&&(identical(other.description, description) || other.description == description)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, _metadata)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(_titleMeta),creator,description,cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,id,title,const DeepCollectionEquality().hash(_titleMeta),creator,description,cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'ComicInfo(id: $id, title: $title, titleMeta: $titleMeta, creator: $creator, description: $description, cover: $cover, metadata: $metadata, extern: $extern)';
+    return 'ComicInfo(id: $id, title: $title, titleMeta: $titleMeta, creator: $creator, description: $description, cover: $cover, metadata: $metadata, extern: $extern)';
 }
 
 
@@ -1852,16 +1895,21 @@ $EpCopyWith<Ep> get copyWith => _$EpCopyWithImpl<Ep>(this as Ep, _$identity);
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Ep&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.order, order) || other.order == order)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as Ep;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Ep&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.requestId, _this.requestId) || other.requestId == _this.requestId)&&(identical(other.storageChapterId, _this.storageChapterId) || other.storageChapterId == _this.storageChapterId)&&(identical(other.logicalKey, _this.logicalKey) || other.logicalKey == _this.logicalKey)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,order,requestId,storageChapterId,logicalKey,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as Ep;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.order,_this.requestId,_this.storageChapterId,_this.logicalKey,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'Ep(id: $id, name: $name, order: $order, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, extern: $extern)';
+  final _this = this as Ep;
+  return 'Ep(id: ${_this.id}, name: ${_this.name}, order: ${_this.order}, requestId: ${_this.requestId}, storageChapterId: ${_this.storageChapterId}, logicalKey: ${_this.logicalKey}, extern: ${_this.extern})';
 }
 
 
@@ -1890,7 +1938,7 @@ class _$EpCopyWithImpl<$Res>
 /// Create a copy of Ep
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? order = null,Object? requestId = null,Object? storageChapterId = null,Object? logicalKey = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(Ep(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
@@ -2039,7 +2087,7 @@ return $default(_that.id,_that.name,_that.order,_that.requestId,_that.storageCha
 @JsonSerializable()
 
 class _Ep implements Ep {
-  const _Ep({@JsonKey(name: 'id') this.id = '', @JsonKey(name: 'name') required this.name, @JsonKey(name: 'order') required this.order, @JsonKey(name: 'requestId') this.requestId = '', @JsonKey(name: 'storageChapterId') this.storageChapterId = '', @JsonKey(name: 'logicalKey') this.logicalKey = '', @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _extern = extern;
+  const _Ep({@JsonKey(name: 'id') this.id = '', @JsonKey(name: 'name') required this.name, @JsonKey(name: 'order') required this.order, @JsonKey(name: 'requestId') this.requestId = '', @JsonKey(name: 'storageChapterId') this.storageChapterId = '', @JsonKey(name: 'logicalKey') this.logicalKey = '', @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _extern = extern;
   factory _Ep.fromJson(Map<String, dynamic> json) => _$EpFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -2069,16 +2117,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ep&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.order, order) || other.order == order)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ep&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.order, order) || other.order == order)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,order,requestId,storageChapterId,logicalKey,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,order,requestId,storageChapterId,logicalKey,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'Ep(id: $id, name: $name, order: $order, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, extern: $extern)';
+    return 'Ep(id: $id, name: $name, order: $order, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, extern: $extern)';
 }
 
 
@@ -2139,16 +2189,21 @@ $RecommendCopyWith<Recommend> get copyWith => _$RecommendCopyWithImpl<Recommend>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&const DeepCollectionEquality().equals(other.updatedAt, updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, metadata)&&const DeepCollectionEquality().equals(other.raw, raw)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as Recommend;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Recommend&&(identical(other.source, _this.source) || other.source == _this.source)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.subtitle, _this.subtitle) || other.subtitle == _this.subtitle)&&(identical(other.finished, _this.finished) || other.finished == _this.finished)&&(identical(other.likesCount, _this.likesCount) || other.likesCount == _this.likesCount)&&(identical(other.viewsCount, _this.viewsCount) || other.viewsCount == _this.viewsCount)&&const DeepCollectionEquality().equals(other.updatedAt, _this.updatedAt)&&(identical(other.cover, _this.cover) || other.cover == _this.cover)&&const DeepCollectionEquality().equals(other.metadata, _this.metadata)&&const DeepCollectionEquality().equals(other.raw, _this.raw)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,const DeepCollectionEquality().hash(updatedAt),cover,const DeepCollectionEquality().hash(metadata),const DeepCollectionEquality().hash(raw),const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as Recommend;
+  return Object.hash(runtimeType,_this.source,_this.id,_this.title,_this.subtitle,_this.finished,_this.likesCount,_this.viewsCount,const DeepCollectionEquality().hash(_this.updatedAt),_this.cover,const DeepCollectionEquality().hash(_this.metadata),const DeepCollectionEquality().hash(_this.raw),const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'Recommend(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
+  final _this = this as Recommend;
+  return 'Recommend(source: ${_this.source}, id: ${_this.id}, title: ${_this.title}, subtitle: ${_this.subtitle}, finished: ${_this.finished}, likesCount: ${_this.likesCount}, viewsCount: ${_this.viewsCount}, updatedAt: ${_this.updatedAt}, cover: ${_this.cover}, metadata: ${_this.metadata}, raw: ${_this.raw}, extern: ${_this.extern})';
 }
 
 
@@ -2177,7 +2232,7 @@ class _$RecommendCopyWithImpl<$Res>
 /// Create a copy of Recommend
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? source = null,Object? id = null,Object? title = null,Object? subtitle = null,Object? finished = null,Object? likesCount = null,Object? viewsCount = null,Object? updatedAt = freezed,Object? cover = null,Object? metadata = null,Object? raw = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(Recommend(
 source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -2340,7 +2395,7 @@ return $default(_that.source,_that.id,_that.title,_that.subtitle,_that.finished,
 @JsonSerializable()
 
 class _Recommend implements Recommend {
-  const _Recommend({@JsonKey(name: 'source') required this.source, @JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'subtitle') this.subtitle = '', @JsonKey(name: 'finished') this.finished = false, @JsonKey(name: 'likesCount') this.likesCount = 0, @JsonKey(name: 'viewsCount') this.viewsCount = 0, @JsonKey(name: 'updatedAt') this.updatedAt = '', @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata') final  List<dynamic> metadata = const [], @JsonKey(name: 'raw') final  Map<String, dynamic> raw = const {}, @JsonKey(name: 'extern') final  Map<String, dynamic> extern = const {}}): _metadata = metadata,_raw = raw,_extern = extern;
+  const _Recommend({@JsonKey(name: 'source') required this.source, @JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'subtitle') this.subtitle = '', @JsonKey(name: 'finished') this.finished = false, @JsonKey(name: 'likesCount') this.likesCount = 0, @JsonKey(name: 'viewsCount') this.viewsCount = 0, @JsonKey(name: 'updatedAt') this.updatedAt = '', @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata')  List<dynamic> metadata = const [], @JsonKey(name: 'raw')  Map<String, dynamic> raw = const {}, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _metadata = metadata,_raw = raw,_extern = extern;
   factory _Recommend.fromJson(Map<String, dynamic> json) => _$RecommendFromJson(json);
 
 @override@JsonKey(name: 'source') final  String source;
@@ -2387,16 +2442,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&const DeepCollectionEquality().equals(other.updatedAt, updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other._metadata, _metadata)&&const DeepCollectionEquality().equals(other._raw, _raw)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Recommend&&(identical(other.source, source) || other.source == source)&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.viewsCount, viewsCount) || other.viewsCount == viewsCount)&&const DeepCollectionEquality().equals(other.updatedAt, updatedAt)&&(identical(other.cover, cover) || other.cover == cover)&&const DeepCollectionEquality().equals(other.metadata, _metadata)&&const DeepCollectionEquality().equals(other.raw, _raw)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,const DeepCollectionEquality().hash(updatedAt),cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_raw),const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,source,id,title,subtitle,finished,likesCount,viewsCount,const DeepCollectionEquality().hash(updatedAt),cover,const DeepCollectionEquality().hash(_metadata),const DeepCollectionEquality().hash(_raw),const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'Recommend(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
+    return 'Recommend(source: $source, id: $id, title: $title, subtitle: $subtitle, finished: $finished, likesCount: $likesCount, viewsCount: $viewsCount, updatedAt: $updatedAt, cover: $cover, metadata: $metadata, raw: $raw, extern: $extern)';
 }
 
 

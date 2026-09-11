@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'common_ep_info_json.dart';
@@ -9,6 +9,7 @@ part of 'common_ep_info_json.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $CommonEpInfoJsonCopyWith<CommonEpInfoJson> get copyWith => _$CommonEpInfoJsonCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommonEpInfoJson&&(identical(other.epId, epId) || other.epId == epId)&&(identical(other.epName, epName) || other.epName == epName)&&const DeepCollectionEquality().equals(other.series, series)&&const DeepCollectionEquality().equals(other.docs, docs));
+  final _this = this as CommonEpInfoJson;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommonEpInfoJson&&(identical(other.epId, _this.epId) || other.epId == _this.epId)&&(identical(other.epName, _this.epName) || other.epName == _this.epName)&&const DeepCollectionEquality().equals(other.series, _this.series)&&const DeepCollectionEquality().equals(other.docs, _this.docs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,epId,epName,const DeepCollectionEquality().hash(series),const DeepCollectionEquality().hash(docs));
+int get hashCode {
+  final _this = this as CommonEpInfoJson;
+  return Object.hash(runtimeType,_this.epId,_this.epName,const DeepCollectionEquality().hash(_this.series),const DeepCollectionEquality().hash(_this.docs));
+}
 
 @override
 String toString() {
-  return 'CommonEpInfoJson(epId: $epId, epName: $epName, series: $series, docs: $docs)';
+  final _this = this as CommonEpInfoJson;
+  return 'CommonEpInfoJson(epId: ${_this.epId}, epName: ${_this.epName}, series: ${_this.series}, docs: ${_this.docs})';
 }
 
 
@@ -66,7 +72,7 @@ class _$CommonEpInfoJsonCopyWithImpl<$Res>
 /// Create a copy of CommonEpInfoJson
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? epId = null,Object? epName = null,Object? series = null,Object? docs = null,}) {
-  return _then(_self.copyWith(
+  return _then(CommonEpInfoJson(
 epId: null == epId ? _self.epId : epId // ignore: cast_nullable_to_non_nullable
 as String,epName: null == epName ? _self.epName : epName // ignore: cast_nullable_to_non_nullable
 as String,series: null == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
@@ -212,7 +218,7 @@ return $default(_that.epId,_that.epName,_that.series,_that.docs);case _:
 @JsonSerializable()
 
 class _CommonEpInfoJson implements CommonEpInfoJson {
-  const _CommonEpInfoJson({@JsonKey(name: "epId") required this.epId, @JsonKey(name: "epName") required this.epName, @JsonKey(name: "series") required final  List<Series> series, @JsonKey(name: "docs") required final  List<Doc> docs}): _series = series,_docs = docs;
+  const _CommonEpInfoJson({@JsonKey(name: "epId") required this.epId, @JsonKey(name: "epName") required this.epName, @JsonKey(name: "series") required  List<Series> series, @JsonKey(name: "docs") required  List<Doc> docs}): _series = series,_docs = docs;
   factory _CommonEpInfoJson.fromJson(Map<String, dynamic> json) => _$CommonEpInfoJsonFromJson(json);
 
 @override@JsonKey(name: "epId") final  String epId;
@@ -245,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommonEpInfoJson&&(identical(other.epId, epId) || other.epId == epId)&&(identical(other.epName, epName) || other.epName == epName)&&const DeepCollectionEquality().equals(other._series, _series)&&const DeepCollectionEquality().equals(other._docs, _docs));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommonEpInfoJson&&(identical(other.epId, epId) || other.epId == epId)&&(identical(other.epName, epName) || other.epName == epName)&&const DeepCollectionEquality().equals(other.series, _series)&&const DeepCollectionEquality().equals(other.docs, _docs));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,epId,epName,const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_docs));
+int get hashCode {
+    return Object.hash(runtimeType,epId,epName,const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_docs));
+}
 
 @override
 String toString() {
-  return 'CommonEpInfoJson(epId: $epId, epName: $epName, series: $series, docs: $docs)';
+    return 'CommonEpInfoJson(epId: $epId, epName: $epName, series: $series, docs: $docs)';
 }
 
 
@@ -312,16 +320,21 @@ $DocCopyWith<Doc> get copyWith => _$DocCopyWithImpl<Doc>(this as Doc, _$identity
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&const DeepCollectionEquality().equals(other.extern, extern));
+  final _this = this as Doc;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.originalName, _this.originalName) || other.originalName == _this.originalName)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.fileServer, _this.fileServer) || other.fileServer == _this.fileServer)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.storageChapterId, _this.storageChapterId) || other.storageChapterId == _this.storageChapterId)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id,storageChapterId,const DeepCollectionEquality().hash(extern));
+int get hashCode {
+  final _this = this as Doc;
+  return Object.hash(runtimeType,_this.originalName,_this.path,_this.fileServer,_this.id,_this.storageChapterId,const DeepCollectionEquality().hash(_this.extern));
+}
 
 @override
 String toString() {
-  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id, storageChapterId: $storageChapterId, extern: $extern)';
+  final _this = this as Doc;
+  return 'Doc(originalName: ${_this.originalName}, path: ${_this.path}, fileServer: ${_this.fileServer}, id: ${_this.id}, storageChapterId: ${_this.storageChapterId}, extern: ${_this.extern})';
 }
 
 
@@ -350,7 +363,7 @@ class _$DocCopyWithImpl<$Res>
 /// Create a copy of Doc
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,Object? storageChapterId = null,Object? extern = null,}) {
-  return _then(_self.copyWith(
+  return _then(Doc(
 originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
@@ -498,7 +511,7 @@ return $default(_that.originalName,_that.path,_that.fileServer,_that.id,_that.st
 @JsonSerializable()
 
 class _Doc implements Doc {
-  const _Doc({@JsonKey(name: "originalName") required this.originalName, @JsonKey(name: "path") required this.path, @JsonKey(name: "fileServer") required this.fileServer, @JsonKey(name: "id") required this.id, @JsonKey(name: "storageChapterId") this.storageChapterId = '', @JsonKey(name: "extern") final  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
+  const _Doc({@JsonKey(name: "originalName") required this.originalName, @JsonKey(name: "path") required this.path, @JsonKey(name: "fileServer") required this.fileServer, @JsonKey(name: "id") required this.id, @JsonKey(name: "storageChapterId") this.storageChapterId = '', @JsonKey(name: "extern")  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
   factory _Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
 
 @override@JsonKey(name: "originalName") final  String originalName;
@@ -527,16 +540,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&const DeepCollectionEquality().equals(other._extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id,storageChapterId,const DeepCollectionEquality().hash(_extern));
+int get hashCode {
+    return Object.hash(runtimeType,originalName,path,fileServer,id,storageChapterId,const DeepCollectionEquality().hash(_extern));
+}
 
 @override
 String toString() {
-  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id, storageChapterId: $storageChapterId, extern: $extern)';
+    return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id, storageChapterId: $storageChapterId, extern: $extern)';
 }
 
 
@@ -596,16 +611,21 @@ $SeriesCopyWith<Series> get copyWith => _$SeriesCopyWithImpl<Series>(this as Ser
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Series&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.sort, sort) || other.sort == sort));
+  final _this = this as Series;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Series&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sort, _this.sort) || other.sort == _this.sort));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,sort);
+int get hashCode {
+  final _this = this as Series;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.sort);
+}
 
 @override
 String toString() {
-  return 'Series(id: $id, name: $name, sort: $sort)';
+  final _this = this as Series;
+  return 'Series(id: ${_this.id}, name: ${_this.name}, sort: ${_this.sort})';
 }
 
 
@@ -634,7 +654,7 @@ class _$SeriesCopyWithImpl<$Res>
 /// Create a copy of Series
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? sort = null,}) {
-  return _then(_self.copyWith(
+  return _then(Series(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sort: null == sort ? _self.sort : sort // ignore: cast_nullable_to_non_nullable
@@ -799,16 +819,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Series&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.sort, sort) || other.sort == sort));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Series&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.sort, sort) || other.sort == sort));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,sort);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,sort);
+}
 
 @override
 String toString() {
-  return 'Series(id: $id, name: $name, sort: $sort)';
+    return 'Series(id: $id, name: $name, sort: $sort)';
 }
 
 

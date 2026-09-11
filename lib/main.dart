@@ -183,15 +183,13 @@ Future<void> main(List<String> args) async {
       options.sendDefaultPii = true;
 
       // 仅在调试模式下打印 Sentry 内部日志
-      options.enableLogs = kDebugMode;
+      options.debug = kDebugMode;
 
       // --- Sentry Sponsored Business 特权配置 ---
       // 性能追踪采样率
       options.tracesSampleRate = 1.0;
 
-      // 性能剖析采样率
-      // ignore: experimental_member_use
-      options.profilesSampleRate = 1.0;
+      // sentry_flutter 10.0.0-alpha.5 暂不提供 Dart 侧性能剖析采样配置。
 
       // Android 上暂时关闭 Replay，规避原生侧生命周期卡顿/ANR 风险。
       if (Platform.isAndroid) {
@@ -564,8 +562,9 @@ class _MyAppState extends State<MyApp>
 
   bool _handlingCloseRequest = false;
 
-  static const MethodChannel _linuxWindowChannel =
-      MethodChannel('breeze/linux/window');
+  static const MethodChannel _linuxWindowChannel = MethodChannel(
+    'breeze/linux/window',
+  );
 
   @override
   void onWindowClose() {
@@ -576,89 +575,89 @@ class _MyAppState extends State<MyApp>
     if (_handlingCloseRequest) return;
     _handlingCloseRequest = true;
     try {
-    final closeBehavior = await WindowLogic.loadCloseBehavior();
-    switch (closeBehavior) {
-      case DesktopCloseBehavior.hide:
-        await _hideWindow();
-        return;
-      case DesktopCloseBehavior.close:
+      final closeBehavior = await WindowLogic.loadCloseBehavior();
+      switch (closeBehavior) {
+        case DesktopCloseBehavior.hide:
+          await _hideWindow();
+          return;
+        case DesktopCloseBehavior.close:
+          await _forceExit();
+          return;
+        case DesktopCloseBehavior.ask:
+          break;
+      }
+
+      if (Platform.isLinux) {
+        await windowManager.show();
+      }
+      final dialogContext = appRouter.navigatorKey.currentContext;
+      if (dialogContext == null || !dialogContext.mounted) {
         await _forceExit();
         return;
-      case DesktopCloseBehavior.ask:
-        break;
-    }
-
-    if (Platform.isLinux) {
-      await windowManager.show();
-    }
-    final dialogContext = appRouter.navigatorKey.currentContext;
-    if (dialogContext == null || !dialogContext.mounted) {
-      await _forceExit();
-      return;
-    }
-    showDialog(
-      context: dialogContext,
-      builder: (context) {
-        var rememberChoice = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('提示'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('隐藏到托盘或关闭程序'),
-                  const SizedBox(height: 8),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    title: const Text('记住我的选择'),
-                    value: rememberChoice,
-                    onChanged: (value) {
-                      setDialogState(() {
-                        rememberChoice = value ?? false;
-                      });
+      }
+      showDialog(
+        context: dialogContext,
+        builder: (context) {
+          var rememberChoice = false;
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: const Text('提示'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('隐藏到托盘或关闭程序'),
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text('记住我的选择'),
+                      value: rememberChoice,
+                      onChanged: (value) {
+                        setDialogState(() {
+                          rememberChoice = value ?? false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('取消'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: const Text('关闭'),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      if (rememberChoice) {
+                        await WindowLogic.saveCloseBehavior(
+                          DesktopCloseBehavior.close,
+                        );
+                      }
+                      await _forceExit();
+                    },
+                  ),
+                  TextButton(
+                    child: const Text('隐藏'),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      if (rememberChoice) {
+                        await WindowLogic.saveCloseBehavior(
+                          DesktopCloseBehavior.hide,
+                        );
+                      }
+                      await _hideWindow();
                     },
                   ),
                 ],
-              ),
-              actions: [
-                TextButton(
-                  child: const Text('取消'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text('关闭'),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    if (rememberChoice) {
-                      await WindowLogic.saveCloseBehavior(
-                        DesktopCloseBehavior.close,
-                      );
-                    }
-                    await _forceExit();
-                  },
-                ),
-                TextButton(
-                  child: const Text('隐藏'),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    if (rememberChoice) {
-                      await WindowLogic.saveCloseBehavior(
-                        DesktopCloseBehavior.hide,
-                      );
-                    }
-                    await _hideWindow();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+              );
+            },
+          );
+        },
+      );
     } finally {
       _handlingCloseRequest = false;
     }

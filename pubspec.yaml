@@ -85,24 +85,16 @@ dependencies:
   equatable: ^2.0.3 # 工具: 值相等比较
   stream_transform: ^2.1.1 # 工具: Stream 变换
   intl: ^0.20.2 # 国际化: 文案与格式化
-  code_assets: ^1.2.1 # FFI: hooks/build.dart 使用的目标平台配置类型
+  code_assets: ^2.0.0 # FFI: hooks/build.dart 使用的目标平台配置类型
   native_toolchain_rust: ^1.0.4 # FFI: Rust 构建工具
   hooks: ^2.1.0 # FFI: Dart 构建钩子
   flutter_rust_bridge: ^2.10.0 # FFI: Flutter-Rust 桥接
   ffi: ^2.2.0 # FFI: Dart 原生互操作
-  sentry_flutter: ^9.14.0 # 监控: 崩溃与异常上报
+  sentry_flutter: ^10.0.0-alpha.5 # 监控: 崩溃与异常上报
   vm_service: ^15.0.2 # 监控: 运行时内存监控
   worker_manager: ^7.2.9 # 并发: 全局 Isolate 任务池管理
   coreml_upscale:
     path: packages/coreml_upscale
-
-dependency_overrides:
-  meta: ^1.19.0
-  permission_handler_windows:
-    git:
-      url: https://github.com/deretame/flutter-permission-handler.git
-      ref: 11aea60
-      path: permission_handler_windows
 
 dev_dependencies:
   # 测试与规范
@@ -115,17 +107,30 @@ dev_dependencies:
   # 代码生成
   build_runner: ^2.0.0 # 生成: 代码生成执行器
   auto_route_generator: ^10.0.0 # 生成: 路由代码生成
-  objectbox_generator: ^5.0.0 # 生成: ObjectBox 模型生成
-  freezed: ^3.0.0 # 生成: Freezed 代码生成
+  objectbox_generator: ^5.0.0
+  # 生成: ObjectBox 模型生成
+  freezed: ^4.0.1 # 生成: Freezed 代码生成
   json_serializable: ^6.14.0 # 生成: JSON 序列化生成
 
   # 构建与发布辅助
   sentry_dart_plugin: ^3.2.1 # 发布: Sentry 构建上传
   flutter_launcher_icons: # 发布: 启动图标生成
-  flutter_native_splash:
-    # 发布: 启动画面生成
+  flutter_native_splash: # 发布: 启动画面生成
 
-    # Flutter 配置
+dependency_overrides:
+  meta: ^1.19.0
+  permission_handler_windows:
+    git:
+      url: https://github.com/deretame/flutter-permission-handler.git
+      ref: 11aea60
+      path: permission_handler_windows
+  objectbox_generator:
+    git:
+      url: https://github.com/objectbox/objectbox-dart.git
+      path: generator
+      ref: d28e393de3e7dbba1e0925999fd9dfeb9f9a721c
+
+# Flutter 配置
 flutter:
   uses-material-design: true
   fonts:

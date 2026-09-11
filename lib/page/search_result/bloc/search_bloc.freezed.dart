@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'search_bloc.dart';
@@ -9,6 +9,7 @@ part of 'search_bloc.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $SearchEventCopyWith<SearchEvent> get copyWith => _$SearchEventCopyWithImpl<Sear
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page));
+  final _this = this as SearchEvent;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchEvent&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.searchStates, _this.searchStates) || other.searchStates == _this.searchStates)&&(identical(other.page, _this.page) || other.page == _this.page));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,searchStates,page);
+int get hashCode {
+  final _this = this as SearchEvent;
+  return Object.hash(runtimeType,_this.status,_this.searchStates,_this.page);
+}
 
 @override
 String toString() {
-  return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page)';
+  final _this = this as SearchEvent;
+  return 'SearchEvent(status: ${_this.status}, searchStates: ${_this.searchStates}, page: ${_this.page})';
 }
 
 
@@ -66,7 +72,7 @@ class _$SearchEventCopyWithImpl<$Res>
 /// Create a copy of SearchEvent
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? searchStates = null,Object? page = null,}) {
-  return _then(_self.copyWith(
+  return _then(SearchEvent(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SearchStatus,searchStates: null == searchStates ? _self.searchStates : searchStates // ignore: cast_nullable_to_non_nullable
 as SearchStates,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -240,16 +246,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,searchStates,page);
+int get hashCode {
+    return Object.hash(runtimeType,status,searchStates,page);
+}
 
 @override
 String toString() {
-  return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page)';
+    return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page)';
 }
 
 
@@ -315,16 +323,21 @@ $SearchStateCopyWith<SearchState> get copyWith => _$SearchStateCopyWithImpl<Sear
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.comics, comics)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.result, result) || other.result == result)&&(identical(other.searchEvent, searchEvent) || other.searchEvent == searchEvent));
+  final _this = this as SearchState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchState&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.comics, _this.comics)&&(identical(other.hasReachedMax, _this.hasReachedMax) || other.hasReachedMax == _this.hasReachedMax)&&(identical(other.result, _this.result) || other.result == _this.result)&&(identical(other.searchEvent, _this.searchEvent) || other.searchEvent == _this.searchEvent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(comics),hasReachedMax,result,searchEvent);
+int get hashCode {
+  final _this = this as SearchState;
+  return Object.hash(runtimeType,_this.status,const DeepCollectionEquality().hash(_this.comics),_this.hasReachedMax,_this.result,_this.searchEvent);
+}
 
 @override
 String toString() {
-  return 'SearchState(status: $status, comics: $comics, hasReachedMax: $hasReachedMax, result: $result, searchEvent: $searchEvent)';
+  final _this = this as SearchState;
+  return 'SearchState(status: ${_this.status}, comics: ${_this.comics}, hasReachedMax: ${_this.hasReachedMax}, result: ${_this.result}, searchEvent: ${_this.searchEvent})';
 }
 
 
@@ -353,7 +366,7 @@ class _$SearchStateCopyWithImpl<$Res>
 /// Create a copy of SearchState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? comics = null,Object? hasReachedMax = null,Object? result = null,Object? searchEvent = null,}) {
-  return _then(_self.copyWith(
+  return _then(SearchState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SearchStatus,comics: null == comics ? _self.comics : comics // ignore: cast_nullable_to_non_nullable
 as List<ComicNumber>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
@@ -509,7 +522,7 @@ return $default(_that.status,_that.comics,_that.hasReachedMax,_that.result,_that
 @JsonSerializable()
 
 class _SearchState implements SearchState {
-  const _SearchState({this.status = SearchStatus.initial, final  List<ComicNumber> comics = const [], this.hasReachedMax = false, this.result = '', this.searchEvent = const SearchEvent()}): _comics = comics;
+  const _SearchState({this.status = SearchStatus.initial,  List<ComicNumber> comics = const [], this.hasReachedMax = false, this.result = '', this.searchEvent = const SearchEvent()}): _comics = comics;
   factory _SearchState.fromJson(Map<String, dynamic> json) => _$SearchStateFromJson(json);
 
 @override@JsonKey() final  SearchStatus status;
@@ -537,16 +550,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._comics, _comics)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.result, result) || other.result == result)&&(identical(other.searchEvent, searchEvent) || other.searchEvent == searchEvent));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.comics, _comics)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.result, result) || other.result == result)&&(identical(other.searchEvent, searchEvent) || other.searchEvent == searchEvent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_comics),hasReachedMax,result,searchEvent);
+int get hashCode {
+    return Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_comics),hasReachedMax,result,searchEvent);
+}
 
 @override
 String toString() {
-  return 'SearchState(status: $status, comics: $comics, hasReachedMax: $hasReachedMax, result: $result, searchEvent: $searchEvent)';
+    return 'SearchState(status: $status, comics: $comics, hasReachedMax: $hasReachedMax, result: $result, searchEvent: $searchEvent)';
 }
 
 

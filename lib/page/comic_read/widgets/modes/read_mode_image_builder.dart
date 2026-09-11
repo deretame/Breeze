@@ -18,6 +18,7 @@ Widget buildReadModeImage({
   required int cacheIndex,
   required bool isColumn,
   int? displayNumber,
+  Alignment imageAlignment = Alignment.center,
 }) {
   if (entry.type != ReadModeEntryType.image ||
       entry.doc == null ||
@@ -43,5 +44,6 @@ Widget buildReadModeImage({
     cacheIndex: cacheIndex,
     displayNumber: displayNumber,
     isColumn: isColumn,
+    imageAlignment: imageAlignment,
   );
 }

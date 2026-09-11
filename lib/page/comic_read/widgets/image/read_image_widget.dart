@@ -16,6 +16,7 @@ class ReadImageWidget extends StatefulWidget {
   final bool isColumn;
   final int? cacheIndex;
   final int? displayNumber;
+  final Alignment imageAlignment;
 
   const ReadImageWidget({
     super.key,
@@ -24,6 +25,7 @@ class ReadImageWidget extends StatefulWidget {
     required this.isColumn,
     this.cacheIndex,
     this.displayNumber,
+    this.imageAlignment = Alignment.center,
   });
 
   @override
@@ -77,6 +79,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
                       isColumn: isColumn,
                       pageSlotIndex: widget.index,
                       sizeCacheIndex: cacheIndex,
+                      imageAlignment: widget.imageAlignment,
                     ),
                   ),
                 );

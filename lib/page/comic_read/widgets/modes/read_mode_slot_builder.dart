@@ -31,7 +31,6 @@ Widget buildReadModeSlot({
   required ValueChanged<int>? onTransitionAction,
   required ReadModeTransitionStyle transitionStyle,
   bool seamlessDoublePage = false,
-  double? viewportHeight,
 }) {
   assert(
     (singleItem == null) != (doublePageSlot == null),
@@ -119,7 +118,6 @@ Widget buildReadModeSlot({
     comicId: comicId,
     from: from,
     seamlessDoublePage: seamlessDoublePage,
-    viewportHeight: viewportHeight,
   );
 }
 
@@ -314,7 +312,6 @@ Widget _buildRowDoublePageImage({
   required String comicId,
   required String from,
   required bool seamlessDoublePage,
-  required double? viewportHeight,
 }) {
   final panelWidth = (contentWidth / 2).clamp(1.0, contentWidth);
 
@@ -329,7 +326,7 @@ Widget _buildRowDoublePageImage({
       isRtl: isRtl,
       comicId: comicId,
       from: from,
-      viewportHeight: viewportHeight,
+      panelWidth: panelWidth,
     );
   }
 
@@ -393,108 +390,68 @@ Widget _buildSeamlessRowDoublePageImage({
   required bool isRtl,
   required String comicId,
   required String from,
-  required double? viewportHeight,
+  required double panelWidth,
 }) {
   final left = slot.left;
   final right = slot.right;
   if (left == null && right == null) return const SizedBox.shrink();
 
-  return BlocSelector<ImageSizeCubit, ImageSizeState, (Size, Size)>(
-    selector: (state) => (
-      left != null
-          ? state.getSizeValue(
-              _resolveImageCacheIndex(left.entry, left.entryIndex),
-            )
-          : const Size(0, 0),
-      right != null
-          ? state.getSizeValue(
-              _resolveImageCacheIndex(right.entry, right.entryIndex),
-            )
-          : const Size(0, 0),
-    ),
-    builder: (context, pairSize) {
-      final targetHeight =
-          viewportHeight != null &&
-              viewportHeight.isFinite &&
-              viewportHeight > 0
-          ? viewportHeight
-          : contentWidth;
-      final leftWidth = left == null
-          ? 0.0
-          : targetHeight * _resolveImageWidthRatio(pairSize.$1);
-      final rightWidth = right == null
-          ? 0.0
-          : targetHeight * _resolveImageWidthRatio(pairSize.$2);
-      final naturalWidth = leftWidth + rightWidth;
-      final scale = naturalWidth > contentWidth
-          ? contentWidth / naturalWidth
-          : 1.0;
-      final displayHeight = targetHeight * scale;
-      final displayWidth = naturalWidth * scale;
+  // 图片可能因视口高度限制而在半宽槽位内缩小；无缝模式把它们贴向中间边缘，
+  // 避免两张图各自居中后在接缝处留下空白。
+  final leftImageAlignment = isRtl
+      ? Alignment.centerLeft
+      : Alignment.centerRight;
+  final rightImageAlignment = isRtl
+      ? Alignment.centerRight
+      : Alignment.centerLeft;
 
-      final leftChild = SizedBox(
-        width: leftWidth * scale,
-        height: displayHeight,
-        child: left != null
-            ? buildReadModeImage(
-                context: context,
-                entry: left.entry,
-                comicId: comicId,
-                from: from,
-                slotIndex: slotIndex,
-                cacheIndex: _resolveImageCacheIndex(
-                  left.entry,
-                  left.entryIndex,
-                ),
-                displayNumber: (left.entry.chapterPageIndex ?? 0) + 1,
-                isColumn: false,
-              )
-            : const SizedBox.shrink(),
-      );
-      final rightChild = SizedBox(
-        width: rightWidth * scale,
-        height: displayHeight,
-        child: right != null
-            ? buildReadModeImage(
-                context: context,
-                entry: right.entry,
-                comicId: comicId,
-                from: from,
-                slotIndex: slotIndex,
-                cacheIndex: _resolveImageCacheIndex(
-                  right.entry,
-                  right.entryIndex,
-                ),
-                displayNumber: (right.entry.chapterPageIndex ?? 0) + 1,
-                isColumn: false,
-              )
-            : const SizedBox.shrink(),
-      );
-
-      final children = isRtl
-          ? [rightChild, leftChild]
-          : [leftChild, rightChild];
-
-      return Container(
-        color: backgroundColor,
-        width: containerWidth,
-        alignment: Alignment.center,
-        child: SizedBox(
-          width: displayWidth,
-          height: displayHeight,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
-          ),
-        ),
-      );
-    },
+  final leftChild = SizedBox(
+    width: panelWidth,
+    child: left != null
+        ? buildReadModeImage(
+            context: context,
+            entry: left.entry,
+            comicId: comicId,
+            from: from,
+            slotIndex: slotIndex,
+            cacheIndex: _resolveImageCacheIndex(left.entry, left.entryIndex),
+            displayNumber: (left.entry.chapterPageIndex ?? 0) + 1,
+            isColumn: false,
+            imageAlignment: leftImageAlignment,
+          )
+        : const SizedBox.shrink(),
   );
-}
+  final rightChild = SizedBox(
+    width: panelWidth,
+    child: right != null
+        ? buildReadModeImage(
+            context: context,
+            entry: right.entry,
+            comicId: comicId,
+            from: from,
+            slotIndex: slotIndex,
+            cacheIndex: _resolveImageCacheIndex(right.entry, right.entryIndex),
+            displayNumber: (right.entry.chapterPageIndex ?? 0) + 1,
+            isColumn: false,
+            imageAlignment: rightImageAlignment,
+          )
+        : const SizedBox.shrink(),
+  );
 
-double _resolveImageWidthRatio(Size size) {
-  if (size.width <= 0 || size.height <= 0) return 1 / 1.2;
-  return size.width / size.height;
+  final children = isRtl ? [rightChild, leftChild] : [leftChild, rightChild];
+
+  return Container(
+    color: backgroundColor,
+    width: containerWidth,
+    alignment: Alignment.topCenter,
+    child: SizedBox(
+      width: contentWidth,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    ),
+  );
 }
 
 int _resolveImageCacheIndex(ReadModeEntry entry, int fallbackIndex) {

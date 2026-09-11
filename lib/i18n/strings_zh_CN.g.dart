@@ -1648,8 +1648,8 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '双页无缝'
 	String get doublePageSeamless => '双页无缝';
 
-	/// zh-CN: '按图片比例适应高度，消除双页之间的中间留白'
-	String get doublePageSeamlessSubtitle => '按图片比例适应高度，消除双页之间的中间留白';
+	/// zh-CN: '左右各占一半宽度，按图片比例独立显示并消除中间留白'
+	String get doublePageSeamlessSubtitle => '左右各占一半宽度，按图片比例独立显示并消除中间留白';
 
 	/// zh-CN: '首页留白'
 	String get doublePageLeadingBlank => '首页留白';
@@ -4335,7 +4335,7 @@ extension on Translations {
 			'reader.doublePage' => '双页阅读',
 			'reader.doublePageSubtitle' => '在当前阅读模式中启用双页并排',
 			'reader.doublePageSeamless' => '双页无缝',
-			'reader.doublePageSeamlessSubtitle' => '按图片比例适应高度，消除双页之间的中间留白',
+			'reader.doublePageSeamlessSubtitle' => '左右各占一半宽度，按图片比例独立显示并消除中间留白',
 			'reader.doublePageLeadingBlank' => '首页留白',
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.themeMode' => '系统模式',

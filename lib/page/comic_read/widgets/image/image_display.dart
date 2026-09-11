@@ -13,6 +13,7 @@ class ImageDisplay extends StatefulWidget {
   final bool isColumn;
   final int pageSlotIndex;
   final int sizeCacheIndex;
+  final Alignment imageAlignment;
 
   const ImageDisplay({
     super.key,
@@ -20,6 +21,7 @@ class ImageDisplay extends StatefulWidget {
     required this.isColumn,
     required this.pageSlotIndex,
     required this.sizeCacheIndex,
+    this.imageAlignment = Alignment.center,
   });
 
   @override
@@ -201,55 +203,59 @@ class _ImageDisplayState extends State<ImageDisplay> {
           });
         }
 
-        return Image.file(
-          File(widget.imagePath),
-          width: width,
-          fit: isColumn ? BoxFit.fill : BoxFit.contain,
-          gaplessPlayback: true,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (wasSynchronouslyLoaded || frame != null) {
-              if (!isColumn &&
-                  canUseEinkMask &&
-                  isActiveRowImage &&
-                  !_einkDelayFinished) {
-                return Container(width: width, color: Colors.white);
+        return Align(
+          alignment: widget.imageAlignment,
+          child: Image.file(
+            File(widget.imagePath),
+            width: width,
+            fit: isColumn ? BoxFit.fill : BoxFit.contain,
+            alignment: widget.imageAlignment,
+            gaplessPlayback: true,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) {
+                if (!isColumn &&
+                    canUseEinkMask &&
+                    isActiveRowImage &&
+                    !_einkDelayFinished) {
+                  return Container(width: width, color: Colors.white);
+                }
+                return child;
               }
-              return child;
-            }
 
-            if (isColumn) {
-              return Container(
-                width: width,
-                color: backgroundColor,
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: progressColor,
+              if (isColumn) {
+                return Container(
+                  width: width,
+                  color: backgroundColor,
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: progressColor,
+                    ),
                   ),
-                ),
-              );
-            } else {
-              if (canUseEinkMask && isActiveRowImage && !_einkDelayFinished) {
-                return Container(width: width, color: Colors.white);
+                );
+              } else {
+                if (canUseEinkMask && isActiveRowImage && !_einkDelayFinished) {
+                  return Container(width: width, color: Colors.white);
+                }
+                return Container(
+                  width: width,
+                  color: backgroundColor,
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: progressColor,
+                    ),
+                  ),
+                );
               }
-              return Container(
-                width: width,
-                color: backgroundColor,
-                alignment: Alignment.center,
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: progressColor,
-                  ),
-                ),
-              );
-            }
-          },
+            },
+          ),
         );
       },
     );

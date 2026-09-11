@@ -638,7 +638,7 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get doublePage => 'Double page';
 	@override String get doublePageSubtitle => 'Enable double-page spread in current reading mode';
 	@override String get doublePageSeamless => 'Seamless double page';
-	@override String get doublePageSeamlessSubtitle => 'Fit pages by height and remove the gap between them';
+	@override String get doublePageSeamlessSubtitle => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them';
 	@override String get doublePageLeadingBlank => 'Leading blank';
 	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
 	@override String get themeMode => 'Theme mode';
@@ -2037,7 +2037,7 @@ extension on TranslationsEnUs {
 			'reader.doublePage' => 'Double page',
 			'reader.doublePageSubtitle' => 'Enable double-page spread in current reading mode',
 			'reader.doublePageSeamless' => 'Seamless double page',
-			'reader.doublePageSeamlessSubtitle' => 'Fit pages by height and remove the gap between them',
+			'reader.doublePageSeamlessSubtitle' => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them',
 			'reader.doublePageLeadingBlank' => 'Leading blank',
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.themeMode' => 'Theme mode',

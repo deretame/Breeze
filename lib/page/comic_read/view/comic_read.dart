@@ -15,6 +15,7 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_state.dart';
 import 'package:zephyr/page/comic_read/controller/reader_image_prefetch_controller.dart';
+import 'package:zephyr/page/comic_read/controller/reader_orientation_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
@@ -159,6 +160,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   late final ReaderAutoReadController _autoReadController; // 自动阅读控制器
   late final ReaderSystemUiController _systemUiController; // 系统 UI 控制器
   late final ReaderLifecycleController _lifecycleController; // 生命周期控制器
+  late final ReaderOrientationController _orientationController;
   late final ReaderInputController _inputController; // 输入控制器
   final _imagePrefetchController = ReaderImagePrefetchController();
   NormalComicEpInfo epInfo = NormalComicEpInfo(); // 通用漫画章节信息
@@ -187,6 +189,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _initHistoryController();
     _initVolumeController();
     _initLifecycleController();
+    _orientationController = ReaderOrientationController();
     _initInputController();
     _initActionController();
     _setVolumeControllerAction();
@@ -196,6 +199,11 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
     WidgetsBinding.instance.addObserver(this);
     _lifecycleController.init();
+    unawaited(
+      _orientationController.setLandscape(
+        context.read<GlobalSettingCubit>().state.readSetting.landscapeReader,
+      ),
+    );
     _initJumpChapter(context.read<ReaderCubit>().state.isMenuVisible);
   }
 
@@ -209,7 +217,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _volumeController.dispose();
     _pageController.dispose();
     _transformationController.dispose();
+    unawaited(_orientationController.restorePortrait());
     super.dispose();
+  }
+
+  void _setReaderLandscape(bool enabled) {
+    unawaited(_orientationController.setLandscape(enabled));
   }
 
   @override

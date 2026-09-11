@@ -16,22 +16,22 @@ class TranslationsEnUs extends Translations with BaseTranslations<AppLocale, Tra
 	/// Constructing via the enum [AppLocale.build] is preferred.
 	TranslationsEnUs({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
 		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
-		  $meta = meta ?? TranslationMetadata(
+		  _meta = meta ?? TranslationMetadata(
 		    locale: AppLocale.enUs,
 		    overrides: overrides ?? {},
 		    cardinalResolver: cardinalResolver,
 		    ordinalResolver: ordinalResolver,
 		  ),
 		  super(cardinalResolver: cardinalResolver, ordinalResolver: ordinalResolver) {
-		super.$meta.setFlatMapFunction($meta.getTranslation); // copy base translations to super.$meta
-		$meta.setFlatMapFunction(_flatMapFunction);
+		_meta.setFlatMapFunction(_flatMapFunction);
 	}
 
 	/// Metadata for the translations of <en-US>.
-	@override final TranslationMetadata<AppLocale, Translations> $meta;
+	final TranslationMetadata<AppLocale, Translations> _meta;
+	@override TranslationMetadata<AppLocale, Translations> get $meta => _meta;
 
 	/// Access flat map
-	@override dynamic operator[](String key) => $meta.getTranslation(key) ?? super.$meta.getTranslation(key);
+	@override dynamic operator[](String key) => _meta.getTranslation(key) ?? super[key];
 
 	late final TranslationsEnUs _root = this; // ignore: unused_field
 
@@ -641,6 +641,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get doublePageSeamlessSubtitle => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them';
 	@override String get doublePageLeadingBlank => 'Leading blank';
 	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
+	@override String get landscapeReader => 'Landscape reading';
+	@override String get landscapeReaderSubtitle => 'Switch to landscape while reading and restore the previous direction when you leave';
 	@override String get themeMode => 'Theme mode';
 	@override String get autoRead => 'Auto read';
 	@override String get autoReadSubtitle => 'Automatically scroll the reader';
@@ -2040,15 +2042,17 @@ extension on TranslationsEnUs {
 			'reader.doublePageSeamlessSubtitle' => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them',
 			'reader.doublePageLeadingBlank' => 'Leading blank',
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
+			'reader.landscapeReader' => 'Landscape reading',
+			'reader.landscapeReaderSubtitle' => 'Switch to landscape while reading and restore the previous direction when you leave',
 			'reader.themeMode' => 'Theme mode',
 			'reader.autoRead' => 'Auto read',
 			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
 			'reader.autoReadHidePauseButton' => 'Hide pause button',
 			'reader.autoReadHidePauseButtonSubtitle' => 'Keep auto-read running without showing the pause/play button',
-			'reader.autoReadSmooth' => 'Smooth scroll',
-			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
 			_ => null,
 		} ?? switch (path) {
+			'reader.autoReadSmooth' => 'Smooth scroll',
+			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
 			'reader.webtoonScrollInterval' => 'Webtoon scroll interval',
 			'reader.singlePageScrollInterval' => 'Single page scroll interval',
@@ -2559,10 +2563,10 @@ extension on TranslationsEnUs {
 			'comicFollow.unfollow' => 'Unfollow',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => 'Stop following "${title}"?',
 			'comicFollow.unfollowed' => 'Unfollowed',
-			'comicFollow.all' => 'All',
-			'comicFollow.unread' => 'Updated and unread',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.all' => 'All',
+			'comicFollow.unread' => 'Updated and unread',
 			'comicFollow.sort' => 'Sort',
 			'comicFollow.lastRead' => 'Last read',
 			'comicFollow.lastUpdate' => 'Latest update check',

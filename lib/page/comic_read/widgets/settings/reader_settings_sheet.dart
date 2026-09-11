@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 
 part 'reader_settings_gesture_tab.dart';
@@ -17,21 +18,29 @@ part 'reader_settings_read_tab.dart';
 Future<void> showReaderSettingsSheet(
   BuildContext context, {
   ValueChanged<int>? changePageIndex,
+  ValueChanged<bool>? onLandscapeChanged,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) {
-      return _ReaderSettingsSheet(changePageIndex: changePageIndex ?? (_) {});
+      return _ReaderSettingsSheet(
+        changePageIndex: changePageIndex ?? (_) {},
+        onLandscapeChanged: onLandscapeChanged,
+      );
     },
   );
 }
 
 class _ReaderSettingsSheet extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
+  final ValueChanged<bool>? onLandscapeChanged;
 
-  const _ReaderSettingsSheet({required this.changePageIndex});
+  const _ReaderSettingsSheet({
+    required this.changePageIndex,
+    this.onLandscapeChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +53,18 @@ class _ReaderSettingsSheet extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: SizedBox(
-          height: maxHeight,
-          child: _ReaderSettingsCard(
-            changePageIndex: changePageIndex,
-            isAndroidPhone: isAndroidPhone,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: SizedBox(
+              height: maxHeight,
+              child: _ReaderSettingsCard(
+                changePageIndex: changePageIndex,
+                isAndroidPhone: isAndroidPhone,
+                onLandscapeChanged: onLandscapeChanged,
+              ),
+            ),
           ),
         ),
       ),
@@ -59,10 +75,12 @@ class _ReaderSettingsSheet extends StatelessWidget {
 class _ReaderSettingsCard extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final bool isAndroidPhone;
+  final ValueChanged<bool>? onLandscapeChanged;
 
   const _ReaderSettingsCard({
     required this.changePageIndex,
     required this.isAndroidPhone,
+    this.onLandscapeChanged,
   });
 
   @override
@@ -85,7 +103,10 @@ class _ReaderSettingsCard extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  _ReaderSettingsReadTab(changePageIndex: changePageIndex),
+                  _ReaderSettingsReadTab(
+                    changePageIndex: changePageIndex,
+                    onLandscapeChanged: onLandscapeChanged,
+                  ),
                   _ReaderSettingsGestureTab(isAndroidPhone: isAndroidPhone),
                   const _ReaderSettingsInfoTab(),
                 ],

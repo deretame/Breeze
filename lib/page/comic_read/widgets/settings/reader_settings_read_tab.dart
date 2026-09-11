@@ -2,8 +2,12 @@ part of 'reader_settings_sheet.dart';
 
 class _ReaderSettingsReadTab extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
+  final ValueChanged<bool>? onLandscapeChanged;
 
-  const _ReaderSettingsReadTab({required this.changePageIndex});
+  const _ReaderSettingsReadTab({
+    required this.changePageIndex,
+    this.onLandscapeChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +15,10 @@ class _ReaderSettingsReadTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ReadModeSection(changePageIndex: changePageIndex),
+          _ReadModeSection(
+            changePageIndex: changePageIndex,
+            onLandscapeChanged: onLandscapeChanged,
+          ),
           const SizedBox(height: 18),
           const _ThemeModeSection(),
           const SizedBox(height: 18),
@@ -30,13 +37,19 @@ class _ReaderSettingsReadTab extends StatelessWidget {
 
 class _ReadModeSection extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
+  final ValueChanged<bool>? onLandscapeChanged;
 
-  const _ReadModeSection({required this.changePageIndex});
+  const _ReadModeSection({
+    required this.changePageIndex,
+    this.onLandscapeChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
     final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final isMobilePlatform =
+        !kIsWeb && (Platform.isAndroid || Platform.isIOS) && !isTablet(context);
 
     return _SettingsSection(
       title: t.reader.readingMode,
@@ -86,6 +99,18 @@ class _ReadModeSection extends StatelessWidget {
             ),
           ],
         ),
+        if (isMobilePlatform && onLandscapeChanged != null)
+          _SettingsSwitchTile(
+            title: t.reader.landscapeReader,
+            subtitle: t.reader.landscapeReaderSubtitle,
+            value: globalSettingState.readSetting.landscapeReader,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(landscapeReader: value),
+              );
+              onLandscapeChanged!(value);
+            },
+          ),
         _SettingsSwitchTile(
           title: t.reader.doublePage,
           subtitle: t.reader.doublePageSubtitle,

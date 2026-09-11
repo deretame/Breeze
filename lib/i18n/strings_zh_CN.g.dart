@@ -20,20 +20,21 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	/// Constructing via the enum [AppLocale.build] is preferred.
 	Translations({Map<String, Node>? overrides, PluralResolver? cardinalResolver, PluralResolver? ordinalResolver, TranslationMetadata<AppLocale, Translations>? meta})
 		: assert(overrides == null, 'Set "translation_overrides: true" in order to enable this feature.'),
-		  $meta = meta ?? TranslationMetadata(
+		  _meta = meta ?? TranslationMetadata(
 		    locale: AppLocale.zhCn,
 		    overrides: overrides ?? {},
 		    cardinalResolver: cardinalResolver,
 		    ordinalResolver: ordinalResolver,
 		  ) {
-		$meta.setFlatMapFunction(_flatMapFunction);
+		_meta.setFlatMapFunction(_flatMapFunction);
 	}
 
 	/// Metadata for the translations of <zh-CN>.
-	@override final TranslationMetadata<AppLocale, Translations> $meta;
+	final TranslationMetadata<AppLocale, Translations> _meta;
+	@override TranslationMetadata<AppLocale, Translations> get $meta => _meta;
 
 	/// Access flat map
-	dynamic operator[](String key) => $meta.getTranslation(key);
+	dynamic operator[](String key) => _meta.getTranslation(key);
 
 	late final Translations _root = this; // ignore: unused_field
 
@@ -1656,6 +1657,12 @@ class Translations$reader$zh_CN {
 
 	/// zh-CN: '在每章最前插入一页空白，使配对整体错一位'
 	String get doublePageLeadingBlankSubtitle => '在每章最前插入一页空白，使配对整体错一位';
+
+	/// zh-CN: '横屏阅读'
+	String get landscapeReader => '横屏阅读';
+
+	/// zh-CN: '阅读时切换为横屏，离开后恢复原来的方向'
+	String get landscapeReaderSubtitle => '阅读时切换为横屏，离开后恢复原来的方向';
 
 	/// zh-CN: '系统模式'
 	String get themeMode => '系统模式';
@@ -4338,14 +4345,16 @@ extension on Translations {
 			'reader.doublePageSeamlessSubtitle' => '左右各占一半宽度，按图片比例独立显示并消除中间留白',
 			'reader.doublePageLeadingBlank' => '首页留白',
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
+			'reader.landscapeReader' => '横屏阅读',
+			'reader.landscapeReaderSubtitle' => '阅读时切换为横屏，离开后恢复原来的方向',
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
 			'reader.autoReadSubtitle' => '开启后自动滚动',
 			'reader.autoReadHidePauseButton' => '隐藏暂停按钮',
-			'reader.autoReadHidePauseButtonSubtitle' => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮',
-			'reader.autoReadSmooth' => '平滑滚动',
 			_ => null,
 		} ?? switch (path) {
+			'reader.autoReadHidePauseButtonSubtitle' => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮',
+			'reader.autoReadSmooth' => '平滑滚动',
 			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
 			'reader.webtoonScrollDistance' => '条漫滚动距离',
 			'reader.webtoonScrollInterval' => '条漫滚动间隔',
@@ -4856,10 +4865,10 @@ extension on Translations {
 			'comicFollow.emptyHint' => '在漫画详情页点击追更按钮即可加入',
 			'comicFollow.unfollow' => '取消追更',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => '确定不再追更《${title}》吗？',
-			'comicFollow.unfollowed' => '已取消追更',
-			'comicFollow.all' => '全部',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.unfollowed' => '已取消追更',
+			'comicFollow.all' => '全部',
 			'comicFollow.unread' => '已更新未看',
 			'comicFollow.sort' => '排序',
 			'comicFollow.lastRead' => '最后阅读',

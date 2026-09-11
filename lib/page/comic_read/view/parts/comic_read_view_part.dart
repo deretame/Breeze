@@ -101,6 +101,7 @@ extension _ComicReadViewPart on _ComicReadPageState {
       comicId: comicId,
       from: widget.from,
       jumpChapter: _jumpChapter,
+      onLandscapeChanged: _setReaderLandscape,
     );
   }
 }

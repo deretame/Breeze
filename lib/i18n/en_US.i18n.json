@@ -518,6 +518,8 @@
     "doublePageSeamlessSubtitle": "Give each page half the width, preserve its aspect ratio, and remove the gap between them",
     "doublePageLeadingBlank": "Leading blank",
     "doublePageLeadingBlankSubtitle": "Insert a blank page at the start of each chapter to shift page pairing",
+    "landscapeReader": "Landscape reading",
+    "landscapeReaderSubtitle": "Switch to landscape while reading and restore the previous direction when you leave",
     "themeMode": "Theme mode",
     "autoRead": "Auto read",
     "autoReadSubtitle": "Automatically scroll the reader",

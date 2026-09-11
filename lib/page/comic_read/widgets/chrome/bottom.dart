@@ -25,6 +25,7 @@ class BottomWidget extends StatefulWidget {
   final String comicId;
   final String from;
   final JumpChapter jumpChapter;
+  final ValueChanged<bool>? onLandscapeChanged;
 
   const BottomWidget({
     super.key,
@@ -36,6 +37,7 @@ class BottomWidget extends StatefulWidget {
     required this.comicId,
     required this.from,
     required this.jumpChapter,
+    this.onLandscapeChanged,
   });
 
   @override
@@ -82,6 +84,8 @@ class _BottomWidgetState extends State<BottomWidget> {
     final bottomMaxWidth = (screenWidth * (screenWidth >= 1200 ? 0.62 : 0.74))
         .clamp(560.0, 980.0)
         .toDouble();
+    final isCompactLayout =
+        screenWidth >= 600 && MediaQuery.sizeOf(context).height <= 600;
 
     return Positioned(
       bottom: 0,
@@ -95,78 +99,121 @@ class _BottomWidgetState extends State<BottomWidget> {
           offset: isMenuVisible ? Offset.zero : const Offset(0, 1),
           child: Padding(
             padding: EdgeInsets.only(bottom: 6 + bottomSafeHeight),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: isWideLayout ? topMaxWidth : double.infinity,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ChapterNavigationButton(
-                            icon: Icons.skip_previous_rounded,
-                            tooltip: t.reader.previousChapter,
-                            isEnabled: jumpChapter.havePrev,
-                            onTap: () => _jumpToChapter(true),
-                          ),
-                          const SizedBox(width: 10),
-                          FloatingActionIconButton(
-                            icon: Icons.home_rounded,
-                            tooltip: t.reader.backToHome,
-                            onPressed: () => popToRoot(context),
-                          ),
-                          const SizedBox(width: 10),
-                          FloatingActionIconButton(
-                            icon: Icons.list_alt_rounded,
-                            tooltip: t.reader.selectChapter,
-                            isEnabled: chapterRefs.isNotEmpty,
-                            onPressed: _selectJumpChapter,
-                          ),
-                          const SizedBox(width: 10),
-                          FloatingActionIconButton(
-                            icon: Icons.tune_rounded,
-                            tooltip: t.reader.settings,
-                            onPressed: _openSettingsPanel,
-                          ),
-                          const SizedBox(width: 10),
-                          ChapterNavigationButton(
-                            icon: Icons.skip_next_rounded,
-                            tooltip: t.reader.nextChapter,
-                            isEnabled: jumpChapter.haveNext,
-                            onTap: () => _jumpToChapter(false),
-                          ),
-                        ],
-                      ),
-                    ),
+            child: isCompactLayout
+                ? _buildCompactControls(
+                    maxWidth: bottomMaxWidth,
+                    isWideLayout: isWideLayout,
+                  )
+                : _buildRegularControls(
+                    topMaxWidth: topMaxWidth,
+                    bottomMaxWidth: bottomMaxWidth,
+                    isWideLayout: isWideLayout,
                   ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: isWideLayout
-                            ? bottomMaxWidth
-                            : double.infinity,
-                      ),
-                      child: Row(children: [widget.sliderWidget]),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRegularControls({
+    required double topMaxWidth,
+    required double bottomMaxWidth,
+    required bool isWideLayout,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: isWideLayout ? topMaxWidth : double.infinity,
+              ),
+              child: _buildControlButtons(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: isWideLayout ? bottomMaxWidth : double.infinity,
+              ),
+              child: Row(children: [widget.sliderWidget]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactControls({
+    required double maxWidth,
+    required bool isWideLayout,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Align(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: isWideLayout ? maxWidth : double.infinity,
+          ),
+          child: Row(
+            children: [
+              _buildControlButtons(),
+              const SizedBox(width: 12),
+              widget.sliderWidget,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControlButtons() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ChapterNavigationButton(
+          icon: Icons.skip_previous_rounded,
+          tooltip: t.reader.previousChapter,
+          isEnabled: jumpChapter.havePrev,
+          onTap: () => _jumpToChapter(true),
+        ),
+        const SizedBox(width: 10),
+        FloatingActionIconButton(
+          icon: Icons.home_rounded,
+          tooltip: t.reader.backToHome,
+          onPressed: () => popToRoot(context),
+        ),
+        const SizedBox(width: 10),
+        FloatingActionIconButton(
+          icon: Icons.list_alt_rounded,
+          tooltip: t.reader.selectChapter,
+          isEnabled: chapterRefs.isNotEmpty,
+          onPressed: _selectJumpChapter,
+        ),
+        const SizedBox(width: 10),
+        FloatingActionIconButton(
+          icon: Icons.tune_rounded,
+          tooltip: t.reader.settings,
+          onPressed: _openSettingsPanel,
+        ),
+        const SizedBox(width: 10),
+        ChapterNavigationButton(
+          icon: Icons.skip_next_rounded,
+          tooltip: t.reader.nextChapter,
+          isEnabled: jumpChapter.haveNext,
+          onTap: () => _jumpToChapter(false),
+        ),
+      ],
     );
   }
 
@@ -178,6 +225,7 @@ class _BottomWidgetState extends State<BottomWidget> {
         readerCubit.updateCurrentSlot(value);
         readerCubit.updateSliderChanged(0.0);
       },
+      onLandscapeChanged: widget.onLandscapeChanged,
     );
   }
 

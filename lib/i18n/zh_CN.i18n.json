@@ -519,6 +519,8 @@
     "doublePageSeamlessSubtitle": "左右各占一半宽度，按图片比例独立显示并消除中间留白",
     "doublePageLeadingBlank": "首页留白",
     "doublePageLeadingBlankSubtitle": "在每章最前插入一页空白，使配对整体错一位",
+    "landscapeReader": "横屏阅读",
+    "landscapeReaderSubtitle": "阅读时切换为横屏，离开后恢复原来的方向",
     "themeMode": "系统模式",
     "autoRead": "自动阅读",
     "autoReadSubtitle": "开启后自动滚动",

@@ -260,6 +260,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(72) int autoScrollColumnDistancePercent,
     @Default(3) int preloadImageCount,
     @Default(1) int preloadChapterCount,
+    @Default(false) bool landscapeReader,
     @Default(false) bool doublePageMode,
     @Default(false) bool doublePageSeamless,
     @Default(false) bool doublePageLeadingBlank,

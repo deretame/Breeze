@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:zephyr/main.dart';
+import 'package:typed_data/typed_buffers.dart' as typed_data;
+
 class QjsFetchImageHttpResult {
   const QjsFetchImageHttpResult({
     required this.bytes,
@@ -37,19 +40,15 @@ class QjsFetchImageHttpResult {
   }
 
   static Uint8List _readBytes(Object? value) {
+    logger.d(value.runtimeType);
     if (value is Uint8List) {
       return value;
     }
+    if (value is typed_data.Uint8Buffer) {
+      return value.buffer.asUint8List(value.offsetInBytes, value.lengthInBytes);
+    }
     if (value is List) {
-      final bytes = <int>[];
-      for (final item in value) {
-        final byte = _readInt(item, field: 'bytes');
-        if (byte < 0 || byte > 255) {
-          throw const FormatException('图片请求结果 bytes 包含无效字节');
-        }
-        bytes.add(byte);
-      }
-      return Uint8List.fromList(bytes);
+      return Uint8List.fromList(value is List<int> ? value : value.cast<int>());
     }
     throw const FormatException('图片请求结果缺少 bytes 字段');
   }

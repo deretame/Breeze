@@ -62,9 +62,36 @@
 
 - 下载 `windows-installer.exe` 后直接运行即可完成安装。
 
-### 🐧 Linux (Flatpak)
+### 🐧 Linux
 
-Linux 版本通过 Flatpak 分发，以确保在不同发行版上的兼容性。
+Linux 版本同时提供 Flatpak 和 DEB 两种安装包。请根据你的发行版选择对应的安装方式。
+
+#### 方式 1：安装 DEB（推荐 Debian/Ubuntu 及其衍生版）
+
+当前 Release 提供 `amd64` 架构的 DEB 安装包。前往 [Releases 页面](https://github.com/deretame/Breeze/releases) 下载带有 `.deb` 后缀的文件，然后在终端执行：
+
+> **注意**：DEB 包不保证在所有 Debian/Ubuntu 衍生发行版上的兼容性和可用性。如果安装或运行异常，请改用 Flatpak 版本。
+
+```shell
+# 如果当前目录中只有刚下载的 Breeze DEB 包，可以直接使用通配符
+sudo apt install ./breeze_*.deb
+```
+
+`apt` 会自动处理所需的系统依赖。安装完成后，可以从应用菜单启动 **Breeze**，也可以在终端运行：
+
+```shell
+breeze
+```
+
+如需卸载：
+
+```shell
+sudo apt remove breeze
+```
+
+#### 方式 2：安装 Flatpak
+
+Flatpak 版本通过 Flatpak 分发，以确保在不同发行版上的兼容性。
 
 #### 1. 准备环境
 

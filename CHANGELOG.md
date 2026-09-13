@@ -666,3 +666,26 @@
 - 优化下载重试逻辑
 - 优化下载任务进度文本显示
 - 优化更新日志加载方式
+
+## [v3.0.31]
+
+### 功能更新
+
+- 新增双页无缝开关
+- 手机添加横版阅读模式
+- 添加 deb 打包 by [cookieidea](https://github.com/cookieidea)
+
+### 修复
+
+- 修复部分 webdav 提供商无法正常同步的问题 by [cookieidea](https://github.com/cookieidea)
+- 修复 iOS 无法正常选中文件的问题
+- 修复 Windows 始终获取定位的问题
+- 修复 Linux 下 flatpak 图片图标显示问题 by [cookieidea](https://github.com/cookieidea)
+- 修复 Linux 下关闭行为异常的问题 by [cookieidea](https://github.com/cookieidea)
+
+### 优化
+
+- 优化阅读体验
+- 优化双页模式拼页逻辑
+- 优化首页留白逻辑
+- 优化关于页贡献者获取逻辑 by [cookieidea](https://github.com/cookieidea)

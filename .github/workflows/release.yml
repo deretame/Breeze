@@ -173,7 +173,7 @@ jobs:
             build/app/outputs/apk/skia/*.apk
 
   # ══════════════════════════════════════════
-  # 2. Linux 构建 (Sentry Plugin 上传)
+  # 2. Linux 构建 (Sentry Plugin 上传 + Flatpak + DEB)
   # ══════════════════════════════════════════
   build-linux:
     runs-on: ubuntu-latest
@@ -235,6 +235,17 @@ jobs:
         with:
           name: linux-flatpak
           path: breeze.flatpak
+
+      - name: 构建 Linux .deb
+        run: |
+          sudo apt-get install -y dpkg-dev
+          fvm dart ./script/build_linux_deb.dart --package-only
+
+      - name: 上传 Linux deb
+        uses: actions/upload-artifact@v6
+        with:
+          name: linux-deb
+          path: build-deb/breeze_*.deb
 
   # ══════════════════════════════════════════
   # 3. Windows 构建 (Sentry Plugin 上传)
@@ -613,6 +624,12 @@ jobs:
           echo "| **Android** | [app-arm64-v8a-release-${VERSION}.apk](https://github.com/$REPO/releases/download/$VERSION/app-arm64-v8a-release-${VERSION}.apk) |" >> release_body.md
           echo "| **iOS** | [Breeze-iOS-${VERSION}.ipa](https://github.com/$REPO/releases/download/$VERSION/Breeze-iOS-${VERSION}.ipa) |" >> release_body.md
           echo "| **Linux** | [breeze-${VERSION}.flatpak](https://github.com/$REPO/releases/download/$VERSION/breeze-${VERSION}.flatpak) |" >> release_body.md
+          DEB_FILE_NAME=$(find release-assets/linux-deb -type f -name "*.deb" -printf "%f\n" | head -n 1)
+          if [ -z "$DEB_FILE_NAME" ]; then
+            echo "未找到 Linux DEB 产物。"
+            exit 1
+          fi
+          echo "| **Linux (DEB)** | [$DEB_FILE_NAME](https://github.com/$REPO/releases/download/$VERSION/$DEB_FILE_NAME) |" >> release_body.md
           echo -e "\n> 💡 **不知道该下载哪个文件？**\n> 请查看 [详细安装指南](https://github.com/$REPO#-%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85)。" >> release_body.md
 
       - name: 创建 GitHub Release
@@ -624,6 +641,7 @@ jobs:
           files: |
             release-assets/android-apks/**/*.apk
             release-assets/linux-flatpak/*.flatpak
+            release-assets/linux-deb/*.deb
             release-assets/windows-exe/*.exe
             release-assets/macos-dmg/*.dmg
             release-assets/ios-ipa/*.ipa
@@ -653,7 +671,7 @@ jobs:
             --data-urlencode "text=${TEXT}" \
             --data-urlencode "disable_web_page_preview=true"
 
-          mapfile -t files < <(find release-assets -type f \( -name "*.apk" -o -name "*.flatpak" -o -name "*.exe" -o -name "*.dmg" -o -name "*.ipa" \) | sort)
+          mapfile -t files < <(find release-assets -type f \( -name "*.apk" -o -name "*.flatpak" -o -name "*.deb" -o -name "*.exe" -o -name "*.dmg" -o -name "*.ipa" \) | sort)
 
           if [ "${#files[@]}" -eq 0 ]; then
             echo "未找到可发送附件，跳过。"

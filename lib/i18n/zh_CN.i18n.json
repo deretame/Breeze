@@ -314,6 +314,8 @@
     "sort": "排序",
     "sortDesc": "时间(晚→早)",
     "sortAsc": "时间(早→晚)",
+    "viewSortDesc": "观看时间(晚→早)",
+    "viewSortAsc": "观看时间(早→晚)",
     "folderDeprecated": "文件夹（已废弃）",
     "source": "漫画源",
     "deselectAll": "取消全选",

@@ -423,6 +423,8 @@ class _Translations$bookshelf$en_US extends Translations$bookshelf$zh_CN {
 	@override String get sort => 'Sort';
 	@override String get sortDesc => 'Time (newest first)';
 	@override String get sortAsc => 'Time (oldest first)';
+	@override String get viewSortDesc => 'View time (newest first)';
+	@override String get viewSortAsc => 'View time (oldest first)';
 	@override String get folderDeprecated => 'Folders (deprecated)';
 	@override String get source => 'Comic source';
 	@override String get deselectAll => 'Deselect all';
@@ -1842,6 +1844,8 @@ extension on TranslationsEnUs {
 			'bookshelf.sort' => 'Sort',
 			'bookshelf.sortDesc' => 'Time (newest first)',
 			'bookshelf.sortAsc' => 'Time (oldest first)',
+			'bookshelf.viewSortDesc' => 'View time (newest first)',
+			'bookshelf.viewSortAsc' => 'View time (oldest first)',
 			'bookshelf.folderDeprecated' => 'Folders (deprecated)',
 			'bookshelf.source' => 'Comic source',
 			'bookshelf.deselectAll' => 'Deselect all',
@@ -2047,10 +2051,10 @@ extension on TranslationsEnUs {
 			'reader.themeMode' => 'Theme mode',
 			'reader.autoRead' => 'Auto read',
 			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
-			'reader.autoReadHidePauseButton' => 'Hide pause button',
-			'reader.autoReadHidePauseButtonSubtitle' => 'Keep auto-read running without showing the pause/play button',
 			_ => null,
 		} ?? switch (path) {
+			'reader.autoReadHidePauseButton' => 'Hide pause button',
+			'reader.autoReadHidePauseButtonSubtitle' => 'Keep auto-read running without showing the pause/play button',
 			'reader.autoReadSmooth' => 'Smooth scroll',
 			'reader.autoReadSmoothSubtitle' => 'Continuous scroll in webtoon mode; off uses interval jumps',
 			'reader.webtoonScrollDistance' => 'Webtoon scroll distance',
@@ -2561,10 +2565,10 @@ extension on TranslationsEnUs {
 			'comicFollow.empty' => 'No followed comics',
 			'comicFollow.emptyHint' => 'Tap the follow button on a comic detail page to add it here',
 			'comicFollow.unfollow' => 'Unfollow',
-			'comicFollow.unfollowConfirm' => ({required Object title}) => 'Stop following "${title}"?',
-			'comicFollow.unfollowed' => 'Unfollowed',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.unfollowConfirm' => ({required Object title}) => 'Stop following "${title}"?',
+			'comicFollow.unfollowed' => 'Unfollowed',
 			'comicFollow.all' => 'All',
 			'comicFollow.unread' => 'Updated and unread',
 			'comicFollow.sort' => 'Sort',

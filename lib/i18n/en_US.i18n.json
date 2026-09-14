@@ -314,6 +314,8 @@
     "sort": "Sort",
     "sortDesc": "Time (newest first)",
     "sortAsc": "Time (oldest first)",
+    "viewSortDesc": "View time (newest first)",
+    "viewSortAsc": "View time (oldest first)",
     "folderDeprecated": "Folders (deprecated)",
     "source": "Comic source",
     "deselectAll": "Deselect all",

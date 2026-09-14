@@ -573,6 +573,32 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
     );
 
     final sortAscending = sort == 'da';
+    final sortByViewTime =
+        (mode == ShelfPageMode.favorite || mode == ShelfPageMode.download) &&
+        (sort == 'vd' || sort == 'va');
+    final viewTimes = <String, DateTime>{
+      if (sortByViewTime)
+        for (final history in objectbox.unifiedHistoryBox.getAll().where(
+          (history) => !history.deleted,
+        ))
+          history.uniqueKey: history.lastReadAt,
+    };
+    final itemTimes = <String, DateTime>{};
+    if (sortByViewTime) {
+      if (mode == ShelfPageMode.favorite) {
+        for (final favorite in objectbox.unifiedFavoriteBox.getAll().where(
+          (favorite) => !favorite.deleted,
+        )) {
+          itemTimes[favorite.uniqueKey] = favorite.createdAt;
+        }
+      } else {
+        for (final download in objectbox.unifiedDownloadBox.getAll().where(
+          (download) => !download.deleted,
+        )) {
+          itemTimes[download.uniqueKey] = download.downloadedAt;
+        }
+      }
+    }
     final sourceFilter = _sourceFilterFromSearch(search, folderType);
     final folderMembers = _folderMembersFromSearch(search, folderType);
 
@@ -619,6 +645,14 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
       comics.add(resolved.info);
       comicSearchTexts[key] = resolved.searchText;
     }
+    if (sortByViewTime) {
+      _sortShelfItemsByViewTime(
+        comics,
+        viewTimes: viewTimes,
+        itemTimes: itemTimes,
+        ascending: sort == 'va',
+      );
+    }
 
     return {
       'folders': folders,
@@ -633,6 +667,36 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
       'comicSearchTexts': <String, String>{},
     };
   }
+}
+
+void _sortShelfItemsByViewTime(
+  List<ComicSimplifyEntryInfo> items, {
+  required Map<String, DateTime> viewTimes,
+  required Map<String, DateTime> itemTimes,
+  required bool ascending,
+}) {
+  items.sort((left, right) {
+    final leftKey = '${left.from.trim()}:${left.id}';
+    final rightKey = '${right.from.trim()}:${right.id}';
+    final leftViewTime = viewTimes[leftKey];
+    final rightViewTime = viewTimes[rightKey];
+
+    // 未观看的条目没有可比较的观看时间，始终放在已观看项目之后。
+    if (leftViewTime == null && rightViewTime != null) return 1;
+    if (leftViewTime != null && rightViewTime == null) return -1;
+    if (leftViewTime != null && rightViewTime != null) {
+      final result = leftViewTime.compareTo(rightViewTime);
+      if (result != 0) return ascending ? result : -result;
+    }
+
+    final leftItemTime = itemTimes[leftKey];
+    final rightItemTime = itemTimes[rightKey];
+    if (leftItemTime != null && rightItemTime != null) {
+      final result = leftItemTime.compareTo(rightItemTime);
+      if (result != 0) return ascending ? result : -result;
+    }
+    return leftKey.compareTo(rightKey);
+  });
 }
 
 Set<String>? _sourceFilterFromSearch(

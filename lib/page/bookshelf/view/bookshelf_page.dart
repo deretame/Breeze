@@ -414,7 +414,13 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       context: context,
       builder: (dialogContext) => _BookshelfFilterDialog(
         mode: currentMode,
-        initialSort: current.sort == 'da' ? 'da' : 'dd',
+        initialSort: switch (currentMode) {
+          (ShelfPageMode.favorite || ShelfPageMode.download)
+              when current.sort == 'vd' || current.sort == 'va' =>
+            current.sort,
+          _ when current.sort == 'da' => 'da',
+          _ => 'dd',
+        },
         initialFolderKey: currentFolderKey,
         initialSources: selectedSources,
         availableSources: availableSources,
@@ -771,6 +777,7 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
+          runSpacing: 8,
           children: [
             ChoiceChip(
               showCheckmark: false,
@@ -784,6 +791,20 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
               selected: _selectedSort == 'da',
               onSelected: (_) => setState(() => _selectedSort = 'da'),
             ),
+            if (_isFavoriteMode || _isDownloadMode) ...[
+              ChoiceChip(
+                showCheckmark: false,
+                label: Text(t.bookshelf.viewSortDesc),
+                selected: _selectedSort == 'vd',
+                onSelected: (_) => setState(() => _selectedSort = 'vd'),
+              ),
+              ChoiceChip(
+                showCheckmark: false,
+                label: Text(t.bookshelf.viewSortAsc),
+                selected: _selectedSort == 'va',
+                onSelected: (_) => setState(() => _selectedSort = 'va'),
+              ),
+            ],
           ],
         ),
       ],

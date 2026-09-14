@@ -1037,6 +1037,12 @@ class Translations$bookshelf$zh_CN {
 	/// zh-CN: '时间(早→晚)'
 	String get sortAsc => '时间(早→晚)';
 
+	/// zh-CN: '观看时间(晚→早)'
+	String get viewSortDesc => '观看时间(晚→早)';
+
+	/// zh-CN: '观看时间(早→晚)'
+	String get viewSortAsc => '观看时间(早→晚)';
+
 	/// zh-CN: '文件夹（已废弃）'
 	String get folderDeprecated => '文件夹（已废弃）';
 
@@ -4144,6 +4150,8 @@ extension on Translations {
 			'bookshelf.sort' => '排序',
 			'bookshelf.sortDesc' => '时间(晚→早)',
 			'bookshelf.sortAsc' => '时间(早→晚)',
+			'bookshelf.viewSortDesc' => '观看时间(晚→早)',
+			'bookshelf.viewSortAsc' => '观看时间(早→晚)',
 			'bookshelf.folderDeprecated' => '文件夹（已废弃）',
 			'bookshelf.source' => '漫画源',
 			'bookshelf.deselectAll' => '取消全选',
@@ -4349,10 +4357,10 @@ extension on Translations {
 			'reader.landscapeReaderSubtitle' => '阅读时切换为横屏，离开后恢复原来的方向',
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
-			'reader.autoReadSubtitle' => '开启后自动滚动',
-			'reader.autoReadHidePauseButton' => '隐藏暂停按钮',
 			_ => null,
 		} ?? switch (path) {
+			'reader.autoReadSubtitle' => '开启后自动滚动',
+			'reader.autoReadHidePauseButton' => '隐藏暂停按钮',
 			'reader.autoReadHidePauseButtonSubtitle' => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮',
 			'reader.autoReadSmooth' => '平滑滚动',
 			'reader.autoReadSmoothSubtitle' => '条漫模式下连续匀速滚动，关闭则按间隔分段跳转',
@@ -4863,10 +4871,10 @@ extension on Translations {
 			'comicFollow.loadFailed' => ({required Object result}) => '加载失败：${result}',
 			'comicFollow.empty' => '暂无追更漫画',
 			'comicFollow.emptyHint' => '在漫画详情页点击追更按钮即可加入',
-			'comicFollow.unfollow' => '取消追更',
-			'comicFollow.unfollowConfirm' => ({required Object title}) => '确定不再追更《${title}》吗？',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.unfollow' => '取消追更',
+			'comicFollow.unfollowConfirm' => ({required Object title}) => '确定不再追更《${title}》吗？',
 			'comicFollow.unfollowed' => '已取消追更',
 			'comicFollow.all' => '全部',
 			'comicFollow.unread' => '已更新未看',

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:zephyr/main.dart';
 import 'package:typed_data/typed_buffers.dart' as typed_data;
 
 class QjsFetchImageHttpResult {
@@ -40,7 +39,6 @@ class QjsFetchImageHttpResult {
   }
 
   static Uint8List _readBytes(Object? value) {
-    logger.d(value.runtimeType);
     if (value is Uint8List) {
       return value;
     }

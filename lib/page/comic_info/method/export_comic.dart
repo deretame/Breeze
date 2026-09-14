@@ -345,23 +345,14 @@ Future<String?> _tryDownloadCover(
     return null;
   }
   try {
-    final temp = await getCachePicture(
+    final downloadedPath = await downloadPicture(
       from: from,
       url: url,
       path: path,
       cartoonId: comicId,
       pictureType: PictureType.cover,
     );
-
-    await downloadPicture(
-      from: from,
-      url: url,
-      path: path,
-      cartoonId: comicId,
-      pictureType: PictureType.cover,
-    );
-
-    return temp;
+    return downloadedPath == '404' ? null : downloadedPath;
   } catch (_) {
     return null;
   }
@@ -445,23 +436,16 @@ Future<List<File>> _resolveChapterFiles({
   final futures = images.map((image) async {
     for (var attempt = 0; attempt < 3; attempt++) {
       try {
-        final cachedPath = await getCachePicture(
+        final downloadedPath = await downloadPicture(
           from: pluginId,
           url: image.url,
           path: image.path,
           cartoonId: comicId,
           chapterId: chapterId,
-          applyRealSr: false,
         );
-        final file = File(cachedPath);
-        if (await file.exists()) {
-          await downloadPicture(
-            from: pluginId,
-            url: image.url,
-            path: image.path,
-            cartoonId: comicId,
-            chapterId: chapterId,
-          );
+        if (downloadedPath == '404') continue;
+        final file = File(downloadedPath);
+        if (await file.exists() && await file.length() > 0) {
           return file;
         }
       } catch (_) {}

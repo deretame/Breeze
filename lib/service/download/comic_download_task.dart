@@ -612,8 +612,7 @@ Future<void> _saveUnifiedDownloadChapter({
     ),
     storageRoot: p.join(
       await getDownloadPath(),
-      from,
-      'original',
+      encodePath(path: normalizePluginId(from)),
       encodePath(path: comicId),
     ),
     createdAt: existing?.createdAt ?? now,

@@ -29,8 +29,9 @@ class ReaderImagePrefetchController {
         continue;
       }
 
-      final resolvedChapterId = doc.storageChapterId.trim().isNotEmpty
-          ? doc.storageChapterId
+      final storageChapterId = doc.storageChapterId.trim();
+      final resolvedChapterId = storageChapterId.isNotEmpty
+          ? storageChapterId
           : chapterId;
       final key = _buildKey(
         from: from,
@@ -46,7 +47,8 @@ class ReaderImagePrefetchController {
           url: doc.fileServer,
           path: doc.path,
           cartoonId: comicId,
-          chapterId: resolvedChapterId,
+          chapterId: chapterId,
+          storageChapterId: storageChapterId,
           pictureType: PictureType.page,
           extern: doc.extern,
         );

@@ -15,6 +15,7 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   String? selectedChapterId,
   String requestId,
   String logicalKey,
+  String storageChapterId,
   ChapterExtern chapterExtern,
 ) async {
   const adapter = DownloadChapterAdapter();
@@ -82,7 +83,13 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
     order,
     fallbackChapterId,
   );
-  return snapshot.toNormalEpInfo(logicalChapterId: logicalChapterId);
+  final resolvedStorageChapterId = storageChapterId.trim().isNotEmpty
+      ? storageChapterId.trim()
+      : chapter?.effectiveStorageId ?? '';
+  return snapshot.toNormalEpInfo(
+    logicalChapterId: logicalChapterId,
+    storageChapterId: resolvedStorageChapterId,
+  );
 }
 
 String _resolveReadSnapshotChapterId(

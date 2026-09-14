@@ -217,9 +217,8 @@ Future<DownloadPictureResult> _downloadSingleJob({
           url: job.url,
           path: job.path,
           cartoonId: job.cartoonId,
-          chapterId: job.storageChapterId.trim().isNotEmpty
-              ? job.storageChapterId
-              : job.chapterId,
+          chapterId: job.chapterId,
+          storageChapterId: job.storageChapterId,
           pictureType: pictureType,
           // 外层负责整张图片的重试，避免网络层 10 次重试后才进入
           // 保存/解码失败的重试流程。

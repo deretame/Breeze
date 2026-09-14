@@ -178,16 +178,27 @@ class _InfoColumnState extends State<_InfoColumn> {
     }..removeWhere((source) => source.isEmpty);
 
     for (final source in sourceCandidates) {
-      // 新版编码目录。
+      // 当前下载布局：hash(from)/hash(cartoonId)。
+      try {
+        addRoot(
+          p.join(
+            downloadPath,
+            encodePath(path: source),
+            encodePath(path: comicId),
+          ),
+        );
+      } catch (_) {
+        // Rust 编码服务尚未就绪时，仍继续统计历史目录。
+      }
+
+      // c703e334 产生的旧编码目录。
       try {
         addRoot(
           p.join(downloadPath, source, 'original', encodePath(path: comicId)),
         );
-      } catch (_) {
-        // Rust 编码服务尚未就绪时，仍继续统计历史原始目录。
-      }
+      } catch (_) {}
 
-      // 旧版未编码目录。
+      // 更早的未编码目录。
       addRoot(p.join(downloadPath, source, 'original', comicId));
     }
 

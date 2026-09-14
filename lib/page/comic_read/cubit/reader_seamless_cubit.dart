@@ -814,6 +814,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       chapter?.id,
       chapter?.effectiveRequestId ?? '',
       chapter?.id ?? '',
+      chapter?.effectiveStorageId ?? '',
       Map<String, dynamic>.from(chapter?.extern ?? const <String, dynamic>{}),
     );
   }

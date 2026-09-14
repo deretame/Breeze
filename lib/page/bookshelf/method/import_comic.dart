@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/service/download/download_asset_store.dart';
 import 'package:zephyr/src/rust/api/data_backup.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -213,16 +215,19 @@ Future<ComicImportResult> _importComic(
     throw StateError(t.bookshelf.importMissingComicId);
   }
 
-  final from = source;
+  final from = normalizePluginId(source);
   final uniqueKey = '$from:$comicId';
   final title = comicInfo['title']?.toString() ?? '';
 
   final downloadPath = await getDownloadPath();
-  final storageRoot = p.join(downloadPath, from, 'original', comicId);
+  final storageRoot = p.join(
+    downloadPath,
+    encodePath(path: from),
+    encodePath(path: comicId),
+  );
   final targetComicDir = p.join(
     downloadPath,
-    from,
-    'original',
+    encodePath(path: from),
     encodePath(path: comicId),
   );
 
@@ -351,8 +356,11 @@ Future<void> _importCover({
     return;
   }
 
-  final targetCoverFileName = encodePath(path: originalCoverPath);
-  final targetCoverPath = p.join(targetComicDir, targetCoverFileName);
+  final targetCoverPath = p.join(
+    targetComicDir,
+    encodePath(path: ''),
+    encodePath(path: normalizeStoredAssetPath(originalCoverPath)),
+  );
 
   await Directory(targetComicDir).create(recursive: true);
   await sourceFile.copy(targetCoverPath);
@@ -441,7 +449,9 @@ Future<void> _importChapters({
         continue;
       }
 
-      final targetImageFileName = encodePath(path: originalImagePath);
+      final targetImageFileName = encodePath(
+        path: normalizeStoredAssetPath(originalImagePath),
+      );
       final targetImagePath = p.join(targetChapterDir, targetImageFileName);
 
       await Directory(targetChapterDir).create(recursive: true);

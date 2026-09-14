@@ -35,6 +35,7 @@ Future<String> getCachePicture({
   String path = '',
   String cartoonId = '1',
   String chapterId = '',
+  String storageChapterId = '',
   PictureType pictureType = PictureType.page,
   Map<String, dynamic>? extern,
   int index = 0,
@@ -48,15 +49,6 @@ Future<String> getCachePicture({
   if (url.contains("nopic-Male.gif")) return "nopic-Male.gif";
 
   final directPath = path.trim();
-  if (directPath.isNotEmpty && file_path.isAbsolute(directPath)) {
-    final directFile = File(directPath);
-    if (await directFile.exists()) {
-      try {
-        if (await directFile.length() > 0) return directPath;
-      } catch (_) {}
-    }
-    return '404';
-  }
   if (directPath.isEmpty) {
     return '404';
   }
@@ -66,27 +58,45 @@ Future<String> getCachePicture({
     path: directPath,
     cartoonId: cartoonId,
     chapterId: chapterId,
+    storageChapterId: storageChapterId,
     pictureType: pictureType,
   );
-  final existing = await assetStore.findExisting();
+  final existingDownload = await assetStore.findExistingDownload();
 
-  if (existing != null) {
+  if (existingDownload != null) {
     try {
       // 超分 + WebP 转换统一封装，内部会判断分辨率并保留原文件名。
       if (pictureType == PictureType.page && applyRealSr) {
-        await RealSrSuperResolution.upscaleAndConvertToWebp(existing.path);
+        await RealSrSuperResolution.upscaleAndConvertToWebp(
+          existingDownload.path,
+        );
       }
-      return existing.path;
+      return existingDownload.path;
     } catch (e) {
       logger.w(
-        'getCachePicture: 文件存在但无法访问，删除并重新下载: ${existing.path}',
+        'getCachePicture: 已存在下载文件不可访问，准备继续查找新缓存/网络: ${existingDownload.path}',
+        error: e,
+      );
+    }
+  }
+
+  final existingCache = await assetStore.findCanonicalCache();
+  if (existingCache != null) {
+    try {
+      if (pictureType == PictureType.page && applyRealSr) {
+        await RealSrSuperResolution.upscaleAndConvertToWebp(existingCache.path);
+      }
+      return existingCache.path;
+    } catch (e) {
+      logger.w(
+        'getCachePicture: 缓存文件存在但无法访问，删除并重新下载: ${existingCache.path}',
         error: e,
       );
       try {
-        await File(existing.path).delete();
+        await File(existingCache.path).delete();
       } catch (deleteError) {
         logger.e(
-          'getCachePicture: 删除损坏文件失败: ${existing.path}',
+          'getCachePicture: 删除损坏缓存文件失败: ${existingCache.path}',
           error: deleteError,
         );
       }
@@ -163,13 +173,14 @@ Future<String> getCachePicture({
 /// 在不触发下载的前提下，解析图片已存在的本地路径。
 ///
 /// 查找顺序与 [getCachePicture] 的缓存命中分支一致：
-/// 绝对路径直查 → 新（编码）缓存/下载路径 → 旧（未编码）缓存/下载路径。
+/// 新下载路径 → 高概率旧下载路径 → 新缓存路径。
 /// 找不到时返回空字符串。用于阅读器预解析图片尺寸等只需要本地文件的场景。
 Future<String> findCachedPicturePath({
   required String from,
   String path = '',
   String cartoonId = '1',
   String chapterId = '',
+  String storageChapterId = '',
   PictureType pictureType = PictureType.page,
 }) async {
   final resolvedFrom = normalizePluginId(from);
@@ -186,9 +197,11 @@ Future<String> findCachedPicturePath({
     path: directPath,
     cartoonId: cartoonId,
     chapterId: chapterId,
+    storageChapterId: storageChapterId,
     pictureType: pictureType,
   ).findExisting();
-  return existing?.path ?? '';
+  if (existing == null) return '';
+  return existing.path;
 }
 
 Future<String> downloadPicture({
@@ -197,6 +210,7 @@ Future<String> downloadPicture({
   String path = '',
   String cartoonId = '1',
   String chapterId = '',
+  String storageChapterId = '',
   PictureType pictureType = PictureType.page,
   String? qjsName,
   String qjsTaskGroupKey = '',
@@ -210,6 +224,7 @@ Future<String> downloadPicture({
     path: path,
     cartoonId: cartoonId,
     chapterId: chapterId,
+    storageChapterId: storageChapterId,
     pictureType: pictureType,
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
@@ -231,6 +246,7 @@ Future<DownloadPictureResult> downloadPictureResult({
   String path = '',
   String cartoonId = '1',
   String chapterId = '',
+  String storageChapterId = '',
   PictureType pictureType = PictureType.page,
   String? qjsName,
   String qjsTaskGroupKey = '',
@@ -265,39 +281,66 @@ Future<DownloadPictureResult> downloadPictureResult({
     path: path,
     cartoonId: cartoonId,
     chapterId: chapterId,
+    storageChapterId: storageChapterId,
     pictureType: pictureType,
   );
-  final existing = await assetStore.findExisting();
-  if (existing != null) {
+  final existingDownload = await assetStore.findCanonicalDownload();
+  if (existingDownload != null) {
+    return DownloadPictureResult(
+      status: DownloadPictureResultStatus.existing,
+      path: existingDownload.path,
+      location: DownloadAssetLocation.canonicalDownload,
+    );
+  }
+
+  // 下载时缓存只检查新的 canonical 路径，不兼容旧缓存。
+  final existingCache = await assetStore.findCanonicalCache();
+  if (existingCache != null) {
     try {
-      if (existing.location == DownloadAssetLocation.canonicalCache) {
-        final canonicalDownloadPath = await assetStore.canonicalDownloadPath();
-        await assetStore.copyFileAtomically(
-          sourcePath: existing.path,
-          finalPath: canonicalDownloadPath,
-          taskId: qjsTaskGroupKey,
-        );
-        return DownloadPictureResult(
-          status: DownloadPictureResultStatus.downloaded,
-          path: canonicalDownloadPath,
-          location: DownloadAssetLocation.canonicalDownload,
-        );
-      }
+      final canonicalDownloadPath = await assetStore.canonicalDownloadPath();
+      await assetStore.copyFileAtomically(
+        sourcePath: existingCache.path,
+        finalPath: canonicalDownloadPath,
+        taskId: qjsTaskGroupKey,
+      );
       return DownloadPictureResult(
-        status: DownloadPictureResultStatus.existing,
-        path: existing.path,
-        location: existing.location,
+        status: DownloadPictureResultStatus.downloaded,
+        path: canonicalDownloadPath,
+        location: DownloadAssetLocation.canonicalDownload,
       );
     } catch (e) {
-      logger.w('downloadPicture: 已存在文件不可复用，准备重新下载: ${existing.path}', error: e);
+      logger.w(
+        'downloadPicture: 新缓存不可复制，准备重新下载: ${existingCache.path}',
+        error: e,
+      );
       try {
-        await File(existing.path).delete();
+        await File(existingCache.path).delete();
       } catch (deleteError) {
         logger.e(
-          'downloadPicture: 删除不可复用文件失败: ${existing.path}',
+          'downloadPicture: 删除不可复用缓存失败: ${existingCache.path}',
           error: deleteError,
         );
       }
+    }
+  }
+
+  // 新下载路径和新缓存路径都没有命中后，才兼容查找旧下载布局。
+  final legacyDownload = await assetStore.findLegacyDownload();
+  if (legacyDownload != null) {
+    try {
+      final canonicalDownloadPath = await assetStore.migrateDownload(
+        legacyDownload,
+      );
+      return DownloadPictureResult(
+        status: DownloadPictureResultStatus.existing,
+        path: canonicalDownloadPath,
+        location: DownloadAssetLocation.canonicalDownload,
+      );
+    } catch (e) {
+      logger.w(
+        'downloadPicture: 旧下载文件不可迁移，准备重新下载: ${legacyDownload.path}',
+        error: e,
+      );
     }
   }
 
@@ -400,7 +443,7 @@ Future<DownloadPictureResult> downloadPictureResult({
 
 /// 删除漫画下载根目录。
 ///
-/// 为兼容新旧下载布局，先尝试删除编码后的路径，再尝试删除原始路径。
+/// 新布局按 hash(from)/hash(cartoonId) 组织；同时清理已知的旧布局根目录。
 Future<void> deleteComicDownloadDirectory(
   String from,
   String comicId, {
@@ -419,24 +462,38 @@ Future<void> deleteComicDownloadDirectory(
   }
 
   final downloadRoot = await getDownloadPath();
-  String? encodedRoot;
+  String? canonicalRoot;
   try {
-    encodedRoot = await _buildComicDownloadRoot(from, comicId, encoded: true);
+    canonicalRoot = file_path.join(
+      downloadRoot,
+      encodePath(path: normalizePluginId(from)),
+      encodePath(path: comicId.trim()),
+    );
   } catch (e) {
-    // 删除历史原始路径不应依赖 Rust bridge；这也让纯 Dart 测试和
-    // 尚未初始化 Rust 的早期生命周期仍能清理旧下载目录。
-    logger.d('生成编码下载目录失败，继续清理原始目录: $comicId, error=$e');
+    logger.d('生成新下载目录失败，继续清理旧目录: $comicId, error=$e');
   }
-  final rawRoot = await _buildComicDownloadRoot(from, comicId, encoded: false);
+  final legacyEncodedRoot = await _buildComicDownloadRoot(
+    from,
+    comicId,
+    encoded: true,
+  );
+  final legacyRawRoot = await _buildComicDownloadRoot(
+    from,
+    comicId,
+    encoded: false,
+  );
 
-  if (encodedRoot != null &&
-      DownloadAssetStore.isWithinRoot(downloadRoot, encodedRoot)) {
-    await _tryDeleteDirectory(encodedRoot);
+  if (canonicalRoot != null &&
+      DownloadAssetStore.isWithinRoot(downloadRoot, canonicalRoot)) {
+    await _tryDeleteDirectory(canonicalRoot);
   }
-  if (DownloadAssetStore.isWithinRoot(downloadRoot, rawRoot)) {
-    await _tryDeleteDirectory(rawRoot);
+  if (DownloadAssetStore.isWithinRoot(downloadRoot, legacyEncodedRoot)) {
+    await _tryDeleteDirectory(legacyEncodedRoot);
+  }
+  if (DownloadAssetStore.isWithinRoot(downloadRoot, legacyRawRoot)) {
+    await _tryDeleteDirectory(legacyRawRoot);
   } else {
-    logger.w('跳过越界的历史下载目录删除: $rawRoot');
+    logger.w('跳过越界的历史下载目录删除: $legacyRawRoot');
   }
 
   // 旧记录可能保存了当前平台之外的绝对 storageRoot。正常读取不依赖它；

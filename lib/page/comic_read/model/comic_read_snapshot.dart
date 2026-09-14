@@ -31,7 +31,10 @@ class ComicReadSnapshot {
     );
   }
 
-  NormalComicEpInfo toNormalEpInfo({required String logicalChapterId}) {
+  NormalComicEpInfo toNormalEpInfo({
+    required String logicalChapterId,
+    String storageChapterId = '',
+  }) {
     final docs = chapter.pages
         .map(
           (page) => Doc(
@@ -39,6 +42,7 @@ class ComicReadSnapshot {
             path: page.path,
             fileServer: page.url,
             id: page.id.isNotEmpty ? page.id : logicalChapterId,
+            storageChapterId: storageChapterId,
             extern: page.extern,
           ),
         )

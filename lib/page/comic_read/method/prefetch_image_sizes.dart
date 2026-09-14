@@ -32,16 +32,15 @@ Future<void> prefetchChapterImageSizes({
     if (imageSizeCubit.getSize(cacheIndex).isCached) continue;
 
     final doc = docs[i];
-    final resolvedChapterId = doc.storageChapterId.trim().isNotEmpty
-        ? doc.storageChapterId
-        : chapterId;
+    final storageChapterId = doc.storageChapterId.trim();
 
     try {
       final filePath = await findCachedPicturePath(
         from: from,
         path: doc.path,
         cartoonId: comicId,
-        chapterId: resolvedChapterId,
+        chapterId: chapterId,
+        storageChapterId: storageChapterId,
         pictureType: PictureType.page,
       );
       if (filePath.isEmpty) continue;

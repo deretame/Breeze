@@ -52,6 +52,7 @@ class PageBloc extends Bloc<PageEvent, PageState> {
           event.chapterId,
           event.requestId,
           event.logicalKey,
+          event.storageChapterId,
           event.chapterExtern,
         );
       }

@@ -9,13 +9,7 @@ import 'package:zephyr/util/get_path.dart';
 /// 资产在本地磁盘上的候选位置。
 ///
 /// 新文件只写入 [canonicalDownload]；其余位置仅用于兼容已经存在的文件。
-enum DownloadAssetLocation {
-  direct,
-  canonicalDownload,
-  legacyDownload,
-  canonicalCache,
-  legacyCache,
-}
+enum DownloadAssetLocation { canonicalDownload, legacyDownload, canonicalCache }
 
 class DownloadAssetCandidate {
   const DownloadAssetCandidate({required this.path, required this.location});
@@ -31,96 +25,130 @@ class DownloadAssetStore {
     required String path,
     required String cartoonId,
     required String chapterId,
+    String storageChapterId = '',
     required this.pictureType,
   }) : from = from.trim(),
        path = path.trim(),
        cartoonId = cartoonId.trim(),
-       chapterId = chapterId.trim();
+       chapterId = chapterId.trim(),
+       storageChapterId = storageChapterId.trim();
 
   final String from;
   final String path;
   final String cartoonId;
   final String chapterId;
+  final String storageChapterId;
   final PictureType pictureType;
 
   bool get isCover => pictureType == PictureType.cover;
 
-  /// 按“直接绝对路径 -> 编码下载 -> 原始下载 -> 编码缓存 -> 原始缓存”排序。
-  Future<List<DownloadAssetCandidate>> candidates() async {
+  String get effectiveChapterId {
+    return storageChapterId.isNotEmpty ? storageChapterId : chapterId;
+  }
+
+  /// 新布局只由 hash 片段组成，任何外部传入值都不会直接进入路径。
+  Future<DownloadAssetCandidate> canonicalDownloadCandidate() async {
+    return _canonicalCandidate(
+      await getDownloadPath(),
+      DownloadAssetLocation.canonicalDownload,
+    );
+  }
+
+  Future<DownloadAssetCandidate> canonicalCacheCandidate() async {
+    return _canonicalCandidate(
+      await getCachePath(),
+      DownloadAssetLocation.canonicalCache,
+    );
+  }
+
+  /// 仅返回下载目录中的候选项。第一个是新布局，后面是已确认存在过的旧布局。
+  Future<List<DownloadAssetCandidate>> downloadCandidates() async {
     if (path.isEmpty) return const [];
 
-    if (file_path.isAbsolute(path)) {
-      return [
-        DownloadAssetCandidate(
-          path: path,
-          location: DownloadAssetLocation.direct,
-        ),
-      ];
-    }
+    final root = await getDownloadPath();
+    final normalizedPath = normalizeStoredAssetPath(path);
+    final pathHash = encodePath(path: path);
+    final normalizedPathHash = encodePath(path: normalizedPath);
+    final cartoonHash = encodePath(path: cartoonId);
+    final chapterKeys = <String>{effectiveChapterId};
+    if (chapterId.isNotEmpty) chapterKeys.add(chapterId);
 
-    final cacheRoot = await getCachePath();
-    final downloadRoot = await getDownloadPath();
-    final encodedPath = encodePath(path: normalizeStoredAssetPath(path));
-    final encodedCartoonId = encodePath(path: cartoonId);
-    final encodedChapterId = encodePath(path: chapterId);
+    final result = <DownloadAssetCandidate>[await canonicalDownloadCandidate()];
 
-    final result = <DownloadAssetCandidate>[];
-    void addCandidate(
-      String basePath,
-      String cartoonSegment,
-      String chapterSegment,
-      String fileSegment,
-      DownloadAssetLocation location, {
-      String? rootFolder,
-    }) {
-      final candidate = _buildStoredFilePath(
-        basePath,
-        from,
-        fileSegment,
-        cartoonSegment,
-        isCover ? '' : chapterSegment,
-        rootFolder: rootFolder,
-      );
-      if (isWithinRoot(basePath, candidate)) {
-        result.add(DownloadAssetCandidate(path: candidate, location: location));
+    void addLegacy(String candidatePath) {
+      if (isWithinRoot(root, candidatePath) &&
+          !result.any((item) => item.path == candidatePath)) {
+        result.add(
+          DownloadAssetCandidate(
+            path: candidatePath,
+            location: DownloadAssetLocation.legacyDownload,
+          ),
+        );
       }
     }
 
-    addCandidate(
-      downloadRoot,
-      encodedCartoonId,
-      encodedChapterId,
-      encodedPath,
-      DownloadAssetLocation.canonicalDownload,
-      rootFolder: 'original',
-    );
-    addCandidate(
-      downloadRoot,
-      cartoonId,
-      chapterId,
-      normalizeStoredAssetPath(path),
-      DownloadAssetLocation.legacyDownload,
-      rootFolder: 'original',
-    );
-    addCandidate(
-      cacheRoot,
-      encodedCartoonId,
-      encodedChapterId,
-      encodedPath,
-      DownloadAssetLocation.canonicalCache,
-    );
-    addCandidate(
-      cacheRoot,
-      cartoonId,
-      chapterId,
-      normalizeStoredAssetPath(path),
-      DownloadAssetLocation.legacyCache,
-    );
+    // c703e334 以前的编码布局：from 未 hash，且包含 original。
+    for (final legacyChapterId in chapterKeys) {
+      final encodedChapter = encodePath(path: legacyChapterId);
+      addLegacy(
+        _buildLegacyFilePath(
+          root,
+          encodedCartoon: cartoonHash,
+          encodedChapter: encodedChapter,
+          fileName: normalizedPathHash,
+        ),
+      );
+
+      // 更早版本曾把原始文件扩展名拼接到文件名 hash 后面。
+      final extension = file_path.extension(normalizedPath);
+      if (extension.isNotEmpty) {
+        addLegacy(
+          _buildLegacyFilePath(
+            root,
+            encodedCartoon: cartoonHash,
+            encodedChapter: encodedChapter,
+            fileName: '$pathHash$extension',
+          ),
+        );
+      }
+
+      // 未编码的历史布局只使用安全的 basename，不让旧输入重新成为路径结构。
+      addLegacy(
+        _buildLegacyFilePath(
+          root,
+          cartoonSegment: cartoonId,
+          chapterSegment: legacyChapterId,
+          fileName: normalizedPath,
+        ),
+      );
+    }
+
     return result;
   }
 
-  Future<DownloadAssetCandidate?> findExisting() async {
-    for (final candidate in await candidates()) {
+  Future<DownloadAssetCandidate?> findExistingDownload() async {
+    return await findCanonicalDownload() ?? await findLegacyDownload();
+  }
+
+  Future<DownloadAssetCandidate?> findCanonicalDownload() async {
+    return _findExisting([await canonicalDownloadCandidate()]);
+  }
+
+  Future<DownloadAssetCandidate?> findLegacyDownload() async {
+    return _findExisting(
+      (await downloadCandidates())
+          .where(
+            (candidate) =>
+                candidate.location == DownloadAssetLocation.legacyDownload,
+          )
+          .toList(),
+    );
+  }
+
+  Future<DownloadAssetCandidate?> _findExisting(
+    List<DownloadAssetCandidate> candidates,
+  ) async {
+    for (final candidate in candidates) {
       final file = File(candidate.path);
       try {
         if (await file.exists() && await file.length() > 0) {
@@ -133,20 +161,81 @@ class DownloadAssetStore {
     return null;
   }
 
+  /// 读取缓存时只检查新缓存布局，不兼容旧缓存布局。
+  Future<DownloadAssetCandidate?> findCanonicalCache() async {
+    final candidate = await canonicalCacheCandidate();
+    final file = File(candidate.path);
+    try {
+      if (await file.exists() && await file.length() > 0) return candidate;
+    } catch (_) {}
+    return null;
+  }
+
+  /// 读取本地图片时，先查下载目录，再查新缓存目录。
+  Future<DownloadAssetCandidate?> findExisting() async {
+    return await findExistingDownload() ?? await findCanonicalCache();
+  }
+
+  /// 将旧下载文件迁移到新布局；删除源文件必须发生在目标文件确认完成之后。
+  Future<String> migrateDownload(DownloadAssetCandidate candidate) async {
+    if (candidate.location == DownloadAssetLocation.canonicalDownload) {
+      return candidate.path;
+    }
+
+    final target = await canonicalDownloadPath();
+    await copyFileAtomically(sourcePath: candidate.path, finalPath: target);
+    final targetFile = File(target);
+    if (!await targetFile.exists() || await targetFile.length() <= 0) {
+      throw StateError('旧下载迁移后目标文件不存在或为空: $target');
+    }
+    if (candidate.path != target) {
+      await File(candidate.path).delete();
+    }
+    return target;
+  }
+
   Future<String> canonicalDownloadPath() async {
-    final candidate = (await candidates()).firstWhere(
-      (item) => item.location == DownloadAssetLocation.canonicalDownload,
-      orElse: () => throw StateError('无法生成编码下载路径'),
-    );
-    return candidate.path;
+    return (await canonicalDownloadCandidate()).path;
   }
 
   Future<String> canonicalCachePath() async {
-    final candidate = (await candidates()).firstWhere(
-      (item) => item.location == DownloadAssetLocation.canonicalCache,
-      orElse: () => throw StateError('无法生成编码缓存路径'),
+    return (await canonicalCacheCandidate()).path;
+  }
+
+  DownloadAssetCandidate _canonicalCandidate(
+    String root,
+    DownloadAssetLocation location,
+  ) {
+    final segments = <String>[
+      root,
+      encodePath(path: from),
+      encodePath(path: cartoonId),
+      encodePath(path: effectiveChapterId),
+      encodePath(path: normalizeStoredAssetPath(path)),
+    ];
+    final candidate = file_path.joinAll(segments);
+    if (!isWithinRoot(root, candidate)) {
+      throw StateError('生成的资产路径越出根目录: $candidate');
+    }
+    return DownloadAssetCandidate(path: candidate, location: location);
+  }
+
+  String _buildLegacyFilePath(
+    String root, {
+    String? encodedCartoon,
+    String? encodedChapter,
+    String? cartoonSegment,
+    String? chapterSegment,
+    required String fileName,
+  }) {
+    return _buildStoredFilePath(
+      root,
+      from,
+      fileName,
+      encodedCartoon ?? cartoonSegment ?? '',
+      isCover ? '' : (encodedChapter ?? chapterSegment ?? ''),
+      rootFolder: 'original',
     );
-    return candidate.path;
   }
 
   /// 将字节先写入临时文件，再提交到最终路径。

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -16,6 +15,7 @@ import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/service/download/download_cancel_signal.dart';
+import 'package:zephyr/service/download/download_asset_store.dart';
 import 'package:zephyr/service/download/download_progress_reporter.dart';
 import 'package:zephyr/service/download/download_retry.dart';
 import 'package:zephyr/service/download/download_task_progress.dart';
@@ -183,31 +183,12 @@ Future<void> unifiedDownloadTask(
       }
     });
 
-    final completedChapterKeys = _restoreCompletedChapterKeys(
-      from: from,
-      comicId: comicId,
-      selectedChapters: selectedChapters,
-      checkpointKeys: currentPayload().completedChapterKeys,
-    );
-    final checkpointPayload = currentPayload();
-    final checkpointKeys = checkpointPayload.completedChapterKeys.toSet();
-    final checkpointChanged =
-        completedChapterKeys.length != checkpointKeys.length ||
-        !completedChapterKeys.containsAll(checkpointKeys);
-    if (checkpointChanged) {
-      updateCheckpoint(
-        (payload) => payload.copyWith(
-          completedChapterKeys: completedChapterKeys.toList(),
-          completedChapterCount: completedChapterKeys.length,
-          currentChapterKey: '',
-          currentChapterCompletedImages: 0,
-          currentChapterReusedImages: 0,
-          currentChapterFailedImages: 0,
-          currentChapterTotalImages: 0,
-        ),
-      );
+    // 章节完成状态只由当前 DownloadTask 的 checkpoint 维护。
+    // UnifiedComicDownload 是本地下载元数据，不能反向决定当前任务的进度。
+    final completedChapterKeys = currentPayload().completedChapterKeys.toSet();
+    if (completedChapterKeys.isNotEmpty) {
       logger.i(
-        '恢复下载 checkpoint: taskKey=$taskKey, '
+        '从任务 checkpoint 恢复已完成章节: taskKey=$taskKey, '
         '已完成章节=${completedChapterKeys.length}/${selectedChapters.length}',
       );
     }
@@ -424,40 +405,6 @@ String _chapterCheckpointKey(DownloadChapter chapter) {
   final id = chapter.id.trim();
   if (id.isNotEmpty) return id;
   return chapter.effectiveRequestId.trim();
-}
-
-Set<String> _restoreCompletedChapterKeys({
-  required String from,
-  required String comicId,
-  required List<DownloadChapter> selectedChapters,
-  required List<String> checkpointKeys,
-}) {
-  final completedKeys = <String>{...checkpointKeys};
-  final query = objectbox.unifiedDownloadBox
-      .query(
-        UnifiedComicDownload_.uniqueKey.equals(
-          buildDownloadTaskKey(from, comicId),
-        ),
-      )
-      .build();
-
-  UnifiedComicDownload? existing;
-  try {
-    existing = query.findFirst();
-  } finally {
-    query.close();
-  }
-  if (existing == null) return completedKeys;
-
-  final storedChapters = resolveStoredDownloadChapters(existing);
-  for (final selectedChapter in selectedChapters) {
-    if (storedChapters.any(
-      (storedChapter) => _storedChapterMatches(storedChapter, selectedChapter),
-    )) {
-      completedKeys.add(_chapterCheckpointKey(selectedChapter));
-    }
-  }
-  return completedKeys;
 }
 
 String _resolveChapterRequestId(DownloadChapter chapter) {

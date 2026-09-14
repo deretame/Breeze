@@ -231,9 +231,22 @@ class DownloadQueueManager {
 
       logger.d("任务 ${task.comicName} 完成");
 
-      dbTask.isCompleted = true;
-      dbTask.isDownloading = false;
-      objectbox.downloadTaskBox.put(dbTask);
+      // unifiedDownloadTask 会持续更新 taskInfo。这里必须重新读取实体，
+      // 不能把进入队列时保存的旧 dbTask 再写回去，否则可能覆盖掉最新的
+      // completedChapterKeys / stateCode，并让恢复逻辑误判为旧任务。
+      final completedDbTask = _taskRepository.findByTaskKey(taskKey);
+      if (completedDbTask != null) {
+        final completedPayload =
+            _taskRepository.readPayload(completedDbTask) ?? task;
+        completedDbTask
+          ..isCompleted = true
+          ..isDownloading = false
+          ..taskInfo = completedPayload.copyWith(
+            stateCode: 'completed',
+            phaseCode: 'completed',
+          );
+        objectbox.downloadTaskBox.put(completedDbTask);
+      }
 
       _progressController.add(
         DownloadProgress(

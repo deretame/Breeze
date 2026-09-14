@@ -718,7 +718,8 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
 
   bool get _isFavoriteMode => widget.mode == ShelfPageMode.favorite;
   bool get _isDownloadMode => widget.mode == ShelfPageMode.download;
-  bool get _showFolderSection => _isFavoriteMode || _isDownloadMode;
+  // 文件夹筛选入口已废弃，保留底层文件夹逻辑供其他入口继续使用。
+  bool get _showFolderSection => false;
 
   @override
   void initState() {

@@ -4,6 +4,7 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:ui' show AppExitResponse;
 
+import 'package:auto_route/auto_route.dart';
 import 'package:desktop_webview_linux/desktop_webview_linux.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -768,7 +769,9 @@ class _MyAppState extends State<MyApp>
               }
 
               return MaterialApp.router(
-                routerConfig: appRouter.config(),
+                routerConfig: appRouter.config(
+                  navigatorObservers: () => [AutoRouteObserver()],
+                ),
                 scrollBehavior: const AppScrollBehavior(),
                 builder: (context, child) {
                   Widget content = Actions(

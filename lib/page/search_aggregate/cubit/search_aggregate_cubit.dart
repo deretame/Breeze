@@ -63,6 +63,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
 
   Future<void> search() async {
     if (isClosed) return;
+    final searchEvent = baseEvent;
     final int searchVersion = ++_searchVersion;
     final selected = state.selectedSources.entries
         .where((entry) => entry.value)
@@ -96,7 +97,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
     await Future.wait(
       selected.map((pluginId) async {
         try {
-          final result = await _searchSingleSource(pluginId);
+          final result = await _searchSingleSource(pluginId, searchEvent);
           if (!_isSearchActive(searchVersion)) {
             return;
           }
@@ -152,7 +153,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
     final nextResults = Map<String, List<dynamic>>.from(state.results);
     final nextErrors = Map<String, String>.from(state.errors);
     try {
-      nextResults[pluginId] = await _searchSingleSource(pluginId);
+      nextResults[pluginId] = await _searchSingleSource(pluginId, baseEvent);
       nextErrors.remove(pluginId);
     } catch (error) {
       nextResults[pluginId] = const <dynamic>[];
@@ -171,10 +172,13 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
     );
   }
 
-  Future<List<dynamic>> _searchSingleSource(String pluginId) async {
-    final event = baseEvent.copyWith(
+  Future<List<dynamic>> _searchSingleSource(
+    String pluginId,
+    SearchEvent searchEvent,
+  ) async {
+    final event = searchEvent.copyWith(
       page: 1,
-      searchStates: baseEvent.searchStates.copyWith(from: pluginId),
+      searchStates: searchEvent.searchStates.copyWith(from: pluginId),
     );
     final result = await getPluginSearchResult(event, BlocState());
     final comics = result.comics.map((e) => e.comic).toList();

@@ -2,10 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -36,53 +37,14 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
               onPressed: () => context.maybePop(),
             ),
 
-            // 中间伪装的搜索框 (点击返回上一页)
+            // 中间的紧凑搜索入口，点击后在原位置展开完整输入框
             Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  final stack = context.router.stack;
-
-                  if (stack.length > 1) {
-                    final previousRoute = stack[stack.length - 2];
-                    if (previousRoute.name == SearchRoute.name) {
-                      context.maybePop();
-                    } else {
-                      context.replaceRoute(
-                        SearchRoute(
-                          key: ValueKey(const Uuid().v4()),
-                          searchState: searchEvent.searchStates,
-                          aggregateMode: false,
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      Icon(Icons.search, color: colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          searchEvent.searchStates.searchKeyword,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
-                  ),
+              child: BlocBuilder<SearchCubit, SearchStates>(
+                builder: (context, state) => SearchQueryField(
+                  query: state.searchKeyword,
+                  hintText: t.search.searchHint,
+                  semanticLabel: t.search.title,
+                  onTap: () => _openSearchPage(context),
                 ),
               ),
             ),
@@ -107,6 +69,27 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
           thickness: 1,
           color: colorScheme.outlineVariant.withValues(alpha: 0.5), // 淡淡的分割线
         ),
+      ),
+    );
+  }
+
+  void _openSearchPage(BuildContext context) {
+    final stack = context.router.stack;
+    if (stack.length <= 1) {
+      return;
+    }
+
+    final previousRoute = stack[stack.length - 2];
+    if (previousRoute.name == SearchRoute.name) {
+      context.maybePop();
+      return;
+    }
+
+    context.replaceRoute(
+      SearchRoute(
+        key: ValueKey(const Uuid().v4()),
+        searchState: context.read<SearchCubit>().state,
+        aggregateMode: false,
       ),
     );
   }

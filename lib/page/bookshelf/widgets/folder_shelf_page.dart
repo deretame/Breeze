@@ -144,8 +144,10 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           },
           child: Column(
             children: [
-              _buildHeader(context),
-              const Divider(height: 1),
+              if (!state.selectionMode) ...[
+                _buildHeader(context),
+                const Divider(height: 1),
+              ],
               Expanded(child: _buildBody(context)),
             ],
           ),
@@ -162,9 +164,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: SafeArea(
             bottom: false,
-            child: state.selectionMode
-                ? _buildSelectionHeader(context, state)
-                : _buildNormalHeader(context, state),
+            child: _buildNormalHeader(context, state),
           ),
         );
       },
@@ -253,83 +253,6 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSelectionHeader(BuildContext context, FolderShelfState state) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.read<FolderShelfBloc>().add(
-            const FolderShelfExitSelectionMode(),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            t.bookshelf.selectedCount(count: state.selectedCount),
-            style: Theme.of(context).textTheme.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        Flexible(
-          child: _SelectionActionStrip(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.select_all),
-                tooltip: t.common.selectAll,
-                onPressed: () => context.read<FolderShelfBloc>().add(
-                  const FolderShelfSelectAll(),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.drive_file_move_outline),
-                tooltip: t.bookshelf.moveTo,
-                onPressed: state.hasSelection
-                    ? () => _showTargetFolderDialog(
-                        context,
-                        onConfirmed: (targets) {
-                          context.read<FolderShelfBloc>().add(
-                            FolderShelfMoveSelected(targets),
-                          );
-                        },
-                      )
-                    : null,
-              ),
-              IconButton(
-                icon: const Icon(Icons.folder_copy_outlined),
-                tooltip: t.bookshelf.copyTo,
-                onPressed: state.hasSelection
-                    ? () => _showTargetFolderDialog(
-                        context,
-                        onConfirmed: (targets) {
-                          context.read<FolderShelfBloc>().add(
-                            FolderShelfCopySelected(targets),
-                          );
-                        },
-                      )
-                    : null,
-              ),
-              if (state.mode == ShelfPageMode.download)
-                IconButton(
-                  icon: const Icon(Icons.file_upload_outlined),
-                  tooltip: t.bookshelf.batchExport,
-                  onPressed: state.hasSelection
-                      ? () => _batchExportSelected(context, state)
-                      : null,
-                ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: t.common.delete,
-                onPressed: state.hasSelection
-                    ? () => _confirmDeleteSelected(context)
-                    : null,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -483,12 +406,125 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                       right: 0,
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
+                  _buildSelectionBar(context, state),
                 ],
               ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildSelectionBar(BuildContext context, FolderShelfState state) {
+    return Positioned(
+      bottom: 8,
+      left: 8,
+      right: 8,
+      child: IgnorePointer(
+        ignoring: !state.selectionMode,
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          offset: state.selectionMode ? Offset.zero : const Offset(0, 1.0),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 160),
+            opacity: state.selectionMode ? 1 : 0,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  elevation: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 6,
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.common.cancel,
+                            onPressed: () => context
+                                .read<FolderShelfBloc>()
+                                .add(const FolderShelfExitSelectionMode()),
+                            icon: const Icon(Icons.close),
+                          ),
+                          Text(
+                            t.bookshelf.selectedCount(
+                              count: state.selectedCount,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () => context
+                                .read<FolderShelfBloc>()
+                                .add(const FolderShelfSelectAll()),
+                            child: Text(t.common.selectAll),
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.bookshelf.moveTo,
+                            onPressed: state.hasSelection
+                                ? () => _showTargetFolderDialog(
+                                    context,
+                                    onConfirmed: (targets) {
+                                      context.read<FolderShelfBloc>().add(
+                                        FolderShelfMoveSelected(targets),
+                                      );
+                                    },
+                                  )
+                                : null,
+                            icon: const Icon(Icons.drive_file_move_outline),
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.bookshelf.copyTo,
+                            onPressed: state.hasSelection
+                                ? () => _showTargetFolderDialog(
+                                    context,
+                                    onConfirmed: (targets) {
+                                      context.read<FolderShelfBloc>().add(
+                                        FolderShelfCopySelected(targets),
+                                      );
+                                    },
+                                  )
+                                : null,
+                            icon: const Icon(Icons.folder_copy_outlined),
+                          ),
+                          if (state.mode == ShelfPageMode.download)
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              tooltip: t.bookshelf.batchExport,
+                              onPressed: state.hasSelection
+                                  ? () => _batchExportSelected(context, state)
+                                  : null,
+                              icon: const Icon(Icons.file_upload_outlined),
+                            ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.common.delete,
+                            onPressed: state.hasSelection
+                                ? () => _confirmDeleteSelected(context)
+                                : null,
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -754,82 +790,6 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       );
       context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
     }
-  }
-}
-
-class _SelectionActionStrip extends StatefulWidget {
-  const _SelectionActionStrip({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  State<_SelectionActionStrip> createState() => _SelectionActionStripState();
-}
-
-class _SelectionActionStripState extends State<_SelectionActionStrip> {
-  static const _scrollHintWidth = 32.0;
-
-  final _scrollController = ScrollController();
-  bool _hasOverflow = false;
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scheduleOverflowCheck() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
-      final hasOverflow = _scrollController.position.maxScrollExtent > 0.5;
-      if (hasOverflow != _hasOverflow) {
-        setState(() => _hasOverflow = hasOverflow);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _scheduleOverflowCheck();
-    final surface = Theme.of(context).colorScheme.surface;
-
-    return Stack(
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: _hasOverflow ? _scrollHintWidth : 0),
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            scrollDirection: Axis.horizontal,
-            reverse: true,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: widget.children,
-            ),
-          ),
-        ),
-        if (_hasOverflow)
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: IgnorePointer(
-              child: SizedBox(
-                width: _scrollHintWidth,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [surface, surface.withValues(alpha: 0)],
-                    ),
-                  ),
-                  child: const Center(child: Icon(Icons.swipe_left, size: 20)),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
   }
 }
 

@@ -470,19 +470,14 @@ class _MetaPill extends StatelessWidget {
           ),
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: context.theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              height: 1.15,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        softWrap: true,
+        style: context.theme.textTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          height: 1.15,
+        ),
       ),
     );
 

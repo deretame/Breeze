@@ -114,6 +114,8 @@ Future<void> unifiedDownloadTask(
   final chapter = adapter.fromTaskRef(task.chapterRef);
   // 上次尝试已落盘的图片路径：恢复时会快速复用，取消时需要一并清理。
   final completedPaths = <String>{...currentPayload().imagePaths};
+  // 真 404 而跳过的图片路径：落库时打标记，不计失败。
+  final skippedPaths = <String>{};
 
   Future<void> deleteChapterFiles() async {
     await DownloadAssetStore.deleteDownloadedFiles(
@@ -313,41 +315,44 @@ Future<void> unifiedDownloadTask(
         shouldRetryUntilSuccess: shouldRetryUntilSuccess,
         reporter: reporter,
         concurrency: 5,
-        onProgress: (completed, downloaded, reused, completedJob) async {
-          if (completedJob.path.trim().isNotEmpty) {
-            completedPaths.add(completedJob.path);
-          }
-          final currentPercent = jobs.isEmpty
-              ? 100
-              : (completed / jobs.length * 100).floor();
-          if (currentPercent > lastReportedPercent ||
-              completed == jobs.length) {
-            lastReportedPercent = currentPercent;
-            final message = t.download.statusDownloadProgress(
-              percent: currentPercent,
-            );
-            // 进度只走内存 + 通知流，不写库（1s Timer 负责同步 status）。
-            // 之前这里每张图写库，主线程约 13ms，是卡顿主因。
-            reporter.updateMessage(message);
-          }
+        onProgress:
+            (completed, downloaded, reused, completedJob, jobSkipped) async {
+              if (completedJob.path.trim().isNotEmpty) {
+                completedPaths.add(completedJob.path);
+                // 真 404 的图记下来，落库时打跳过标记（不再按失败处理）。
+                if (jobSkipped) skippedPaths.add(completedJob.path);
+              }
+              final currentPercent = jobs.isEmpty
+                  ? 100
+                  : (completed / jobs.length * 100).floor();
+              if (currentPercent > lastReportedPercent ||
+                  completed == jobs.length) {
+                lastReportedPercent = currentPercent;
+                final message = t.download.statusDownloadProgress(
+                  percent: currentPercent,
+                );
+                // 进度只走内存 + 通知流，不写库（1s Timer 负责同步 status）。
+                // 之前这里每张图写库，主线程约 13ms，是卡顿主因。
+                reporter.updateMessage(message);
+              }
 
-          final now = DateTime.now();
-          final shouldPersist =
-              completed == jobs.length ||
-              completed - lastPersistedImages >= 5 ||
-              now.difference(lastPersistedAt) >= const Duration(seconds: 1);
-          if (!shouldPersist) return;
-          lastPersistedImages = completed;
-          lastPersistedAt = now;
-          updateCheckpoint(
-            (payload) => payload.copyWith(
-              completedImages: completed,
-              reusedImages: reused,
-              totalImages: jobs.length,
-              imagePaths: completedPaths.toList(),
-            ),
-          );
-        },
+              final now = DateTime.now();
+              final shouldPersist =
+                  completed == jobs.length ||
+                  completed - lastPersistedImages >= 5 ||
+                  now.difference(lastPersistedAt) >= const Duration(seconds: 1);
+              if (!shouldPersist) return;
+              lastPersistedImages = completed;
+              lastPersistedAt = now;
+              updateCheckpoint(
+                (payload) => payload.copyWith(
+                  completedImages: completed,
+                  reusedImages: reused,
+                  totalImages: jobs.length,
+                  imagePaths: completedPaths.toList(),
+                ),
+              );
+            },
       );
     } on DownloadTaskCancelledException {
       // 取消本章：删掉已下的散图后继续向上抛，队列会删任务记录并继续下一章。
@@ -365,6 +370,7 @@ Future<void> unifiedDownloadTask(
       selectedChapter: chapter,
       chapterResponse: response,
       onlineCatalog: onlineCatalog,
+      skippedPaths: skippedPaths,
     );
 
     updateCheckpoint(
@@ -413,6 +419,7 @@ Future<void> _saveUnifiedDownloadChapter({
   required DownloadChapter selectedChapter,
   required UnifiedPluginChapterResponse chapterResponse,
   List<Map<String, dynamic>>? onlineCatalog,
+  Set<String> skippedPaths = const {},
 }) async {
   final now = DateTime.now().toUtc();
   final key = buildDownloadTaskKey(from, comicId);
@@ -446,6 +453,7 @@ Future<void> _saveUnifiedDownloadChapter({
     'comicId': comicId,
     'mainVersion': mainVersion,
     'onlineCatalog': onlineCatalog,
+    'skippedPaths': skippedPaths.toList(),
   };
   final built = await workerManager.execute<Map<String, dynamic>>(
     () => _buildDownloadRecordJson(buildArgs),
@@ -547,7 +555,14 @@ Map<String, dynamic> _buildDownloadRecordJson(Map<String, dynamic> args) {
           chaptersJson: existingRaw['chapters'] as String,
           detailJson: existingRaw['detailJson'] as String,
         ).toList();
-  final storedChapter = _buildStoredChapter(selected, response);
+  final skippedPaths = ((args['skippedPaths'] as List?) ?? const [])
+      .map((e) => normalizeStoredAssetPath(e.toString()))
+      .toSet();
+  final storedChapter = _buildStoredChapter(
+    selected,
+    response,
+    skippedPaths: skippedPaths,
+  );
   final existingIndex = storedChapters.indexWhere(
     (item) => _storedChapterMatches(item, selected),
   );
@@ -714,8 +729,9 @@ String _bumpLinkVersionVector(String raw, String deviceId) {
 
 UnifiedComicDownloadStoredChapter _buildStoredChapter(
   DownloadChapter selectedChapter,
-  UnifiedPluginChapterResponse response,
-) {
+  UnifiedPluginChapterResponse response, {
+  Set<String> skippedPaths = const {},
+}) {
   // 注意：此函数会在后台 isolate 里运行，不要在这里打 logger/碰 IO。
   return UnifiedComicDownloadStoredChapter(
     // `id` 字段保持为本地存储 key，旧版本读取时仍按 storage key 理解。
@@ -732,6 +748,8 @@ UnifiedComicDownloadStoredChapter _buildStoredChapter(
     images: response.chapter.docs.map((doc) {
       final imageName = _resolveImageDisplayName(doc);
       final imagePath = normalizeStoredAssetPath(doc.path);
+      // 真 404 而跳过的图打标记：阅读器显示缺图占位，导出不再补下。
+      final skipped = skippedPaths.contains(imagePath);
       return UnifiedComicDownloadImage(
         id: doc.id.isNotEmpty
             ? doc.id
@@ -739,7 +757,7 @@ UnifiedComicDownloadStoredChapter _buildStoredChapter(
         name: imageName,
         path: imagePath,
         url: doc.url,
-        extern: doc.extern,
+        extern: skipped ? {...doc.extern, 'downloadSkipped': true} : doc.extern,
       );
     }).toList(),
   );

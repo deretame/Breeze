@@ -440,6 +440,8 @@ Future<List<File>> _resolveChapterFiles({
   required List<DownloadImage> images,
 }) async {
   final futures = images.map((image) async {
+    // 下载时已确认 404 的图：没有文件，也不再补下，直接跳过。
+    if (image.extern['downloadSkipped'] == true) return null;
     for (var attempt = 0; attempt < 3; attempt++) {
       try {
         final downloadedPath = await downloadPicture(

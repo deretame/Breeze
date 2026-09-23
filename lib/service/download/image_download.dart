@@ -63,11 +63,15 @@ class DownloadImageJobsResult {
     required this.completed,
     required this.downloaded,
     required this.reused,
+    required this.skipped,
   });
 
   final int completed;
   final int downloaded;
   final int reused;
+
+  /// 真 404 / 空数据而跳过的图片数（不计入失败，不阻塞完成）。
+  final int skipped;
 }
 
 Future<String> downloadCoverAsset({
@@ -107,6 +111,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
     int downloaded,
     int reused,
     DownloadImageJob completedJob,
+    bool jobSkipped,
   )?
   onProgress,
 }) async {
@@ -122,6 +127,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
       completed: 0,
       downloaded: 0,
       reused: 0,
+      skipped: 0,
     );
   }
 
@@ -130,6 +136,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
   var progress = 0;
   var downloaded = 0;
   var reused = 0;
+  var skipped = 0;
   var lastReportedPercent = 0;
   var nextIndex = 0;
   Object? firstError;
@@ -151,24 +158,43 @@ Future<DownloadImageJobsResult> downloadImageJobs({
         if (currentJob == null) {
           return;
         }
-        final result = await _downloadSingleJob(
-          from: from,
-          job: currentJob,
-          qjsRuntimeName: qjsRuntimeName,
-          qjsTaskGroupKey: qjsTaskGroupKey,
-          ensureTaskRunning: ensureTaskRunning,
-          shouldRetryUntilSuccess: shouldRetryUntilSuccess,
-          onError: onError,
-          pictureType: PictureType.page,
-        );
-        progress++;
-        if (result.status == DownloadPictureResultStatus.existing) {
-          reused++;
-        } else {
-          downloaded++;
+        var jobSkipped = false;
+        try {
+          final result = await _downloadSingleJob(
+            from: from,
+            job: currentJob,
+            qjsRuntimeName: qjsRuntimeName,
+            qjsTaskGroupKey: qjsTaskGroupKey,
+            ensureTaskRunning: ensureTaskRunning,
+            shouldRetryUntilSuccess: shouldRetryUntilSuccess,
+            onError: onError,
+            pictureType: PictureType.page,
+          );
+          progress++;
+          if (result.status == DownloadPictureResultStatus.existing) {
+            reused++;
+          } else {
+            downloaded++;
+          }
+        } on DownloadImageJobException catch (e) {
+          // 真 404 / 空数据：记跳过，不失败整章。
+          if (e.result.status == DownloadPictureResultStatus.notFound ||
+              e.result.status == DownloadPictureResultStatus.emptyData) {
+            progress++;
+            skipped++;
+            jobSkipped = true;
+          } else {
+            rethrow;
+          }
         }
         if (onProgress != null) {
-          await onProgress(progress, downloaded, reused, currentJob);
+          await onProgress(
+            progress,
+            downloaded,
+            reused,
+            currentJob,
+            jobSkipped,
+          );
         }
         final currentPercent = (progress / jobs.length * 100).floor();
         if (onProgress == null && currentPercent > lastReportedPercent) {
@@ -195,6 +221,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
     completed: progress,
     downloaded: downloaded,
     reused: reused,
+    skipped: skipped,
   );
 }
 

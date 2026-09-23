@@ -162,17 +162,31 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
 
   if (comicInfo is UnifiedComicDownload) {
     return _decodeListOfMaps(comicInfo.chapters).map((ep) {
+      // id 优先取 logicalKey（与 DownloadChapterAdapter.fromStoredMap 对齐）：
+      // 新数据里 ep['id'] 是本地存储 key，可能被多章节共享（如 EH 的 "Gallery"），
+      // 不能直接当身份 key。
+      final rawLogicalKey = ep['logicalKey']?.toString().trim() ?? '';
+      final rawId = ep['id']?.toString().trim() ?? '';
+      final rawTaskChapterId = ep['taskChapterId']?.toString().trim() ?? '';
+      final rawRequestId = ep['requestId']?.toString().trim() ?? '';
+      final resolvedId =
+          _firstNonEmpty([
+            rawLogicalKey,
+            rawId,
+            rawTaskChapterId,
+            rawRequestId,
+          ]) ??
+          _toInt(ep['order'], 0).toString();
       final storageChapterId =
           ep['storageChapterId']?.toString().trim() ??
-          ep['id']?.toString().trim() ??
-          '';
+          (rawId.isNotEmpty ? rawId : '');
       return UnifiedComicChapterRef(
-        id: ep['id']?.toString() ?? '',
+        id: resolvedId,
         name: ep['name']?.toString() ?? '',
         order: _toInt(ep['order'], 0),
-        requestId: ep['taskChapterId']?.toString() ?? '',
+        requestId: rawRequestId.isNotEmpty ? rawRequestId : rawTaskChapterId,
         storageChapterId: storageChapterId,
-        logicalKey: ep['logicalKey']?.toString() ?? '',
+        logicalKey: rawLogicalKey,
         extern: asJsonMap(ep['extern']),
       );
     }).toList();
@@ -201,4 +215,11 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
 
 int _toInt(Object? value, int fallback) {
   return int.tryParse(value?.toString() ?? '') ?? fallback;
+}
+
+String? _firstNonEmpty(List<String> values) {
+  for (final value in values) {
+    if (value.isNotEmpty) return value;
+  }
+  return null;
 }

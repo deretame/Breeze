@@ -622,20 +622,27 @@ bool _storedChapterMatches(
   UnifiedComicDownloadStoredChapter stored,
   DownloadChapter selected,
 ) {
-  final storedKeys = <String>{
-    stored.id.trim(),
+  // 身份只认 logical / request 系 key。storage 系（stored.id /
+  // storageChapterId / effectiveStorageId）只是落盘目录 hint，可能被多个
+  // 章节共享（如 EH 插件所有分块共用 "Gallery"），绝不能作为判同依据。
+  final storedIdentity = <String>{
     stored.logicalKey.trim(),
     stored.taskChapterId.trim(),
-    stored.storageChapterId.trim(),
   }..remove('');
-  final selectedKeys = <String>{
+  if (storedIdentity.isEmpty && stored.storageChapterId.trim().isEmpty) {
+    // 纯老数据：没有任何插件化字段时，id 才是匹配 key。
+    final legacyId = stored.id.trim();
+    if (legacyId.isNotEmpty) storedIdentity.add(legacyId);
+  }
+  final selectedIdentity = <String>{
     selected.id.trim(),
     selected.effectiveRequestId.trim(),
-    selected.effectiveStorageId.trim(),
   }..remove('');
-  if (storedKeys.intersection(selectedKeys).isNotEmpty) return true;
-  return stored.order > 0 &&
-      selected.order > 0 &&
+  if (storedIdentity.intersection(selectedIdentity).isNotEmpty) return true;
+  // order 不再单独作为判同依据；双方都没有身份 key 时才用它兜底。
+  return storedIdentity.isEmpty &&
+      selectedIdentity.isEmpty &&
+      stored.order > 0 &&
       stored.order == selected.order;
 }
 

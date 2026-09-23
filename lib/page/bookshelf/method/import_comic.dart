@@ -9,6 +9,7 @@ import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/service/download/download_asset_store.dart';
 import 'package:zephyr/src/rust/api/data_backup.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
@@ -391,10 +392,12 @@ Future<void> _importChapters({
 
   final count = processedChapters.length;
   for (var i = 0; i < count; i++) {
-    final originalChapter = i < originalChapters.length
-        ? originalChapters[i]
-        : const <String, dynamic>{};
     final processedChapter = processedChapters[i];
+    final originalChapter = _matchOriginalChapter(
+      originalChapters,
+      processedChapter,
+      i,
+    );
     final processedEp = i < processedEps.length
         ? processedEps[i]
         : const <String, dynamic>{};
@@ -470,10 +473,12 @@ List<Map<String, dynamic>> _buildChapters({
 
   final count = processedChapters.length;
   for (var i = 0; i < count; i++) {
-    final originalChapter = i < originalChapters.length
-        ? originalChapters[i]
-        : const <String, dynamic>{};
     final processedChapter = processedChapters[i];
+    final originalChapter = _matchOriginalChapter(
+      originalChapters,
+      processedChapter,
+      i,
+    );
 
     final storageKey = _chapterStorageKey(originalChapter);
     final originalImages = _readImages(originalChapter);
@@ -531,10 +536,8 @@ Map<String, dynamic> _buildDetailJson({
   final processedEps = _readEps(processedJson);
   final newEps = <Map<String, dynamic>>[];
   for (var i = 0; i < processedEps.length; i++) {
-    final originalEp = i < originalEps.length
-        ? originalEps[i]
-        : const <String, dynamic>{};
     final processedEp = processedEps[i];
+    final originalEp = _matchOriginalChapter(originalEps, processedEp, i);
     newEps.add({
       ...originalEp,
       'name':
@@ -555,10 +558,12 @@ Map<String, dynamic> _buildDetailJson({
   final newDownloadChapters = <Map<String, dynamic>>[];
 
   for (var i = 0; i < processedDownloadChapters.length; i++) {
-    final originalChapter = i < originalDownloadChapters.length
-        ? originalDownloadChapters[i]
-        : const <String, dynamic>{};
     final processedChapter = processedDownloadChapters[i];
+    final originalChapter = _matchOriginalChapter(
+      originalDownloadChapters,
+      processedChapter,
+      i,
+    );
 
     final originalImages = _readImages(originalChapter);
     final processedImages = _readImages(processedChapter);
@@ -602,6 +607,21 @@ Map<String, dynamic> _buildDetailJson({
   detail['extern'] = originalExtern;
 
   return detail;
+}
+
+/// 按身份配对原始章节与处理后章节，对不上回退下标。
+///
+/// 导出包被手动增删章节时下标会错位，按身份能对准；野包无身份 key 时
+/// 自动退化为下标配对，与旧行为一致。
+Map<String, dynamic> _matchOriginalChapter(
+  List<Map<String, dynamic>> originals,
+  Map<String, dynamic> processed,
+  int index,
+) {
+  final matched = matchDownloadChapterIndex(originals, processed);
+  if (matched >= 0) return originals[matched];
+  if (index >= 0 && index < originals.length) return originals[index];
+  return const <String, dynamic>{};
 }
 
 String _chapterStorageKey(Map<String, dynamic> chapter) {
@@ -750,17 +770,18 @@ Future<List<Map<String, dynamic>>> _scanDirectoryChapters(
     ];
   }
 
-  return chapterDirs
-      .asMap()
-      .entries
-      .map(
-        (e) => {
-          'name': p.basename(e.value.path),
-          'order': e.key + 1,
-          'images': <Map<String, dynamic>>[],
-        },
-      )
-      .toList();
+  return chapterDirs.asMap().entries.map((e) {
+    // 裸包没有身份信息，用文件夹名同时充当存储 key 与匹配 key，
+    // 避免多章节落到同一目录互覆盖，也避免与在线目录永远对不上。
+    final folderName = p.basename(e.value.path);
+    return {
+      'name': folderName,
+      'order': e.key + 1,
+      'storageChapterId': folderName,
+      'logicalKey': folderName,
+      'images': <Map<String, dynamic>>[],
+    };
+  }).toList();
 }
 
 /// 扫描 [dir] 中的图片文件，返回按文件名排序的图片元数据列表。

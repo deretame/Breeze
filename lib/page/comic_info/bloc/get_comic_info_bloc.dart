@@ -101,33 +101,16 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
   }
 
   /// 按目录快照顺序排列本地 eps，快照里没有的缀在最后（保持原相对顺序）。
-  ///
-  /// 只比身份（logical / request），不碰 order。
   List<normal.Ep> _sortEpsByCatalog(
     List<normal.Ep> localEps,
     List<DownloadChapter> catalog,
   ) {
     if (localEps.isEmpty || catalog.isEmpty) return localEps;
     const adapter = DownloadChapterAdapter();
-    final remaining = List<normal.Ep>.from(localEps);
-    final ordered = <normal.Ep>[];
-    for (final entry in catalog) {
-      final index = remaining.indexWhere(
-        (ep) => downloadChapterIdentityMatches(adapter.fromEp(ep), entry),
-      );
-      if (index >= 0) ordered.add(remaining.removeAt(index));
-    }
-    if (ordered.length == localEps.length) {
-      var same = true;
-      for (var i = 0; i < ordered.length; i++) {
-        if (!identical(ordered[i], localEps[i])) {
-          same = false;
-          break;
-        }
-      }
-      if (same) return localEps;
-    }
-    return ordered..addAll(remaining);
+    final chapters = localEps.map(adapter.fromEp).toList();
+    final sorted = sortDownloadChaptersByCatalog(chapters, catalog);
+    if (identical(sorted, chapters)) return localEps;
+    return sorted.map((c) => localEps[chapters.indexOf(c)]).toList();
   }
 
   normal.NormalComicAllInfo _localizeDownloadDetail(

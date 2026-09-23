@@ -377,9 +377,11 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
   UnifiedComicDownload download, {
   required int maxChapterFolderLength,
 }) async {
-  final chapters = resolveDownloadChapters(download);
-  // Keep persisted chapter order exactly as stored.
-  // Do not reorder by name/order here, otherwise exported page sequence may drift.
+  // 导出顺序与详情页显示一致：按目录快照排，快照缺失保持存储顺序。
+  final chapters = sortDownloadChaptersByCatalog(
+    resolveDownloadChapters(download),
+    readChapterCatalog(download),
+  );
 
   final usedFolderNames = <String>{};
   final result = <_ExportChapterEntry>[];
@@ -420,7 +422,11 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
       );
     }
     result.add(
-      _ExportChapterEntry(folderName: folderName, images: numberedImages),
+      _ExportChapterEntry(
+        folderName: folderName,
+        images: numberedImages,
+        chapter: chapter,
+      ),
     );
   }
 
@@ -442,6 +448,8 @@ Future<List<File>> _resolveChapterFiles({
           path: image.path,
           cartoonId: comicId,
           chapterId: chapterId,
+          // 导出只读：缺图允许从网络补，但不做超分改文件。
+          applyRealSr: false,
         );
         if (downloadedPath == '404') continue;
         final file = File(downloadedPath);
@@ -470,13 +478,30 @@ Map<String, dynamic> _buildProcessedDetail(
       .map((item) => Map<String, dynamic>.from(item))
       .toList();
 
+  Map<String, dynamic> matchBase(
+    List<Map<String, dynamic>> list,
+    Map<String, dynamic> identity,
+    int fallbackIndex,
+  ) {
+    var matched = matchDownloadChapterIndex(list, identity);
+    if (matched < 0 && fallbackIndex < list.length) matched = fallbackIndex;
+    return matched >= 0
+        ? Map<String, dynamic>.from(list[matched])
+        : <String, dynamic>{};
+  }
+
   final updatedEps = <Map<String, dynamic>>[];
   for (var i = 0; i < chapterEntries.length; i++) {
-    final base = i < eps.length
-        ? Map<String, dynamic>.from(eps[i])
-        : <String, dynamic>{};
+    final identity = {
+      'logicalKey': chapterEntries[i].chapter.id,
+      'requestId': chapterEntries[i].chapter.effectiveRequestId,
+    };
+    final base = matchBase(eps, identity, i);
     base['name'] = chapterEntries[i].folderName;
     base['order'] = i + 1;
+    // 身份 key 带着走，导入侧才能按身份配对。
+    base['logicalKey'] = chapterEntries[i].chapter.id;
+    base['requestId'] = chapterEntries[i].chapter.effectiveRequestId;
     updatedEps.add(base);
   }
   if (updatedEps.isNotEmpty) {
@@ -499,9 +524,11 @@ Map<String, dynamic> _buildProcessedDetail(
     chapterIndex++
   ) {
     final chapter = chapterEntries[chapterIndex];
-    final base = chapterIndex < rawDownloadChapters.length
-        ? Map<String, dynamic>.from(rawDownloadChapters[chapterIndex])
-        : <String, dynamic>{};
+    final identity = {
+      'logicalKey': chapter.chapter.id,
+      'requestId': chapter.chapter.effectiveRequestId,
+    };
+    final base = matchBase(rawDownloadChapters, identity, chapterIndex);
 
     final rawImages = ((base['images'] as List?) ?? const [])
         .whereType<Map>()
@@ -633,10 +660,17 @@ Map<String, dynamic> _decodeMap(String raw) {
 }
 
 class _ExportChapterEntry {
-  const _ExportChapterEntry({required this.folderName, required this.images});
+  const _ExportChapterEntry({
+    required this.folderName,
+    required this.images,
+    required this.chapter,
+  });
 
   final String folderName;
   final List<_ExportImageEntry> images;
+
+  /// 对应的本地章节（身份），写 processed detail 时按身份配对，不按下标。
+  final DownloadChapter chapter;
 }
 
 class _ExportImageEntry {

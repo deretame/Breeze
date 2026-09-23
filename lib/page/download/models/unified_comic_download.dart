@@ -347,6 +347,75 @@ List<DownloadChapter> readChapterCatalog(UnifiedComicDownload record) {
   }
 }
 
+/// 按目录快照顺序排列已下载章节，快照里没有的缀在最后（保持原相对顺序）。
+///
+/// 只比身份，不碰 order。详情页显示与导出共用。
+List<DownloadChapter> sortDownloadChaptersByCatalog(
+  List<DownloadChapter> chapters,
+  List<DownloadChapter> catalog,
+) {
+  if (chapters.isEmpty || catalog.isEmpty) return chapters;
+  final remaining = List<DownloadChapter>.from(chapters);
+  final ordered = <DownloadChapter>[];
+  for (final entry in catalog) {
+    final index = remaining.indexWhere(
+      (c) => downloadChapterIdentityMatches(c, entry),
+    );
+    if (index >= 0) ordered.add(remaining.removeAt(index));
+  }
+  if (ordered.length == chapters.length) {
+    var same = true;
+    for (var i = 0; i < ordered.length; i++) {
+      if (!identical(ordered[i], chapters[i])) {
+        same = false;
+        break;
+      }
+    }
+    if (same) return chapters;
+  }
+  return ordered..addAll(remaining);
+}
+
+/// 在章节 map 列表里按身份找下标，找不到返回 -1（调用方回退下标）。
+///
+/// 先比 logicalKey / taskChapterId / requestId；双方都没有这些强身份 key
+/// 时（如纯老数据/裸包）才按 id 比对。storage 系 id 可能多章共享，
+/// 绝不单独作为判同依据。
+int matchDownloadChapterIndex(
+  List<Map<String, dynamic>> candidates,
+  Map<String, dynamic> target,
+) {
+  bool hasStrongKeys(Map m) =>
+      (m['logicalKey']?.toString().trim().isNotEmpty ?? false) ||
+      (m['taskChapterId']?.toString().trim().isNotEmpty ?? false) ||
+      (m['requestId']?.toString().trim().isNotEmpty ?? false);
+
+  Set<String> strongKeysOf(Map m) => {
+    m['logicalKey']?.toString().trim() ?? '',
+    m['taskChapterId']?.toString().trim() ?? '',
+    m['requestId']?.toString().trim() ?? '',
+  }..remove('');
+
+  if (hasStrongKeys(target)) {
+    final targetKeys = strongKeysOf(target);
+    for (var i = 0; i < candidates.length; i++) {
+      final candidate = candidates[i];
+      if (!hasStrongKeys(candidate)) continue;
+      if (targetKeys.intersection(strongKeysOf(candidate)).isNotEmpty) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  final id = target['id']?.toString().trim() ?? '';
+  if (id.isEmpty) return -1;
+  for (var i = 0; i < candidates.length; i++) {
+    if (candidates[i]['id']?.toString().trim() == id) return i;
+  }
+  return -1;
+}
+
 /// 两个章节身份是否相同（只比 logical / request 系，不碰 order）。
 bool downloadChapterIdentityMatches(DownloadChapter a, DownloadChapter b) {
   final aKeys = {a.id.trim(), a.effectiveRequestId.trim()}..remove('');

@@ -85,8 +85,20 @@
     }
   }
 
-  function finish() {
-    getCurrentWindow().close();
+  async function finish() {
+    // 直接退出整个安装器进程，而不仅是关闭窗口。
+    // Windows 会锁定正在运行的 exe，仅 close 窗口时进程可能常驻后台，
+    // 导致安装包被占用无法删除。
+    try {
+      await invoke("exit_app");
+    } catch (error) {
+      console.error("Failed to exit installer:", error);
+      try {
+        await getCurrentWindow().close();
+      } catch (e) {
+        console.error("Failed to close window:", e);
+      }
+    }
   }
 </script>
 

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
+use tauri::Manager;
 
 /// Release.7z embedded directly into the binary
 const RELEASE_ARCHIVE: &[u8] = include_bytes!("../resources/Release.7z");
@@ -242,6 +243,14 @@ fn perform_install(install_path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn exit_app(app: tauri::AppHandle) {
+    // Windows 会锁定正在运行的 exe，导致安装包无法删除。
+    // 仅关闭窗口并不可靠（事件循环/插件可能让进程常驻后台），
+    // 这里直接退出整个进程以释放文件锁。
+    app.exit(0);
+}
+
+#[tauri::command]
 fn create_shortcut(target_path: String, shortcut_name: String) -> Result<String, String> {
     // Get the desktop directory
     let desktop_dir = dirs::desktop_dir().ok_or_else(|| "无法获取桌面路径".to_string())?;
@@ -267,8 +276,16 @@ pub fn run() {
             save_install_path,
             try_shutdown_app,
             perform_install,
-            create_shortcut
+            create_shortcut,
+            exit_app
         ])
+        //兜底：用户点右上角 X 直接关闭窗口时同样退出进程，
+        //避免后台常驻导致安装器 exe 被占用无法删除。
+        .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) {
+                window.app_handle().exit(0);
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

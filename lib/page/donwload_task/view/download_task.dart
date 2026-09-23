@@ -110,9 +110,11 @@ class _DownloadTaskView extends StatelessWidget {
                           key: ValueKey(task.id),
                           task: task,
                           onRetry: task.taskInfo?.stateCode == 'failed'
-                              ? () => DownloadQueueManager.instance.retryTask(
-                                  task.id,
-                                )
+                              ? () async {
+                                  await DownloadQueueManager.instance.retryTask(
+                                    task.id,
+                                  );
+                                }
                               : null,
                           onDelete: () {
                             context.read<DowloadTaskBloc>().add(
@@ -167,7 +169,7 @@ class _DownloadingTaskTile extends StatelessWidget {
             ),
           ),
         ),
-        title: Text(task.comicName),
+        title: Text(_chapterTaskTitle(task)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -259,7 +261,7 @@ class _PendingTaskTile extends StatelessWidget {
           backgroundColor: Colors.orange,
           child: Icon(Icons.hourglass_empty, color: Colors.white),
         ),
-        title: Text(task.comicName),
+        title: Text(_chapterTaskTitle(task)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -310,6 +312,18 @@ class _PendingTaskTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 单章节任务标题：漫画名 + 章节名（老任务无章节名时只显示漫画名）。
+String _chapterTaskTitle(DownloadTask task) {
+  String? chapterTitle;
+  try {
+    chapterTitle = task.taskInfo?.chapterRef.title.trim();
+  } catch (_) {
+    chapterTitle = null;
+  }
+  if (chapterTitle == null || chapterTitle.isEmpty) return task.comicName;
+  return '${task.comicName} $chapterTitle';
 }
 
 void _showDownloadFailureDetails(BuildContext context, String message) {

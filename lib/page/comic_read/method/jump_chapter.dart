@@ -7,6 +7,8 @@ import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
+import 'package:zephyr/service/download/download_task_repository.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
@@ -68,26 +70,57 @@ class JumpChapter {
     }
     const adapter = DownloadChapterAdapter();
     final chapter = adapter.fromChapterRef(target);
-    order = chapter.order;
-    chapterId = chapter.id;
-    requestId = chapter.effectiveRequestId;
-    storageChapterId = chapter.storageId ?? '';
-    logicalKey = chapter.id;
-    chapterExtern = ChapterExtern.from(chapter.extern);
+    // 在线阅读中切章时统一查库：目标章已下载则切到本地，不再看当前来源。
+    dynamic useComicInfo = comicInfo;
+    var useType = resolvedEntryType;
+    var useEpsNumber = totalChapterCount;
+    DownloadChapter useChapter = chapter;
+    if (resolvedEntryType == ComicEntryType.normal ||
+        resolvedEntryType == ComicEntryType.history) {
+      const repository = DownloadTaskRepository();
+      final local =
+          repository.findDownloadedChapter(
+            from: from,
+            comicId: comicId,
+            chapterKey: chapter.id,
+          ) ??
+          repository.findDownloadedChapter(
+            from: from,
+            comicId: comicId,
+            chapterKey: chapter.effectiveRequestId,
+          );
+      final record = local == null
+          ? null
+          : repository.findDownloadRecord(from, comicId);
+      if (local != null && record != null) {
+        useComicInfo = record;
+        useType = resolvedEntryType == ComicEntryType.history
+            ? ComicEntryType.historyAndDownload
+            : ComicEntryType.download;
+        useEpsNumber = resolveStoredDownloadChapters(record).length;
+        useChapter = local;
+      }
+    }
+    order = useChapter.order;
+    chapterId = useChapter.id;
+    requestId = useChapter.effectiveRequestId;
+    storageChapterId = useChapter.storageId ?? '';
+    logicalKey = useChapter.id;
+    chapterExtern = ChapterExtern.from(useChapter.extern);
 
     router.replace(
       ComicReadRoute(
         key: Key(Uuid().v4()),
-        comicInfo: comicInfo,
+        comicInfo: useComicInfo,
         comicId: comicId,
-        type: resolvedEntryType,
+        type: useType,
         order: order,
         chapterId: chapterId,
         requestId: requestId,
         storageChapterId: storageChapterId,
         logicalKey: logicalKey,
         chapterExtern: chapterExtern,
-        epsNumber: totalChapterCount,
+        epsNumber: useEpsNumber,
         from: from,
         stringSelectCubit: context.read<StringSelectCubit>(),
       ),

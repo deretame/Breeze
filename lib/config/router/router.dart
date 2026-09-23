@@ -19,7 +19,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: SearchResultRoute.page),
     AutoRoute(page: SearchAggregateResultRoute.page),
     AutoRoute(page: ComicInfoRoute.page),
-    AutoRoute(page: DownloadRoute.page),
     AutoRoute(page: CommentsRoute.page),
     AutoRoute(page: PluginCommentsScaffoldRoute.page),
     AutoRoute(page: ComicReadRoute.page),

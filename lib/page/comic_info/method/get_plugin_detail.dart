@@ -141,23 +141,38 @@ Future<UnifiedPluginPreviewResponse> getComicPreviewByPlugin(
   return UnifiedPluginPreviewResponse.fromMap(map);
 }
 
+/// 有完整 order（全部 > 0）时按 order 升序稳定排序，否则保持原样返回。
+///
+/// 详情页显示与阅读器导航共用，保证两处顺序一致。
+List<T> sortChaptersByOrder<T>(List<T> items, int Function(T item) orderOf) {
+  for (final item in items) {
+    if (orderOf(item) <= 0) return items;
+  }
+  final sorted = List<T>.from(items);
+  sorted.sort((a, b) => orderOf(a).compareTo(orderOf(b)));
+  return sorted;
+}
+
 List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   dynamic comicInfo,
   String from,
 ) {
   if (comicInfo is PluginComicDetailSource) {
-    return comicInfo.eps.map((ep) {
-      final extern = Map<String, dynamic>.from(ep.extern);
-      return UnifiedComicChapterRef(
-        id: ep.id,
-        name: ep.name,
-        order: ep.order,
-        requestId: ep.requestId.trim(),
-        storageChapterId: ep.storageChapterId.trim(),
-        logicalKey: ep.logicalKey.trim(),
-        extern: extern,
-      );
-    }).toList();
+    return sortChaptersByOrder(
+      comicInfo.eps.map((ep) {
+        final extern = Map<String, dynamic>.from(ep.extern);
+        return UnifiedComicChapterRef(
+          id: ep.id,
+          name: ep.name,
+          order: ep.order,
+          requestId: ep.requestId.trim(),
+          storageChapterId: ep.storageChapterId.trim(),
+          logicalKey: ep.logicalKey.trim(),
+          extern: extern,
+        );
+      }).toList(),
+      (ref) => ref.order,
+    );
   }
 
   if (comicInfo is UnifiedComicDownload) {

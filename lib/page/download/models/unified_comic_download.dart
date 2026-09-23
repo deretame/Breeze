@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
@@ -232,16 +233,25 @@ int _toInt(String value, int fallback) {
 List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(
   UnifiedComicDownload comic,
 ) {
+  return resolveStoredDownloadChaptersFromJson(
+    chaptersJson: comic.chapters,
+    detailJson: comic.detailJson,
+  );
+}
+
+/// 纯 JSON 入口（可在后台 isolate 里调用）。
+List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChaptersFromJson({
+  required String chaptersJson,
+  required String detailJson,
+}) {
   final chaptersFromMain = _decodeListOfMaps(
-    comic.chapters,
+    chaptersJson,
   ).map((e) => UnifiedComicDownloadStoredChapter.fromMap(e)).toList();
   if (chaptersFromMain.any((chapter) => chapter.images.isNotEmpty)) {
     return chaptersFromMain;
   }
 
-  final chaptersFromDetail = _decodeStoredChaptersFromDetailJson(
-    comic.detailJson,
-  );
+  final chaptersFromDetail = _decodeStoredChaptersFromDetailJson(detailJson);
   if (chaptersFromDetail.isNotEmpty) {
     return chaptersFromDetail;
   }
@@ -274,6 +284,97 @@ List<DownloadChapter> resolveDownloadChapters(UnifiedComicDownload comic) {
   }
 
   return mainChapters;
+}
+
+/// 从在线详情构建全量章节目录快照（只含身份 + 顺序，不含图片）。
+///
+/// 下载入口用它给已下载章节排序；下载时用它校验章节是否在目录里。
+/// 存放在 `detailJson.extern['chapterCatalog']`，不动数据库结构。
+List<Map<String, dynamic>> buildChapterCatalog(List<Ep> eps) {
+  return eps
+      .map(
+        (ep) => {
+          'id': ep.id,
+          'logicalKey': ep.logicalKey,
+          'requestId': ep.requestId,
+          'order': ep.order,
+          'name': ep.name,
+        },
+      )
+      .toList();
+}
+
+/// 读取记录里的目录快照原始数据，没有返回空数组。
+List<Map<String, dynamic>> readChapterCatalogMaps(UnifiedComicDownload record) {
+  try {
+    final detail = jsonDecode(record.detailJson);
+    if (detail is! Map) return const [];
+    final extern = Map<String, dynamic>.from(
+      detail['extern'] as Map? ?? const {},
+    );
+    final raw = extern['chapterCatalog'];
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const [];
+  }
+}
+
+/// 读取记录里的目录快照（身份视图），没有返回空数组。
+List<DownloadChapter> readChapterCatalog(UnifiedComicDownload record) {
+  try {
+    return readChapterCatalogMaps(record).map((map) {
+      final logicalKey = map['logicalKey']?.toString().trim() ?? '';
+      final id = map['id']?.toString().trim() ?? '';
+      final requestId = map['requestId']?.toString().trim() ?? '';
+      final resolvedId = logicalKey.isNotEmpty
+          ? logicalKey
+          : (id.isNotEmpty ? id : requestId);
+      return DownloadChapter(
+        id: resolvedId,
+        displayName: map['name']?.toString() ?? '',
+        order: int.tryParse(map['order']?.toString() ?? '') ?? 0,
+        requestId: requestId.isNotEmpty ? requestId : null,
+        extern: const {},
+        images: const [],
+      );
+    }).toList();
+  } catch (_) {
+    return const [];
+  }
+}
+
+/// 两个章节身份是否相同（只比 logical / request 系，不碰 order）。
+bool downloadChapterIdentityMatches(DownloadChapter a, DownloadChapter b) {
+  final aKeys = {a.id.trim(), a.effectiveRequestId.trim()}..remove('');
+  final bKeys = {b.id.trim(), b.effectiveRequestId.trim()}..remove('');
+  if (aKeys.isEmpty || bKeys.isEmpty) return false;
+  return aKeys.intersection(bKeys).isNotEmpty;
+}
+
+/// 把已存储章节重建为详情 `eps`（`Ep.id` 取宿主匹配 key，而非 storage key）。
+///
+/// 下载提交与单章删除共用，保持两处写入的 `detailJson.eps` 结构一致。
+List<Ep> buildDownloadEps(
+  List<UnifiedComicDownloadStoredChapter> storedChapters,
+) {
+  return storedChapters
+      .map(
+        (chapter) => Ep(
+          id: chapter.logicalKey,
+          name: chapter.name,
+          order: chapter.order,
+          requestId: chapter.taskChapterId,
+          storageChapterId: chapter.storageChapterId.isNotEmpty
+              ? chapter.storageChapterId
+              : chapter.id,
+          logicalKey: chapter.logicalKey,
+        ),
+      )
+      .toList();
 }
 
 List<Map<String, dynamic>> _decodeListOfMaps(String raw) {

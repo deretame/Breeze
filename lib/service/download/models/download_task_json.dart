@@ -9,10 +9,38 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'download_task_json.freezed.dart';
 part 'download_task_json.g.dart';
 
-const currentDownloadTaskSchemaVersion = 2;
+const currentDownloadTaskSchemaVersion = 3;
 
+/// 整本下载记录（UnifiedComicDownload.uniqueKey）用的 key，依然按漫画粒度。
 String buildDownloadTaskKey(String from, String comicId) {
   return '${from.trim()}:${comicId.trim()}';
+}
+
+/// 章节任务用的 key，精确到单章节。
+///
+/// [chapterKey] 必须是章节的逻辑身份（logicalKey > chapterId > requestId，
+/// 兜底 order，见 [downloadChapterKeyOfRef]），绝不能用 storage 系 key
+///（多分块可共享，如 EH 的 "Gallery"）或裸 order。
+/// taskKey 只做整体字符串比较，从不按 ':' 切分，因此 key 里含 ':' 也无害。
+String buildDownloadChapterTaskKey(
+  String from,
+  String comicId,
+  String chapterKey,
+) {
+  return '${from.trim()}:${comicId.trim()}:${chapterKey.trim()}';
+}
+
+/// 从任务引用里算出章节逻辑身份，与
+/// `DownloadChapterAdapter.fromTaskRef().id` 保持同一规则。
+String downloadChapterKeyOfRef(DownloadChapterTaskRef ref) {
+  for (final candidate in [
+    ref.logicalKey.trim(),
+    ref.chapterId.trim(),
+    ref.requestId.trim(),
+  ]) {
+    if (candidate.isNotEmpty) return candidate;
+  }
+  return ref.order.toString();
 }
 
 DownloadTaskJson downloadTaskJsonFromJson(String str) =>
@@ -45,18 +73,14 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
     required String from,
     required String comicId,
     required String comicName,
-    required List<DownloadChapterTaskRef> chapterRefs,
+    required DownloadChapterTaskRef chapterRef,
     @Default(currentDownloadTaskSchemaVersion) int schemaVersion,
     @Default('queued') String stateCode,
     @Default('') String phaseCode,
-    @Default(<String>[]) List<String> completedChapterKeys,
-    @Default('') String currentChapterKey,
-    @Default(0) int completedChapterCount,
-    @Default(0) int totalChapterCount,
-    @Default(0) int currentChapterCompletedImages,
-    @Default(0) int currentChapterReusedImages,
-    @Default(0) int currentChapterFailedImages,
-    @Default(0) int currentChapterTotalImages,
+    @Default(0) int completedImages,
+    @Default(0) int reusedImages,
+    @Default(0) int totalImages,
+    @Default(<String>[]) List<String> imagePaths,
     @Default(0) int attempt,
     @Default('') String lastErrorCode,
     @Default('') String lastErrorMessage,
@@ -67,10 +91,7 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
 
   const DownloadTaskJson._();
 
-  String get taskKey => buildDownloadTaskKey(from, comicId);
+  String get chapterKey => downloadChapterKeyOfRef(chapterRef);
 
-  bool get isChapterCompleted =>
-      currentChapterTotalImages > 0 &&
-      currentChapterCompletedImages >= currentChapterTotalImages &&
-      currentChapterFailedImages == 0;
+  String get taskKey => buildDownloadChapterTaskKey(from, comicId, chapterKey);
 }

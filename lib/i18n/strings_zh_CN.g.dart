@@ -3674,6 +3674,9 @@ class Translations$download$zh_CN {
 	/// zh-CN: '已删除任务'
 	String get taskDeleted => '已删除任务';
 
+	/// zh-CN: '删除当前章节后，会删除下载记录，是否确认删除？'
+	String get deleteLastChapterContent => '删除当前章节后，会删除下载记录，是否确认删除？';
+
 	/// zh-CN: '取消任务'
 	String get cancelTask => '取消任务';
 
@@ -4958,6 +4961,7 @@ extension on Translations {
 			'download.downloading' => '正在下载',
 			'download.pending' => ({required Object count}) => '等待中 (${count})',
 			'download.taskDeleted' => '已删除任务',
+			'download.deleteLastChapterContent' => '删除当前章节后，会删除下载记录，是否确认删除？',
 			'download.cancelTask' => '取消任务',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => '确定要取消下载 ${comicName} 吗？',
 			'download.paused' => '已暂停',

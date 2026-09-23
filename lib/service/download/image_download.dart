@@ -102,7 +102,13 @@ Future<DownloadImageJobsResult> downloadImageJobs({
   bool Function()? shouldRetryUntilSuccess,
   required DownloadProgressReporter reporter,
   Future<void> Function(Object error, DownloadImageJob job)? onError,
-  Future<void> Function(int completed, int downloaded, int reused)? onProgress,
+  Future<void> Function(
+    int completed,
+    int downloaded,
+    int reused,
+    DownloadImageJob completedJob,
+  )?
+  onProgress,
 }) async {
   void updateProgress(String message) {
     reporter.updateMessage(message);
@@ -141,12 +147,13 @@ Future<DownloadImageJobsResult> downloadImageJobs({
           job = jobs[nextIndex];
           nextIndex += 1;
         });
-        if (job == null) {
+        final currentJob = job;
+        if (currentJob == null) {
           return;
         }
         final result = await _downloadSingleJob(
           from: from,
-          job: job!,
+          job: currentJob,
           qjsRuntimeName: qjsRuntimeName,
           qjsTaskGroupKey: qjsTaskGroupKey,
           ensureTaskRunning: ensureTaskRunning,
@@ -161,7 +168,7 @@ Future<DownloadImageJobsResult> downloadImageJobs({
           downloaded++;
         }
         if (onProgress != null) {
-          await onProgress(progress, downloaded, reused);
+          await onProgress(progress, downloaded, reused, currentJob);
         }
         final currentPercent = (progress / jobs.length * 100).floor();
         if (onProgress == null && currentPercent > lastReportedPercent) {

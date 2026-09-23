@@ -1451,6 +1451,7 @@ class _Translations$download$en_US extends Translations$download$zh_CN {
 	@override String get downloading => 'Downloading';
 	@override String pending({required Object count}) => 'Pending (${count})';
 	@override String get taskDeleted => 'Task deleted';
+	@override String get deleteLastChapterContent => 'Deleting this chapter will also delete the download record. Continue?';
 	@override String get cancelTask => 'Cancel Task';
 	@override String cancelTaskConfirm({required Object comicName}) => 'Cancel download of ${comicName}?';
 	@override String get paused => 'Paused';
@@ -2651,6 +2652,7 @@ extension on TranslationsEnUs {
 			'download.downloading' => 'Downloading',
 			'download.pending' => ({required Object count}) => 'Pending (${count})',
 			'download.taskDeleted' => 'Task deleted',
+			'download.deleteLastChapterContent' => 'Deleting this chapter will also delete the download record. Continue?',
 			'download.cancelTask' => 'Cancel Task',
 			'download.cancelTaskConfirm' => ({required Object comicName}) => 'Cancel download of ${comicName}?',
 			'download.paused' => 'Paused',

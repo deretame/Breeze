@@ -310,7 +310,7 @@ as Map<String, dynamic>,
 /// @nodoc
 mixin _$DownloadTaskJson {
 
- String get from; String get comicId; String get comicName; List<DownloadChapterTaskRef> get chapterRefs; int get schemaVersion; String get stateCode; String get phaseCode; List<String> get completedChapterKeys; String get currentChapterKey; int get completedChapterCount; int get totalChapterCount; int get currentChapterCompletedImages; int get currentChapterReusedImages; int get currentChapterFailedImages; int get currentChapterTotalImages; int get attempt; String get lastErrorCode; String get lastErrorMessage;
+ String get from; String get comicId; String get comicName; DownloadChapterTaskRef get chapterRef; int get schemaVersion; String get stateCode; String get phaseCode; int get completedImages; int get reusedImages; int get totalImages; List<String> get imagePaths; int get attempt; String get lastErrorCode; String get lastErrorMessage;
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -324,20 +324,20 @@ $DownloadTaskJsonCopyWith<DownloadTaskJson> get copyWith => _$DownloadTaskJsonCo
 @override
 bool operator ==(Object other) {
   final _this = this as DownloadTaskJson;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, _this.from) || other.from == _this.from)&&(identical(other.comicId, _this.comicId) || other.comicId == _this.comicId)&&(identical(other.comicName, _this.comicName) || other.comicName == _this.comicName)&&const DeepCollectionEquality().equals(other.chapterRefs, _this.chapterRefs)&&(identical(other.schemaVersion, _this.schemaVersion) || other.schemaVersion == _this.schemaVersion)&&(identical(other.stateCode, _this.stateCode) || other.stateCode == _this.stateCode)&&(identical(other.phaseCode, _this.phaseCode) || other.phaseCode == _this.phaseCode)&&const DeepCollectionEquality().equals(other.completedChapterKeys, _this.completedChapterKeys)&&(identical(other.currentChapterKey, _this.currentChapterKey) || other.currentChapterKey == _this.currentChapterKey)&&(identical(other.completedChapterCount, _this.completedChapterCount) || other.completedChapterCount == _this.completedChapterCount)&&(identical(other.totalChapterCount, _this.totalChapterCount) || other.totalChapterCount == _this.totalChapterCount)&&(identical(other.currentChapterCompletedImages, _this.currentChapterCompletedImages) || other.currentChapterCompletedImages == _this.currentChapterCompletedImages)&&(identical(other.currentChapterReusedImages, _this.currentChapterReusedImages) || other.currentChapterReusedImages == _this.currentChapterReusedImages)&&(identical(other.currentChapterFailedImages, _this.currentChapterFailedImages) || other.currentChapterFailedImages == _this.currentChapterFailedImages)&&(identical(other.currentChapterTotalImages, _this.currentChapterTotalImages) || other.currentChapterTotalImages == _this.currentChapterTotalImages)&&(identical(other.attempt, _this.attempt) || other.attempt == _this.attempt)&&(identical(other.lastErrorCode, _this.lastErrorCode) || other.lastErrorCode == _this.lastErrorCode)&&(identical(other.lastErrorMessage, _this.lastErrorMessage) || other.lastErrorMessage == _this.lastErrorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, _this.from) || other.from == _this.from)&&(identical(other.comicId, _this.comicId) || other.comicId == _this.comicId)&&(identical(other.comicName, _this.comicName) || other.comicName == _this.comicName)&&(identical(other.chapterRef, _this.chapterRef) || other.chapterRef == _this.chapterRef)&&(identical(other.schemaVersion, _this.schemaVersion) || other.schemaVersion == _this.schemaVersion)&&(identical(other.stateCode, _this.stateCode) || other.stateCode == _this.stateCode)&&(identical(other.phaseCode, _this.phaseCode) || other.phaseCode == _this.phaseCode)&&(identical(other.completedImages, _this.completedImages) || other.completedImages == _this.completedImages)&&(identical(other.reusedImages, _this.reusedImages) || other.reusedImages == _this.reusedImages)&&(identical(other.totalImages, _this.totalImages) || other.totalImages == _this.totalImages)&&const DeepCollectionEquality().equals(other.imagePaths, _this.imagePaths)&&(identical(other.attempt, _this.attempt) || other.attempt == _this.attempt)&&(identical(other.lastErrorCode, _this.lastErrorCode) || other.lastErrorCode == _this.lastErrorCode)&&(identical(other.lastErrorMessage, _this.lastErrorMessage) || other.lastErrorMessage == _this.lastErrorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DownloadTaskJson;
-  return Object.hash(runtimeType,_this.from,_this.comicId,_this.comicName,const DeepCollectionEquality().hash(_this.chapterRefs),_this.schemaVersion,_this.stateCode,_this.phaseCode,const DeepCollectionEquality().hash(_this.completedChapterKeys),_this.currentChapterKey,_this.completedChapterCount,_this.totalChapterCount,_this.currentChapterCompletedImages,_this.currentChapterReusedImages,_this.currentChapterFailedImages,_this.currentChapterTotalImages,_this.attempt,_this.lastErrorCode,_this.lastErrorMessage);
+  return Object.hash(runtimeType,_this.from,_this.comicId,_this.comicName,_this.chapterRef,_this.schemaVersion,_this.stateCode,_this.phaseCode,_this.completedImages,_this.reusedImages,_this.totalImages,const DeepCollectionEquality().hash(_this.imagePaths),_this.attempt,_this.lastErrorCode,_this.lastErrorMessage);
 }
 
 @override
 String toString() {
   final _this = this as DownloadTaskJson;
-  return 'DownloadTaskJson(from: ${_this.from}, comicId: ${_this.comicId}, comicName: ${_this.comicName}, chapterRefs: ${_this.chapterRefs}, schemaVersion: ${_this.schemaVersion}, stateCode: ${_this.stateCode}, phaseCode: ${_this.phaseCode}, completedChapterKeys: ${_this.completedChapterKeys}, currentChapterKey: ${_this.currentChapterKey}, completedChapterCount: ${_this.completedChapterCount}, totalChapterCount: ${_this.totalChapterCount}, currentChapterCompletedImages: ${_this.currentChapterCompletedImages}, currentChapterReusedImages: ${_this.currentChapterReusedImages}, currentChapterFailedImages: ${_this.currentChapterFailedImages}, currentChapterTotalImages: ${_this.currentChapterTotalImages}, attempt: ${_this.attempt}, lastErrorCode: ${_this.lastErrorCode}, lastErrorMessage: ${_this.lastErrorMessage})';
+  return 'DownloadTaskJson(from: ${_this.from}, comicId: ${_this.comicId}, comicName: ${_this.comicName}, chapterRef: ${_this.chapterRef}, schemaVersion: ${_this.schemaVersion}, stateCode: ${_this.stateCode}, phaseCode: ${_this.phaseCode}, completedImages: ${_this.completedImages}, reusedImages: ${_this.reusedImages}, totalImages: ${_this.totalImages}, imagePaths: ${_this.imagePaths}, attempt: ${_this.attempt}, lastErrorCode: ${_this.lastErrorCode}, lastErrorMessage: ${_this.lastErrorMessage})';
 }
 
 
@@ -348,11 +348,11 @@ abstract mixin class $DownloadTaskJsonCopyWith<$Res>  {
   factory $DownloadTaskJsonCopyWith(DownloadTaskJson value, $Res Function(DownloadTaskJson) _then) = _$DownloadTaskJsonCopyWithImpl;
 @useResult
 $Res call({
- String from, String comicId, String comicName, List<DownloadChapterTaskRef> chapterRefs, int schemaVersion, String stateCode, String phaseCode, List<String> completedChapterKeys, String currentChapterKey, int completedChapterCount, int totalChapterCount, int currentChapterCompletedImages, int currentChapterReusedImages, int currentChapterFailedImages, int currentChapterTotalImages, int attempt, String lastErrorCode, String lastErrorMessage
+ String from, String comicId, String comicName, DownloadChapterTaskRef chapterRef, int schemaVersion, String stateCode, String phaseCode, int completedImages, int reusedImages, int totalImages, List<String> imagePaths, int attempt, String lastErrorCode, String lastErrorMessage
 });
 
 
-
+$DownloadChapterTaskRefCopyWith<$Res> get chapterRef;
 
 }
 /// @nodoc
@@ -365,30 +365,35 @@ class _$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? chapterRefs = null,Object? schemaVersion = null,Object? stateCode = null,Object? phaseCode = null,Object? completedChapterKeys = null,Object? currentChapterKey = null,Object? completedChapterCount = null,Object? totalChapterCount = null,Object? currentChapterCompletedImages = null,Object? currentChapterReusedImages = null,Object? currentChapterFailedImages = null,Object? currentChapterTotalImages = null,Object? attempt = null,Object? lastErrorCode = null,Object? lastErrorMessage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? chapterRef = null,Object? schemaVersion = null,Object? stateCode = null,Object? phaseCode = null,Object? completedImages = null,Object? reusedImages = null,Object? totalImages = null,Object? imagePaths = null,Object? attempt = null,Object? lastErrorCode = null,Object? lastErrorMessage = null,}) {
   return _then(DownloadTaskJson(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
-as String,chapterRefs: null == chapterRefs ? _self.chapterRefs : chapterRefs // ignore: cast_nullable_to_non_nullable
-as List<DownloadChapterTaskRef>,schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
+as String,chapterRef: null == chapterRef ? _self.chapterRef : chapterRef // ignore: cast_nullable_to_non_nullable
+as DownloadChapterTaskRef,schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
 as int,stateCode: null == stateCode ? _self.stateCode : stateCode // ignore: cast_nullable_to_non_nullable
 as String,phaseCode: null == phaseCode ? _self.phaseCode : phaseCode // ignore: cast_nullable_to_non_nullable
-as String,completedChapterKeys: null == completedChapterKeys ? _self.completedChapterKeys : completedChapterKeys // ignore: cast_nullable_to_non_nullable
-as List<String>,currentChapterKey: null == currentChapterKey ? _self.currentChapterKey : currentChapterKey // ignore: cast_nullable_to_non_nullable
-as String,completedChapterCount: null == completedChapterCount ? _self.completedChapterCount : completedChapterCount // ignore: cast_nullable_to_non_nullable
-as int,totalChapterCount: null == totalChapterCount ? _self.totalChapterCount : totalChapterCount // ignore: cast_nullable_to_non_nullable
-as int,currentChapterCompletedImages: null == currentChapterCompletedImages ? _self.currentChapterCompletedImages : currentChapterCompletedImages // ignore: cast_nullable_to_non_nullable
-as int,currentChapterReusedImages: null == currentChapterReusedImages ? _self.currentChapterReusedImages : currentChapterReusedImages // ignore: cast_nullable_to_non_nullable
-as int,currentChapterFailedImages: null == currentChapterFailedImages ? _self.currentChapterFailedImages : currentChapterFailedImages // ignore: cast_nullable_to_non_nullable
-as int,currentChapterTotalImages: null == currentChapterTotalImages ? _self.currentChapterTotalImages : currentChapterTotalImages // ignore: cast_nullable_to_non_nullable
-as int,attempt: null == attempt ? _self.attempt : attempt // ignore: cast_nullable_to_non_nullable
+as String,completedImages: null == completedImages ? _self.completedImages : completedImages // ignore: cast_nullable_to_non_nullable
+as int,reusedImages: null == reusedImages ? _self.reusedImages : reusedImages // ignore: cast_nullable_to_non_nullable
+as int,totalImages: null == totalImages ? _self.totalImages : totalImages // ignore: cast_nullable_to_non_nullable
+as int,imagePaths: null == imagePaths ? _self.imagePaths : imagePaths // ignore: cast_nullable_to_non_nullable
+as List<String>,attempt: null == attempt ? _self.attempt : attempt // ignore: cast_nullable_to_non_nullable
 as int,lastErrorCode: null == lastErrorCode ? _self.lastErrorCode : lastErrorCode // ignore: cast_nullable_to_non_nullable
 as String,lastErrorMessage: null == lastErrorMessage ? _self.lastErrorMessage : lastErrorMessage // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
-
+/// Create a copy of DownloadTaskJson
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DownloadChapterTaskRefCopyWith<$Res> get chapterRef {
+  
+  return $DownloadChapterTaskRefCopyWith<$Res>(_self.chapterRef, (value) {
+    return _then(_self.copyWith(chapterRef: value));
+  });
+}
 }
 
 
@@ -470,10 +475,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<DownloadChapterTaskRef> chapterRefs,  int schemaVersion,  String stateCode,  String phaseCode,  List<String> completedChapterKeys,  String currentChapterKey,  int completedChapterCount,  int totalChapterCount,  int currentChapterCompletedImages,  int currentChapterReusedImages,  int currentChapterFailedImages,  int currentChapterTotalImages,  int attempt,  String lastErrorCode,  String lastErrorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  DownloadChapterTaskRef chapterRef,  int schemaVersion,  String stateCode,  String phaseCode,  int completedImages,  int reusedImages,  int totalImages,  List<String> imagePaths,  int attempt,  String lastErrorCode,  String lastErrorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRefs,_that.schemaVersion,_that.stateCode,_that.phaseCode,_that.completedChapterKeys,_that.currentChapterKey,_that.completedChapterCount,_that.totalChapterCount,_that.currentChapterCompletedImages,_that.currentChapterReusedImages,_that.currentChapterFailedImages,_that.currentChapterTotalImages,_that.attempt,_that.lastErrorCode,_that.lastErrorMessage);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRef,_that.schemaVersion,_that.stateCode,_that.phaseCode,_that.completedImages,_that.reusedImages,_that.totalImages,_that.imagePaths,_that.attempt,_that.lastErrorCode,_that.lastErrorMessage);case _:
   return orElse();
 
 }
@@ -491,10 +496,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRefs,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<DownloadChapterTaskRef> chapterRefs,  int schemaVersion,  String stateCode,  String phaseCode,  List<String> completedChapterKeys,  String currentChapterKey,  int completedChapterCount,  int totalChapterCount,  int currentChapterCompletedImages,  int currentChapterReusedImages,  int currentChapterFailedImages,  int currentChapterTotalImages,  int attempt,  String lastErrorCode,  String lastErrorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  DownloadChapterTaskRef chapterRef,  int schemaVersion,  String stateCode,  String phaseCode,  int completedImages,  int reusedImages,  int totalImages,  List<String> imagePaths,  int attempt,  String lastErrorCode,  String lastErrorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson():
-return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRefs,_that.schemaVersion,_that.stateCode,_that.phaseCode,_that.completedChapterKeys,_that.currentChapterKey,_that.completedChapterCount,_that.totalChapterCount,_that.currentChapterCompletedImages,_that.currentChapterReusedImages,_that.currentChapterFailedImages,_that.currentChapterTotalImages,_that.attempt,_that.lastErrorCode,_that.lastErrorMessage);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRef,_that.schemaVersion,_that.stateCode,_that.phaseCode,_that.completedImages,_that.reusedImages,_that.totalImages,_that.imagePaths,_that.attempt,_that.lastErrorCode,_that.lastErrorMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -511,10 +516,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRefs,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  List<DownloadChapterTaskRef> chapterRefs,  int schemaVersion,  String stateCode,  String phaseCode,  List<String> completedChapterKeys,  String currentChapterKey,  int completedChapterCount,  int totalChapterCount,  int currentChapterCompletedImages,  int currentChapterReusedImages,  int currentChapterFailedImages,  int currentChapterTotalImages,  int attempt,  String lastErrorCode,  String lastErrorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  DownloadChapterTaskRef chapterRef,  int schemaVersion,  String stateCode,  String phaseCode,  int completedImages,  int reusedImages,  int totalImages,  List<String> imagePaths,  int attempt,  String lastErrorCode,  String lastErrorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRefs,_that.schemaVersion,_that.stateCode,_that.phaseCode,_that.completedChapterKeys,_that.currentChapterKey,_that.completedChapterCount,_that.totalChapterCount,_that.currentChapterCompletedImages,_that.currentChapterReusedImages,_that.currentChapterFailedImages,_that.currentChapterTotalImages,_that.attempt,_that.lastErrorCode,_that.lastErrorMessage);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRef,_that.schemaVersion,_that.stateCode,_that.phaseCode,_that.completedImages,_that.reusedImages,_that.totalImages,_that.imagePaths,_that.attempt,_that.lastErrorCode,_that.lastErrorMessage);case _:
   return null;
 
 }
@@ -526,24 +531,20 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.chapterRefs,_that
 
 @JsonSerializable(explicitToJson: true)
 class _DownloadTaskJson extends DownloadTaskJson {
-  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.chapterRefs, this.schemaVersion = currentDownloadTaskSchemaVersion, this.stateCode = 'queued', this.phaseCode = '', this.completedChapterKeys = const <String>[], this.currentChapterKey = '', this.completedChapterCount = 0, this.totalChapterCount = 0, this.currentChapterCompletedImages = 0, this.currentChapterReusedImages = 0, this.currentChapterFailedImages = 0, this.currentChapterTotalImages = 0, this.attempt = 0, this.lastErrorCode = '', this.lastErrorMessage = ''}): super._();
+  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.chapterRef, this.schemaVersion = currentDownloadTaskSchemaVersion, this.stateCode = 'queued', this.phaseCode = '', this.completedImages = 0, this.reusedImages = 0, this.totalImages = 0, this.imagePaths = const <String>[], this.attempt = 0, this.lastErrorCode = '', this.lastErrorMessage = ''}): super._();
   factory _DownloadTaskJson.fromJson(Map<String, dynamic> json) => _$DownloadTaskJsonFromJson(json);
 
 @override final  String from;
 @override final  String comicId;
 @override final  String comicName;
-@override final  List<DownloadChapterTaskRef> chapterRefs;
+@override final  DownloadChapterTaskRef chapterRef;
 @override@JsonKey() final  int schemaVersion;
 @override@JsonKey() final  String stateCode;
 @override@JsonKey() final  String phaseCode;
-@override@JsonKey() final  List<String> completedChapterKeys;
-@override@JsonKey() final  String currentChapterKey;
-@override@JsonKey() final  int completedChapterCount;
-@override@JsonKey() final  int totalChapterCount;
-@override@JsonKey() final  int currentChapterCompletedImages;
-@override@JsonKey() final  int currentChapterReusedImages;
-@override@JsonKey() final  int currentChapterFailedImages;
-@override@JsonKey() final  int currentChapterTotalImages;
+@override@JsonKey() final  int completedImages;
+@override@JsonKey() final  int reusedImages;
+@override@JsonKey() final  int totalImages;
+@override@JsonKey() final  List<String> imagePaths;
 @override@JsonKey() final  int attempt;
 @override@JsonKey() final  String lastErrorCode;
 @override@JsonKey() final  String lastErrorMessage;
@@ -561,18 +562,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.chapterRefs, chapterRefs)&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.stateCode, stateCode) || other.stateCode == stateCode)&&(identical(other.phaseCode, phaseCode) || other.phaseCode == phaseCode)&&const DeepCollectionEquality().equals(other.completedChapterKeys, completedChapterKeys)&&(identical(other.currentChapterKey, currentChapterKey) || other.currentChapterKey == currentChapterKey)&&(identical(other.completedChapterCount, completedChapterCount) || other.completedChapterCount == completedChapterCount)&&(identical(other.totalChapterCount, totalChapterCount) || other.totalChapterCount == totalChapterCount)&&(identical(other.currentChapterCompletedImages, currentChapterCompletedImages) || other.currentChapterCompletedImages == currentChapterCompletedImages)&&(identical(other.currentChapterReusedImages, currentChapterReusedImages) || other.currentChapterReusedImages == currentChapterReusedImages)&&(identical(other.currentChapterFailedImages, currentChapterFailedImages) || other.currentChapterFailedImages == currentChapterFailedImages)&&(identical(other.currentChapterTotalImages, currentChapterTotalImages) || other.currentChapterTotalImages == currentChapterTotalImages)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.lastErrorCode, lastErrorCode) || other.lastErrorCode == lastErrorCode)&&(identical(other.lastErrorMessage, lastErrorMessage) || other.lastErrorMessage == lastErrorMessage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.chapterRef, chapterRef) || other.chapterRef == chapterRef)&&(identical(other.schemaVersion, schemaVersion) || other.schemaVersion == schemaVersion)&&(identical(other.stateCode, stateCode) || other.stateCode == stateCode)&&(identical(other.phaseCode, phaseCode) || other.phaseCode == phaseCode)&&(identical(other.completedImages, completedImages) || other.completedImages == completedImages)&&(identical(other.reusedImages, reusedImages) || other.reusedImages == reusedImages)&&(identical(other.totalImages, totalImages) || other.totalImages == totalImages)&&const DeepCollectionEquality().equals(other.imagePaths, imagePaths)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.lastErrorCode, lastErrorCode) || other.lastErrorCode == lastErrorCode)&&(identical(other.lastErrorMessage, lastErrorMessage) || other.lastErrorMessage == lastErrorMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(chapterRefs),schemaVersion,stateCode,phaseCode,const DeepCollectionEquality().hash(completedChapterKeys),currentChapterKey,completedChapterCount,totalChapterCount,currentChapterCompletedImages,currentChapterReusedImages,currentChapterFailedImages,currentChapterTotalImages,attempt,lastErrorCode,lastErrorMessage);
+    return Object.hash(runtimeType,from,comicId,comicName,chapterRef,schemaVersion,stateCode,phaseCode,completedImages,reusedImages,totalImages,const DeepCollectionEquality().hash(imagePaths),attempt,lastErrorCode,lastErrorMessage);
 }
 
 @override
 String toString() {
-    return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, chapterRefs: $chapterRefs, schemaVersion: $schemaVersion, stateCode: $stateCode, phaseCode: $phaseCode, completedChapterKeys: $completedChapterKeys, currentChapterKey: $currentChapterKey, completedChapterCount: $completedChapterCount, totalChapterCount: $totalChapterCount, currentChapterCompletedImages: $currentChapterCompletedImages, currentChapterReusedImages: $currentChapterReusedImages, currentChapterFailedImages: $currentChapterFailedImages, currentChapterTotalImages: $currentChapterTotalImages, attempt: $attempt, lastErrorCode: $lastErrorCode, lastErrorMessage: $lastErrorMessage)';
+    return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, chapterRef: $chapterRef, schemaVersion: $schemaVersion, stateCode: $stateCode, phaseCode: $phaseCode, completedImages: $completedImages, reusedImages: $reusedImages, totalImages: $totalImages, imagePaths: $imagePaths, attempt: $attempt, lastErrorCode: $lastErrorCode, lastErrorMessage: $lastErrorMessage)';
 }
 
 
@@ -583,11 +584,11 @@ abstract mixin class _$DownloadTaskJsonCopyWith<$Res> implements $DownloadTaskJs
   factory _$DownloadTaskJsonCopyWith(_DownloadTaskJson value, $Res Function(_DownloadTaskJson) _then) = __$DownloadTaskJsonCopyWithImpl;
 @override @useResult
 $Res call({
- String from, String comicId, String comicName, List<DownloadChapterTaskRef> chapterRefs, int schemaVersion, String stateCode, String phaseCode, List<String> completedChapterKeys, String currentChapterKey, int completedChapterCount, int totalChapterCount, int currentChapterCompletedImages, int currentChapterReusedImages, int currentChapterFailedImages, int currentChapterTotalImages, int attempt, String lastErrorCode, String lastErrorMessage
+ String from, String comicId, String comicName, DownloadChapterTaskRef chapterRef, int schemaVersion, String stateCode, String phaseCode, int completedImages, int reusedImages, int totalImages, List<String> imagePaths, int attempt, String lastErrorCode, String lastErrorMessage
 });
 
 
-
+@override $DownloadChapterTaskRefCopyWith<$Res> get chapterRef;
 
 }
 /// @nodoc
@@ -600,31 +601,36 @@ class __$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? chapterRefs = null,Object? schemaVersion = null,Object? stateCode = null,Object? phaseCode = null,Object? completedChapterKeys = null,Object? currentChapterKey = null,Object? completedChapterCount = null,Object? totalChapterCount = null,Object? currentChapterCompletedImages = null,Object? currentChapterReusedImages = null,Object? currentChapterFailedImages = null,Object? currentChapterTotalImages = null,Object? attempt = null,Object? lastErrorCode = null,Object? lastErrorMessage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? chapterRef = null,Object? schemaVersion = null,Object? stateCode = null,Object? phaseCode = null,Object? completedImages = null,Object? reusedImages = null,Object? totalImages = null,Object? imagePaths = null,Object? attempt = null,Object? lastErrorCode = null,Object? lastErrorMessage = null,}) {
   return _then(_DownloadTaskJson(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
-as String,chapterRefs: null == chapterRefs ? _self.chapterRefs : chapterRefs // ignore: cast_nullable_to_non_nullable
-as List<DownloadChapterTaskRef>,schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
+as String,chapterRef: null == chapterRef ? _self.chapterRef : chapterRef // ignore: cast_nullable_to_non_nullable
+as DownloadChapterTaskRef,schemaVersion: null == schemaVersion ? _self.schemaVersion : schemaVersion // ignore: cast_nullable_to_non_nullable
 as int,stateCode: null == stateCode ? _self.stateCode : stateCode // ignore: cast_nullable_to_non_nullable
 as String,phaseCode: null == phaseCode ? _self.phaseCode : phaseCode // ignore: cast_nullable_to_non_nullable
-as String,completedChapterKeys: null == completedChapterKeys ? _self.completedChapterKeys : completedChapterKeys // ignore: cast_nullable_to_non_nullable
-as List<String>,currentChapterKey: null == currentChapterKey ? _self.currentChapterKey : currentChapterKey // ignore: cast_nullable_to_non_nullable
-as String,completedChapterCount: null == completedChapterCount ? _self.completedChapterCount : completedChapterCount // ignore: cast_nullable_to_non_nullable
-as int,totalChapterCount: null == totalChapterCount ? _self.totalChapterCount : totalChapterCount // ignore: cast_nullable_to_non_nullable
-as int,currentChapterCompletedImages: null == currentChapterCompletedImages ? _self.currentChapterCompletedImages : currentChapterCompletedImages // ignore: cast_nullable_to_non_nullable
-as int,currentChapterReusedImages: null == currentChapterReusedImages ? _self.currentChapterReusedImages : currentChapterReusedImages // ignore: cast_nullable_to_non_nullable
-as int,currentChapterFailedImages: null == currentChapterFailedImages ? _self.currentChapterFailedImages : currentChapterFailedImages // ignore: cast_nullable_to_non_nullable
-as int,currentChapterTotalImages: null == currentChapterTotalImages ? _self.currentChapterTotalImages : currentChapterTotalImages // ignore: cast_nullable_to_non_nullable
-as int,attempt: null == attempt ? _self.attempt : attempt // ignore: cast_nullable_to_non_nullable
+as String,completedImages: null == completedImages ? _self.completedImages : completedImages // ignore: cast_nullable_to_non_nullable
+as int,reusedImages: null == reusedImages ? _self.reusedImages : reusedImages // ignore: cast_nullable_to_non_nullable
+as int,totalImages: null == totalImages ? _self.totalImages : totalImages // ignore: cast_nullable_to_non_nullable
+as int,imagePaths: null == imagePaths ? _self.imagePaths : imagePaths // ignore: cast_nullable_to_non_nullable
+as List<String>,attempt: null == attempt ? _self.attempt : attempt // ignore: cast_nullable_to_non_nullable
 as int,lastErrorCode: null == lastErrorCode ? _self.lastErrorCode : lastErrorCode // ignore: cast_nullable_to_non_nullable
 as String,lastErrorMessage: null == lastErrorMessage ? _self.lastErrorMessage : lastErrorMessage // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
 
-
+/// Create a copy of DownloadTaskJson
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DownloadChapterTaskRefCopyWith<$Res> get chapterRef {
+  
+  return $DownloadChapterTaskRefCopyWith<$Res>(_self.chapterRef, (value) {
+    return _then(_self.copyWith(chapterRef: value));
+  });
+}
 }
 
 // dart format on

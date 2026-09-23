@@ -15,6 +15,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -113,6 +114,8 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _loadingComplete = false;
   bool _isReversed = false;
   String _title = "";
+  late final EpisodeDownloadController _dlController =
+      EpisodeDownloadController();
   NormalComicAllInfo? _currentInfo;
   bool _isCloudCollected = false;
   bool _cloudFavoriteStateOverridden = false;
@@ -128,6 +131,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
   @override
   void dispose() {
+    _dlController.dispose();
     super.dispose();
   }
 
@@ -241,85 +245,104 @@ class _ComicInfoState extends State<_ComicInfo>
           ),
         ],
       ),
-      body: BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case GetComicInfoStatus.initial:
-              _cloudFavoriteStateOverridden = false;
-              return Center(child: CircularProgressIndicator());
-            case GetComicInfoStatus.failure:
-              if (state.result.contains("under review") &&
-                  state.result.contains("1014")) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        t.comicInfo.discontinued,
-                        style: const TextStyle(fontSize: 20),
+      body: Stack(
+        children: [
+          BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case GetComicInfoStatus.initial:
+                  _cloudFavoriteStateOverridden = false;
+                  return Center(child: CircularProgressIndicator());
+                case GetComicInfoStatus.failure:
+                  if (state.result.contains("under review") &&
+                      state.result.contains("1014")) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            t.comicInfo.discontinued,
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                          SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () => context.pop(),
+                            child: Text(t.comicInfo.back),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () => context.pop(),
-                        child: Text(t.comicInfo.back),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return ErrorView(
-                errorMessage: t.comicInfo.loadFailedWithError(
-                  error: state.result.toString(),
-                ),
-                onRetry: () {
-                  context.read<GetComicInfoBloc>().add(
-                    GetComicInfoEvent(
-                      comicId: _comicId,
-                      from: widget.from,
-                      type: _type,
-                      extern: widget.extern,
+                    );
+                  }
+                  return ErrorView(
+                    errorMessage: t.comicInfo.loadFailedWithError(
+                      error: state.result.toString(),
                     ),
+                    onRetry: () {
+                      context.read<GetComicInfoBloc>().add(
+                        GetComicInfoEvent(
+                          comicId: _comicId,
+                          from: widget.from,
+                          type: _type,
+                          extern: widget.extern,
+                        ),
+                      );
+                    },
                   );
-                },
-              );
-            case GetComicInfoStatus.success:
-              comicInfoDyn = state.comicInfo;
-              _currentInfo = state.allInfo;
-              _comicId = state.comicId ?? _comicId;
-              if (!_cloudFavoriteStateOverridden) {
-                _isCloudCollected = state.allInfo?.isFavourite ?? false;
+                case GetComicInfoStatus.success:
+                  comicInfoDyn = state.comicInfo;
+                  _currentInfo = state.allInfo;
+                  _comicId = state.comicId ?? _comicId;
+                  if (!_cloudFavoriteStateOverridden) {
+                    _isCloudCollected = state.allInfo?.isFavourite ?? false;
+                  }
+                  _syncLocalCollectStatus(state.allInfo!);
+                  initHistory(
+                    context,
+                    _comicId,
+                    widget.from,
+                    chapters: state.allInfo!.eps,
+                  );
+                  return _infoView(state.allInfo!);
               }
-              _syncLocalCollectStatus(state.allInfo!);
-              initHistory(
-                context,
-                _comicId,
-                widget.from,
-                chapters: state.allInfo!.eps,
-              );
-              return _infoView(state.allInfo!);
-          }
-        },
+            },
+          ),
+          ListenableBuilder(
+            listenable: _dlController,
+            builder: (context, _) => _SelectionActionBar(
+              controller: _dlController,
+              isDownloadType: _type == ComicEntryType.download,
+            ),
+          ),
+        ],
       ),
       floatingActionButtonLocation:
           context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
           ? FloatingActionButtonLocation.startFloat
           : FloatingActionButtonLocation.endFloat,
-      floatingActionButton: _loadingComplete
-          ? BlocBuilder<StringSelectCubit, String>(
-              builder: (context, stringSelectDate) {
-                return _ReadActionButton(
-                  hasHistory: stringSelectDate.isNotEmpty,
-                  onPressed: () => goToComicRead(
-                    context,
-                    _comicId,
-                    widget.type,
-                    comicInfoDyn,
-                    widget.from,
-                  ),
-                );
-              },
-            )
-          : null,
+      floatingActionButton: ListenableBuilder(
+        listenable: _dlController,
+        builder: (context, _) {
+          if (_dlController.selectionMode) {
+            return const SizedBox.shrink();
+          }
+          return _loadingComplete
+              ? BlocBuilder<StringSelectCubit, String>(
+                  builder: (context, stringSelectDate) {
+                    return _ReadActionButton(
+                      hasHistory: stringSelectDate.isNotEmpty,
+                      onPressed: () => goToComicRead(
+                        context,
+                        _comicId,
+                        widget.type,
+                        comicInfoDyn,
+                        widget.from,
+                      ),
+                    );
+                  },
+                )
+              : const SizedBox.shrink();
+        },
+      ),
     );
   }
 
@@ -337,10 +360,17 @@ class _ComicInfoState extends State<_ComicInfo>
       );
     }
 
-    var displayEps = List<dynamic>.from(normalComicAllInfo.eps);
+    var displayEps = sortChaptersByOrder(
+      List<dynamic>.from(normalComicAllInfo.eps),
+      (e) => (e as Ep).order,
+    );
     if (_isReversed) {
       displayEps = displayEps.reversed.toList();
     }
+    // 下载类型进来的一定是本地记录（只含已下载章节）；在线页插件允许下载时
+    // 才显示章节下载按钮。
+    final showDownloadUi =
+        normalComicAllInfo.allowDownload || _type == ComicEntryType.download;
 
     final previewCapability = ComicPreviewCapability.fromInfo(
       normalComicAllInfo,
@@ -463,14 +493,31 @@ class _ComicInfoState extends State<_ComicInfo>
                             icon: _isReversed ? Icons.south : Icons.north,
                             onTap: _toggleOrder,
                           ),
-                          child: _EpisodeListSection(
-                            episodes: displayEps,
-                            allInfo: comicInfoDyn,
-                            epsLength: normalComicAllInfo.eps.length,
-                            type: _type,
-                            comicId: _comicId,
-                            from: widget.from,
-                            isReversed: _isReversed,
+                          child: ListenableBuilder(
+                            listenable: _dlController,
+                            builder: (context, _) {
+                              _dlController.attach(
+                                from: widget.from,
+                                comicId: _comicId,
+                                comicTitle: comicInfo.title,
+                                allowDownload: showDownloadUi,
+                              );
+                              final chapters = _dlController.adaptEps(
+                                displayEps,
+                              );
+                              return _EpisodeListSection(
+                                episodes: displayEps,
+                                chapters: chapters,
+                                controller: _dlController,
+                                showDownloadUi: showDownloadUi,
+                                allInfo: comicInfoDyn,
+                                epsLength: normalComicAllInfo.eps.length,
+                                type: _type,
+                                comicId: _comicId,
+                                from: widget.from,
+                                isReversed: _isReversed,
+                              );
+                            },
                           ),
                         ),
                         if (normalComicAllInfo.recommend.isNotEmpty &&
@@ -1102,6 +1149,9 @@ class _DescriptionCardState extends State<_DescriptionCard> {
 class _EpisodeListSection extends StatelessWidget {
   const _EpisodeListSection({
     required this.episodes,
+    required this.chapters,
+    required this.controller,
+    required this.showDownloadUi,
     required this.allInfo,
     required this.epsLength,
     required this.type,
@@ -1111,12 +1161,62 @@ class _EpisodeListSection extends StatelessWidget {
   });
 
   final List<dynamic> episodes;
+  final List<DownloadChapter> chapters;
+  final EpisodeDownloadController controller;
+  final bool showDownloadUi;
   final dynamic allInfo;
   final int epsLength;
   final ComicEntryType type;
   final String comicId;
   final String from;
   final bool isReversed;
+
+  Future<void> _onChapterAction(
+    BuildContext context,
+    DownloadChapter chapter,
+  ) async {
+    final status = controller.statusOf(chapter);
+    switch (status) {
+      case ChapterDownloadStatus.notDownloaded:
+      case ChapterDownloadStatus.failed:
+        await controller.downloadSingle(context, chapter);
+        break;
+      case ChapterDownloadStatus.queued:
+      case ChapterDownloadStatus.downloading:
+        await controller.cancelChapter(context, chapter);
+        break;
+      case ChapterDownloadStatus.downloaded:
+        final wholeDeleted = await controller.deleteSingle(context, chapter);
+        if (wholeDeleted && type == ComicEntryType.download) {
+          if (context.mounted) context.pop();
+        }
+        break;
+    }
+  }
+
+  EpButtonWidget _buildItem(BuildContext context, int i) {
+    final chapter = chapters[i];
+    return EpButtonWidget(
+      doc: episodes[i] as Ep,
+      chapter: chapter,
+      allInfo: allInfo,
+      epsLength: epsLength,
+      type: type,
+      comicId: comicId,
+      from: from,
+      index: i,
+      isReversed: isReversed,
+      downloadStatus: showDownloadUi ? controller.statusOf(chapter) : null,
+      downloadProgress: showDownloadUi ? controller.progressOf(chapter) : null,
+      selectionMode: controller.selectionMode,
+      selected: controller.selectedIds.contains(chapter.id),
+      onAction: () => _onChapterAction(context, chapter),
+      onToggleSelect: () => controller.toggleSelect(chapter.id),
+      onEnterSelect: showDownloadUi
+          ? () => controller.enterSelection(chapter.id)
+          : null,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1139,16 +1239,7 @@ class _EpisodeListSection extends StatelessWidget {
               for (var i = 0; i < episodes.length; i++)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: EpButtonWidget(
-                    doc: episodes[i] as Ep,
-                    allInfo: allInfo,
-                    epsLength: epsLength,
-                    type: type,
-                    comicId: comicId,
-                    from: from,
-                    index: i,
-                    isReversed: isReversed,
-                  ),
+                  child: _buildItem(context, i),
                 ),
             ],
           );
@@ -1166,16 +1257,7 @@ class _EpisodeListSection extends StatelessWidget {
                     width: 280,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: EpButtonWidget(
-                        doc: episodes[i] as Ep,
-                        allInfo: allInfo,
-                        epsLength: epsLength,
-                        type: type,
-                        comicId: comicId,
-                        from: from,
-                        index: i,
-                        isReversed: isReversed,
-                      ),
+                      child: _buildItem(context, i),
                     ),
                   ),
               ],
@@ -1194,21 +1276,138 @@ class _EpisodeListSection extends StatelessWidget {
             mainAxisSpacing: 12,
             mainAxisExtent: EpButtonWidget.fixedHeight,
           ),
-          itemBuilder: (context, index) {
-            final e = episodes[index] as Ep;
-            return EpButtonWidget(
-              doc: e,
-              allInfo: allInfo,
-              epsLength: epsLength,
-              type: type,
-              comicId: comicId,
-              from: from,
-              index: index,
-              isReversed: isReversed,
-            );
-          },
+          itemBuilder: (context, index) => _buildItem(context, index),
         );
       },
+    );
+  }
+}
+
+/// 长按多选时的底部悬浮操作栏：下载 / 删除只对各自适用的子集生效。
+class _SelectionActionBar extends StatelessWidget {
+  const _SelectionActionBar({
+    required this.controller,
+    required this.isDownloadType,
+  });
+
+  final EpisodeDownloadController controller;
+  final bool isDownloadType;
+
+  @override
+  Widget build(BuildContext context) {
+    final chapters = controller.lastChapters;
+    final selected = chapters
+        .where((c) => controller.selectedIds.contains(c.id))
+        .toList();
+    final downloadable = controller.downloadableOf(selected);
+    final deletable = controller.downloadedOf(selected);
+    final allSelected =
+        chapters.isNotEmpty && selected.length >= chapters.length;
+
+    final inSelection = controller.selectionMode;
+    return Positioned(
+      bottom: 8,
+      left: 8,
+      right: 8,
+      child: IgnorePointer(
+        ignoring: !inSelection,
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          offset: inSelection ? Offset.zero : const Offset(0, 1.0),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 160),
+            opacity: inSelection ? 1 : 0,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  elevation: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 6,
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.common.cancel,
+                            onPressed: controller.exitSelection,
+                            icon: const Icon(Icons.close),
+                          ),
+                          Text(
+                            t.bookshelf.selectedCount(
+                              count: controller.selectedIds.length,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: allSelected
+                                ? t.bookshelf.deselectAll
+                                : t.common.selectAll,
+                            onPressed: chapters.isEmpty
+                                ? null
+                                : () {
+                                    if (allSelected) {
+                                      controller.clearSelection();
+                                    } else {
+                                      controller.selectAll(
+                                        chapters.map((c) => c.id),
+                                      );
+                                    }
+                                  },
+                            icon: Icon(
+                              allSelected ? Icons.deselect : Icons.select_all,
+                            ),
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.comicInfo.download,
+                            onPressed: downloadable.isEmpty
+                                ? null
+                                : () async {
+                                    await controller.downloadChapters(
+                                      context,
+                                      selected,
+                                    );
+                                  },
+                            icon: const Icon(Icons.download_outlined),
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: t.common.delete,
+                            onPressed: deletable.isEmpty
+                                ? null
+                                : () async {
+                                    final wholeDeleted = await controller
+                                        .deleteChapters(context, selected);
+                                    if (wholeDeleted) {
+                                      controller.exitSelection();
+                                      if (isDownloadType && context.mounted) {
+                                        context.pop();
+                                      }
+                                    }
+                                  },
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

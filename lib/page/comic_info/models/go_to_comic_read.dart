@@ -9,6 +9,8 @@ import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
+import 'package:zephyr/service/download/download_task_repository.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/config/router/router.gr.dart' show ComicReadRoute;
@@ -25,41 +27,73 @@ void goToComicRead(
   final isDownload =
       type == ComicEntryType.download ||
       type == ComicEntryType.historyAndDownload;
-  final epsCount = resolveReadEpsCount(allInfo, from, isDownload: isDownload);
-  final resolvedComicId = resolveReadComicId(
-    allInfo,
-    from,
-    isDownload: isDownload,
-  );
-  final hasHistory = context.read<StringSelectCubit>().state.isNotEmpty;
-  final history = objectbox.unifiedHistoryBox
+  final historyForChapter = objectbox.unifiedHistoryBox
       .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
       .build()
       .findFirst();
+  final chapter = _resolveChapter(allInfo, from, historyForChapter);
+
+  // 在线入口统一查库：目标章节已下载则直接读本地，不再看来源 type。
+  dynamic readInfo = allInfo;
+  var readIsDownload = isDownload;
+  var readComicId = '';
+  DownloadChapter? readChapter = chapter;
+  var readEpsCount = 0;
+  if (!isDownload && chapter != null) {
+    const repository = DownloadTaskRepository();
+    final local =
+        repository.findDownloadedChapter(
+          from: from,
+          comicId: comicId,
+          chapterKey: chapter.id,
+        ) ??
+        repository.findDownloadedChapter(
+          from: from,
+          comicId: comicId,
+          chapterKey: chapter.effectiveRequestId,
+        );
+    final record = local == null
+        ? null
+        : repository.findDownloadRecord(from, comicId);
+    if (local != null && record != null) {
+      readInfo = record;
+      readIsDownload = true;
+      readComicId = record.comicId;
+      readChapter = local;
+      readEpsCount = resolveStoredDownloadChapters(record).length;
+    }
+  }
+  if (!readIsDownload) {
+    readEpsCount = resolveReadEpsCount(allInfo, from, isDownload: false);
+    readComicId = resolveReadComicId(allInfo, from, isDownload: false);
+  } else if (readInfo == allInfo) {
+    readEpsCount = resolveReadEpsCount(allInfo, from, isDownload: true);
+    readComicId = resolveReadComicId(allInfo, from, isDownload: true);
+  }
+  final hasHistory = context.read<StringSelectCubit>().state.isNotEmpty;
 
   final typeVal = hasHistory
-      ? (isDownload
+      ? (readIsDownload
             ? ComicEntryType.historyAndDownload
             : ComicEntryType.history)
-      : (isDownload ? ComicEntryType.download : ComicEntryType.normal);
-  final chapter = _resolveChapter(allInfo, from, history);
-  final orderVal = chapter?.order ?? _resolveInitialOrder(allInfo, from);
+      : (readIsDownload ? ComicEntryType.download : ComicEntryType.normal);
+  final orderVal = readChapter?.order ?? _resolveInitialOrder(readInfo, from);
 
   context.pushRoute(
     ComicReadRoute(
-      comicId: resolvedComicId,
+      comicId: readComicId,
       order: orderVal,
-      chapterId: chapter?.id ?? '',
-      requestId: chapter?.effectiveRequestId ?? '',
-      storageChapterId: chapter?.storageId ?? '',
-      logicalKey: chapter?.id ?? '',
+      chapterId: readChapter?.id ?? '',
+      requestId: readChapter?.effectiveRequestId ?? '',
+      storageChapterId: readChapter?.storageId ?? '',
+      logicalKey: readChapter?.id ?? '',
       chapterExtern: ChapterExtern.from(
-        chapter?.extern ?? const <String, dynamic>{},
+        readChapter?.extern ?? const <String, dynamic>{},
       ),
-      epsNumber: epsCount,
+      epsNumber: readEpsCount,
       from: from,
       type: typeVal,
-      comicInfo: allInfo,
+      comicInfo: readInfo,
       stringSelectCubit: context.read<StringSelectCubit>(),
     ),
   );

@@ -1167,6 +1167,7 @@
     "downloading": "Downloading",
     "pending": "Pending ($count)",
     "taskDeleted": "Task deleted",
+    "deleteLastChapterContent": "Deleting this chapter will also delete the download record. Continue?",
     "cancelTask": "Cancel Task",
     "cancelTaskConfirm": "Cancel download of $comicName?",
     "paused": "Paused",

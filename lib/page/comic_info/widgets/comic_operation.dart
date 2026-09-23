@@ -6,7 +6,6 @@ import 'package:zephyr/page/comic_info/models/favorite_workflow.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
-import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/config/router/router.gr.dart';
@@ -125,14 +124,6 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         onTap: _openComments,
       ),
       collectItem,
-      _OperationItemData(
-        icon: Icons.cloud_download_outlined,
-        text: normalInfo.allowDownload
-            ? t.comicInfo.download
-            : t.comicInfo.downloadForbidden,
-        enabled: normalInfo.allowDownload,
-        onTap: _openDownload,
-      ),
     ];
 
     return SizedBox(
@@ -184,12 +175,6 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         comicTitle: comicInfoView.title,
       ),
     );
-  }
-
-  void _openDownload() {
-    if (!normalInfo.allowDownload) return;
-    final info = resolveUnifiedDownloadInfo(comicInfo, widget.from);
-    context.pushRoute(DownloadRoute(downloadInfo: info));
   }
 
   Future<void> _toggleLocalFavorite() async {

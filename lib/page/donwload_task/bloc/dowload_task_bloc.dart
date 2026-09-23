@@ -7,6 +7,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
+import 'package:zephyr/service/download/download_task_repository.dart';
 
 part 'dowload_task_bloc.freezed.dart';
 part 'dowload_task_event.dart';
@@ -61,7 +62,19 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
   }
 
   void _deleteTask(int taskId, Emitter<DowloadTaskState> emit) {
-    objectbox.downloadTaskBox.remove(taskId);
+    final task = objectbox.downloadTaskBox.get(taskId);
+    if (task == null) return;
+    String? taskKey;
+    try {
+      taskKey = task.taskInfo?.taskKey;
+    } catch (_) {
+      taskKey = null;
+    }
+    // 先排空在途后台写再删，防止旧写复活已删除的任务。
+    final removal = taskKey == null
+        ? Future.value()
+        : const DownloadTaskRepository().flushTaskWrites(taskKey);
+    unawaited(removal.then((_) => objectbox.downloadTaskBox.remove(taskId)));
   }
 
   void _cancelCurrentTask(Emitter<DowloadTaskState> emit) {

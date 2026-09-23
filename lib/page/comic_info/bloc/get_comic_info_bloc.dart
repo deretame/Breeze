@@ -10,6 +10,9 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
+import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
+import 'package:zephyr/page/download/models/download_chapter.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/error_filter.dart';
 
@@ -65,7 +68,16 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         resolvedComicId = pluginResult.comicId;
       } else {
         final download = comicInfo as UnifiedComicDownload;
-        normalComicInfo = _localizeDownloadDetail(download);
+        var localized = _localizeDownloadDetail(download);
+        // 下载入口用记录里的目录快照给已下载章节排序（内存里排，不写库）。
+        // 快照缺失的章节缀在最后，保证入口不丢。
+        final catalog = readChapterCatalog(download);
+        if (catalog.isNotEmpty) {
+          localized = localized.copyWith(
+            eps: _sortEpsByCatalog(localized.eps, catalog),
+          );
+        }
+        normalComicInfo = localized;
         resolvedComicId = download.comicId;
       }
 
@@ -86,6 +98,36 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         ),
       );
     }
+  }
+
+  /// 按目录快照顺序排列本地 eps，快照里没有的缀在最后（保持原相对顺序）。
+  ///
+  /// 只比身份（logical / request），不碰 order。
+  List<normal.Ep> _sortEpsByCatalog(
+    List<normal.Ep> localEps,
+    List<DownloadChapter> catalog,
+  ) {
+    if (localEps.isEmpty || catalog.isEmpty) return localEps;
+    const adapter = DownloadChapterAdapter();
+    final remaining = List<normal.Ep>.from(localEps);
+    final ordered = <normal.Ep>[];
+    for (final entry in catalog) {
+      final index = remaining.indexWhere(
+        (ep) => downloadChapterIdentityMatches(adapter.fromEp(ep), entry),
+      );
+      if (index >= 0) ordered.add(remaining.removeAt(index));
+    }
+    if (ordered.length == localEps.length) {
+      var same = true;
+      for (var i = 0; i < ordered.length; i++) {
+        if (!identical(ordered[i], localEps[i])) {
+          same = false;
+          break;
+        }
+      }
+      if (same) return localEps;
+    }
+    return ordered..addAll(remaining);
   }
 
   normal.NormalComicAllInfo _localizeDownloadDetail(

@@ -263,6 +263,38 @@ class DownloadAssetStore {
     }
   }
 
+  /// 按 doc path 逐个删除已落盘的章节散图（取消下载时用）。
+  ///
+  /// 只删 canonical 下载路径命中的文件；共享目录（如 EH 的 Gallery）下
+  /// 其他章节的文件不受影响。
+  static Future<void> deleteDownloadedFiles({
+    required String from,
+    required String cartoonId,
+    required String effectiveStorageChapterId,
+    required Iterable<String> docPaths,
+  }) async {
+    for (final docPath in docPaths) {
+      final trimmed = docPath.trim();
+      if (trimmed.isEmpty) continue;
+      try {
+        final store = DownloadAssetStore(
+          from: from,
+          path: trimmed,
+          cartoonId: cartoonId,
+          chapterId: '',
+          storageChapterId: effectiveStorageChapterId,
+          pictureType: PictureType.page,
+        );
+        final candidate = await store.findCanonicalDownload();
+        if (candidate != null) {
+          await File(candidate.path).delete();
+        }
+      } catch (_) {
+        // 单个文件删除失败不影响整体取消流程。
+      }
+    }
+  }
+
   /// 将已有缓存文件原子复制到编码下载路径。
   Future<void> copyFileAtomically({
     required String sourcePath,

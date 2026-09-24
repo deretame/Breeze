@@ -314,7 +314,10 @@ Future<void> unifiedDownloadTask(
         ensureTaskRunning: ensureTaskRunning,
         shouldRetryUntilSuccess: shouldRetryUntilSuccess,
         reporter: reporter,
-        concurrency: 5,
+        concurrency: await resolveDownloadConcurrency(
+          from: from,
+          pluginId: pluginId,
+        ),
         onProgress:
             (completed, downloaded, reused, completedJob, jobSkipped) async {
               if (completedJob.path.trim().isNotEmpty) {

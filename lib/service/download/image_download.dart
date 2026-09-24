@@ -1,10 +1,10 @@
 import 'package:pool/pool.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/type/enum.dart';
-
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/service/download/download_progress_reporter.dart';
 import 'package:zephyr/service/download/download_retry.dart';
+import 'package:zephyr/type/enum.dart';
 
 class DownloadImageJob {
   const DownloadImageJob({
@@ -94,6 +94,33 @@ Future<String> downloadCoverAsset({
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
   );
+}
+
+/// 图片下载并发数：优先调用插件 `getDownloadConcurrency` 获取
+///（插件返回 `{concurrency: number}`），插件未实现、返回非法或调用失败时回落为 5。
+Future<int> resolveDownloadConcurrency({
+  required String from,
+  String? pluginId,
+}) async {
+  const fallback = 5;
+  try {
+    final data = await callUnifiedComicPlugin(
+      from: from,
+      pluginId: pluginId,
+      fnPath: 'getDownloadConcurrency',
+      core: const <String, dynamic>{},
+    );
+    Object? raw = data['concurrency'] ?? data['value'];
+    if (raw == null && data['data'] is Map) {
+      final nested = Map<String, dynamic>.from(data['data'] as Map);
+      raw = nested['concurrency'] ?? nested['value'];
+    }
+    final parsed = int.tryParse(raw?.toString().trim() ?? '');
+    if (parsed == null) return fallback;
+    return parsed.clamp(1, 32);
+  } catch (_) {
+    return fallback;
+  }
 }
 
 Future<DownloadImageJobsResult> downloadImageJobs({

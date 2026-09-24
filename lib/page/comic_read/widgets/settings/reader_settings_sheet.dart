@@ -27,6 +27,9 @@ Future<void> showReaderSettingsSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
+    barrierLabel: t.common.close,
+    isDismissible: true,
+    enableDrag: true,
     builder: (context) {
       return _ReaderSettingsSheet(
         changePageIndex: changePageIndex ?? (_) {},
@@ -62,21 +65,33 @@ class _ReaderSettingsSheet extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: SizedBox(
-              height: maxHeight,
-              child: _ReaderSettingsCard(
-                changePageIndex: changePageIndex,
-                isAndroidPhone: isAndroidPhone,
-                onLandscapeChanged: onLandscapeChanged,
-                source: source,
-                comicId: comicId,
+        child: Stack(
+          children: [
+            // 卡片外部的空白点击直接关闭（框体自身占满全屏，默认遮罩点不透）。
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).maybePop(),
+                child: const SizedBox.expand(),
               ),
             ),
-          ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: SizedBox(
+                  height: maxHeight,
+                  child: _ReaderSettingsCard(
+                    changePageIndex: changePageIndex,
+                    isAndroidPhone: isAndroidPhone,
+                    onLandscapeChanged: onLandscapeChanged,
+                    source: source,
+                    comicId: comicId,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -148,13 +163,17 @@ class _ReaderSettingsHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(999),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(context).maybePop(),
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
             ),
           ),

@@ -44,10 +44,10 @@ class _ReaderSettingsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final maxHeight = mediaQuery.size.height * 0.7;
+    final mediaSize = MediaQuery.sizeOf(context);
+    final maxHeight = mediaSize.height * 0.7;
     final isAndroidPhone =
-        !kIsWeb && Platform.isAndroid && mediaQuery.size.shortestSide < 600;
+        !kIsWeb && Platform.isAndroid && mediaSize.shortestSide < 600;
 
     return SafeArea(
       top: false,

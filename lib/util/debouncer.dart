@@ -21,11 +21,8 @@ class Debouncer {
 
 /// 检查当前设备是否为平板
 bool isTablet(BuildContext context) {
-  // 获取 MediaQueryData 实例
-  final MediaQueryData mediaQuery = MediaQuery.of(context);
-
-  // 获取屏幕的最短边
-  final double shortestSide = mediaQuery.size.shortestSide;
+  // 只订阅 size，避免键盘弹起（viewInsets 变化）触发全量 rebuild，见 flutter/flutter#163516
+  final double shortestSide = MediaQuery.sizeOf(context).shortestSide;
 
   // 定义平板的阈值，Material Design 官方推荐为 600
   const double tabletBreakpoint = 600.0;
@@ -61,7 +58,5 @@ bool isLandscapeWithOutContext() {
 }
 
 bool isLandscape(BuildContext context) {
-  final MediaQueryData mediaQuery = MediaQuery.of(context);
-
-  return mediaQuery.orientation == Orientation.landscape;
+  return MediaQuery.orientationOf(context) == Orientation.landscape;
 }

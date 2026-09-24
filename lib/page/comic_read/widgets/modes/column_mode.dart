@@ -66,7 +66,8 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         final hideTop = context.select(
           (GlobalSettingCubit c) => !c.state.readSetting.comicReadTopContainer,
         );
-        final mediaQuery = MediaQuery.of(context);
+        final padding = MediaQuery.paddingOf(context);
+        final viewPadding = MediaQuery.viewPaddingOf(context);
         final readSetting = context.select(
           (GlobalSettingCubit c) => c.state.readSetting,
         );
@@ -75,12 +76,10 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         );
         final sidePaddingEnabled = readSetting.sidePaddingEnabled;
         final sidePaddingPercent = readSetting.sidePaddingPercent;
-        final topInset = mediaQuery.padding.top > 0
-            ? mediaQuery.padding.top
-            : mediaQuery.viewPadding.top;
-        final bottomInset = mediaQuery.padding.bottom > 0
-            ? mediaQuery.padding.bottom
-            : mediaQuery.viewPadding.bottom;
+        final topInset = padding.top > 0 ? padding.top : viewPadding.top;
+        final bottomInset = padding.bottom > 0
+            ? padding.bottom
+            : viewPadding.bottom;
 
         final double topPadding = hideTop ? 0 : topInset;
         final double bottomPadding = bottomInset + 50;
@@ -93,7 +92,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         );
         final viewportShortEdge = math.min(
           contentWidth,
-          MediaQuery.of(context).size.height,
+          MediaQuery.sizeOf(context).height,
         );
 
         final doublePageSlots = _isDoublePage

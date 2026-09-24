@@ -1,21 +1,21 @@
 import 'package:material_ui/material_ui.dart';
 
 extension ContextExtensions on BuildContext {
-  // 获取屏幕尺寸
-  Size get screenSize => MediaQuery.of(this).size;
+  // 获取屏幕尺寸（只订阅 size，键盘弹起不触发 rebuild，见 flutter/flutter#163516）
+  Size get screenSize => MediaQuery.sizeOf(this);
 
   // 获取屏幕宽度
-  double get screenWidth => MediaQuery.of(this).size.width;
+  double get screenWidth => MediaQuery.sizeOf(this).width;
 
   // 获取屏幕高度
-  double get screenHeight => MediaQuery.of(this).size.height;
+  double get screenHeight => MediaQuery.sizeOf(this).height;
 
   // 获取状态栏高度
-  double get statusBarHeight => MediaQuery.of(this).padding.top;
+  double get statusBarHeight => MediaQuery.paddingOf(this).top;
 
   // 获取底部安全区域高度
-  double get bottomSafeHeight => MediaQuery.of(this).padding.bottom;
-  double get devicePixelRatio => MediaQuery.of(this).devicePixelRatio;
+  double get bottomSafeHeight => MediaQuery.paddingOf(this).bottom;
+  double get devicePixelRatio => MediaQuery.devicePixelRatioOf(this);
 
   // 获取主题
   ThemeData get theme => Theme.of(this);

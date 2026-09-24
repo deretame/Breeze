@@ -456,7 +456,7 @@ Future<Map<String, dynamic>?> _showFavoriteWorkflowSelect(
             title: Text(input.title ?? t.comicInfo.addToCustomFolder),
             content: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+                maxHeight: MediaQuery.sizeOf(ctx).height * 0.6,
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -775,7 +775,7 @@ Future<Map<String, dynamic>?> _showFavoriteWorkflowForm(
             title: Text(input.title ?? t.common.confirm),
             content: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height * 0.65,
+                maxHeight: MediaQuery.sizeOf(ctx).height * 0.65,
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -890,7 +890,7 @@ Future<_FavoriteFolder?> _showFolderSelectionDialog(
             title: Text(t.comicInfo.addToCustomFolder),
             content: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                maxHeight: MediaQuery.sizeOf(ctx).height * 0.5,
               ),
               child: SizedBox(
                 width: double.maxFinite,

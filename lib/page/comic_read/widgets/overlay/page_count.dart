@@ -209,7 +209,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
       return const Positioned(top: 0, left: 0, child: SizedBox.shrink());
     }
 
-    final mediaPadding = MediaQuery.of(context).padding;
+    final mediaPadding = MediaQuery.paddingOf(context);
     final edge = readSetting.pageInfoEdgePadding.clamp(0, 48).toDouble();
     final sideExtra =
         readSetting.pageInfoHorizontalPosition ==

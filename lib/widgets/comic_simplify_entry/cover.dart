@@ -44,7 +44,7 @@ class CoverWidget extends StatelessWidget {
 
     final width = this.width ?? context.screenWidth * 0.3;
     final height = this.height ?? (context.screenWidth * 0.3) / 0.75;
-    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final decodeWidth = ((width * devicePixelRatio) * 1.2).round();
     final decodeHeight = ((height * devicePixelRatio) * 1.2).round();
 

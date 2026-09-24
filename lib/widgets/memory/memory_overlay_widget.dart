@@ -180,11 +180,11 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
             _position = Offset(
               (_position.dx + details.delta.dx).clamp(
                 0,
-                MediaQuery.of(context).size.width - maxWidth,
+                MediaQuery.sizeOf(context).width - maxWidth,
               ),
               (_position.dy + details.delta.dy).clamp(
                 0,
-                MediaQuery.of(context).size.height - maxHeight,
+                MediaQuery.sizeOf(context).height - maxHeight,
               ),
             );
           });

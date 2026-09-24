@@ -345,7 +345,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       final imageContext = _imageSizeContext;
       if (imageContext != null && imageContext.mounted) {
         final imageSizeCubit = imageContext.read<ImageSizeCubit>();
-        final containerWidth = MediaQuery.of(context).size.width;
+        final containerWidth = MediaQuery.sizeOf(context).width;
         final contentWidth = getConstrainedImageWidth(
           containerWidth: containerWidth,
           enableSidePadding: readSetting.sidePaddingEnabled,

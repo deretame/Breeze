@@ -98,7 +98,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 600;
+    final isDesktop = MediaQuery.sizeOf(context).width >= 600;
 
     return BlocListener<PluginRegistryCubit, Map<String, PluginRuntimeState>>(
       listenWhen: (previous, current) =>

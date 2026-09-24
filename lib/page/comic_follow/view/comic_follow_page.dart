@@ -260,7 +260,7 @@ class _ComicFollowPageContent extends StatelessWidget {
     ComicFollowState state,
     double horizontalPadding,
   ) {
-    final crossAxisCount = MediaQuery.of(context).size.width >= 1200 ? 3 : 2;
+    final crossAxisCount = MediaQuery.sizeOf(context).width >= 1200 ? 3 : 2;
 
     return RefreshIndicator(
       onRefresh: () => context.read<ComicFollowCubit>().checkUpdates(),

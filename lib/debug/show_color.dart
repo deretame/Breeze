@@ -31,7 +31,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
   @override
   Widget build(BuildContext context) {
     final allColors = context.theme.colorScheme;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final colorBoxSize = screenWidth / 3;
 
     final colorEntries = [

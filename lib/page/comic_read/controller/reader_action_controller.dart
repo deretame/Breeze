@@ -159,7 +159,7 @@ class ReaderActionController {
     // 用户触摸拖拽/惯性滚动期间让位，避免自动滚动与手势打架。
     if (isUserScrolling?.call() ?? false) return;
 
-    final viewportHeight = MediaQuery.of(_activeContext).size.height;
+    final viewportHeight = MediaQuery.sizeOf(_activeContext).height;
     final distancePercent = _autoScrollColumnDistancePercent.clamp(10, 100);
     final stepDistance = viewportHeight * (distancePercent / 100);
 

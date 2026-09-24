@@ -62,7 +62,7 @@ class _MemoryMonitorWidgetState extends State<MemoryMonitorWidget> {
         widget.child,
         if (widget.showOverlay && _currentMemoryInfo != null)
           Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
+            top: MediaQuery.paddingOf(context).top + 10,
             right: 10,
             child: _buildMemoryOverlay(),
           ),

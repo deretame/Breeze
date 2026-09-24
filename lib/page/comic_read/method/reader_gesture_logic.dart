@@ -20,9 +20,9 @@ class ReaderGestureLogic {
     }
 
     final Offset tapPosition = details.globalPosition;
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
+    final screenSize = MediaQuery.sizeOf(context);
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
     final thirdWidth = screenWidth / 3;
     final thirdHeight = screenHeight / 3;
     final inCenterControlArea =

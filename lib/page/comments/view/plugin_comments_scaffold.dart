@@ -163,7 +163,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
   }
 
   Widget _wrapBodyContent(Widget child) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     final horizontal = width >= 1200
         ? 24.0
         : width >= 900

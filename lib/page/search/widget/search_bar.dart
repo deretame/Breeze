@@ -9,6 +9,7 @@ import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -23,6 +24,15 @@ class SearchBar extends StatefulWidget {
 
 class _SearchBarState extends State<SearchBar> {
   Map<String, bool> _aggregateSources = const {};
+  // 输入时只同步 TextField 自身状态，cubit 的 keyword 用防抖延迟同步，
+  // 避免每敲一个字母就触发上层 BlocBuilder 全量 rebuild。
+  final _keywordDebouncer = Debouncer(milliseconds: 100);
+
+  @override
+  void dispose() {
+    _keywordDebouncer.cancel();
+    super.dispose();
+  }
 
   List<({String pluginId, String title})> _sourceOptions(BuildContext context) {
     final pluginStates = context.read<PluginRegistryCubit>().state;
@@ -63,13 +73,18 @@ class _SearchBarState extends State<SearchBar> {
                 hintText: t.search.searchHint,
                 semanticLabel: t.search.title,
                 onChanged: (keyword) {
-                  final searchCubit = context.read<SearchCubit>();
-                  if (searchCubit.state.searchKeyword == keyword) {
-                    return;
-                  }
-                  searchCubit.update(
-                    searchCubit.state.copyWith(searchKeyword: keyword),
-                  );
+                  _keywordDebouncer.run(() {
+                    if (!mounted) {
+                      return;
+                    }
+                    final searchCubit = context.read<SearchCubit>();
+                    if (searchCubit.state.searchKeyword == keyword) {
+                      return;
+                    }
+                    searchCubit.update(
+                      searchCubit.state.copyWith(searchKeyword: keyword),
+                    );
+                  });
                 },
                 onSubmitted: (keyword) => onSearch(
                   context,

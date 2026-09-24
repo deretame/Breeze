@@ -3,9 +3,10 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -142,102 +143,199 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
               context.read<FolderShelfBloc>().add(const FolderShelfGoBack());
             }
           },
-          child: Column(
-            children: [
-              if (!state.selectionMode) ...[
-                _buildHeader(context),
-                const Divider(height: 1),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onGridScroll,
+            child: Stack(
+              children: [
+                Positioned.fill(child: _buildBody(context)),
+                // 顶部悬浮导航：选择模式下隐藏，由底部悬浮操作条接管。
+                if (!state.selectionMode) ..._buildFloatingNav(context, state),
               ],
-              Expanded(child: _buildBody(context)),
-            ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return BlocBuilder<FolderShelfBloc, FolderShelfState>(
-      builder: (context, state) {
-        return Container(
-          color: Theme.of(context).colorScheme.surface,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: SafeArea(
-            bottom: false,
-            child: _buildNormalHeader(context, state),
-          ),
-        );
-      },
-    );
+  /// 顶部悬浮物的显隐（滚动联动），变化时才 setState，避免逐帧重建。
+  bool _navVisible = true;
+
+  void _setNavVisible(bool visible) {
+    if (_navVisible == visible || !mounted) {
+      return;
+    }
+    setState(() => _navVisible = visible);
   }
 
-  Widget _buildNormalHeader(BuildContext context, FolderShelfState state) {
-    return Row(
-      children: [
-        // 返回/帮助按钮
-        IconButton(
-          icon: Icon(state.isRoot ? Icons.help_outline : Icons.arrow_back),
-          tooltip: state.isRoot ? t.bookshelf.folderHint : t.common.back,
-          onPressed: state.isRoot
-              ? () => _showShelfHelpDialog(context)
-              : () => context.read<FolderShelfBloc>().add(
-                  const FolderShelfGoBack(),
-                ),
-        ),
-        // 面包屑
-        Expanded(
-          child: Text(
-            state.breadcrumbTitle,
-            style: Theme.of(context).textTheme.titleMedium,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        // Home 按钮
-        IconButton(
-          icon: const Icon(Icons.home),
-          onPressed: state.isRoot
-              ? null
-              : () => context.read<FolderShelfBloc>().add(
-                  const FolderShelfGoHome(),
-                ),
-        ),
-        // 管理菜单
-        FluentPopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            switch (value) {
-              case 'new_folder':
-                _showCreateFolderDialog(context);
-              case 'manage':
-                context.read<FolderShelfBloc>().add(
-                  const FolderShelfEnterSelectionMode(),
-                );
-              case 'import':
-                _importComic(context);
-            }
-          },
-          itemBuilder: (context) => [
-            FluentPopupMenuItem(
-              value: 'new_folder',
-              leading: const Icon(Icons.create_new_folder_outlined),
-              title: Text(t.bookshelf.newFolder),
-            ),
-            FluentPopupMenuItem(
-              value: 'manage',
-              leading: const Icon(Icons.checklist),
-              title: Text(t.bookshelf.manage),
-            ),
-            if (state.mode == ShelfPageMode.download)
-              FluentPopupMenuItem(
-                value: 'import',
-                leading: const Icon(Icons.file_download_outlined),
-                title: Text(t.bookshelf.importComic),
+  /// 列表滚动方向联动悬浮物：上滑浏览时隐藏，下滑/回顶时显示。
+  /// 只处理垂直主列表的通知，底部横向操作条不参与；不吞通知，RefreshIndicator 照常工作。
+  bool _onGridScroll(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    if (notification.metrics.pixels <= notification.metrics.minScrollExtent) {
+      _setNavVisible(true);
+    } else if (notification is ScrollUpdateNotification &&
+        notification.dragDetails != null) {
+      // 手指拖动中按手指方向直接判定（比 UserScroll 更跟手）；
+      // 惯性/程序滚动（dragDetails 为空）不参与，避免回顶动画中途闪烁。
+      final dy = notification.dragDetails!.delta.dy;
+      if (dy < 0) {
+        _setNavVisible(false);
+      } else if (dy > 0) {
+        _setNavVisible(true);
+      }
+    } else if (notification is UserScrollNotification) {
+      switch (notification.direction) {
+        case ScrollDirection.reverse:
+          _setNavVisible(false);
+        case ScrollDirection.forward:
+          _setNavVisible(true);
+        case ScrollDirection.idle:
+          break;
+      }
+    }
+    return false;
+  }
+
+  /// 顶部悬浮物，拆成两个独立 Positioned：
+  /// - 右边 ⋮ 常驻（根/非根功能一致，无出现动画）；
+  /// - 面包屑只在子文件夹出现，右端留 68px 避让常驻按钮（48 按钮 + 8 间隙），滑入淡出。
+  List<Widget> _buildFloatingNav(BuildContext context, FolderShelfState state) {
+    // 面包屑：子文件夹 + 未上滑隐藏时才出现；右边按钮：只跟随滚动显隐。
+    final pillHidden = state.isRoot || !_navVisible;
+    return [
+      Positioned(
+        top: 8,
+        right: 12,
+        child: IgnorePointer(
+          ignoring: !_navVisible,
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            offset: _navVisible ? Offset.zero : const Offset(0, -1),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 160),
+              opacity: _navVisible ? 1 : 0,
+              child: Material(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                child: _buildNavMenuButton(context, state),
               ),
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        top: 8,
+        left: 12,
+        right: 68,
+        child: IgnorePointer(
+          ignoring: pillHidden,
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            offset: pillHidden ? const Offset(0, -1) : Offset.zero,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 160),
+              opacity: pillHidden ? 0 : 1,
+              child: _buildBreadcrumbPill(context, state),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// 面包屑：返回 / 路径 / 回根。菜单由右端常驻按钮负责，这里不重复放。
+  Widget _buildBreadcrumbPill(BuildContext context, FolderShelfState state) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          children: [
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.arrow_back),
+              tooltip: t.common.back,
+              onPressed: () => context.read<FolderShelfBloc>().add(
+                const FolderShelfGoBack(),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                state.breadcrumbTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.home),
+              onPressed: () => context.read<FolderShelfBloc>().add(
+                const FolderShelfGoHome(),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// 全局操作菜单。长按条目 → 多选已覆盖“管理”入口，这里不再重复放。
+  /// 用 child 传压缩图标：14 + 20 + 14 = 48px 高，与面包屑胶囊同高。
+  Widget _buildNavMenuButton(BuildContext context, FolderShelfState state) {
+    return FluentPopupMenuButton<String>(
+      child: const Padding(
+        padding: EdgeInsets.all(14),
+        child: Icon(Icons.more_vert, size: 20),
+      ),
+      onSelected: (value) => _onNavMenuSelected(context, value),
+      itemBuilder: (context) => [
+        FluentPopupMenuItem(
+          value: 'multi_select',
+          leading: const Icon(Icons.checklist),
+          title: Text(t.bookshelf.multiSelect),
+        ),
+        FluentPopupMenuItem(
+          value: 'new_folder',
+          leading: const Icon(Icons.create_new_folder_outlined),
+          title: Text(t.bookshelf.newFolder),
+        ),
+        if (state.mode == ShelfPageMode.download)
+          FluentPopupMenuItem(
+            value: 'import',
+            leading: const Icon(Icons.file_download_outlined),
+            title: Text(t.bookshelf.importComic),
+          ),
+        FluentPopupMenuItem(
+          value: 'help',
+          leading: const Icon(Icons.help_outline),
+          title: Text(t.common.help),
         ),
       ],
     );
+  }
+
+  void _onNavMenuSelected(BuildContext context, String value) {
+    switch (value) {
+      case 'multi_select':
+        context.read<FolderShelfBloc>().add(
+          const FolderShelfEnterSelectionMode(),
+        );
+      case 'new_folder':
+        _showCreateFolderDialog(context);
+      case 'import':
+        _importComic(context);
+      case 'help':
+        _showShelfHelpDialog(context);
+    }
   }
 
   Future<void> _showShelfHelpDialog(BuildContext context) async {
@@ -310,7 +408,14 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
               child: Stack(
                 children: [
                   GridView.builder(
-                    padding: const EdgeInsets.all(10),
+                    // 悬浮物盖在列表上层：子文件夹有面包屑浮栏，留 64px 顶部滚动边距；
+                    // 根目录只有右上 ⋮（纯覆盖不占位），选择模式无悬浮物，均保持 10。
+                    padding: EdgeInsets.fromLTRB(
+                      10,
+                      state.selectionMode ? 10 : (state.isRoot ? 10 : 64),
+                      10,
+                      10,
+                    ),
                     gridDelegate: buildComicSimplifyEntryGridDelegate(),
                     itemCount: totalCount,
                     itemBuilder: (context, index) {
@@ -577,11 +682,6 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       anchor: anchor,
       items: [
         FluentPopupMenuItem(
-          value: 'multi_select',
-          leading: const Icon(Icons.checklist),
-          title: Text(t.bookshelf.multiSelect),
-        ),
-        FluentPopupMenuItem(
           value: 'rename',
           leading: const Icon(Icons.drive_file_rename_outline),
           title: Text(t.common.rename),
@@ -599,10 +699,6 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       ],
       onSelected: (value) {
         switch (value) {
-          case 'multi_select':
-            context.read<FolderShelfBloc>().add(
-              FolderShelfToggleFolderSelection(folderPath),
-            );
           case 'rename':
             _showRenameFolderDialog(context, folder, folderPath);
           case 'move':

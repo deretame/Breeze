@@ -24,6 +24,7 @@ import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/i18n_helper.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -153,6 +154,7 @@ Future<void> main(List<String> args) async {
       final (globalSettingCubit, pluginRegistryCubit) = await _initServices();
 
       final comicFollowCubit = ComicFollowCubit();
+      final comicReadPreferenceCubit = ComicReadPreferenceCubit();
 
       runApp(
         MultiBlocProvider(
@@ -160,6 +162,7 @@ Future<void> main(List<String> args) async {
             BlocProvider.value(value: globalSettingCubit),
             BlocProvider.value(value: pluginRegistryCubit),
             BlocProvider.value(value: comicFollowCubit),
+            BlocProvider.value(value: comicReadPreferenceCubit),
           ],
           child: const MyApp(),
         ),
@@ -209,6 +212,7 @@ Future<void> main(List<String> args) async {
       try {
         final (globalSettingCubit, pluginRegistryCubit) = await _initServices();
         final comicFollowCubit = ComicFollowCubit();
+        final comicReadPreferenceCubit = ComicReadPreferenceCubit();
 
         await addArchitectureTagsToSentry();
 
@@ -219,6 +223,7 @@ Future<void> main(List<String> args) async {
                 BlocProvider.value(value: globalSettingCubit),
                 BlocProvider.value(value: pluginRegistryCubit),
                 BlocProvider.value(value: comicFollowCubit),
+                BlocProvider.value(value: comicReadPreferenceCubit),
               ],
               child: MyApp(),
             ),

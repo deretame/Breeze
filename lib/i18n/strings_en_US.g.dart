@@ -621,6 +621,11 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get enableWebtoonTapPageTurn => 'Allow tapping to turn vertically';
 	@override String get webtoonTapPageTurnSubtitle => 'Tap the upper/lower area in webtoon mode; the center still opens the controls';
 	@override String get readingMode => 'Reading mode';
+	@override String get perComicReadMode => 'Enable per-comic settings';
+	@override String get perComicReadModeSubtitle => 'Only applies to the current comic';
+	@override String get perComicFollowGlobal => 'Follow global';
+	@override String get perComicGlobalIs => 'Global is';
+	@override String get perComicThisComic => 'This comic';
 	@override String get infoDisplay => 'Info display';
 	@override String get pageNumber => 'Page number';
 	@override String get pageNumberSubtitle => 'Show current/total page count';
@@ -2027,6 +2032,11 @@ extension on TranslationsEnUs {
 			'reader.enableWebtoonTapPageTurn' => 'Allow tapping to turn vertically',
 			'reader.webtoonTapPageTurnSubtitle' => 'Tap the upper/lower area in webtoon mode; the center still opens the controls',
 			'reader.readingMode' => 'Reading mode',
+			'reader.perComicReadMode' => 'Enable per-comic settings',
+			'reader.perComicReadModeSubtitle' => 'Only applies to the current comic',
+			'reader.perComicFollowGlobal' => 'Follow global',
+			'reader.perComicGlobalIs' => 'Global is',
+			'reader.perComicThisComic' => 'This comic',
 			'reader.infoDisplay' => 'Info display',
 			'reader.pageNumber' => 'Page number',
 			'reader.pageNumberSubtitle' => 'Show current/total page count',
@@ -2049,13 +2059,13 @@ extension on TranslationsEnUs {
 			'reader.doublePageSubtitle' => 'Enable double-page spread in current reading mode',
 			'reader.doublePageSeamless' => 'Seamless double page',
 			'reader.doublePageSeamlessSubtitle' => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them',
+			_ => null,
+		} ?? switch (path) {
 			'reader.doublePageLeadingBlank' => 'Leading blank',
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.landscapeReader' => 'Landscape reading',
 			'reader.landscapeReaderSubtitle' => 'Switch to landscape while reading and restore the previous direction when you leave',
 			'reader.themeMode' => 'Theme mode',
-			_ => null,
-		} ?? switch (path) {
 			'reader.autoRead' => 'Auto read',
 			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
 			'reader.autoReadHidePauseButton' => 'Hide pause button',
@@ -2563,13 +2573,13 @@ extension on TranslationsEnUs {
 			'comicEntry.deleteHistory' => 'Delete History',
 			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => 'Delete history record for "${title}"?',
 			'comicEntry.deleteDownload' => 'Delete Download',
+			_ => null,
+		} ?? switch (path) {
 			'comicEntry.deleteDownloadConfirm' => ({required Object title}) => 'Delete download record and files for "${title}"?',
 			'comicEntry.deleteFailed' => 'Delete failed',
 			'comicFollow.title' => 'Updates',
 			'comicFollow.loadFailed' => ({required Object result}) => 'Load failed: ${result}',
 			'comicFollow.empty' => 'No followed comics',
-			_ => null,
-		} ?? switch (path) {
 			'comicFollow.emptyHint' => 'Tap the follow button on a comic detail page to add it here',
 			'comicFollow.unfollow' => 'Unfollow',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => 'Stop following "${title}"?',

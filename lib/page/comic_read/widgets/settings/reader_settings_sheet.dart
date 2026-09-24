@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -19,6 +20,8 @@ Future<void> showReaderSettingsSheet(
   BuildContext context, {
   ValueChanged<int>? changePageIndex,
   ValueChanged<bool>? onLandscapeChanged,
+  String source = '',
+  String comicId = '',
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -28,6 +31,8 @@ Future<void> showReaderSettingsSheet(
       return _ReaderSettingsSheet(
         changePageIndex: changePageIndex ?? (_) {},
         onLandscapeChanged: onLandscapeChanged,
+        source: source,
+        comicId: comicId,
       );
     },
   );
@@ -36,10 +41,14 @@ Future<void> showReaderSettingsSheet(
 class _ReaderSettingsSheet extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final String source;
+  final String comicId;
 
   const _ReaderSettingsSheet({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.source = '',
+    this.comicId = '',
   });
 
   @override
@@ -63,6 +72,8 @@ class _ReaderSettingsSheet extends StatelessWidget {
                 changePageIndex: changePageIndex,
                 isAndroidPhone: isAndroidPhone,
                 onLandscapeChanged: onLandscapeChanged,
+                source: source,
+                comicId: comicId,
               ),
             ),
           ),
@@ -76,11 +87,15 @@ class _ReaderSettingsCard extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final bool isAndroidPhone;
   final ValueChanged<bool>? onLandscapeChanged;
+  final String source;
+  final String comicId;
 
   const _ReaderSettingsCard({
     required this.changePageIndex,
     required this.isAndroidPhone,
     this.onLandscapeChanged,
+    this.source = '',
+    this.comicId = '',
   });
 
   @override
@@ -106,6 +121,8 @@ class _ReaderSettingsCard extends StatelessWidget {
                   _ReaderSettingsReadTab(
                     changePageIndex: changePageIndex,
                     onLandscapeChanged: onLandscapeChanged,
+                    source: source,
+                    comicId: comicId,
                   ),
                   _ReaderSettingsGestureTab(isAndroidPhone: isAndroidPhone),
                   const _ReaderSettingsInfoTab(),

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/page/comic_read/controller/reader_action_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/key.dart';
@@ -69,8 +70,7 @@ class ReaderInputController {
 
   /// 构建阅读核心交互层：键盘、手势、缩放、多指锁滚动。
   Widget buildInteractiveViewer() {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final readSetting = globalSettingState.readSetting;
+    final readSetting = context.watchEffectiveReadSetting();
     final isDoubleTapActionEnabled =
         readSetting.doubleTapZoom || readSetting.doubleTapOpenMenu;
 
@@ -238,11 +238,7 @@ class ReaderInputController {
       onRefreshState();
     }
 
-    final readMode = context
-        .read<GlobalSettingCubit>()
-        .state
-        .readSetting
-        .readMode;
+    final readMode = context.readEffectiveReadMode();
     if (!newCtrlPressed && readMode != 0) {
       if (event.scrollDelta.dy > 0) {
         actionController.onPageActionNext();

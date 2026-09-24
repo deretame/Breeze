@@ -1761,10 +1761,56 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "23:8024759089770245234",
+      "lastPropertyId": "7:2403847445825609405",
+      "name": "ComicReadPreference",
+      "properties": [
+        {
+          "id": "1:3385498830915254932",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3254589025120382724",
+          "name": "uniqueKey",
+          "indexId": "21:6523988624980157350",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:6034926044038007872",
+          "name": "source",
+          "type": 9
+        },
+        {
+          "id": "4:1978886196981138003",
+          "name": "comicId",
+          "type": 9
+        },
+        {
+          "id": "5:7102032935589645117",
+          "name": "readMode",
+          "type": 6
+        },
+        {
+          "id": "6:5781171983387023820",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "7:2403847445825609405",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "22:1286366745902983298",
-  "lastIndexId": "20:5514676853041497745",
+  "lastEntityId": "23:8024759089770245234",
+  "lastIndexId": "21:6523988624980157350",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

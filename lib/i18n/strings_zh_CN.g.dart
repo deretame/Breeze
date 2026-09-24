@@ -1598,6 +1598,21 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '阅读模式'
 	String get readingMode => '阅读模式';
 
+	/// zh-CN: '启用本漫画设置'
+	String get perComicReadMode => '启用本漫画设置';
+
+	/// zh-CN: '仅当前漫画生效'
+	String get perComicReadModeSubtitle => '仅当前漫画生效';
+
+	/// zh-CN: '跟随全局'
+	String get perComicFollowGlobal => '跟随全局';
+
+	/// zh-CN: '全局为'
+	String get perComicGlobalIs => '全局为';
+
+	/// zh-CN: '本漫'
+	String get perComicThisComic => '本漫';
+
 	/// zh-CN: '信息项显示'
 	String get infoDisplay => '信息项显示';
 
@@ -4340,6 +4355,11 @@ extension on Translations {
 			'reader.enableWebtoonTapPageTurn' => '允许点击上下翻动',
 			'reader.webtoonTapPageTurnSubtitle' => '条漫模式下点击上方/下方区域翻动，中央区域仍用于打开操作栏',
 			'reader.readingMode' => '阅读模式',
+			'reader.perComicReadMode' => '启用本漫画设置',
+			'reader.perComicReadModeSubtitle' => '仅当前漫画生效',
+			'reader.perComicFollowGlobal' => '跟随全局',
+			'reader.perComicGlobalIs' => '全局为',
+			'reader.perComicThisComic' => '本漫',
 			'reader.infoDisplay' => '信息项显示',
 			'reader.pageNumber' => '页数',
 			'reader.pageNumberSubtitle' => '显示当前页/总页数',
@@ -4361,13 +4381,13 @@ extension on Translations {
 			'reader.doublePage' => '双页阅读',
 			'reader.doublePageSubtitle' => '在当前阅读模式中启用双页并排',
 			'reader.doublePageSeamless' => '双页无缝',
+			_ => null,
+		} ?? switch (path) {
 			'reader.doublePageSeamlessSubtitle' => '左右各占一半宽度，按图片比例独立显示并消除中间留白',
 			'reader.doublePageLeadingBlank' => '首页留白',
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.landscapeReader' => '横屏阅读',
 			'reader.landscapeReaderSubtitle' => '阅读时切换为横屏，离开后恢复原来的方向',
-			_ => null,
-		} ?? switch (path) {
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
 			'reader.autoReadSubtitle' => '开启后自动滚动',
@@ -4875,13 +4895,13 @@ extension on Translations {
 			'comicEntry.deleteFavoriteConfirm' => ({required Object title}) => '确定要删除（${title}）的收藏记录吗？',
 			'comicEntry.deleteHistory' => '删除历史记录',
 			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => '确定要删除（${title}）的历史记录吗？',
+			_ => null,
+		} ?? switch (path) {
 			'comicEntry.deleteDownload' => '删除下载记录',
 			'comicEntry.deleteDownloadConfirm' => ({required Object title}) => '确定要删除（${title}）的下载记录及文件吗？',
 			'comicEntry.deleteFailed' => '删除失败',
 			'comicFollow.title' => '追更',
 			'comicFollow.loadFailed' => ({required Object result}) => '加载失败：${result}',
-			_ => null,
-		} ?? switch (path) {
 			'comicFollow.empty' => '暂无追更漫画',
 			'comicFollow.emptyHint' => '在漫画详情页点击追更按钮即可加入',
 			'comicFollow.unfollow' => '取消追更',

@@ -226,6 +226,8 @@ class _BottomWidgetState extends State<BottomWidget> {
         readerCubit.updateSliderChanged(0.0);
       },
       onLandscapeChanged: widget.onLandscapeChanged,
+      source: widget.from,
+      comicId: widget.comicId,
     );
   }
 

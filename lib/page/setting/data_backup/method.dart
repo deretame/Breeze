@@ -258,6 +258,7 @@ Future<void> _clearObjectBoxData({bool preserveDownloads = false}) async {
   objectbox.pluginInfoBox.removeAll();
   objectbox.comicFolderBox.removeAll();
   objectbox.comicLinkBox.removeAll();
+  objectbox.comicReadPreferenceBox.removeAll();
 }
 
 /// 为缺少 `id` 的 JSON 补一个默认 0，避免 json_serializable 生成代码里对 `id` 做非空强制转换时崩溃。
@@ -383,6 +384,11 @@ Future<void> _restoreObjectBoxData(Map<String, dynamic> json) async {
     link.versionVectorJson = bumpVersionVector(link.versionVectorJson);
     return link;
   });
+  putAll(
+    objectbox.comicReadPreferenceBox,
+    json['comicReadPreference'] as List?,
+    (j) => ComicReadPreference.fromJson(j),
+  );
 }
 
 /// 恢复 UserSetting。

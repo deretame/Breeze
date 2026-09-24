@@ -132,6 +132,9 @@ class ComicSyncCore {
     final follows = objectbox.comicFollowBox.getAll();
     follows.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
+    final readPreferences = objectbox.comicReadPreferenceBox.getAll();
+    readPreferences.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
     final folders = objectbox.comicFolderBox
         .getAll()
         .where(
@@ -156,6 +159,9 @@ class ComicSyncCore {
       'follows': follows.map((e) => _stripLocalId(e.toJson())).toList(),
       'folders': folders.map((e) => _stripLocalId(e.toJson())).toList(),
       'links': links.map((e) => _stripLocalId(e.toJson())).toList(),
+      'readPreferences': readPreferences
+          .map((e) => _stripLocalId(e.toJson()))
+          .toList(),
     };
 
     final raw = utf8.encode(jsonEncode(data));
@@ -195,12 +201,14 @@ class ComicSyncCore {
     final followBox = store.box<ComicFollow>();
     final folderBox = store.box<ComicFolder>();
     final linkBox = store.box<ComicLink>();
+    final readPreferenceBox = store.box<ComicReadPreference>();
 
     final localFavorites = favoriteBox.getAll();
     final localHistories = historyBox.getAll();
     final localFollows = followBox.getAll();
     var localFolders = folderBox.getAll();
     var localLinks = linkBox.getAll();
+    final localReadPreferences = readPreferenceBox.getAll();
 
     final cloudFavorites = _parseJsonList(
       data['favorites'],
@@ -217,6 +225,9 @@ class ComicSyncCore {
     var cloudLinks = _parseJsonList(
       data['links'],
     ).map(ComicLink.fromJson).toList();
+    final cloudReadPreferences = _parseJsonList(
+      data['readPreferences'],
+    ).map(ComicReadPreference.fromJson).toList();
 
     // 旧数据可能没有 syncId，先兜底补一遍，确保后续按 syncId 合并能正常进行。
     for (final folder in [...localFolders, ...cloudFolders]) {
@@ -240,6 +251,13 @@ class ComicSyncCore {
     final mergedFollows = _mergeByUniqueKey(
       localFollows,
       cloudFollows,
+      keyOf: (item) => item.uniqueKey,
+      updatedAtOf: (item) => item.updatedAt,
+    );
+    // 单本阅读偏好：unix 时间戳更大的保留，相等保留本地。
+    final mergedReadPreferences = _mergeByUniqueKey(
+      localReadPreferences,
+      cloudReadPreferences,
       keyOf: (item) => item.uniqueKey,
       updatedAtOf: (item) => item.updatedAt,
     );
@@ -321,6 +339,9 @@ class ComicSyncCore {
     for (final item in mergedFollows) {
       item.id = 0;
     }
+    for (final item in mergedReadPreferences) {
+      item.id = 0;
+    }
     for (final item in mergedFolders) {
       item.id = 0;
     }
@@ -333,6 +354,7 @@ class ComicSyncCore {
     followBox.removeAll();
     folderBox.removeAll();
     linkBox.removeAll();
+    readPreferenceBox.removeAll();
 
     if (mergedFavorites.isNotEmpty) {
       favoriteBox.putMany(mergedFavorites);
@@ -342,6 +364,9 @@ class ComicSyncCore {
     }
     if (mergedFollows.isNotEmpty) {
       followBox.putMany(mergedFollows);
+    }
+    if (mergedReadPreferences.isNotEmpty) {
+      readPreferenceBox.putMany(mergedReadPreferences);
     }
     if (mergedFolders.isNotEmpty) {
       folderBox.putMany(mergedFolders);
@@ -354,7 +379,8 @@ class ComicSyncCore {
         mergedHistories.length +
         mergedFollows.length +
         mergedFolders.length +
-        mergedLinks.length;
+        mergedLinks.length +
+        mergedReadPreferences.length;
   }
 
   static String extractFileName(String remotePath) {

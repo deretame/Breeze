@@ -2095,6 +2095,59 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(23, 8024759089770245234),
+    name: 'ComicReadPreference',
+    lastPropertyId: const obx_int.IdUid(7, 2403847445825609405),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3385498830915254932),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 3254589025120382724),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(21, 6523988624980157350),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6034926044038007872),
+        name: 'source',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1978886196981138003),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7102032935589645117),
+        name: 'readMode',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 5781171983387023820),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 2403847445825609405),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -2140,8 +2193,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(22, 1286366745902983298),
-    lastIndexId: const obx_int.IdUid(20, 5514676853041497745),
+    lastEntityId: const obx_int.IdUid(23, 8024759089770245234),
+    lastIndexId: const obx_int.IdUid(21, 6523988624980157350),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -2355,18 +2408,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 30, '');
-        final creatorIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 36, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 30, '');
+        final creatorIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 36, '');
         final creatorGenderParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 38, '');
-        final creatorNameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 40, '');
+        final creatorNameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 40, '');
         final creatorVerifiedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -2392,12 +2442,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final creatorCharactersStringParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 90, '');
-        final creatorRoleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 50, '');
-        final creatorTitleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 52, '');
+        final creatorRoleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 50, '');
+        final creatorTitleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 52, '');
         final creatorAvatarOriginalNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 54, '');
@@ -2410,27 +2458,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final creatorSloganParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 60, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 26, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
+        final titleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 26, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
         final thumbOriginalNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
-        final thumbPathParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
+        final thumbPathParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
         final thumbFileServerParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
-        final authorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final chineseTeamParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 18, '');
+        final authorParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 14, '');
+        final chineseTeamParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
         final categoriesParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
@@ -2442,9 +2485,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fb.StringReader(asciiOptimization: true),
           lazy: false,
         ).vTableGet(buffer, rootOffset, 28, []);
-        final tagsStringParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 94, '');
+        final tagsStringParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 94, '');
         final pagesCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -2538,18 +2580,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
           84,
           0,
         );
-        final epTitleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 88, '');
+        final epTitleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 88, '');
         final epPageCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
           86,
           0,
         );
-        final epIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 100, '');
+        final epIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 100, '');
         final deletedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -2720,18 +2760,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final creatorIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final creatorIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
         final creatorGenderParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
-        final creatorNameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
+        final creatorNameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
         final creatorVerifiedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -2757,12 +2794,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final creatorCharactersStringParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 22, '');
-        final creatorRoleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 24, '');
-        final creatorTitleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 26, '');
+        final creatorRoleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 24, '');
+        final creatorTitleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 26, '');
         final creatorAvatarOriginalNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 28, '');
@@ -2775,27 +2810,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final creatorSloganParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 34, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 36, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 38, '');
+        final titleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 36, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 38, '');
         final thumbOriginalNameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 40, '');
-        final thumbPathParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 42, '');
+        final thumbPathParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 42, '');
         final thumbFileServerParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 44, '');
-        final authorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 46, '');
-        final chineseTeamParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 48, '');
+        final authorParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 46, '');
+        final chineseTeamParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 48, '');
         final categoriesParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
@@ -2807,9 +2837,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fb.StringReader(asciiOptimization: true),
           lazy: false,
         ).vTableGet(buffer, rootOffset, 54, []);
-        final tagsStringParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 56, '');
+        final tagsStringParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 56, '');
         final pagesCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -2901,9 +2930,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fb.StringReader(asciiOptimization: true),
           lazy: false,
         ).vTableGet(buffer, rootOffset, 100, []);
-        final comicInfoAllParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 98, '');
+        final comicInfoAllParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 98, '');
         final object = BikaComicDownload(
           id: idParam,
           comicId: comicIdParam,
@@ -3019,30 +3047,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final addtimeParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 38, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final totalViewsParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final likesParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final seriesIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final commentTotalParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 18, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final addtimeParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 38, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final totalViewsParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final likesParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 14, '');
+        final seriesIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final commentTotalParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
         final authorParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
@@ -3077,12 +3097,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           32,
           false,
         );
-        final priceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 34, '');
-        final purchasedParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 36, '');
+        final priceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 34, '');
+        final purchasedParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 36, '');
         final deletedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -3188,30 +3206,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final addtimeParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 38, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final totalViewsParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final likesParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final seriesIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final commentTotalParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 18, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final addtimeParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 38, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final totalViewsParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final likesParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 14, '');
+        final seriesIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final commentTotalParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
         final authorParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
@@ -3246,30 +3256,26 @@ obx_int.ModelDefinition getObjectBoxModel() {
           32,
           false,
         );
-        final priceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 34, '');
-        final purchasedParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 36, '');
+        final priceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 34, '');
+        final purchasedParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 36, '');
         final orderParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
           40,
           0,
         );
-        final epTitleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 42, '');
+        final epTitleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 42, '');
         final epPageCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
           44,
           0,
         );
-        final epIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 46, '');
+        final epIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 46, '');
         final deletedParam = const fb.BoolReader().vTableGet(
           buffer,
           rootOffset,
@@ -3378,30 +3384,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final addtimeParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final totalViewsParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final likesParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final seriesIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 18, '');
-        final commentTotalParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 20, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final addtimeParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final totalViewsParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 14, '');
+        final likesParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final seriesIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
+        final commentTotalParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 20, '');
         final authorParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
@@ -3436,19 +3434,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
           34,
           false,
         );
-        final priceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 36, '');
-        final purchasedParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 38, '');
+        final priceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 36, '');
+        final purchasedParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 38, '');
         final epsIdsParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
         ).vTableGet(buffer, rootOffset, 44, []);
-        final allInfoParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 40, '');
+        final allInfoParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 40, '');
         final downloadTimeParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 46, 0),
         );
@@ -3525,9 +3520,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final jmSettingDataParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 10);
-        final jmJwtParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
+        final jmJwtParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
         final object = UserSetting(
           id: idParam,
           globalSettingData: globalSettingDataParam,
@@ -3577,24 +3571,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
             10,
             false,
           )
-          ..comicId = const fb.StringReader(
-            asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 14, '')
-          ..comicName = const fb.StringReader(
-            asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 16, '')
+          ..comicId = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 14, '')
+          ..comicName = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 16, '')
           ..isCompleted = const fb.BoolReader().vTableGet(
             buffer,
             rootOffset,
             18,
             false,
           )
-          ..status = const fb.StringReader(
-            asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 20, '')
-          ..dbTaskInfoStr = const fb.StringReader(
-            asciiOptimization: true,
-          ).vTableGetNullable(buffer, rootOffset, 22);
+          ..status = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 20, '')
+          ..dbTaskInfoStr = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 22);
 
         return object;
       },
@@ -3626,12 +3616,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final configParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final configParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
         final object = PluginConfig(
           id: idParam,
           name: nameParam,
@@ -3693,15 +3681,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uuidParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 26, '');
-        final versionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final originScriptParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 38, '');
+        final uuidParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 26, '');
+        final versionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final originScriptParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 38, '');
         final insertedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
         );
@@ -3743,12 +3728,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           34,
           false,
         );
-        final debugUrlParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 36);
-        final getInfoJsonParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 40, '');
+        final debugUrlParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGetNullable(buffer, rootOffset, 36);
+        final getInfoJsonParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 40, '');
         final object = PluginInfo(
           id: idParam,
           uuid: uuidParam,
@@ -3831,33 +3814,24 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final sourceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final coverParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 78, '');
-        final creatorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 80, '');
-        final titleMetaParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 82, '');
-        final metadataParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 84, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final coverParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 78, '');
+        final creatorParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 80, '');
+        final titleMetaParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 82, '');
+        final metadataParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 84, '');
         final totalViewsParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -3912,15 +3886,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           76,
           false,
         );
-        final chaptersParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 86, '');
-        final detailJsonParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 90, '');
-        final storageRootParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 40, '');
+        final chaptersParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 86, '');
+        final detailJsonParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 90, '');
+        final storageRootParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 40, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 44, 0),
         );
@@ -4020,33 +3991,24 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final sourceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final coverParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 46, '');
-        final creatorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 48, '');
-        final titleMetaParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 50, '');
-        final metadataParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 52, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final coverParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 46, '');
+        final creatorParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 48, '');
+        final titleMetaParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 50, '');
+        final metadataParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 52, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0),
         );
@@ -4137,39 +4099,28 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final sourceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final coverParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 56, '');
-        final creatorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 58, '');
-        final titleMetaParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 60, '');
-        final metadataParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 62, '');
-        final chapterIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 26, '');
-        final chapterTitleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 28, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final coverParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 56, '');
+        final creatorParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 58, '');
+        final titleMetaParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 60, '');
+        final metadataParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 62, '');
+        final chapterIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 26, '');
+        final chapterTitleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 28, '');
         final chapterOrderParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -4258,12 +4209,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final folderKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
+        final folderKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
         );
@@ -4322,12 +4271,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final folderKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final folderKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
         final favoriteUniqueKeyParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
@@ -4386,12 +4333,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final folderKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
+        final folderKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
         );
@@ -4450,12 +4395,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final folderKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final folderKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
         final downloadUniqueKeyParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
@@ -4526,21 +4469,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final syncIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 22, '');
-        final parentSyncIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 24);
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final typeDataParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
+        final syncIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 22, '');
+        final parentSyncIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGetNullable(buffer, rootOffset, 24);
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final typeDataParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
         final versionVectorJsonParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 14, '');
@@ -4617,18 +4555,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
         final comicUniqueKeyParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 22, '');
-        final folderSyncIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 24);
-        final typeDataParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
+        final folderSyncIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGetNullable(buffer, rootOffset, 24);
+        final typeDataParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
         final versionVectorJsonParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 14, '');
@@ -4717,33 +4652,24 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final uniqueKeyParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final sourceParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final comicIdParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
-        final titleParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final coverParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 16, '');
-        final creatorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 18, '');
-        final titleMetaParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 20, '');
-        final metadataParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 22, '');
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 14, '');
+        final coverParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 16, '');
+        final creatorParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 18, '');
+        final titleMetaParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 20, '');
+        final metadataParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 22, '');
         final lastChapterCountParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -4806,6 +4732,72 @@ obx_int.ModelDefinition getObjectBoxModel() {
           createdAt: createdAtParam,
           updatedAt: updatedAtParam,
           schemaVersion: schemaVersionParam,
+        );
+
+        return object;
+      },
+    ),
+    ComicReadPreference: obx_int.EntityDefinition<ComicReadPreference>(
+      model: _entities[19],
+      toOneRelations: (ComicReadPreference object) => [],
+      toManyRelations: (ComicReadPreference object) => {},
+      getId: (ComicReadPreference object) => object.id,
+      setId: (ComicReadPreference object, int id) {
+        object.id = id;
+      },
+      objectToFB: (ComicReadPreference object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final sourceOffset = fbb.writeString(object.source);
+        final comicIdOffset = fbb.writeString(object.comicId);
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, sourceOffset);
+        fbb.addOffset(3, comicIdOffset);
+        fbb.addInt64(4, object.readMode);
+        fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(6, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(asciiOptimization: true)
+            .vTableGet(buffer, rootOffset, 10, '');
+        final readModeParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object = ComicReadPreference(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          source: sourceParam,
+          comicId: comicIdParam,
+          readMode: readModeParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
         );
 
         return object;
@@ -6426,5 +6418,43 @@ class ComicFollow_ {
   /// See [ComicFollow.detectedChapterTitle].
   static final detectedChapterTitle = obx.QueryStringProperty<ComicFollow>(
     _entities[18].properties[18],
+  );
+}
+
+/// [ComicReadPreference] entity fields to define ObjectBox queries.
+class ComicReadPreference_ {
+  /// See [ComicReadPreference.id].
+  static final id = obx.QueryIntegerProperty<ComicReadPreference>(
+    _entities[19].properties[0],
+  );
+
+  /// See [ComicReadPreference.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<ComicReadPreference>(
+    _entities[19].properties[1],
+  );
+
+  /// See [ComicReadPreference.source].
+  static final source = obx.QueryStringProperty<ComicReadPreference>(
+    _entities[19].properties[2],
+  );
+
+  /// See [ComicReadPreference.comicId].
+  static final comicId = obx.QueryStringProperty<ComicReadPreference>(
+    _entities[19].properties[3],
+  );
+
+  /// See [ComicReadPreference.readMode].
+  static final readMode = obx.QueryIntegerProperty<ComicReadPreference>(
+    _entities[19].properties[4],
+  );
+
+  /// See [ComicReadPreference.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<ComicReadPreference>(
+    _entities[19].properties[5],
+  );
+
+  /// See [ComicReadPreference.deleted].
+  static final deleted = obx.QueryBooleanProperty<ComicReadPreference>(
+    _entities[19].properties[6],
   );
 }

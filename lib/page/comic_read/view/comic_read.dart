@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
@@ -183,6 +184,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
     super.initState();
     observerController = ListObserverController(controller: scrollController);
     _type = widget.type;
+    // 绑定本漫独立阅读设置（仅 readMode），供有效值计算使用。
+    context.read<ComicReadPreferenceCubit>().bind(widget.from, widget.comicId);
 
     _initAutoReadController();
     _initSystemUiController();
@@ -208,6 +211,17 @@ class _ComicReadPageState extends State<_ComicReadPage>
   }
 
   @override
+  void didUpdateWidget(covariant _ComicReadPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.from != widget.from || oldWidget.comicId != widget.comicId) {
+      context.read<ComicReadPreferenceCubit>().bind(
+        widget.from,
+        widget.comicId,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_lifecycleController.dispose());
@@ -218,6 +232,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _pageController.dispose();
     _transformationController.dispose();
     unawaited(_orientationController.restorePortrait());
+    try {
+      context.read<ComicReadPreferenceCubit>().unbind();
+    } catch (_) {}
     super.dispose();
   }
 
@@ -262,10 +279,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 _lifecycleController.markReadStateBootstrapped();
                 epInfo = state.epInfo!;
                 _initialEpInfo = state.epInfo!;
-                final readSetting = context
-                    .read<GlobalSettingCubit>()
-                    .state
-                    .readSetting;
+                final readSetting = context.readEffectiveReadSetting();
                 context.read<ReaderSeamlessCubit>().bootstrap(
                   epInfo,
                   widget.order,
@@ -326,7 +340,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   }) async {
     if (!mounted) return;
     final cubit = context.read<ReaderCubit>();
-    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final readSetting = context.readEffectiveReadSetting();
     final seamlessCubit = context.read<ReaderSeamlessCubit>();
     final totalSlots = seamlessCubit.resolveTotalSlots(readSetting);
     final maxSlot = (totalSlots - 1).clamp(0, 999999999);

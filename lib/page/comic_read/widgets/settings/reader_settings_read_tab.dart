@@ -3,10 +3,14 @@ part of 'reader_settings_sheet.dart';
 class _ReaderSettingsReadTab extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final String source;
+  final String comicId;
 
   const _ReaderSettingsReadTab({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.source = '',
+    this.comicId = '',
   });
 
   @override
@@ -18,6 +22,8 @@ class _ReaderSettingsReadTab extends StatelessWidget {
           _ReadModeSection(
             changePageIndex: changePageIndex,
             onLandscapeChanged: onLandscapeChanged,
+            source: source,
+            comicId: comicId,
           ),
           const SizedBox(height: 18),
           const _ThemeModeSection(),
@@ -38,11 +44,18 @@ class _ReaderSettingsReadTab extends StatelessWidget {
 class _ReadModeSection extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final String source;
+  final String comicId;
 
   const _ReadModeSection({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.source = '',
+    this.comicId = '',
   });
+
+  bool get _perComicAvailable =>
+      source.trim().isNotEmpty && comicId.trim().isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +63,68 @@ class _ReadModeSection extends StatelessWidget {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     final isMobilePlatform =
         !kIsWeb && (Platform.isAndroid || Platform.isIOS) && !isTablet(context);
+    // 本漫特定设置仅在阅读页入口（带 source/comicId）可用，全局设置页隐藏。
+    final perComicState = _perComicAvailable
+        ? context.watch<ComicReadPreferenceCubit>().state
+        : const ComicReadPreferenceState();
+    final perComicEnabled = _perComicAvailable && perComicState.hasOverride;
+    // 有效阅读模式：启用本漫设置时用覆盖值，否则跟随全局。
+    final effectiveReadMode =
+        perComicState.overrideReadMode ??
+        globalSettingState.readSetting.readMode;
+
+    Future<void> selectGlobalReadMode(int mode) async {
+      if (globalSettingState.readSetting.readMode == mode) return;
+      HapticFeedback.selectionClick();
+      globalSettingCubit.updateReadSetting(
+        (current) => current.copyWith(readMode: mode),
+      );
+      changePageIndex(0);
+    }
+
+    Future<void> selectPerComicReadMode(int mode) async {
+      if (perComicState.overrideReadMode == mode) return;
+      HapticFeedback.selectionClick();
+      await context.read<ComicReadPreferenceCubit>().setOverride(mode);
+      changePageIndex(0);
+    }
 
     return _SettingsSection(
       title: t.reader.readingMode,
       children: [
+        if (_perComicAvailable) ...[
+          _SettingsSwitchTile(
+            title: t.reader.perComicReadMode,
+            subtitle: t.reader.perComicReadModeSubtitle,
+            value: perComicEnabled,
+            onChanged: (value) async {
+              HapticFeedback.selectionClick();
+              final cubit = context.read<ComicReadPreferenceCubit>();
+              if (value) {
+                await cubit.setOverride(
+                  globalSettingState.readSetting.readMode,
+                );
+              } else {
+                await cubit.clearOverride();
+              }
+              changePageIndex(0);
+            },
+          ),
+          // 开关打开后展开本漫独立选项，给出明确的展开/收起动效。
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            child: perComicEnabled
+                ? _PerComicReadModeOptions(
+                    overrideReadMode:
+                        perComicState.overrideReadMode ??
+                        globalSettingState.readSetting.readMode,
+                    onSelect: selectPerComicReadMode,
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+        // 全局阅读模式：任何时候改这里都是改全局。
         Wrap(
           spacing: 10,
           runSpacing: 10,
@@ -61,41 +132,17 @@ class _ReadModeSection extends StatelessWidget {
             _SettingsChoiceChip(
               title: t.reader.webtoon,
               selected: globalSettingState.readSetting.readMode == 0,
-              onTap: () {
-                if (globalSettingState.readSetting.readMode == 0) {
-                  return;
-                }
-                globalSettingCubit.updateReadSetting(
-                  (current) => current.copyWith(readMode: 0),
-                );
-                changePageIndex(0);
-              },
+              onTap: () => selectGlobalReadMode(0),
             ),
             _SettingsChoiceChip(
               title: t.reader.singlePageLtr,
               selected: globalSettingState.readSetting.readMode == 1,
-              onTap: () {
-                if (globalSettingState.readSetting.readMode == 1) {
-                  return;
-                }
-                globalSettingCubit.updateReadSetting(
-                  (current) => current.copyWith(readMode: 1),
-                );
-                changePageIndex(0);
-              },
+              onTap: () => selectGlobalReadMode(1),
             ),
             _SettingsChoiceChip(
               title: t.reader.singlePageRtl,
               selected: globalSettingState.readSetting.readMode == 2,
-              onTap: () {
-                if (globalSettingState.readSetting.readMode == 2) {
-                  return;
-                }
-                globalSettingCubit.updateReadSetting(
-                  (current) => current.copyWith(readMode: 2),
-                );
-                changePageIndex(0);
-              },
+              onTap: () => selectGlobalReadMode(2),
             ),
           ],
         ),
@@ -123,7 +170,7 @@ class _ReadModeSection extends StatelessWidget {
           },
         ),
         if (globalSettingState.readSetting.doublePageMode &&
-            globalSettingState.readSetting.readMode != 0)
+            effectiveReadMode != 0)
           _SettingsSwitchTile(
             title: t.reader.doublePageSeamless,
             subtitle: t.reader.doublePageSeamlessSubtitle,
@@ -148,6 +195,80 @@ class _ReadModeSection extends StatelessWidget {
             },
           ),
       ],
+    );
+  }
+}
+
+/// 开关打开后展开的本漫独立选项卡。
+///
+/// 用高亮边框 + 全局对照文案明确告知用户“现在改的是本漫，不是全局”，
+/// 配合外层 [AnimatedSize] 实现展开/收起动效。
+class _PerComicReadModeOptions extends StatelessWidget {
+  final int overrideReadMode;
+  final Future<void> Function(int mode) onSelect;
+
+  const _PerComicReadModeOptions({
+    required this.overrideReadMode,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.theme.colorScheme;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, -0.08),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      ),
+      child: Container(
+        key: ValueKey(overrideReadMode),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: colorScheme.primary.withValues(alpha: 0.7),
+            width: 1.2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _SettingsChoiceChip(
+                  title: t.reader.webtoon,
+                  selected: overrideReadMode == 0,
+                  onTap: () => onSelect(0),
+                ),
+                _SettingsChoiceChip(
+                  title: t.reader.singlePageLtr,
+                  selected: overrideReadMode == 1,
+                  onTap: () => onSelect(1),
+                ),
+                _SettingsChoiceChip(
+                  title: t.reader.singlePageRtl,
+                  selected: overrideReadMode == 2,
+                  onTap: () => onSelect(2),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

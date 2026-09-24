@@ -1286,3 +1286,50 @@ class ComicLink {
     return jsonEncode(toJson());
   }
 }
+
+/// 单本漫画独立阅读设置（最小版：仅 readMode）。
+///
+/// 有记录且 [deleted] 为 false 表示启用了本漫特定设置；
+/// 停用时写入 `deleted=true` 的 tombstone，保证 WebDAV/备份能把删除同步出去。
+/// 合并规则：unix 时间戳（[updatedAt]）更大的保留，与收藏/历史同一套 LWW。
+@Entity()
+@JsonSerializable()
+class ComicReadPreference {
+  @Id()
+  int id;
+
+  /// 复合唯一键：`$source:$comicId`，与历史/收藏保持一致。
+  @Unique()
+  String uniqueKey;
+
+  String source;
+  String comicId;
+
+  /// 0=条漫从上到下 / 1=单页从左到右 / 2=单页从右到左。
+  int readMode;
+
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+
+  bool deleted;
+
+  ComicReadPreference({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.source,
+    required this.comicId,
+    required this.readMode,
+    required this.updatedAt,
+    this.deleted = false,
+  });
+
+  Map<String, dynamic> toJson() => _$ComicReadPreferenceToJson(this);
+
+  factory ComicReadPreference.fromJson(Map<String, dynamic> json) =>
+      _$ComicReadPreferenceFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}

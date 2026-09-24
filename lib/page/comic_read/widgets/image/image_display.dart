@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
@@ -170,9 +171,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
       brightness,
     );
     final progressColor = foregroundColor.withValues(alpha: 0.3);
-    final readMode = context.select(
-      (GlobalSettingCubit c) => c.state.readSetting.readMode,
-    );
+    final readMode = context.watchEffectiveReadMode();
     final currentPageIndex = context.select(
       (ReaderCubit c) => c.state.currentSlot,
     );

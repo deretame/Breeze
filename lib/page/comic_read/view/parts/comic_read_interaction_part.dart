@@ -2,7 +2,7 @@ part of '../comic_read.dart';
 
 extension _ComicReadInteractionPart on _ComicReadPageState {
   Widget _columnModeWidget({required bool enableDoublePage}) {
-    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final readSetting = context.readEffectiveReadSetting();
     final isRtl = isReverseRowReadMode(readSetting.readMode);
     final seamlessCubit = context.read<ReaderSeamlessCubit>();
     final seamlessEnabled = seamlessCubit.isSeamlessEnabled();
@@ -102,8 +102,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
   }
 
   Widget _rowModeWidget() {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final readSetting = globalSettingState.readSetting;
+    final readSetting = context.watchEffectiveReadSetting();
     final seamlessCubit = context.read<ReaderSeamlessCubit>();
     final seamlessEnabled = seamlessCubit.isSeamlessEnabled();
     final entries = seamlessCubit.buildRowEntries(readSetting);

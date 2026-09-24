@@ -36,6 +36,7 @@ class ObjectBox {
   late final Box<ComicFolder> _comicFolderBox;
   late final Box<ComicLink> _comicLinkBox;
   late final Box<ComicFollow> _comicFollowBox;
+  late final Box<ComicReadPreference> _comicReadPreferenceBox;
 
   void close() {
     store.close();
@@ -66,6 +67,7 @@ class ObjectBox {
     _comicFolderBox = store.box<ComicFolder>();
     _comicLinkBox = store.box<ComicLink>();
     _comicFollowBox = store.box<ComicFollow>();
+    _comicReadPreferenceBox = store.box<ComicReadPreference>();
   }
 
   static Future<ObjectBox> create({String? dbRootPath}) async {
@@ -149,6 +151,9 @@ class ObjectBox {
 
   Box<ComicFollow> get comicFollowBox => _comicFollowBox;
 
+  Box<ComicReadPreference> get comicReadPreferenceBox =>
+      _comicReadPreferenceBox;
+
   /// 在当前 isolate 中以只读事务收集所有 ObjectBox 数据并序列化为 JSON。
   ///
   /// 调用方应确保当前 isolate 是后台 isolate，避免阻塞 UI。
@@ -211,6 +216,10 @@ class ObjectBox {
     _dumpBoxData<ComicFolder>(_comicFolderBox, "ComicFolder");
     _dumpBoxData<ComicLink>(_comicLinkBox, "ComicLink");
     _dumpBoxData<ComicFollow>(_comicFollowBox, "ComicFollow");
+    _dumpBoxData<ComicReadPreference>(
+      _comicReadPreferenceBox,
+      "ComicReadPreference",
+    );
 
     logger.d("=========  ObjectBox Data Dump End  =========");
   }
@@ -285,6 +294,10 @@ String _collectObjectBoxDataJson(Store store, bool removeIds) {
     'pluginInfo': readBox(store.box<PluginInfo>(), (item) => item.toJson()),
     'comicFolder': readBox(store.box<ComicFolder>(), (item) => item.toJson()),
     'comicLink': readBox(store.box<ComicLink>(), (item) => item.toJson()),
+    'comicReadPreference': readBox(
+      store.box<ComicReadPreference>(),
+      (item) => item.toJson(),
+    ),
   };
 
   return jsonEncode(data);

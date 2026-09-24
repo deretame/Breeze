@@ -22,9 +22,10 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
   // 仅暂停计时，不改动用户设置项本身。
   void _toggleAutoReadPaused() {
     _refreshState(() {});
+    final effective = context.readEffectiveReadSetting();
     _autoReadController.togglePaused(
-      readSetting: context.read<GlobalSettingCubit>().state.readSetting,
-      readMode: context.read<GlobalSettingCubit>().state.readSetting.readMode,
+      readSetting: effective,
+      readMode: effective.readMode,
       canTick: () {
         final readerState = context.read<ReaderCubit>().state;
         return !readerState.isMenuVisible &&

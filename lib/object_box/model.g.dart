@@ -802,3 +802,26 @@ Map<String, dynamic> _$ComicLinkToJson(ComicLink instance) => <String, dynamic>{
   'createdAt': instance.createdAt,
   'updatedAt': instance.updatedAt,
 };
+
+ComicReadPreference _$ComicReadPreferenceFromJson(Map<String, dynamic> json) =>
+    ComicReadPreference(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      uniqueKey: json['uniqueKey'] as String,
+      source: json['source'] as String,
+      comicId: json['comicId'] as String,
+      readMode: (json['readMode'] as num).toInt(),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deleted: json['deleted'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$ComicReadPreferenceToJson(
+  ComicReadPreference instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'uniqueKey': instance.uniqueKey,
+  'source': instance.source,
+  'comicId': instance.comicId,
+  'readMode': instance.readMode,
+  'updatedAt': instance.updatedAt.toIso8601String(),
+  'deleted': instance.deleted,
+};

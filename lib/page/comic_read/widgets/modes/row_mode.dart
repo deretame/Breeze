@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
@@ -65,9 +66,8 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final readMode = globalSettingState.readSetting.readMode;
-    final readSetting = globalSettingState.readSetting;
+    final readSetting = context.watchEffectiveReadSetting();
+    final readMode = readSetting.readMode;
     final isDoublePage = readSetting.doublePageMode;
     final doublePageSlots = isDoublePage
         ? buildReadModeDoublePageSlots(

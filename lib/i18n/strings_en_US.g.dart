@@ -615,6 +615,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get fullscreen => 'Fullscreen';
 	@override String get leftHandMode => 'Left-hand mode';
 	@override String get rightHandMode => 'Right-hand mode';
+	@override String get reverseHorizontalPageTurn => 'Reverse arrow keys';
+	@override String get reverseHorizontalPageTurnSubtitle => 'Swap left/right arrow keys for page turning, useful for right-to-left manga';
 	@override String get webtoonTapPageTurn => 'Webtoon tap navigation';
 	@override String get enableWebtoonTapPageTurn => 'Allow tapping to turn vertically';
 	@override String get webtoonTapPageTurnSubtitle => 'Tap the upper/lower area in webtoon mode; the center still opens the controls';
@@ -2019,6 +2021,8 @@ extension on TranslationsEnUs {
 			'reader.fullscreen' => 'Fullscreen',
 			'reader.leftHandMode' => 'Left-hand mode',
 			'reader.rightHandMode' => 'Right-hand mode',
+			'reader.reverseHorizontalPageTurn' => 'Reverse arrow keys',
+			'reader.reverseHorizontalPageTurnSubtitle' => 'Swap left/right arrow keys for page turning, useful for right-to-left manga',
 			'reader.webtoonTapPageTurn' => 'Webtoon tap navigation',
 			'reader.enableWebtoonTapPageTurn' => 'Allow tapping to turn vertically',
 			'reader.webtoonTapPageTurnSubtitle' => 'Tap the upper/lower area in webtoon mode; the center still opens the controls',
@@ -2050,10 +2054,10 @@ extension on TranslationsEnUs {
 			'reader.landscapeReader' => 'Landscape reading',
 			'reader.landscapeReaderSubtitle' => 'Switch to landscape while reading and restore the previous direction when you leave',
 			'reader.themeMode' => 'Theme mode',
-			'reader.autoRead' => 'Auto read',
-			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
 			_ => null,
 		} ?? switch (path) {
+			'reader.autoRead' => 'Auto read',
+			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
 			'reader.autoReadHidePauseButton' => 'Hide pause button',
 			'reader.autoReadHidePauseButtonSubtitle' => 'Keep auto-read running without showing the pause/play button',
 			'reader.autoReadSmooth' => 'Smooth scroll',
@@ -2564,10 +2568,10 @@ extension on TranslationsEnUs {
 			'comicFollow.title' => 'Updates',
 			'comicFollow.loadFailed' => ({required Object result}) => 'Load failed: ${result}',
 			'comicFollow.empty' => 'No followed comics',
-			'comicFollow.emptyHint' => 'Tap the follow button on a comic detail page to add it here',
-			'comicFollow.unfollow' => 'Unfollow',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.emptyHint' => 'Tap the follow button on a comic detail page to add it here',
+			'comicFollow.unfollow' => 'Unfollow',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => 'Stop following "${title}"?',
 			'comicFollow.unfollowed' => 'Unfollowed',
 			'comicFollow.all' => 'All',

@@ -492,6 +492,8 @@
     "fullscreen": "Fullscreen",
     "leftHandMode": "Left-hand mode",
     "rightHandMode": "Right-hand mode",
+    "reverseHorizontalPageTurn": "Reverse arrow keys",
+    "reverseHorizontalPageTurnSubtitle": "Swap left/right arrow keys for page turning, useful for right-to-left manga",
     "webtoonTapPageTurn": "Webtoon tap navigation",
     "enableWebtoonTapPageTurn": "Allow tapping to turn vertically",
     "webtoonTapPageTurnSubtitle": "Tap the upper/lower area in webtoon mode; the center still opens the controls",

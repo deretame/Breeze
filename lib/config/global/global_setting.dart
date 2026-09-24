@@ -246,6 +246,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(ReaderTapPageTurnMode.rightHand)
     ReaderTapPageTurnMode tapPageTurnMode,
     @Default(false) bool tapPageTurnInWebtoon,
+    @Default(false) bool reverseHorizontalPageTurn,
     @Default(ReaderBackgroundMode.auto)
     ReaderBackgroundMode readerBackgroundMode,
     @Default(true) bool readFilterEnabled,

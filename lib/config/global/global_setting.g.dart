@@ -284,6 +284,8 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
           ) ??
           ReaderTapPageTurnMode.rightHand,
       tapPageTurnInWebtoon: json['tapPageTurnInWebtoon'] as bool? ?? false,
+      reverseHorizontalPageTurn:
+          json['reverseHorizontalPageTurn'] as bool? ?? false,
       readerBackgroundMode:
           $enumDecodeNullable(
             _$ReaderBackgroundModeEnumMap,
@@ -349,6 +351,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'readMode': instance.readMode,
   'tapPageTurnMode': _$ReaderTapPageTurnModeEnumMap[instance.tapPageTurnMode]!,
   'tapPageTurnInWebtoon': instance.tapPageTurnInWebtoon,
+  'reverseHorizontalPageTurn': instance.reverseHorizontalPageTurn,
   'readerBackgroundMode':
       _$ReaderBackgroundModeEnumMap[instance.readerBackgroundMode]!,
   'readFilterEnabled': instance.readFilterEnabled,

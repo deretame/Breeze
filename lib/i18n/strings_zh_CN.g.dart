@@ -1580,6 +1580,12 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '右手模式'
 	String get rightHandMode => '右手模式';
 
+	/// zh-CN: '反转左右方向键'
+	String get reverseHorizontalPageTurn => '反转左右方向键';
+
+	/// zh-CN: '交换左右方向键的翻页方向，适合从右到左的日漫'
+	String get reverseHorizontalPageTurnSubtitle => '交换左右方向键的翻页方向，适合从右到左的日漫';
+
 	/// zh-CN: '条漫点击翻动'
 	String get webtoonTapPageTurn => '条漫点击翻动';
 
@@ -4328,6 +4334,8 @@ extension on Translations {
 			'reader.fullscreen' => '全屏模式',
 			'reader.leftHandMode' => '左手模式',
 			'reader.rightHandMode' => '右手模式',
+			'reader.reverseHorizontalPageTurn' => '反转左右方向键',
+			'reader.reverseHorizontalPageTurnSubtitle' => '交换左右方向键的翻页方向，适合从右到左的日漫',
 			'reader.webtoonTapPageTurn' => '条漫点击翻动',
 			'reader.enableWebtoonTapPageTurn' => '允许点击上下翻动',
 			'reader.webtoonTapPageTurnSubtitle' => '条漫模式下点击上方/下方区域翻动，中央区域仍用于打开操作栏',
@@ -4358,10 +4366,10 @@ extension on Translations {
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.landscapeReader' => '横屏阅读',
 			'reader.landscapeReaderSubtitle' => '阅读时切换为横屏，离开后恢复原来的方向',
-			'reader.themeMode' => '系统模式',
-			'reader.autoRead' => '自动阅读',
 			_ => null,
 		} ?? switch (path) {
+			'reader.themeMode' => '系统模式',
+			'reader.autoRead' => '自动阅读',
 			'reader.autoReadSubtitle' => '开启后自动滚动',
 			'reader.autoReadHidePauseButton' => '隐藏暂停按钮',
 			'reader.autoReadHidePauseButtonSubtitle' => '自动阅读继续运行，但不显示阅读页上的暂停/播放按钮',
@@ -4872,10 +4880,10 @@ extension on Translations {
 			'comicEntry.deleteFailed' => '删除失败',
 			'comicFollow.title' => '追更',
 			'comicFollow.loadFailed' => ({required Object result}) => '加载失败：${result}',
-			'comicFollow.empty' => '暂无追更漫画',
-			'comicFollow.emptyHint' => '在漫画详情页点击追更按钮即可加入',
 			_ => null,
 		} ?? switch (path) {
+			'comicFollow.empty' => '暂无追更漫画',
+			'comicFollow.emptyHint' => '在漫画详情页点击追更按钮即可加入',
 			'comicFollow.unfollow' => '取消追更',
 			'comicFollow.unfollowConfirm' => ({required Object title}) => '确定不再追更《${title}》吗？',
 			'comicFollow.unfollowed' => '已取消追更',

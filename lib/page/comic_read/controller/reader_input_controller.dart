@@ -118,7 +118,15 @@ class ReaderInputController {
       unawaited(_onToggleDesktopFullscreen());
       return KeyEventResult.handled;
     }
-    final handled = handleGlobalKeyEvent(event, actionController);
+    final handled = handleGlobalKeyEvent(
+      event,
+      actionController,
+      reverseHorizontal: context
+          .read<GlobalSettingCubit>()
+          .state
+          .readSetting
+          .reverseHorizontalPageTurn,
+    );
     return handled ? KeyEventResult.handled : KeyEventResult.ignored;
   }
 

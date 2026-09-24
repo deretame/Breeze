@@ -493,6 +493,8 @@
     "fullscreen": "全屏模式",
     "leftHandMode": "左手模式",
     "rightHandMode": "右手模式",
+    "reverseHorizontalPageTurn": "反转左右方向键",
+    "reverseHorizontalPageTurnSubtitle": "交换左右方向键的翻页方向，适合从右到左的日漫",
     "webtoonTapPageTurn": "条漫点击翻动",
     "enableWebtoonTapPageTurn": "允许点击上下翻动",
     "webtoonTapPageTurnSubtitle": "条漫模式下点击上方/下方区域翻动，中央区域仍用于打开操作栏",

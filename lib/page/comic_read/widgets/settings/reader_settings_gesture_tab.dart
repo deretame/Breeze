@@ -84,6 +84,16 @@ class _TapPageTurnModeSection extends StatelessWidget {
             ),
           ],
         ),
+        _SettingsSwitchTile(
+          title: t.reader.reverseHorizontalPageTurn,
+          subtitle: t.reader.reverseHorizontalPageTurnSubtitle,
+          value: globalSettingState.readSetting.reverseHorizontalPageTurn,
+          onChanged: (value) {
+            globalSettingCubit.updateReadSetting(
+              (current) => current.copyWith(reverseHorizontalPageTurn: value),
+            );
+          },
+        ),
       ],
     );
   }

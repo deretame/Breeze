@@ -256,33 +256,37 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       borderRadius: BorderRadius.circular(12),
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        child: Row(
-          children: [
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.arrow_back),
-              tooltip: t.common.back,
-              onPressed: () => context.read<FolderShelfBloc>().add(
-                const FolderShelfGoBack(),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: SizedBox(
+          height: 48,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.arrow_back),
+                tooltip: t.common.back,
+                onPressed: () => context.read<FolderShelfBloc>().add(
+                  const FolderShelfGoBack(),
+                ),
               ),
-            ),
-            Expanded(
-              child: Text(
-                state.breadcrumbTitle,
-                style: Theme.of(context).textTheme.titleMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              Expanded(
+                child: Text(
+                  state.breadcrumbTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.home),
-              onPressed: () => context.read<FolderShelfBloc>().add(
-                const FolderShelfGoHome(),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.home),
+                onPressed: () => context.read<FolderShelfBloc>().add(
+                  const FolderShelfGoHome(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -292,9 +296,10 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   /// 用 child 传压缩图标：14 + 20 + 14 = 48px 高，与面包屑胶囊同高。
   Widget _buildNavMenuButton(BuildContext context, FolderShelfState state) {
     return FluentPopupMenuButton<String>(
-      child: const Padding(
-        padding: EdgeInsets.all(14),
-        child: Icon(Icons.more_vert, size: 20),
+      child: const SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(child: Icon(Icons.more_vert, size: 20)),
       ),
       onSelected: (value) => _onNavMenuSelected(context, value),
       itemBuilder: (context) => [

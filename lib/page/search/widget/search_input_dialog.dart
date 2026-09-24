@@ -16,6 +16,8 @@ class SearchQueryField extends StatefulWidget {
     this.autoExpand = false,
     this.hintText,
     this.semanticLabel,
+    this.focusNode,
+    this.closeOnSubmit = true,
   });
 
   final String query;
@@ -26,6 +28,14 @@ class SearchQueryField extends StatefulWidget {
   final String? hintText;
   final String? semanticLabel;
 
+  /// 外部传入的焦点节点。提供后父级可主动聚焦/失焦（如弹窗关闭后恢复键盘）；
+  /// 不提供则内部自建自管。
+  final FocusNode? focusNode;
+
+  /// 提交（回车）后是否收起浮层。搜索页保持默认 true；
+  /// 书架这种希望回车后继续改词的场景传 false。
+  final bool closeOnSubmit;
+
   @override
   State<SearchQueryField> createState() => _SearchQueryFieldState();
 }
@@ -34,7 +44,12 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     with WidgetsBindingObserver, AutoRouteAwareStateMixin<SearchQueryField> {
   final _targetKey = GlobalKey();
   late final TextEditingController _controller;
-  late final FocusNode _focusNode;
+  FocusNode? _internalFocusNode;
+
+  /// 外部节点优先，兼顾节点替换：widget.focusNode 变化时下次访问自动切换，
+  /// 内部节点只在真正使用过时才创建、dispose 时只释放内部节点。
+  FocusNode get _focusNode =>
+      widget.focusNode ?? (_internalFocusNode ??= FocusNode());
   OverlayEntry? _overlayEntry;
   OverlayState? _overlayState;
   Timer? _autoExpandFallbackTimer;
@@ -45,7 +60,6 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _controller = TextEditingController(text: widget.query);
-    _focusNode = FocusNode();
     if (widget.autoExpand) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _prepareAutoExpand();
@@ -75,7 +89,8 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     }
     _removeOverlay();
     _controller.dispose();
-    _focusNode.dispose();
+    _internalFocusNode?.dispose();
+    _internalFocusNode = null;
     super.dispose();
   }
 
@@ -246,15 +261,25 @@ class _SearchQueryFieldState extends State<SearchQueryField>
 
   void _submit() {
     final query = _controller.text;
-    _removeOverlay();
-    if (mounted) {
-      setState(() {});
+    if (widget.closeOnSubmit) {
+      _removeOverlay();
+      if (mounted) {
+        setState(() {});
+      }
+    } else {
+      // 保持展开：只刷新浮层内的清空/关闭按钮状态，焦点不动，键盘不收。
+      _overlayEntry?.markNeedsBuild();
     }
     widget.onSubmitted?.call(query);
   }
 
   void _clear() {
+    if (_controller.text.isEmpty) {
+      return;
+    }
     _controller.clear();
+    // 清空也是关键词变化，同步给父级，否则列表还按旧词过滤。
+    widget.onChanged?.call('');
     _overlayEntry?.markNeedsBuild();
   }
 

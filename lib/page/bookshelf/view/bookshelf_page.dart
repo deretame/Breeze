@@ -1,15 +1,17 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
+import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 
 @RoutePage()
 class BookshelfPage extends StatelessWidget {
@@ -69,8 +71,11 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
   late int _currentIndex;
   late final TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
   final List<int> _refreshSignals = [0, 0, 0];
+  final FocusNode _searchFocusNode = FocusNode();
+  // 关键词防抖：短时间内连续输入只保留最后一次，停顿后才真正写入过滤；
+  // 回车提交走 onSubmitted 立即生效，不经过这里。
+  final _keywordDebouncer = Debouncer(milliseconds: 500);
   List<String> _lastAvailableSources = const <String>[];
   bool _isSearchExpanded = false;
 
@@ -84,7 +89,6 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       vsync: this,
     )..addListener(_handleTabControllerChanged);
     _syncSourcesFromRegistry(context.read<PluginRegistryCubit>().state);
-    _syncSearchFieldWithCurrentMode();
   }
 
   @override
@@ -92,7 +96,8 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     _tabController
       ..removeListener(_handleTabControllerChanged)
       ..dispose();
-    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _keywordDebouncer.cancel();
     super.dispose();
   }
 
@@ -148,7 +153,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
               Flexible(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
-                  child: _buildMinimalistSearchField(false),
+                  child: _buildShelfSearchField(autoExpand: false),
                 ),
               ),
               const SizedBox(width: 8),
@@ -164,17 +169,51 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     );
   }
 
+  /// 展开移动端搜索栏。挂载的 SearchQueryField 自带 autoExpand，
+  /// 首帧后自动展开浮层并聚焦，键盘随之弹出。
+  void _expandSearch() {
+    if (_isSearchExpanded) {
+      return;
+    }
+    setState(() => _isSearchExpanded = true);
+  }
+
+  /// 退出搜索：先收起键盘；若有关键词则清空并刷新列表，再收起搜索栏。
+  /// 与浮层输入框内的 ×（清空但保持展开，方便继续输入）语义区分开。
+  void _exitSearch() {
+    _keywordDebouncer.cancel();
+    _searchFocusNode.unfocus();
+    if (_currentSearchState().keyword.isNotEmpty) {
+      _setKeyword('');
+      _triggerRefresh(goTop: true);
+    }
+    if (_isSearchExpanded) {
+      setState(() => _isSearchExpanded = false);
+    }
+  }
+
+  /// 展开态打开筛选：弹窗会抢走焦点，关闭后若还在搜索态则恢复聚焦，键盘回来接着输。
+  Future<void> _openFilterFromSearch() async {
+    await _openFilter();
+    if (mounted && _isSearchExpanded) {
+      _searchFocusNode.requestFocus();
+    }
+  }
+
   Widget _buildMobileHeader() {
     if (_isSearchExpanded) {
       return Row(
         children: [
-          Expanded(child: _buildMinimalistSearchField(true)),
-          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              setState(() => _isSearchExpanded = false);
-            },
+            tooltip: t.common.back,
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _exitSearch,
+          ),
+          Expanded(child: _buildShelfSearchField(autoExpand: true)),
+          IconButton(
+            tooltip: t.bookshelf.filter,
+            icon: const Icon(Icons.tune),
+            onPressed: _openFilterFromSearch,
           ),
         ],
       );
@@ -184,10 +223,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       children: [
         _buildSleekTabs(),
         const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () => setState(() => _isSearchExpanded = true),
-        ),
+        IconButton(icon: const Icon(Icons.search), onPressed: _expandSearch),
         IconButton(
           tooltip: t.bookshelf.filter,
           icon: const Icon(Icons.tune),
@@ -248,52 +284,60 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     );
   }
 
-  Widget _buildMinimalistSearchField(bool isMobile) {
-    return Container(
-      height: 38,
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.4,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TextField(
-        controller: _searchController,
-        textInputAction: TextInputAction.search,
-        textAlignVertical: TextAlignVertical.center,
-        style: const TextStyle(fontSize: 14),
-        decoration: InputDecoration(
+  /// 关键词防抖写入。mode 在调用时快照，避免防抖期间切 tab 把词写到别的 tab。
+  void _setKeywordDebounced(ShelfPageMode mode, String keyword) {
+    _keywordDebouncer.run(() {
+      if (!mounted) {
+        return;
+      }
+      final cubit = context.read<BookshelfSearchCubit>();
+      if (cubit.state.stateOf(mode).keyword == keyword) {
+        return;
+      }
+      cubit.setKeyword(mode, keyword);
+    });
+  }
+
+  /// 书架搜索框：复用搜索页的 SearchQueryField（浮层展开、视觉换行多行输入）。
+  /// 非空输入经 500ms 防抖写入 cubit（列表按 keyword 做 BlocBuilder 实时过滤）；
+  /// 清空（删到空/点 ×）是明确的单次操作，立即生效；
+  /// 回车提交立即生效、保持浮层展开并回到顶部，方便继续改词。桌面端常驻显示（autoExpand 关），
+  /// 移动端在展开时挂载（autoExpand 开，首帧自动聚焦弹键盘）。
+  Widget _buildShelfSearchField({required bool autoExpand}) {
+    return BlocBuilder<BookshelfSearchCubit, BookshelfSearchState>(
+      buildWhen: (prev, curr) =>
+          prev.stateOf(_currentMode()).keyword !=
+          curr.stateOf(_currentMode()).keyword,
+      builder: (context, state) {
+        return SearchQueryField(
+          // 按 tab 区分 element：切 tab 时重建，保证各 tab 关键词独立，
+          // 且展开中的浮层不会串词。
+          key: ValueKey('shelf_search_$_currentIndex'),
+          query: state.stateOf(_currentMode()).keyword,
+          autoExpand: autoExpand,
+          focusNode: _searchFocusNode,
+          closeOnSubmit: false,
           hintText: t.bookshelf.searchList,
-          hintStyle: TextStyle(color: context.textColor.withValues(alpha: 0.5)),
-          isCollapsed: true,
-          border: InputBorder.none,
-          prefixIcon: Icon(
-            Icons.search,
-            size: 18,
-            color: context.textColor.withValues(alpha: 0.6),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 0,
-          ),
-          suffixIcon: _searchController.text.isEmpty
-              ? null
-              : IconButton(
-                  icon: const Icon(Icons.close, size: 16),
-                  onPressed: () {
-                    _searchController.clear();
-                    _setKeyword('');
-                    _triggerRefresh(goTop: true);
-                    setState(() {});
-                  },
-                ),
-        ),
-        onChanged: (_) => setState(() {}),
-        onSubmitted: (value) {
-          _setKeyword(value.trim());
-          _triggerRefresh(goTop: true);
-        },
-      ),
+          semanticLabel: t.bookshelf.searchList,
+          onChanged: (keyword) {
+            if (keyword.isEmpty) {
+              // 清空是明确的单次操作，立即生效，不走防抖。
+              _keywordDebouncer.cancel();
+              if (_currentSearchState().keyword.isNotEmpty) {
+                _setKeyword('');
+                _triggerRefresh(goTop: true);
+              }
+              return;
+            }
+            _setKeywordDebounced(_currentMode(), keyword);
+          },
+          onSubmitted: (keyword) {
+            _keywordDebouncer.cancel();
+            _setKeyword(keyword.trim());
+            _triggerRefresh(goTop: true);
+          },
+        );
+      },
     );
   }
 
@@ -308,16 +352,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     }
     setState(() {
       _currentIndex = _tabController.index;
-      _syncSearchFieldWithCurrentMode();
     });
-  }
-
-  void _syncSearchFieldWithCurrentMode() {
-    final keyword = _currentSearchState().keyword;
-    _searchController.value = TextEditingValue(
-      text: keyword,
-      selection: TextSelection.collapsed(offset: keyword.length),
-    );
   }
 
   ShelfPageMode _currentMode() {

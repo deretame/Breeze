@@ -1331,8 +1331,8 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '取消本地收藏'
 	String get removeLocalCollection => '取消本地收藏';
 
-	/// zh-CN: '云端收藏已关闭'
-	String get cloudCollectDisabled => '云端收藏已关闭';
+	/// zh-CN: '该插件暂不支持此功能'
+	String get cloudCollectDisabled => '该插件暂不支持此功能';
 
 	/// zh-CN: '收藏到云端中...'
 	String get collectingToCloud => '收藏到云端中...';
@@ -1364,8 +1364,8 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '下载'
 	String get download => '下载';
 
-	/// zh-CN: '禁止下载'
-	String get downloadForbidden => '禁止下载';
+	/// zh-CN: '该插件暂不支持此功能'
+	String get downloadForbidden => '该插件暂不支持此功能';
 
 	/// zh-CN: '已添加收藏'
 	String get addedToCollection => '已添加收藏';
@@ -1379,8 +1379,8 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '此项操作会删除该漫画在所有文件夹的记录，是否确认删除？'
 	String get confirmUncollectContent => '此项操作会删除该漫画在所有文件夹的记录，是否确认删除？';
 
-	/// zh-CN: '该漫画禁止评论'
-	String get commentForbidden => '该漫画禁止评论';
+	/// zh-CN: '该插件暂不支持此功能'
+	String get commentForbidden => '该插件暂不支持此功能';
 
 	/// zh-CN: '禁止评论'
 	String get commentForbiddenTitle => '禁止评论';
@@ -1495,6 +1495,9 @@ class Translations$comicInfo$zh_CN {
 
 	/// zh-CN: '已取消点赞'
 	String get unlikeSuccess => '已取消点赞';
+
+	/// zh-CN: '该插件暂不支持此功能'
+	String get likeDisabled => '该插件暂不支持此功能';
 
 	/// zh-CN: '本地收藏失败: $error'
 	String localCollectFailed({required Object error}) => '本地收藏失败: ${error}';
@@ -4269,7 +4272,7 @@ extension on Translations {
 			'comicInfo.removeCloudCollection' => '取消云端收藏',
 			'comicInfo.collectToLocal' => '收藏到本地',
 			'comicInfo.removeLocalCollection' => '取消本地收藏',
-			'comicInfo.cloudCollectDisabled' => '云端收藏已关闭',
+			'comicInfo.cloudCollectDisabled' => '该插件暂不支持此功能',
 			'comicInfo.collectingToCloud' => '收藏到云端中...',
 			'comicInfo.removingCloudCollection' => '取消云端收藏中...',
 			'comicInfo.cloudCollectSuccess' => '云端收藏成功',
@@ -4280,12 +4283,12 @@ extension on Translations {
 			'comicInfo.collected' => '已收藏',
 			'comicInfo.collect' => '收藏',
 			'comicInfo.download' => '下载',
-			'comicInfo.downloadForbidden' => '禁止下载',
+			'comicInfo.downloadForbidden' => '该插件暂不支持此功能',
 			'comicInfo.addedToCollection' => '已添加收藏',
 			'comicInfo.removedFromCollection' => '已取消收藏',
 			'comicInfo.confirmUncollectTitle' => '确认取消收藏',
 			'comicInfo.confirmUncollectContent' => '此项操作会删除该漫画在所有文件夹的记录，是否确认删除？',
-			'comicInfo.commentForbidden' => '该漫画禁止评论',
+			'comicInfo.commentForbidden' => '该插件暂不支持此功能',
 			'comicInfo.commentForbiddenTitle' => '禁止评论',
 			'comicInfo.back' => '返回',
 			'comicInfo.exportTitle' => '选择导出方式',
@@ -4324,6 +4327,7 @@ extension on Translations {
 			'comicInfo.unliking' => '取消点赞中...',
 			'comicInfo.likeSuccess' => '点赞成功',
 			'comicInfo.unlikeSuccess' => '已取消点赞',
+			'comicInfo.likeDisabled' => '该插件暂不支持此功能',
 			'comicInfo.localCollectFailed' => ({required Object error}) => '本地收藏失败: ${error}',
 			'comicInfo.likeFailed' => ({required Object error}) => '点赞失败: ${error}',
 			'comicInfo.loadFailedWithError' => ({required Object error}) => '${error}\n加载失败，请重试。',
@@ -4380,9 +4384,9 @@ extension on Translations {
 			'reader.singlePageRtl' => '单页式（从右到左）',
 			'reader.doublePage' => '双页阅读',
 			'reader.doublePageSubtitle' => '在当前阅读模式中启用双页并排',
-			'reader.doublePageSeamless' => '双页无缝',
 			_ => null,
 		} ?? switch (path) {
+			'reader.doublePageSeamless' => '双页无缝',
 			'reader.doublePageSeamlessSubtitle' => '左右各占一半宽度，按图片比例独立显示并消除中间留白',
 			'reader.doublePageLeadingBlank' => '首页留白',
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
@@ -4894,9 +4898,9 @@ extension on Translations {
 			'comicEntry.deleteFavorite' => '删除收藏',
 			'comicEntry.deleteFavoriteConfirm' => ({required Object title}) => '确定要删除（${title}）的收藏记录吗？',
 			'comicEntry.deleteHistory' => '删除历史记录',
-			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => '确定要删除（${title}）的历史记录吗？',
 			_ => null,
 		} ?? switch (path) {
+			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => '确定要删除（${title}）的历史记录吗？',
 			'comicEntry.deleteDownload' => '删除下载记录',
 			'comicEntry.deleteDownloadConfirm' => ({required Object title}) => '确定要删除（${title}）的下载记录及文件吗？',
 			'comicEntry.deleteFailed' => '删除失败',

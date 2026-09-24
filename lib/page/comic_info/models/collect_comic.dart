@@ -195,6 +195,7 @@ Future<bool> toggleCloudComicFavorite({
   required String comicId,
   required bool currentStatus,
   bool legacyAllowCollected = true,
+  String legacyAllowCollectedReason = '',
   String? collectionTargetId,
   String? collectionTargetName,
 }) async {
@@ -211,6 +212,7 @@ Future<bool> toggleCloudComicFavorite({
         : FavoriteWorkflowAction.add,
     currentStatus: currentStatus,
     legacyAllowCollected: legacyAllowCollected,
+    legacyAllowCollectedReason: legacyAllowCollectedReason,
     collectionTargetId: collectionTargetId,
     collectionTargetName: collectionTargetName,
   );
@@ -232,6 +234,7 @@ Future<FavoriteWorkflowExecutionResult> executeCloudFavoriteWorkflow({
   required FavoriteWorkflowAction action,
   required bool currentStatus,
   bool legacyAllowCollected = true,
+  String legacyAllowCollectedReason = '',
   String? collectionTargetId,
   String? collectionTargetName,
 }) async {
@@ -255,7 +258,7 @@ Future<FavoriteWorkflowExecutionResult> executeCloudFavoriteWorkflow({
     if (!legacyAllowCollected ||
         (action != FavoriteWorkflowAction.add &&
             action != FavoriteWorkflowAction.removeAll)) {
-      throw const FavoriteWorkflowUnsupportedException();
+      throw FavoriteWorkflowUnsupportedException(legacyAllowCollectedReason);
     }
     return _runLegacyFavoriteWorkflow(
       context: context,

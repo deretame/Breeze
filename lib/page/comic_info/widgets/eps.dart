@@ -30,9 +30,13 @@ class EpButtonWidget extends StatelessWidget {
   final int index;
   final bool isReversed;
 
-  /// 章节下载状态；为 null 时不显示下载按钮（沿用旧箭头）。
+  /// 章节下载状态；为 null 时显示下载按钮占位。
   final ChapterDownloadStatus? downloadStatus;
   final double? downloadProgress;
+
+  /// 下载是否被插件允许；为 false 时仍显示下载按钮，点击后由调用方弹出禁用原因。
+  final bool downloadAllowed;
+  final String downloadDisabledReason;
   final bool selectionMode;
   final bool selected;
   final VoidCallback? onAction;
@@ -52,6 +56,8 @@ class EpButtonWidget extends StatelessWidget {
     required this.isReversed,
     this.downloadStatus,
     this.downloadProgress,
+    this.downloadAllowed = true,
+    this.downloadDisabledReason = '',
     this.selectionMode = false,
     this.selected = false,
     this.onAction,
@@ -129,14 +135,6 @@ class EpButtonWidget extends StatelessWidget {
   }
 
   Widget _buildTrailing(BuildContext context) {
-    final status = downloadStatus;
-    if (status == null) {
-      return Icon(
-        Icons.chevron_right_rounded,
-        size: 20,
-        color: context.textColor.withValues(alpha: 0.5),
-      );
-    }
     // 行内容高度只有 32（56-上下 padding），IconButton 默认最小 40 会被纵向
     // 挤压，里面的进度圈会被压成椭圆。这里统一用 32x32 正方形槽位，保证不变形。
     Widget slot(Widget child) {
@@ -145,6 +143,12 @@ class EpButtonWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: SizedBox.square(dimension: 32, child: Center(child: child)),
       );
+    }
+
+    final status = downloadStatus;
+    if (status == null || !downloadAllowed) {
+      // 不允许下载时也显示下载按钮，点击后由 onAction 弹出禁用原因。
+      return slot(const Icon(Icons.download_outlined, size: 20));
     }
 
     switch (status) {

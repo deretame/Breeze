@@ -509,7 +509,9 @@ class _ComicInfoState extends State<_ComicInfo>
                                 episodes: displayEps,
                                 chapters: chapters,
                                 controller: _dlController,
-                                showDownloadUi: showDownloadUi,
+                                downloadAllowed: showDownloadUi,
+                                downloadDisabledReason:
+                                    normalComicAllInfo.allowDownloadReason,
                                 allInfo: comicInfoDyn,
                                 epsLength: normalComicAllInfo.eps.length,
                                 type: _type,
@@ -969,6 +971,7 @@ class _ComicInfoState extends State<_ComicInfo>
         comicId: info.comicInfo.id,
         currentStatus: _isCloudCollected,
         legacyAllowCollected: info.allowCollected,
+        legacyAllowCollectedReason: info.allowCollectedReason,
         collectionTargetId: widget.collectionTargetId,
         collectionTargetName: widget.collectionTargetName,
       );
@@ -987,9 +990,12 @@ class _ComicInfoState extends State<_ComicInfo>
             ? t.comicInfo.cloudCollectSuccess
             : t.comicInfo.cloudUncollectSuccess,
       );
-    } on FavoriteWorkflowUnsupportedException {
+    } on FavoriteWorkflowUnsupportedException catch (error) {
       if (mounted) {
-        showInfoToast(t.comicInfo.cloudCollectDisabled);
+        final reason = error.reason.trim();
+        showInfoToast(
+          reason.isNotEmpty ? reason : t.comicInfo.cloudCollectDisabled,
+        );
       }
     } on FavoriteWorkflowIncompleteException catch (error) {
       if (mounted) {
@@ -1151,7 +1157,8 @@ class _EpisodeListSection extends StatelessWidget {
     required this.episodes,
     required this.chapters,
     required this.controller,
-    required this.showDownloadUi,
+    required this.downloadAllowed,
+    required this.downloadDisabledReason,
     required this.allInfo,
     required this.epsLength,
     required this.type,
@@ -1163,7 +1170,8 @@ class _EpisodeListSection extends StatelessWidget {
   final List<dynamic> episodes;
   final List<DownloadChapter> chapters;
   final EpisodeDownloadController controller;
-  final bool showDownloadUi;
+  final bool downloadAllowed;
+  final String downloadDisabledReason;
   final dynamic allInfo;
   final int epsLength;
   final ComicEntryType type;
@@ -1175,6 +1183,10 @@ class _EpisodeListSection extends StatelessWidget {
     BuildContext context,
     DownloadChapter chapter,
   ) async {
+    if (!downloadAllowed) {
+      _showDownloadDisabledToast();
+      return;
+    }
     final status = controller.statusOf(chapter);
     switch (status) {
       case ChapterDownloadStatus.notDownloaded:
@@ -1206,16 +1218,27 @@ class _EpisodeListSection extends StatelessWidget {
       from: from,
       index: i,
       isReversed: isReversed,
-      downloadStatus: showDownloadUi ? controller.statusOf(chapter) : null,
-      downloadProgress: showDownloadUi ? controller.progressOf(chapter) : null,
+      downloadStatus: controller.statusOf(chapter),
+      downloadProgress: controller.progressOf(chapter),
+      downloadAllowed: downloadAllowed,
+      downloadDisabledReason: downloadDisabledReason,
       selectionMode: controller.selectionMode,
       selected: controller.selectedIds.contains(chapter.id),
       onAction: () => _onChapterAction(context, chapter),
       onToggleSelect: () => controller.toggleSelect(chapter.id),
-      onEnterSelect: showDownloadUi
-          ? () => controller.enterSelection(chapter.id)
-          : null,
+      onEnterSelect: () {
+        if (!downloadAllowed) {
+          _showDownloadDisabledToast();
+          return;
+        }
+        controller.enterSelection(chapter.id);
+      },
     );
+  }
+
+  void _showDownloadDisabledToast() {
+    final reason = downloadDisabledReason.trim();
+    showInfoToast(reason.isNotEmpty ? reason : t.comicInfo.downloadForbidden);
   }
 
   @override

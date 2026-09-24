@@ -27,6 +27,16 @@ abstract class NormalComicAllInfo with _$NormalComicAllInfo {
     @JsonKey(name: 'allowLike') @Default(false) bool allowLike,
     @JsonKey(name: 'allowCollected') @Default(false) bool allowCollected,
     @JsonKey(name: 'allowDownload') @Default(true) bool allowDownload,
+    @JsonKey(name: 'allowCommentsReason')
+    @Default('')
+    String allowCommentsReason,
+    @JsonKey(name: 'allowLikeReason') @Default('') String allowLikeReason,
+    @JsonKey(name: 'allowCollectedReason')
+    @Default('')
+    String allowCollectedReason,
+    @JsonKey(name: 'allowDownloadReason')
+    @Default('')
+    String allowDownloadReason,
     @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _NormalComicAllInfo;
 

@@ -197,7 +197,9 @@ class FavoriteWorkflowExecutionResult {
 }
 
 class FavoriteWorkflowUnsupportedException implements Exception {
-  const FavoriteWorkflowUnsupportedException();
+  const FavoriteWorkflowUnsupportedException([this.reason = '']);
+
+  final String reason;
 }
 
 class FavoriteWorkflowIncompleteException implements Exception {

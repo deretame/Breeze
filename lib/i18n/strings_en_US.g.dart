@@ -526,7 +526,7 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get removeCloudCollection => 'Remove cloud collection';
 	@override String get collectToLocal => 'Collect locally';
 	@override String get removeLocalCollection => 'Remove local collection';
-	@override String get cloudCollectDisabled => 'Cloud collection disabled';
+	@override String get cloudCollectDisabled => 'This plugin does not support this feature';
 	@override String get collectingToCloud => 'Adding to cloud collection...';
 	@override String get removingCloudCollection => 'Removing cloud collection...';
 	@override String get cloudCollectSuccess => 'Added to cloud collection';
@@ -537,12 +537,12 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get collected => 'Collected';
 	@override String get collect => 'Collect';
 	@override String get download => 'Download';
-	@override String get downloadForbidden => 'Download forbidden';
+	@override String get downloadForbidden => 'This plugin does not support this feature';
 	@override String get addedToCollection => 'Added to collection';
 	@override String get removedFromCollection => 'Removed from collection';
 	@override String get confirmUncollectTitle => 'Remove collection';
 	@override String get confirmUncollectContent => 'This will delete the comic from all folders. Continue?';
-	@override String get commentForbidden => 'Comments are disabled for this comic';
+	@override String get commentForbidden => 'This plugin does not support this feature';
 	@override String get commentForbiddenTitle => 'Comments disabled';
 	@override String get back => 'Back';
 	@override String get exportTitle => 'Choose export format';
@@ -581,6 +581,7 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get unliking => 'Unliking...';
 	@override String get likeSuccess => 'Liked';
 	@override String get unlikeSuccess => 'Unliked';
+	@override String get likeDisabled => 'This plugin does not support this feature';
 	@override String localCollectFailed({required Object error}) => 'Local favorite failed: ${error}';
 	@override String likeFailed({required Object error}) => 'Like failed: ${error}';
 	@override String loadFailedWithError({required Object error}) => '${error}\nLoading failed, please retry.';
@@ -1946,7 +1947,7 @@ extension on TranslationsEnUs {
 			'comicInfo.removeCloudCollection' => 'Remove cloud collection',
 			'comicInfo.collectToLocal' => 'Collect locally',
 			'comicInfo.removeLocalCollection' => 'Remove local collection',
-			'comicInfo.cloudCollectDisabled' => 'Cloud collection disabled',
+			'comicInfo.cloudCollectDisabled' => 'This plugin does not support this feature',
 			'comicInfo.collectingToCloud' => 'Adding to cloud collection...',
 			'comicInfo.removingCloudCollection' => 'Removing cloud collection...',
 			'comicInfo.cloudCollectSuccess' => 'Added to cloud collection',
@@ -1957,12 +1958,12 @@ extension on TranslationsEnUs {
 			'comicInfo.collected' => 'Collected',
 			'comicInfo.collect' => 'Collect',
 			'comicInfo.download' => 'Download',
-			'comicInfo.downloadForbidden' => 'Download forbidden',
+			'comicInfo.downloadForbidden' => 'This plugin does not support this feature',
 			'comicInfo.addedToCollection' => 'Added to collection',
 			'comicInfo.removedFromCollection' => 'Removed from collection',
 			'comicInfo.confirmUncollectTitle' => 'Remove collection',
 			'comicInfo.confirmUncollectContent' => 'This will delete the comic from all folders. Continue?',
-			'comicInfo.commentForbidden' => 'Comments are disabled for this comic',
+			'comicInfo.commentForbidden' => 'This plugin does not support this feature',
 			'comicInfo.commentForbiddenTitle' => 'Comments disabled',
 			'comicInfo.back' => 'Back',
 			'comicInfo.exportTitle' => 'Choose export format',
@@ -2001,6 +2002,7 @@ extension on TranslationsEnUs {
 			'comicInfo.unliking' => 'Unliking...',
 			'comicInfo.likeSuccess' => 'Liked',
 			'comicInfo.unlikeSuccess' => 'Unliked',
+			'comicInfo.likeDisabled' => 'This plugin does not support this feature',
 			'comicInfo.localCollectFailed' => ({required Object error}) => 'Local favorite failed: ${error}',
 			'comicInfo.likeFailed' => ({required Object error}) => 'Like failed: ${error}',
 			'comicInfo.loadFailedWithError' => ({required Object error}) => '${error}\nLoading failed, please retry.',
@@ -2058,9 +2060,9 @@ extension on TranslationsEnUs {
 			'reader.doublePage' => 'Double page',
 			'reader.doublePageSubtitle' => 'Enable double-page spread in current reading mode',
 			'reader.doublePageSeamless' => 'Seamless double page',
-			'reader.doublePageSeamlessSubtitle' => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them',
 			_ => null,
 		} ?? switch (path) {
+			'reader.doublePageSeamlessSubtitle' => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them',
 			'reader.doublePageLeadingBlank' => 'Leading blank',
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.landscapeReader' => 'Landscape reading',
@@ -2572,9 +2574,9 @@ extension on TranslationsEnUs {
 			'comicEntry.deleteFavoriteConfirm' => ({required Object title}) => 'Delete favorite record for "${title}"?',
 			'comicEntry.deleteHistory' => 'Delete History',
 			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => 'Delete history record for "${title}"?',
-			'comicEntry.deleteDownload' => 'Delete Download',
 			_ => null,
 		} ?? switch (path) {
+			'comicEntry.deleteDownload' => 'Delete Download',
 			'comicEntry.deleteDownloadConfirm' => ({required Object title}) => 'Delete download record and files for "${title}"?',
 			'comicEntry.deleteFailed' => 'Delete failed',
 			'comicFollow.title' => 'Updates',

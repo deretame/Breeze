@@ -160,10 +160,11 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   void _openComments() {
     if (!normalInfo.allowComments) {
+      final reason = normalInfo.allowCommentsReason.trim();
       commonDialog(
         context,
         t.comicInfo.commentForbiddenTitle,
-        t.comicInfo.commentForbidden,
+        reason.isNotEmpty ? reason : t.comicInfo.commentForbidden,
       );
       return;
     }
@@ -231,6 +232,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         comicId: comicInfoView.id,
         currentStatus: isCloudCollected,
         legacyAllowCollected: normalInfo.allowCollected,
+        legacyAllowCollectedReason: normalInfo.allowCollectedReason,
         collectionTargetId: widget.collectionTargetId,
         collectionTargetName: widget.collectionTargetName,
       );
@@ -248,9 +250,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             ? t.comicInfo.cloudCollectSuccess
             : t.comicInfo.cloudUncollectSuccess,
       );
-    } on FavoriteWorkflowUnsupportedException {
+    } on FavoriteWorkflowUnsupportedException catch (error) {
       if (mounted) {
-        showInfoToast(t.comicInfo.cloudCollectDisabled);
+        final reason = error.reason.trim();
+        showInfoToast(
+          reason.isNotEmpty ? reason : t.comicInfo.cloudCollectDisabled,
+        );
       }
     } on FavoriteWorkflowIncompleteException catch (error) {
       if (mounted) {
@@ -289,6 +294,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   Future<void> _toggleCloudLike() async {
     if (!normalInfo.allowLike) {
+      final reason = normalInfo.allowLikeReason.trim();
+      showInfoToast(reason.isNotEmpty ? reason : t.comicInfo.likeDisabled);
       return;
     }
     try {

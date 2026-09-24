@@ -25,6 +25,10 @@ _NormalComicAllInfo _$NormalComicAllInfoFromJson(Map<String, dynamic> json) =>
       allowLike: json['allowLike'] as bool? ?? false,
       allowCollected: json['allowCollected'] as bool? ?? false,
       allowDownload: json['allowDownload'] as bool? ?? true,
+      allowCommentsReason: json['allowCommentsReason'] as String? ?? '',
+      allowLikeReason: json['allowLikeReason'] as String? ?? '',
+      allowCollectedReason: json['allowCollectedReason'] as String? ?? '',
+      allowDownloadReason: json['allowDownloadReason'] as String? ?? '',
       extern: json['extern'] as Map<String, dynamic>? ?? const {},
     );
 
@@ -43,6 +47,10 @@ Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
       'allowLike': instance.allowLike,
       'allowCollected': instance.allowCollected,
       'allowDownload': instance.allowDownload,
+      'allowCommentsReason': instance.allowCommentsReason,
+      'allowLikeReason': instance.allowLikeReason,
+      'allowCollectedReason': instance.allowCollectedReason,
+      'allowDownloadReason': instance.allowDownloadReason,
       'extern': instance.extern,
     };
 

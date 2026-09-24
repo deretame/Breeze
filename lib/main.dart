@@ -19,7 +19,6 @@ import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:logger/logger.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/config/global/global.dart';
@@ -471,7 +470,7 @@ class MyApp extends StatefulWidget with WindowListener {
 }
 
 class _MyAppState extends State<MyApp>
-    with WindowListener, TrayListener, WidgetsBindingObserver {
+    with WindowListener, WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -483,8 +482,10 @@ class _MyAppState extends State<MyApp>
         windowManager.setPreventClose(true);
       });
     }
-    trayManager.addListener(this);
-    initSystemTray();
+    initSystemTray(
+      onShowWindow: showMainWindow,
+      onExitApp: _performGracefulExit,
+    );
 
     if (Platform.isLinux) {
       _linuxWindowChannel.setMethodCallHandler((call) async {
@@ -509,7 +510,7 @@ class _MyAppState extends State<MyApp>
     WidgetsBinding.instance.removeObserver(this);
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       windowManager.removeListener(this);
-      trayManager.removeListener(this);
+      disposeSystemTray();
     }
     super.dispose();
   }
@@ -682,26 +683,6 @@ class _MyAppState extends State<MyApp>
   void onWindowFocus() {
     super.onWindowFocus();
     setState(() {});
-  }
-
-  @override
-  void onTrayIconMouseDown() {
-    showMainWindow();
-  }
-
-  @override
-  void onTrayIconRightMouseDown() {
-    trayManager.popUpContextMenu();
-  }
-
-  @override
-  void onTrayMenuItemClick(MenuItem menuItem) {
-    if (menuItem.key == 'show_window') {
-      showMainWindow();
-    } else if (menuItem.key == 'exit_app') {
-      // 真正退出：清理资源后退出
-      _performGracefulExit();
-    }
   }
 
   void _init() async {

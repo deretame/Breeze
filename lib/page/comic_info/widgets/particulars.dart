@@ -458,26 +458,40 @@ class _MetaPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pill = Container(
+    final pill = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 38),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(
-            alpha: 0.32,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: context.theme.colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: context.theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.32,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        softWrap: true,
-        style: context.theme.textTheme.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          height: 1.15,
-        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 9,
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              softWrap: true,
+              style: context.theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                height: 1.15,
+              ),
+            ),
+          ),
+        ],
       ),
     );
 

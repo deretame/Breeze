@@ -332,11 +332,14 @@ class _ComicInfoState extends State<_ComicInfo>
               }
             },
           ),
-          ListenableBuilder(
-            listenable: _dlController,
-            builder: (context, _) => _SelectionActionBar(
-              controller: _dlController,
-              isDownloadType: _type == ComicEntryType.download,
+          BlocBuilder<EpisodeDownloadStatusCubit, EpisodeDownloadStatusState>(
+            bloc: _dlController.statusCubit,
+            builder: (context, _) => BlocBuilder<EpisodeSelectionCubit, int>(
+              bloc: _dlController.selectionCubit,
+              builder: (context, _) => _SelectionActionBar(
+                controller: _dlController,
+                isDownloadType: _type == ComicEntryType.download,
+              ),
             ),
           ),
         ],
@@ -345,8 +348,8 @@ class _ComicInfoState extends State<_ComicInfo>
           context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
           ? FloatingActionButtonLocation.startFloat
           : FloatingActionButtonLocation.endFloat,
-      floatingActionButton: ListenableBuilder(
-        listenable: _dlController,
+      floatingActionButton: BlocBuilder<EpisodeSelectionCubit, int>(
+        bloc: _dlController.selectionCubit,
         builder: (context, _) {
           if (_dlController.selectionMode) {
             return const SizedBox.shrink();
@@ -529,8 +532,8 @@ class _ComicInfoState extends State<_ComicInfo>
                   ),
                 ),
               ),
-              // 章节列表：Sliver 虚拟化，只建可视行。attach 在 _EpisodeBoard
-              // 的 initState/didUpdateWidget 里做，不在 build 里调。
+              // 章节列表：Sliver 虚拟化，只建可视行，attach 由 _EpisodeBoard
+              // 的 initState/didUpdateWidget 负责。
               _EpisodeBoard(
                 controller: _dlController,
                 from: widget.from,
@@ -1206,10 +1209,10 @@ class _EpisodeHeader extends StatelessWidget {
 
 /// 章节列表的 sliver 宿主。
 ///
-/// attach 放在 initState/didUpdateWidget（不在 build 里调），build 只做
-/// 带缓存的 adapt + 返回 SliverList/SliverGrid，只建可视行。
-/// 断点与原来一致（按内容宽度算）：<560 单列，<720 一列、<960 两列，
-/// ≥960 按 320 maxExtent 网格（代替原来全量 build 的 Wrap）。
+/// attach 由 initState/didUpdateWidget 负责，build 只做带缓存的 adapt +
+/// 返回 SliverList/SliverGrid，只建可视行。
+/// 断点（按内容宽度算）：<560 单列，<720 一列、<960 两列，
+/// ≥960 按 320 maxExtent 网格。
 class _EpisodeBoard extends StatefulWidget {
   const _EpisodeBoard({
     required this.controller,
@@ -1295,8 +1298,7 @@ class _EpisodeBoardState extends State<_EpisodeBoard> {
     }
   }
 
-  // 注意：选中态/下载态不在这里读取，行内部分别监听 selectionCubit /
-  // controller 自更新。外层进度 tick 不再全列表重建。
+  // 选中态/下载态不在这里读取，行内各自订阅 selectionCubit / statusCubit。
   Widget _buildRow(
     BuildContext context,
     List<DownloadChapter> chapters,

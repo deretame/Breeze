@@ -7,8 +7,9 @@ import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
+import 'package:zephyr/page/comic_info/cubit/episode_download_status_cubit.dart';
+import 'package:zephyr/page/comic_info/cubit/episode_selection_cubit.dart';
 import 'package:zephyr/page/comic_info/widgets/episode_download_controller.dart';
-import 'package:zephyr/page/comic_info/widgets/episode_selection_cubit.dart';
 import 'package:zephyr/service/download/download_task_repository.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/type/enum.dart';
@@ -252,10 +253,16 @@ class _EpisodeTrailing extends StatelessWidget {
       // 不允许下载时显示静态按钮，无需订阅，点击后由 onAction 弹出禁用原因。
       return _slot(context, const Icon(Icons.download_outlined, size: 20));
     }
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
-        final status = controller.statusOf(chapter);
+    // 只订阅自己这一章的 (status, progress)：别的章节进度变化时不重建。
+    return BlocSelector<
+      EpisodeDownloadStatusCubit,
+      EpisodeDownloadStatusState,
+      (ChapterDownloadStatus, double?)
+    >(
+      bloc: controller.statusCubit,
+      selector: (state) => (state.statusOf(chapter), state.progressOf(chapter)),
+      builder: (context, selected) {
+        final status = selected.$1;
         switch (status) {
           case ChapterDownloadStatus.notDownloaded:
             return _slot(
@@ -265,14 +272,13 @@ class _EpisodeTrailing extends StatelessWidget {
           case ChapterDownloadStatus.queued:
             return _slot(context, const Icon(Icons.hourglass_empty, size: 20));
           case ChapterDownloadStatus.downloading:
-            final progress = controller.progressOf(chapter);
             return _slot(
               context,
               SizedBox.square(
                 dimension: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  value: progress,
+                  value: selected.$2,
                 ),
               ),
             );

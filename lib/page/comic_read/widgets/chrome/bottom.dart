@@ -331,19 +331,63 @@ class _ChapterPickerDialog extends StatefulWidget {
 }
 
 class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
-  late final List<GlobalKey> _itemKeys;
+  // 行高只是估算（章节名可能换行），用于对话框高度与首屏定位；
+  // 精确定位靠 _targetKey + ensureVisible。
+  static const double _estimatedRowHeight = 52.0;
+  static const int _maxRevealAttempts = 3;
+
+  GlobalKey? _targetKey;
+  late final ScrollController _scrollController;
+  int _revealAttempts = 0;
+
+  bool get _hasValidInitial =>
+      widget.initialIndex >= 0 && widget.initialIndex < widget.refs.length;
 
   @override
   void initState() {
     super.initState();
-    _itemKeys = List.generate(widget.refs.length, (_) => GlobalKey());
-    if (widget.initialIndex < 0) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final context = _itemKeys[widget.initialIndex].currentContext;
-      if (context == null) return;
-      Scrollable.ensureVisible(context, alignment: 0.0);
-    });
+    // 原来是 List.generate(refs.length) 建 N 个 GlobalKey，
+    // 全局注册 + 阻碍复用；现在只给当前章节留 1 个。
+    if (_hasValidInitial) {
+      _targetKey = GlobalKey();
+      _scrollController = ScrollController(
+        initialScrollOffset: widget.initialIndex * _estimatedRowHeight,
+      );
+    } else {
+      _scrollController = ScrollController();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _revealInitial());
+  }
+
+  /// 直接定位到当前章节（无动画）。目标行还没建出来时先跳到估算位置，
+  /// 下一帧再精确定位；超过次数就停在估算位置附近，不死循环。
+  void _revealInitial() {
+    if (!mounted || _revealAttempts >= _maxRevealAttempts) return;
+    _revealAttempts++;
+    final key = _targetKey;
+    if (key == null) return;
+    final targetContext = key.currentContext;
+    if (targetContext == null) {
+      if (_scrollController.hasClients) {
+        final max = _scrollController.position.maxScrollExtent;
+        _scrollController.jumpTo(
+          (widget.initialIndex * _estimatedRowHeight).clamp(0.0, max),
+        );
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) => _revealInitial());
+      return;
+    }
+    Scrollable.ensureVisible(
+      targetContext,
+      alignment: 0.5,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -355,33 +399,48 @@ class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
+    // 定高（按估算行高撑，封顶 60% 屏高）：ListView 高度有界，
+    // 不用 shrinkWrap 也能懒加载，只建可视行。
+    final screenSize = MediaQuery.sizeOf(context);
+    final maxHeight = screenSize.height * 0.6;
+    final listHeight = (widget.refs.length * _estimatedRowHeight + 16).clamp(
+      120.0,
+      maxHeight,
+    );
+    // 桌面端别撑满：最多 440，手机上占 90% 屏宽。
+    final listWidth = (screenSize.width * 0.9).clamp(0.0, 440.0).toDouble();
 
     return AlertDialog(
       title: Text(t.reader.selectChapter),
-      content: SingleChildScrollView(
-        child: ListBody(
-          children: [
-            for (var i = 0; i < widget.refs.length; i++)
-              Padding(
-                key: _itemKeys[i],
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: TextButton(
-                  style: i == widget.initialIndex ? highlightStyle : null,
-                  onPressed: () => widget.onSelected(widget.refs[i]),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(widget.refs[i].name)),
-                      if (i == widget.initialIndex)
-                        Icon(
-                          Icons.check_circle_rounded,
-                          size: 18,
-                          color: colorScheme.primary,
-                        ),
-                    ],
-                  ),
+      content: SizedBox(
+        width: listWidth,
+        height: listHeight,
+        child: ListView.builder(
+          controller: _scrollController,
+          itemCount: widget.refs.length,
+          itemBuilder: (context, i) {
+            final ref = widget.refs[i];
+            final isCurrent = i == widget.initialIndex;
+            return Padding(
+              key: isCurrent ? _targetKey : null,
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: TextButton(
+                style: isCurrent ? highlightStyle : null,
+                onPressed: () => widget.onSelected(ref),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(ref.name)),
+                    if (isCurrent)
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 18,
+                        color: colorScheme.primary,
+                      ),
+                  ],
                 ),
               ),
-          ],
+            );
+          },
         ),
       ),
       actions: [

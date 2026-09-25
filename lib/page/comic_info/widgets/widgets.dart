@@ -4,6 +4,7 @@ export 'package:zephyr/page/comic_info/widgets/cover.dart';
 export 'package:zephyr/page/comic_info/widgets/creator_info.dart';
 export 'package:zephyr/page/comic_info/widgets/eps.dart';
 export 'package:zephyr/page/comic_info/widgets/episode_download_controller.dart';
+export 'package:zephyr/page/comic_info/widgets/episode_selection_cubit.dart';
 export 'package:zephyr/page/comic_info/widgets/export_type_dialog.dart';
 export 'package:zephyr/page/comic_info/widgets/particulars.dart';
 export 'package:zephyr/page/comic_info/widgets/recommend.dart';

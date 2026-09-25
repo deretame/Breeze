@@ -122,6 +122,32 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _isLocalCollected = false;
   String _localCollectSyncedFor = '';
 
+  // 章节显示顺序缓存：raw 列表实例不变且倒序开关不变时直接复用，
+  // 避免每次 build 都 sort + reversed.toList()。
+  // 非倒序时 display 与 sorted 同引用，零拷贝。
+  List<dynamic>? _epsRawRef;
+  List<dynamic> _sortedEps = const [];
+  List<dynamic> _displayEps = const [];
+  bool _displayEpsReversed = false;
+  bool _displayEpsValid = false;
+
+  List<dynamic> _resolveDisplayEps(List<dynamic> rawEps) {
+    if (!identical(rawEps, _epsRawRef)) {
+      _epsRawRef = rawEps;
+      _sortedEps = sortChaptersByOrder(
+        List<dynamic>.from(rawEps),
+        (e) => (e as Ep).order,
+      );
+      _displayEpsValid = false;
+    }
+    if (!_displayEpsValid || _displayEpsReversed != _isReversed) {
+      _displayEps = _isReversed ? _sortedEps.reversed.toList() : _sortedEps;
+      _displayEpsReversed = _isReversed;
+      _displayEpsValid = true;
+    }
+    return _displayEps;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -360,13 +386,8 @@ class _ComicInfoState extends State<_ComicInfo>
       );
     }
 
-    var displayEps = sortChaptersByOrder(
-      List<dynamic>.from(normalComicAllInfo.eps),
-      (e) => (e as Ep).order,
-    );
-    if (_isReversed) {
-      displayEps = displayEps.reversed.toList();
-    }
+    // 带缓存：bloc 同实例 + 倒序开关不变时零计算，直接复用上次结果。
+    final displayEps = _resolveDisplayEps(normalComicAllInfo.eps);
     // 下载类型进来的一定是本地记录（只含已下载章节）；在线页插件允许下载时
     // 才显示章节下载按钮。
     final showDownloadUi =
@@ -483,64 +504,68 @@ class _ComicInfoState extends State<_ComicInfo>
                             ),
                           ),
                         ],
-                        _buildDivider(context),
-                        _SectionCard(
-                          title: t.comicInfo.chapterList,
-                          trailing: _EpisodeHeaderBadge(
-                            label: t.comicInfo.episodeCount(
-                              count: normalComicAllInfo.eps.length,
-                            ),
-                            icon: _isReversed ? Icons.south : Icons.north,
-                            onTap: _toggleOrder,
-                          ),
-                          child: ListenableBuilder(
-                            listenable: _dlController,
-                            builder: (context, _) {
-                              _dlController.attach(
-                                from: widget.from,
-                                comicId: _comicId,
-                                comicTitle: comicInfo.title,
-                                allowDownload: showDownloadUi,
-                              );
-                              final chapters = _dlController.adaptEps(
-                                displayEps,
-                              );
-                              return _EpisodeListSection(
-                                episodes: displayEps,
-                                chapters: chapters,
-                                controller: _dlController,
-                                downloadAllowed: showDownloadUi,
-                                downloadDisabledReason:
-                                    normalComicAllInfo.allowDownloadReason,
-                                allInfo: comicInfoDyn,
-                                epsLength: normalComicAllInfo.eps.length,
-                                type: _type,
-                                comicId: _comicId,
-                                from: widget.from,
-                                isReversed: _isReversed,
-                              );
-                            },
-                          ),
-                        ),
-                        if (normalComicAllInfo.recommend.isNotEmpty &&
-                            _resolveRecommendItems(
-                              normalComicAllInfo.recommend,
-                            ).isNotEmpty) ...[
-                          _buildDivider(context),
-                          _SectionCard(
-                            title: t.comicInfo.related,
-                            child: RecommendWidget(
-                              comicList: _resolveRecommendItems(
-                                normalComicAllInfo.recommend,
-                              ),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
                 ),
               ),
+              // 章节头：标题 + 计数/倒序 badge（虚拟化列表的 header sliver）。
+              _constrainedSliver(
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      _buildDivider(context),
+                      _EpisodeHeader(
+                        title: t.comicInfo.chapterList,
+                        trailing: _EpisodeHeaderBadge(
+                          label: t.comicInfo.episodeCount(
+                            count: normalComicAllInfo.eps.length,
+                          ),
+                          icon: _isReversed ? Icons.south : Icons.north,
+                          onTap: _toggleOrder,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // 章节列表：Sliver 虚拟化，只建可视行。attach 在 _EpisodeBoard
+              // 的 initState/didUpdateWidget 里做，不在 build 里调。
+              _EpisodeBoard(
+                controller: _dlController,
+                from: widget.from,
+                comicId: _comicId,
+                comicTitle: comicInfo.title,
+                allowDownload: showDownloadUi,
+                displayEps: displayEps,
+                downloadAllowed: showDownloadUi,
+                downloadDisabledReason: normalComicAllInfo.allowDownloadReason,
+                allInfo: comicInfoDyn,
+                epsLength: normalComicAllInfo.eps.length,
+                type: _type,
+                isReversed: _isReversed,
+              ),
+              if (normalComicAllInfo.recommend.isNotEmpty &&
+                  _resolveRecommendItems(
+                    normalComicAllInfo.recommend,
+                  ).isNotEmpty)
+                _constrainedSliver(
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        _buildDivider(context),
+                        _SectionCard(
+                          title: t.comicInfo.related,
+                          child: RecommendWidget(
+                            comicList: _resolveRecommendItems(
+                              normalComicAllInfo.recommend,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               if (showPreview) ...[
                 _constrainedSliver(const ComicPreviewSliver()),
               ],
@@ -584,9 +609,9 @@ class _ComicInfoState extends State<_ComicInfo>
   Widget _constrainedSliver(Widget sliver) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
-        final horizontalPadding = ((constraints.crossAxisExtent - 1120) / 2)
-            .clamp(20.0, double.infinity)
-            .toDouble();
+        final horizontalPadding = _constrainedHorizontalPadding(
+          constraints.crossAxisExtent,
+        );
         return SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           sliver: sliver,
@@ -1008,11 +1033,10 @@ class _ComicInfoState extends State<_ComicInfo>
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.child, this.title, this.trailing});
+  const _SectionCard({required this.child, this.title});
 
   final String? title;
   final Widget child;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -1023,19 +1047,11 @@ class _SectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null) ...[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    title!,
-                    style: context.theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                if (trailing != null) ...[const SizedBox(width: 10), trailing!],
-              ],
+            Text(
+              title!,
+              style: context.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -1152,154 +1168,248 @@ class _DescriptionCardState extends State<_DescriptionCard> {
   }
 }
 
-class _EpisodeListSection extends StatelessWidget {
-  const _EpisodeListSection({
-    required this.episodes,
-    required this.chapters,
+/// 内容区水平边距：与 _ComicInfoState._constrainedSliver 同一份算法，
+/// 章节 sliver 自带 SliverLayoutBuilder，用它算出内容宽度后再选单列/网格。
+double _constrainedHorizontalPadding(double crossAxisExtent) =>
+    ((crossAxisExtent - 1120) / 2).clamp(20.0, double.infinity).toDouble();
+
+/// 章节列表头（标题 + 计数/倒序 badge），与 _SectionCard 的标题区同样式，
+/// 虚拟化后作为独立 sliver，列表本体是下面的 _EpisodeBoard。
+class _EpisodeHeader extends StatelessWidget {
+  const _EpisodeHeader({required this.title, this.trailing});
+
+  final String title;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: context.theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
+        ],
+      ),
+    );
+  }
+}
+
+/// 章节列表的 sliver 宿主。
+///
+/// attach 放在 initState/didUpdateWidget（不在 build 里调），build 只做
+/// 带缓存的 adapt + 返回 SliverList/SliverGrid，只建可视行。
+/// 断点与原来一致（按内容宽度算）：<560 单列，<720 一列、<960 两列，
+/// ≥960 按 320 maxExtent 网格（代替原来全量 build 的 Wrap）。
+class _EpisodeBoard extends StatefulWidget {
+  const _EpisodeBoard({
     required this.controller,
+    required this.from,
+    required this.comicId,
+    required this.comicTitle,
+    required this.allowDownload,
+    required this.displayEps,
     required this.downloadAllowed,
     required this.downloadDisabledReason,
     required this.allInfo,
     required this.epsLength,
     required this.type,
-    required this.comicId,
-    required this.from,
     required this.isReversed,
   });
 
-  final List<dynamic> episodes;
-  final List<DownloadChapter> chapters;
   final EpisodeDownloadController controller;
+  final String from;
+  final String comicId;
+  final String comicTitle;
+  final bool allowDownload;
+  final List<dynamic> displayEps;
   final bool downloadAllowed;
   final String downloadDisabledReason;
   final dynamic allInfo;
   final int epsLength;
   final ComicEntryType type;
-  final String comicId;
-  final String from;
   final bool isReversed;
+
+  @override
+  State<_EpisodeBoard> createState() => _EpisodeBoardState();
+}
+
+class _EpisodeBoardState extends State<_EpisodeBoard> {
+  @override
+  void initState() {
+    super.initState();
+    _attach();
+  }
+
+  @override
+  void didUpdateWidget(covariant _EpisodeBoard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _attach();
+  }
+
+  void _attach() {
+    widget.controller.attach(
+      from: widget.from,
+      comicId: widget.comicId,
+      comicTitle: widget.comicTitle,
+      allowDownload: widget.allowDownload,
+    );
+  }
 
   Future<void> _onChapterAction(
     BuildContext context,
     DownloadChapter chapter,
   ) async {
-    if (!downloadAllowed) {
+    if (!widget.downloadAllowed) {
       _showDownloadDisabledToast();
       return;
     }
-    final status = controller.statusOf(chapter);
+    final status = widget.controller.statusOf(chapter);
     switch (status) {
       case ChapterDownloadStatus.notDownloaded:
       case ChapterDownloadStatus.failed:
-        await controller.downloadSingle(context, chapter);
+        await widget.controller.downloadSingle(context, chapter);
         break;
       case ChapterDownloadStatus.queued:
       case ChapterDownloadStatus.downloading:
-        await controller.cancelChapter(context, chapter);
+        await widget.controller.cancelChapter(context, chapter);
         break;
       case ChapterDownloadStatus.downloaded:
-        final wholeDeleted = await controller.deleteSingle(context, chapter);
-        if (wholeDeleted && type == ComicEntryType.download) {
+        final wholeDeleted = await widget.controller.deleteSingle(
+          context,
+          chapter,
+        );
+        if (wholeDeleted && widget.type == ComicEntryType.download) {
           if (context.mounted) context.pop();
         }
         break;
     }
   }
 
-  EpButtonWidget _buildItem(BuildContext context, int i) {
+  // 注意：选中态/下载态不在这里读取，行内部分别监听 selectionCubit /
+  // controller 自更新。外层进度 tick 不再全列表重建。
+  Widget _buildRow(
+    BuildContext context,
+    List<DownloadChapter> chapters,
+    int i,
+  ) {
     final chapter = chapters[i];
     return EpButtonWidget(
-      doc: episodes[i] as Ep,
+      key: ValueKey(chapter.id),
+      doc: widget.displayEps[i] as Ep,
       chapter: chapter,
-      allInfo: allInfo,
-      epsLength: epsLength,
-      type: type,
-      comicId: comicId,
-      from: from,
+      controller: widget.controller,
+      allInfo: widget.allInfo,
+      epsLength: widget.epsLength,
+      type: widget.type,
+      comicId: widget.comicId,
+      from: widget.from,
       index: i,
-      isReversed: isReversed,
-      downloadStatus: controller.statusOf(chapter),
-      downloadProgress: controller.progressOf(chapter),
-      downloadAllowed: downloadAllowed,
-      downloadDisabledReason: downloadDisabledReason,
-      selectionMode: controller.selectionMode,
-      selected: controller.selectedIds.contains(chapter.id),
+      isReversed: widget.isReversed,
+      downloadAllowed: widget.downloadAllowed,
+      downloadDisabledReason: widget.downloadDisabledReason,
       onAction: () => _onChapterAction(context, chapter),
-      onToggleSelect: () => controller.toggleSelect(chapter.id),
+      onToggleSelect: () => widget.controller.toggleSelect(chapter.id),
       onEnterSelect: () {
-        if (!downloadAllowed) {
+        if (!widget.downloadAllowed) {
           _showDownloadDisabledToast();
           return;
         }
-        controller.enterSelection(chapter.id);
+        widget.controller.enterSelection(chapter.id);
       },
     );
   }
 
   void _showDownloadDisabledToast() {
-    final reason = downloadDisabledReason.trim();
+    final reason = widget.downloadDisabledReason.trim();
     showInfoToast(reason.isNotEmpty ? reason : t.comicInfo.downloadForbidden);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (episodes.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        child: Text(
-          t.comicInfo.noChapters,
-          style: context.theme.textTheme.bodyMedium,
-        ),
-      );
-    }
+    // adapt 带元素级缓存：displayEps 引用不变时直接复用，不重建 DownloadChapter。
+    final chapters = widget.controller.adaptEps(widget.displayEps);
 
-    return LayoutBuilder(
+    return SliverLayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 560) {
-          return Column(
-            children: [
-              for (var i = 0; i < episodes.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _buildItem(context, i),
-                ),
-            ],
-          );
-        }
+        final horizontalPadding = _constrainedHorizontalPadding(
+          constraints.crossAxisExtent,
+        );
+        final contentWidth =
+            constraints.crossAxisExtent - horizontalPadding * 2;
+        final padding = EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
+          top: 12,
+          bottom: 12,
+        );
 
-        final isDesktop = constraints.maxWidth >= 960;
-        if (isDesktop) {
-          return Center(
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (var i = 0; i < episodes.length; i++)
-                  SizedBox(
-                    width: 280,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _buildItem(context, i),
-                    ),
-                  ),
-              ],
+        if (chapters.isEmpty) {
+          return SliverPadding(
+            padding: padding,
+            sliver: SliverToBoxAdapter(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Text(
+                  t.comicInfo.noChapters,
+                  style: context.theme.textTheme.bodyMedium,
+                ),
+              ),
             ),
           );
         }
 
-        final isWide = constraints.maxWidth >= 720;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: episodes.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: isWide ? 2 : 1,
-            crossAxisSpacing: 12,
+        // 窄屏单列，其余按内容宽度切 1/2 列或 maxExtent 网格，全部懒加载。
+        if (contentWidth < 560) {
+          return SliverPadding(
+            padding: padding,
+            sliver: SliverList.builder(
+              itemCount: chapters.length,
+              itemBuilder: (context, i) {
+                final chapter = chapters[i];
+                return Padding(
+                  key: ValueKey('pad:${chapter.id}'),
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _buildRow(context, chapters, i),
+                );
+              },
+            ),
+          );
+        }
+
+        final SliverGridDelegate gridDelegate;
+        if (contentWidth >= 960) {
+          gridDelegate = const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 320,
             mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
             mainAxisExtent: EpButtonWidget.fixedHeight,
+          );
+        } else {
+          gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: contentWidth >= 720 ? 2 : 1,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            mainAxisExtent: EpButtonWidget.fixedHeight,
+          );
+        }
+        return SliverPadding(
+          padding: padding,
+          sliver: SliverGrid.builder(
+            itemCount: chapters.length,
+            gridDelegate: gridDelegate,
+            itemBuilder: (context, i) => _buildRow(context, chapters, i),
           ),
-          itemBuilder: (context, index) => _buildItem(context, index),
         );
       },
     );

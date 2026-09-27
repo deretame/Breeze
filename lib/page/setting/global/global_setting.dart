@@ -87,6 +87,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           ),
           const Divider(height: 1, thickness: 0.3),
           settingCategoryTile(
+            icon: Icons.tablet_mac_outlined,
+            title: t.settings.eink,
+            subtitle: state.eInkSetting.enabled
+                ? '${t.settings.einkEnabled} · ${state.eInkSetting.refreshMode.label}'
+                : t.settings.einkSubtitle,
+            onTap: () => _openSubPage(const EInkSettingRoute()),
+          ),
+          const Divider(height: 1, thickness: 0.3),
+          settingCategoryTile(
             icon: Icons.collections_bookmark_outlined,
             title: t.settings.bookshelf,
             subtitle: t.settings.bookshelfSubtitle,

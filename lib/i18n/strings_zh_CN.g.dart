@@ -764,6 +764,87 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '试验性功能，可能不稳定'
 	String get realSrSubtitle => '试验性功能，可能不稳定';
 
+	/// zh-CN: '墨水屏'
+	String get eink => '墨水屏';
+
+	/// zh-CN: '翻页动画 · 整屏刷新 · 加载'
+	String get einkSubtitle => '翻页动画 · 整屏刷新 · 加载';
+
+	/// zh-CN: '墨水屏适配'
+	String get einkPageTitle => '墨水屏适配';
+
+	/// zh-CN: '已识别为墨水屏设备'
+	String get einkDetected => '已识别为墨水屏设备';
+
+	/// zh-CN: '未识别到墨水屏设备，可手动开启'
+	String get einkNotDetected => '未识别到墨水屏设备，可手动开启';
+
+	/// zh-CN: '启用墨水屏模式'
+	String get einkEnabled => '启用墨水屏模式';
+
+	/// zh-CN: '去除动画，并让屏幕定期整屏刷新'
+	String get einkEnabledSubtitle => '去除动画，并让屏幕定期整屏刷新';
+
+	/// zh-CN: '动画与过渡'
+	String get einkSectionAnimation => '动画与过渡';
+
+	/// zh-CN: '去除页面切换动画'
+	String get einkNoRouteTransition => '去除页面切换动画';
+
+	/// zh-CN: '进入和退出页面直接出图，不做滑动淡入'
+	String get einkNoRouteTransitionSubtitle => '进入和退出页面直接出图，不做滑动淡入';
+
+	/// zh-CN: '去除滚动回弹'
+	String get einkNoScrollBounce => '去除滚动回弹';
+
+	/// zh-CN: '长图模式拖到边界直接停住'
+	String get einkNoScrollBounceSubtitle => '长图模式拖到边界直接停住';
+
+	/// zh-CN: '加载'
+	String get einkSectionLoading => '加载';
+
+	/// zh-CN: '刷新'
+	String get einkSectionRefresh => '刷新';
+
+	/// zh-CN: '整屏刷新方式'
+	String get einkRefreshMode => '整屏刷新方式';
+
+	/// zh-CN: '不刷新'
+	String get einkRefreshNone => '不刷新';
+
+	/// zh-CN: '白屏刷'
+	String get einkRefreshWhite => '白屏刷';
+
+	/// zh-CN: '黑白全刷'
+	String get einkRefreshFull => '黑白全刷';
+
+	/// zh-CN: '整屏刷新会闪一次白或黑白，用来清掉上一页残影。'
+	String get einkRefreshHint => '整屏刷新会闪一次白或黑白，用来清掉上一页残影。';
+
+	/// zh-CN: '立即整屏刷新'
+	String get einkRefreshNow => '立即整屏刷新';
+
+	/// zh-CN: '已完成整屏刷新'
+	String get einkRefreshDone => '已完成整屏刷新';
+
+	/// zh-CN: '每翻 N 页自动整屏刷新'
+	String get einkAutoRefreshTurns => '每翻 N 页自动整屏刷新';
+
+	/// zh-CN: '不自动刷新'
+	String get einkAutoRefreshOff => '不自动刷新';
+
+	/// zh-CN: '显示刷新按钮'
+	String get einkShowRefreshButton => '显示刷新按钮';
+
+	/// zh-CN: '阅读页角落常驻，随时手动整屏刷新'
+	String get einkShowRefreshButtonSubtitle => '阅读页角落常驻，随时手动整屏刷新';
+
+	/// zh-CN: '加载时不转圈'
+	String get einkNoSpinner => '加载时不转圈';
+
+	/// zh-CN: '转圈动画会让墨水屏反复局刷并留下残影'
+	String get einkNoSpinnerSubtitle => '转圈动画会让墨水屏反复局刷并留下残影';
+
 	/// zh-CN: '自动超分'
 	String get autoRealSr => '自动超分';
 
@@ -4026,6 +4107,33 @@ extension on Translations {
 			'settings.imageProcessing' => '图片处理',
 			'settings.realSr' => '图片超分（实验性）',
 			'settings.realSrSubtitle' => '试验性功能，可能不稳定',
+			'settings.eink' => '墨水屏',
+			'settings.einkSubtitle' => '翻页动画 · 整屏刷新 · 加载',
+			'settings.einkPageTitle' => '墨水屏适配',
+			'settings.einkDetected' => '已识别为墨水屏设备',
+			'settings.einkNotDetected' => '未识别到墨水屏设备，可手动开启',
+			'settings.einkEnabled' => '启用墨水屏模式',
+			'settings.einkEnabledSubtitle' => '去除动画，并让屏幕定期整屏刷新',
+			'settings.einkSectionAnimation' => '动画与过渡',
+			'settings.einkNoRouteTransition' => '去除页面切换动画',
+			'settings.einkNoRouteTransitionSubtitle' => '进入和退出页面直接出图，不做滑动淡入',
+			'settings.einkNoScrollBounce' => '去除滚动回弹',
+			'settings.einkNoScrollBounceSubtitle' => '长图模式拖到边界直接停住',
+			'settings.einkSectionLoading' => '加载',
+			'settings.einkSectionRefresh' => '刷新',
+			'settings.einkRefreshMode' => '整屏刷新方式',
+			'settings.einkRefreshNone' => '不刷新',
+			'settings.einkRefreshWhite' => '白屏刷',
+			'settings.einkRefreshFull' => '黑白全刷',
+			'settings.einkRefreshHint' => '整屏刷新会闪一次白或黑白，用来清掉上一页残影。',
+			'settings.einkRefreshNow' => '立即整屏刷新',
+			'settings.einkRefreshDone' => '已完成整屏刷新',
+			'settings.einkAutoRefreshTurns' => '每翻 N 页自动整屏刷新',
+			'settings.einkAutoRefreshOff' => '不自动刷新',
+			'settings.einkShowRefreshButton' => '显示刷新按钮',
+			'settings.einkShowRefreshButtonSubtitle' => '阅读页角落常驻，随时手动整屏刷新',
+			'settings.einkNoSpinner' => '加载时不转圈',
+			'settings.einkNoSpinnerSubtitle' => '转圈动画会让墨水屏反复局刷并留下残影',
 			'settings.autoRealSr' => '自动超分',
 			'settings.resolutionThreshold' => '分辨率阈值',
 			'settings.debug' => '调试',
@@ -4294,6 +4402,8 @@ extension on Translations {
 			'reader.horizontalPositionRight' => '右侧',
 			'reader.readingDirectionLtr' => '从左到右',
 			'reader.readingDirectionRtl' => '从右到左',
+			_ => null,
+		} ?? switch (path) {
 			'reader.readingDirectionVertical' => '从上到下',
 			'reader.webtoon' => '条漫',
 			'reader.singlePageLtr' => '单页式（从左到右）',
@@ -4321,8 +4431,6 @@ extension on Translations {
 			'reader.preloadImageCountSubtitle' => '提前下载当前阅读位置之后的图片',
 			'reader.preloadChapterCount' => '预加载章节数量',
 			'reader.preloadChapterCountSubtitle' => '提前加载后续章节信息',
-			_ => null,
-		} ?? switch (path) {
 			'reader.background' => '阅读背景',
 			'reader.auto' => '自动',
 			'reader.black' => '黑色',
@@ -4808,6 +4916,8 @@ extension on Translations {
 			'comicList.missingFnPath' => '列表请求缺少 fnPath',
 			'comicEntry.updatedAt' => ({required Object time}) => '更新: ${time}',
 			'comicEntry.finished' => '完结',
+			_ => null,
+		} ?? switch (path) {
 			'comicEntry.ongoing' => '连载中',
 			'comicEntry.likes' => ({required Object count}) => '喜欢 ${count}',
 			'comicEntry.views' => ({required Object count}) => '浏览 ${count}',
@@ -4835,8 +4945,6 @@ extension on Translations {
 			'comicFollow.lastReadChapter' => ({required Object chapter}) => '看到：${chapter}',
 			'comicFollow.latestChapter' => ({required Object count, required Object chapter}) => '最新：${count} 话 / ${chapter}',
 			'comicFollow.noUnread' => '暂无已更新未看内容',
-			_ => null,
-		} ?? switch (path) {
 			'comicFollow.showAll' => '显示全部',
 			'comicFollow.latestChapterFailed' => '最新章节获取失败',
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话',

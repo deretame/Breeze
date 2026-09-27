@@ -1,12 +1,33 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/widgets.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+
+/// 无动画路由过渡：直接返回页面本身，不消费动画值。
+Widget instantRouteTransition(
+  BuildContext context,
+  Animation<double> animation,
+  Animation<double> secondaryAnimation,
+  Widget child,
+) {
+  return child;
+}
 
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
 class AppRouter extends RootStackRouter {
   @override
-  RouteType get defaultRouteType =>
-      RouteType.material(enablePredictiveBackGesture: false);
+  RouteType get defaultRouteType {
+    // 墨水屏：路由直接出图，不留 300ms 的滑动/淡入中间帧。
+    if (eInkInstantRoutes) {
+      return RouteType.custom(
+        opaque: true,
+        transitionsBuilder: instantRouteTransition,
+        duration: Duration.zero,
+        reverseDuration: Duration.zero,
+      );
+    }
+    return RouteType.material(enablePredictiveBackGesture: false);
+  }
 
   @override
   List<AutoRoute> get routes => [
@@ -28,6 +49,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ContentNetworkSettingRoute.page),
     AutoRoute(page: SyncSettingRoute.page),
     AutoRoute(page: AppBehaviorSettingRoute.page),
+    AutoRoute(page: EInkSettingRoute.page),
     AutoRoute(page: StorageSettingRoute.page),
     AutoRoute(page: DebugSettingRoute.page),
     AutoRoute(page: ThemeColorRoute.page),

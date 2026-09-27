@@ -163,6 +163,9 @@ class _ImageDisplayState extends State<ImageDisplay> {
     final readSetting = context.select(
       (GlobalSettingCubit c) => c.state.readSetting,
     );
+    final showStaticPlaceholder = context.select(
+      (GlobalSettingCubit c) => c.state.eInkSetting.shouldRemoveLoadingSpinner,
+    );
     final brightness = Theme.of(context).brightness;
     final backgroundColor = readSetting.resolveReaderBackgroundColor(
       brightness,
@@ -202,6 +205,25 @@ class _ImageDisplayState extends State<ImageDisplay> {
           });
         }
 
+        Widget loadingPlaceholder() {
+          if (showStaticPlaceholder) {
+            return Container(width: width, color: backgroundColor);
+          }
+          return Container(
+            width: width,
+            color: backgroundColor,
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: progressColor,
+              ),
+            ),
+          );
+        }
+
         return Align(
           alignment: widget.imageAlignment,
           child: Image.file(
@@ -221,38 +243,10 @@ class _ImageDisplayState extends State<ImageDisplay> {
                 return child;
               }
 
-              if (isColumn) {
-                return Container(
-                  width: width,
-                  color: backgroundColor,
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: progressColor,
-                    ),
-                  ),
-                );
-              } else {
-                if (canUseEinkMask && isActiveRowImage && !_einkDelayFinished) {
-                  return Container(width: width, color: Colors.white);
-                }
-                return Container(
-                  width: width,
-                  color: backgroundColor,
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: progressColor,
-                    ),
-                  ),
-                );
+              if (canUseEinkMask && isActiveRowImage && !_einkDelayFinished) {
+                return Container(width: width, color: Colors.white);
               }
+              return loadingPlaceholder();
             },
           ),
         );

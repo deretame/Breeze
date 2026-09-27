@@ -24,6 +24,7 @@ class ComicReadSuccessWidget extends StatefulWidget {
   final WidgetBuilder buildAppBar;
   final WidgetBuilder buildBottom;
   final WidgetBuilder buildAutoReadControl;
+  final WidgetBuilder buildEinkControl;
   final int Function(ReadSettingState readSetting)? resolveTotalSlots;
   final void Function(
     BuildContext innerContext,
@@ -43,6 +44,7 @@ class ComicReadSuccessWidget extends StatefulWidget {
     required this.buildAppBar,
     required this.buildBottom,
     required this.buildAutoReadControl,
+    required this.buildEinkControl,
     this.resolveTotalSlots,
     required this.onReady,
   });
@@ -144,6 +146,7 @@ class _ComicReadSuccessWidgetState extends State<ComicReadSuccessWidget> {
                       widget.buildAppBar(innerContext),
                       widget.buildBottom(innerContext),
                       widget.buildAutoReadControl(innerContext),
+                      widget.buildEinkControl(innerContext),
                     ],
                   ),
                 ),

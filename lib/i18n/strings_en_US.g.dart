@@ -326,6 +326,33 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get imageProcessing => 'Image processing';
 	@override String get realSr => 'Image Super-Resolution (Experimental)';
 	@override String get realSrSubtitle => 'Experimental feature, may be unstable';
+	@override String get eink => 'E-ink';
+	@override String get einkSubtitle => 'Page-turn animation · full refresh · loading';
+	@override String get einkPageTitle => 'E-ink adaptation';
+	@override String get einkDetected => 'Detected as an e-ink device';
+	@override String get einkNotDetected => 'No e-ink device detected, you can enable it manually';
+	@override String get einkEnabled => 'Enable e-ink mode';
+	@override String get einkEnabledSubtitle => 'Remove animations and refresh the whole screen periodically';
+	@override String get einkSectionAnimation => 'Animation & transitions';
+	@override String get einkNoRouteTransition => 'Remove page transition animation';
+	@override String get einkNoRouteTransitionSubtitle => 'Show pages instantly instead of sliding and fading';
+	@override String get einkNoScrollBounce => 'Remove scroll overscroll';
+	@override String get einkNoScrollBounceSubtitle => 'Stop at the edge instead of bouncing in webtoon mode';
+	@override String get einkSectionLoading => 'Loading';
+	@override String get einkSectionRefresh => 'Refresh';
+	@override String get einkRefreshMode => 'Full-screen refresh';
+	@override String get einkRefreshNone => 'Disabled';
+	@override String get einkRefreshWhite => 'White flash';
+	@override String get einkRefreshFull => 'Black & white flash';
+	@override String get einkRefreshHint => 'A full refresh flashes white or black-and-white to clear the ghost of the previous page.';
+	@override String get einkRefreshNow => 'Refresh now';
+	@override String get einkRefreshDone => 'Screen refreshed';
+	@override String get einkAutoRefreshTurns => 'Auto refresh every N pages';
+	@override String get einkAutoRefreshOff => 'Never';
+	@override String get einkShowRefreshButton => 'Show refresh button';
+	@override String get einkShowRefreshButtonSubtitle => 'Keep a manual full refresh in a reader corner';
+	@override String get einkNoSpinner => 'No loading spinner';
+	@override String get einkNoSpinnerSubtitle => 'A spinning indicator forces the panel to keep doing partial refreshes';
 	@override String get autoRealSr => 'Auto super-resolution';
 	@override String get resolutionThreshold => 'Resolution threshold';
 	@override String get debug => 'Debug';
@@ -1744,6 +1771,33 @@ extension on TranslationsEnUs {
 			'settings.imageProcessing' => 'Image processing',
 			'settings.realSr' => 'Image Super-Resolution (Experimental)',
 			'settings.realSrSubtitle' => 'Experimental feature, may be unstable',
+			'settings.eink' => 'E-ink',
+			'settings.einkSubtitle' => 'Page-turn animation · full refresh · loading',
+			'settings.einkPageTitle' => 'E-ink adaptation',
+			'settings.einkDetected' => 'Detected as an e-ink device',
+			'settings.einkNotDetected' => 'No e-ink device detected, you can enable it manually',
+			'settings.einkEnabled' => 'Enable e-ink mode',
+			'settings.einkEnabledSubtitle' => 'Remove animations and refresh the whole screen periodically',
+			'settings.einkSectionAnimation' => 'Animation & transitions',
+			'settings.einkNoRouteTransition' => 'Remove page transition animation',
+			'settings.einkNoRouteTransitionSubtitle' => 'Show pages instantly instead of sliding and fading',
+			'settings.einkNoScrollBounce' => 'Remove scroll overscroll',
+			'settings.einkNoScrollBounceSubtitle' => 'Stop at the edge instead of bouncing in webtoon mode',
+			'settings.einkSectionLoading' => 'Loading',
+			'settings.einkSectionRefresh' => 'Refresh',
+			'settings.einkRefreshMode' => 'Full-screen refresh',
+			'settings.einkRefreshNone' => 'Disabled',
+			'settings.einkRefreshWhite' => 'White flash',
+			'settings.einkRefreshFull' => 'Black & white flash',
+			'settings.einkRefreshHint' => 'A full refresh flashes white or black-and-white to clear the ghost of the previous page.',
+			'settings.einkRefreshNow' => 'Refresh now',
+			'settings.einkRefreshDone' => 'Screen refreshed',
+			'settings.einkAutoRefreshTurns' => 'Auto refresh every N pages',
+			'settings.einkAutoRefreshOff' => 'Never',
+			'settings.einkShowRefreshButton' => 'Show refresh button',
+			'settings.einkShowRefreshButtonSubtitle' => 'Keep a manual full refresh in a reader corner',
+			'settings.einkNoSpinner' => 'No loading spinner',
+			'settings.einkNoSpinnerSubtitle' => 'A spinning indicator forces the panel to keep doing partial refreshes',
 			'settings.autoRealSr' => 'Auto super-resolution',
 			'settings.resolutionThreshold' => 'Resolution threshold',
 			'settings.debug' => 'Debug',
@@ -2012,6 +2066,8 @@ extension on TranslationsEnUs {
 			'reader.readingDirectionLtr' => 'Left to right',
 			'reader.readingDirectionRtl' => 'Right to left',
 			'reader.readingDirectionVertical' => 'Top to bottom',
+			_ => null,
+		} ?? switch (path) {
 			'reader.webtoon' => 'Webtoon',
 			'reader.singlePageLtr' => 'Single page (LTR)',
 			'reader.singlePageRtl' => 'Single page (RTL)',
@@ -2039,8 +2095,6 @@ extension on TranslationsEnUs {
 			'reader.preloadChapterCount' => 'Preloaded chapter count',
 			'reader.preloadChapterCountSubtitle' => 'Load following chapter information in advance',
 			'reader.background' => 'Background',
-			_ => null,
-		} ?? switch (path) {
 			'reader.auto' => 'Auto',
 			'reader.black' => 'Black',
 			'reader.white' => 'White',
@@ -2526,6 +2580,8 @@ extension on TranslationsEnUs {
 			'comicEntry.updatedAt' => ({required Object time}) => 'Updated: ${time}',
 			'comicEntry.finished' => 'Finished',
 			'comicEntry.ongoing' => 'Ongoing',
+			_ => null,
+		} ?? switch (path) {
 			'comicEntry.likes' => ({required Object count}) => 'Likes ${count}',
 			'comicEntry.views' => ({required Object count}) => 'Views ${count}',
 			'comicEntry.deleteFavorite' => 'Delete Favorite',
@@ -2553,8 +2609,6 @@ extension on TranslationsEnUs {
 			'comicFollow.latestChapter' => ({required Object count, required Object chapter}) => 'Latest: ${count} / ${chapter}',
 			'comicFollow.noUnread' => 'No updated unread comics',
 			'comicFollow.showAll' => 'Show all',
-			_ => null,
-		} ?? switch (path) {
 			'comicFollow.latestChapterFailed' => 'Failed to get latest chapter',
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '${diff} new chapters, ${total} total',
 			'comicFollow.newUnreadChapters' => ({required Object diff, required Object total}) => '${diff} new unread chapters, ${total} total',

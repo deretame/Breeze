@@ -12,6 +12,7 @@ import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -77,6 +78,13 @@ class _BottomWidgetState extends State<BottomWidget> {
     final isMenuVisible = context.select(
       (ReaderCubit cubit) => cubit.state.isMenuVisible,
     );
+    // 墨水屏：控制条滑动的中间帧只会攒成残影，直接出图。
+    final animationDuration =
+        context.select(
+          (GlobalSettingCubit cubit) => cubit.state.eInkSetting.enabled,
+        )
+        ? Duration.zero
+        : _animationDuration;
     final bottomSafeHeight = context.bottomSafeHeight;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isWideLayout = screenWidth >= 840;
@@ -94,7 +102,7 @@ class _BottomWidgetState extends State<BottomWidget> {
       child: IgnorePointer(
         ignoring: !isMenuVisible,
         child: AnimatedSlide(
-          duration: _animationDuration,
+          duration: animationDuration,
           curve: Curves.easeOutCubic,
           offset: isMenuVisible ? Offset.zero : const Offset(0, 1),
           child: Padding(

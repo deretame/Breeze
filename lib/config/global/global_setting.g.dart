@@ -89,6 +89,9 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
       : BookshelfSettingState.fromJson(
           json['bookshelfSetting'] as Map<String, dynamic>,
         ),
+  eInkSetting: json['eInkSetting'] == null
+      ? const EInkSettingState()
+      : EInkSettingState.fromJson(json['eInkSetting'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -135,6 +138,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'chineseConvertMode':
           _$ChineseConvertModeEnumMap[instance.chineseConvertMode]!,
       'bookshelfSetting': instance.bookshelfSetting.toJson(),
+      'eInkSetting': instance.eInkSetting.toJson(),
     };
 
 const _$ThemeModeEnumMap = {
@@ -413,6 +417,39 @@ const _$ReaderInfoHorizontalPositionEnumMap = {
   ReaderInfoHorizontalPosition.left: 'left',
   ReaderInfoHorizontalPosition.center: 'center',
   ReaderInfoHorizontalPosition.right: 'right',
+};
+
+_EInkSettingState _$EInkSettingStateFromJson(Map<String, dynamic> json) =>
+    _EInkSettingState(
+      enabled: json['enabled'] as bool? ?? false,
+      detectionHandled: json['detectionHandled'] as bool? ?? false,
+      noRouteTransition: json['noRouteTransition'] as bool? ?? true,
+      noScrollBounce: json['noScrollBounce'] as bool? ?? true,
+      noLoadingSpinner: json['noLoadingSpinner'] as bool? ?? true,
+      refreshMode:
+          $enumDecodeNullable(_$EinkRefreshModeEnumMap, json['refreshMode']) ??
+          EinkRefreshMode.fullFlash,
+      autoRefreshEveryNTurns:
+          (json['autoRefreshEveryNTurns'] as num?)?.toInt() ?? 5,
+      showRefreshButton: json['showRefreshButton'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$EInkSettingStateToJson(_EInkSettingState instance) =>
+    <String, dynamic>{
+      'enabled': instance.enabled,
+      'detectionHandled': instance.detectionHandled,
+      'noRouteTransition': instance.noRouteTransition,
+      'noScrollBounce': instance.noScrollBounce,
+      'noLoadingSpinner': instance.noLoadingSpinner,
+      'refreshMode': _$EinkRefreshModeEnumMap[instance.refreshMode]!,
+      'autoRefreshEveryNTurns': instance.autoRefreshEveryNTurns,
+      'showRefreshButton': instance.showRefreshButton,
+    };
+
+const _$EinkRefreshModeEnumMap = {
+  EinkRefreshMode.none: 'none',
+  EinkRefreshMode.whiteFlash: 'whiteFlash',
+  EinkRefreshMode.fullFlash: 'fullFlash',
 };
 
 _BookshelfSettingState _$BookshelfSettingStateFromJson(

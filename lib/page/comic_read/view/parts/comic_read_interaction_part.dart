@@ -119,6 +119,12 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
       pageController: _pageController,
       scrollPhysics: _isScrollLockedByMultiTouch
           ? const NeverScrollableScrollPhysics()
+          : context
+                .watch<GlobalSettingCubit>()
+                .state
+                .eInkSetting
+                .shouldRemoveScrollBounce
+          ? const ClampingScrollPhysics()
           : const BouncingScrollPhysics(),
       onPageDragStart: _inputController.restoreScaleForPageDrag,
       from: widget.from,

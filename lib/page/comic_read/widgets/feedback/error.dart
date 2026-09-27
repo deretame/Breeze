@@ -40,9 +40,21 @@ class ComicErrorWidget extends StatelessWidget {
               style: TextStyle(fontSize: 20),
             ),
             SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => context.read<PageBloc>().add(event),
-              child: Text(t.common.retry),
+            // 阅读页是全屏路由，eink 设备上没有可靠的手势返回；
+            // 错误页必须自带退出键，否则会被困在这里。
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () => context.pop(),
+                  child: Text(t.common.back),
+                ),
+                SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () => context.read<PageBloc>().add(event),
+                  child: Text(t.common.retry),
+                ),
+              ],
             ),
           ],
         ),

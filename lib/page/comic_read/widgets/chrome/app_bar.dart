@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comments/widgets/title.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -26,6 +27,10 @@ class ComicReadAppBar extends StatelessWidget {
     final isMenuVisible = context.select(
       (ReaderCubit cubit) => cubit.state.isMenuVisible,
     );
+    // 墨水屏：工具栏滑入滑出的中间帧只会攒成残影，直接出图。
+    final eInkInstant = context.select(
+      (GlobalSettingCubit cubit) => cubit.state.eInkSetting.enabled,
+    );
     final colorScheme = context.theme.colorScheme;
     const appBarRadius = 14.0;
 
@@ -36,7 +41,9 @@ class ComicReadAppBar extends StatelessWidget {
       child: IgnorePointer(
         ignoring: !isMenuVisible,
         child: AnimatedSlide(
-          duration: const Duration(milliseconds: 320),
+          duration: eInkInstant
+              ? Duration.zero
+              : const Duration(milliseconds: 320),
           curve: Curves.easeOutCubic,
           offset: isMenuVisible ? Offset.zero : const Offset(0, -1),
           child: ClipRRect(

@@ -20,6 +20,7 @@ import 'package:zephyr/page/comic_read/controller/reader_orientation_controller.
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
+import 'package:zephyr/platform/eink/eink_refresh.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -29,6 +30,8 @@ part 'parts/comic_read_auto_read_part.dart';
 part 'parts/comic_read_init_part.dart';
 // 交互相关：手势、缩放、指针事件、阅读模式容器。
 part 'parts/comic_read_interaction_part.dart';
+// 墨水屏相关：整屏刷新按钮与按页数自动刷新。
+part 'parts/comic_read_eink_part.dart';
 // 系统 UI 与音量键拦截相关。
 part 'parts/comic_read_system_ui_part.dart';
 // 页面拼装与历史定位相关。
@@ -172,6 +175,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
   final TransformationController _transformationController =
       TransformationController();
   StreamSubscription<bool>? _volumeKeyPageTurnSubscription;
+  StreamSubscription<ReaderState>? _einkRefreshSubscription;
+  int _einkLastSlot = -1;
+  int _einkTurnCount = 0;
   bool _isScrollLockedByMultiTouch = false;
   bool _isUserScrollActive = false; // 用户是否正在拖拽/惯性滚动列表
 
@@ -199,6 +205,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _inputController.setActionController(_actionController);
     _inputController.init();
     _initVolumeKeyPageTurnSubscription();
+    _initEinkAutoRefresh();
 
     WidgetsBinding.instance.addObserver(this);
     _lifecycleController.init();
@@ -226,6 +233,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_lifecycleController.dispose());
     _volumeKeyPageTurnSubscription?.cancel();
+    _einkRefreshSubscription?.cancel();
     _inputController.dispose();
     _imagePrefetchController.dispose();
     _volumeController.dispose();
@@ -300,6 +308,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 buildAppBar: (_) => _comicReadAppBar(),
                 buildBottom: (innerContext) => _bottomWidget(innerContext),
                 buildAutoReadControl: (_) => _autoReadControlWidget(),
+                buildEinkControl: (_) => _einkRefreshControlWidget(),
                 onReady: (innerContext, readSetting, readMode) {
                   _syncAutoRead(readSetting: readSetting, readMode: readMode);
                   _prefetchImagesAroundSlot(

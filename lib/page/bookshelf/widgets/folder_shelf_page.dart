@@ -6,9 +6,13 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
@@ -199,31 +203,31 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     return false;
   }
 
-  /// 顶部悬浮物，拆成两个独立 Positioned：
-  /// - 右边 ⋮ 常驻（根/非根功能一致，无出现动画）；
-  /// - 面包屑只在子文件夹出现，右端留 68px 避让常驻按钮（48 按钮 + 8 间隙），滑入淡出。
+  /// 悬浮物拆成两个独立 Positioned：
+  /// - 面包屑置顶（只在子文件夹出现，滑入淡出）；
+  /// - 菜单为右下角 SpeedDial（与搜索结果页同款），跟随滚动显隐。
   List<Widget> _buildFloatingNav(BuildContext context, FolderShelfState state) {
-    // 面包屑：子文件夹 + 未上滑隐藏时才出现；右边按钮：只跟随滚动显隐。
+    // 面包屑：子文件夹 + 未上滑隐藏时才出现；右下角菜单：只跟随滚动显隐。
     final pillHidden = state.isRoot || !_navVisible;
+    final leftHandMode = context
+        .watch<GlobalSettingCubit>()
+        .state
+        .leftHandModeEnabled;
     return [
       Positioned(
-        top: 8,
-        right: 12,
+        bottom: 16,
+        left: leftHandMode ? 16 : null,
+        right: leftHandMode ? null : 16,
         child: IgnorePointer(
           ignoring: !_navVisible,
           child: AnimatedSlide(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
-            offset: _navVisible ? Offset.zero : const Offset(0, -1),
+            offset: _navVisible ? Offset.zero : const Offset(0, 1),
             child: AnimatedOpacity(
               duration: const Duration(milliseconds: 160),
               opacity: _navVisible ? 1 : 0,
-              child: Material(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-                elevation: 4,
-                child: _buildNavMenuButton(context, state),
-              ),
+              child: _buildNavMenuButton(context, state),
             ),
           ),
         ),
@@ -231,7 +235,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
       Positioned(
         top: 8,
         left: 12,
-        right: 68,
+        right: 12,
         child: IgnorePointer(
           ignoring: pillHidden,
           child: AnimatedSlide(
@@ -292,55 +296,79 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     );
   }
 
-  /// 全局操作菜单。长按条目 → 多选已覆盖“管理”入口，这里不再重复放。
-  /// 用 child 传压缩图标：14 + 20 + 14 = 48px 高，与面包屑胶囊同高。
+  /// 右下角全局操作菜单，与搜索结果页同款 SpeedDial 样式。
+  /// 长按条目 → 多选已覆盖“管理”入口，这里不再重复放。
+  /// 历史无文件夹体系：只有多选入口。
   Widget _buildNavMenuButton(BuildContext context, FolderShelfState state) {
-    return FluentPopupMenuButton<String>(
-      child: const SizedBox(
-        width: 48,
-        height: 48,
-        child: Center(child: Icon(Icons.more_vert, size: 20)),
-      ),
-      onSelected: (value) => _onNavMenuSelected(context, value),
-      itemBuilder: (context) => [
-        FluentPopupMenuItem(
-          value: 'multi_select',
-          leading: const Icon(Icons.checklist),
-          title: Text(t.bookshelf.multiSelect),
+    final colorScheme = Theme.of(context).colorScheme;
+    ShapeBorder roundedRect(double radius) =>
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius));
+    SpeedDialChild menuChild({
+      required Widget child,
+      required String label,
+      required VoidCallback onTap,
+    }) {
+      return SpeedDialChild(
+        child: child,
+        label: label,
+        shape: roundedRect(12),
+        backgroundColor: colorScheme.secondaryContainer,
+        foregroundColor: colorScheme.onSecondaryContainer,
+        onTap: onTap,
+      );
+    }
+
+    // 历史只有一个多选入口：不用 SpeedDial 展开，直接放同款圆形按钮。
+    if (state.mode == ShelfPageMode.history) {
+      return FloatingActionButton(
+        shape: roundedRect(16),
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
+        tooltip: t.bookshelf.multiSelect,
+        onPressed: () => context.read<FolderShelfBloc>().add(
+          const FolderShelfEnterSelectionMode(),
         ),
-        FluentPopupMenuItem(
-          value: 'new_folder',
-          leading: const Icon(Icons.create_new_folder_outlined),
-          title: Text(t.bookshelf.newFolder),
+        child: const Icon(Icons.checklist),
+      );
+    }
+    return SpeedDial(
+      shape: roundedRect(16),
+      buttonSize: const Size(56, 56),
+      childrenButtonSize: const Size(56, 56),
+      backgroundColor: colorScheme.primaryContainer,
+      foregroundColor: colorScheme.onPrimaryContainer,
+      icon: Icons.menu,
+      activeIcon: Icons.close,
+      useRotationAnimation: true,
+      animationDuration: const Duration(milliseconds: 300),
+      spacing: 12,
+      spaceBetweenChildren: 8,
+      children: [
+        menuChild(
+          child: const Icon(Icons.checklist),
+          label: t.bookshelf.multiSelect,
+          onTap: () => context.read<FolderShelfBloc>().add(
+            const FolderShelfEnterSelectionMode(),
+          ),
+        ),
+        menuChild(
+          child: const Icon(Icons.create_new_folder_outlined),
+          label: t.bookshelf.newFolder,
+          onTap: () => _showCreateFolderDialog(context),
         ),
         if (state.mode == ShelfPageMode.download)
-          FluentPopupMenuItem(
-            value: 'import',
-            leading: const Icon(Icons.file_download_outlined),
-            title: Text(t.bookshelf.importComic),
+          menuChild(
+            child: const Icon(Icons.file_download_outlined),
+            label: t.bookshelf.importComic,
+            onTap: () => _importComic(context),
           ),
-        FluentPopupMenuItem(
-          value: 'help',
-          leading: const Icon(Icons.help_outline),
-          title: Text(t.common.help),
+        menuChild(
+          child: const Icon(Icons.help_outline),
+          label: t.common.help,
+          onTap: () => _showShelfHelpDialog(context),
         ),
       ],
     );
-  }
-
-  void _onNavMenuSelected(BuildContext context, String value) {
-    switch (value) {
-      case 'multi_select':
-        context.read<FolderShelfBloc>().add(
-          const FolderShelfEnterSelectionMode(),
-        );
-      case 'new_folder':
-        _showCreateFolderDialog(context);
-      case 'import':
-        _importComic(context);
-      case 'help':
-        _showShelfHelpDialog(context);
-    }
   }
 
   Future<void> _showShelfHelpDialog(BuildContext context) async {
@@ -414,12 +442,13 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                 children: [
                   GridView.builder(
                     // 悬浮物盖在列表上层：子文件夹有面包屑浮栏，留 64px 顶部滚动边距；
-                    // 根目录只有右上 ⋮（纯覆盖不占位），选择模式无悬浮物，均保持 10。
+                    // 根目录无顶部悬浮物，选择模式无悬浮物，均保持 10。
+                    // 右下角按钮 56px + bottom 16：底部留 88，避免挡住最后一行漫画。
                     padding: EdgeInsets.fromLTRB(
                       10,
                       state.selectionMode ? 10 : (state.isRoot ? 10 : 64),
                       10,
-                      10,
+                      88,
                     ),
                     gridDelegate: buildComicSimplifyEntryGridDelegate(),
                     itemCount: totalCount,
@@ -578,36 +607,38 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                                 .add(const FolderShelfSelectAll()),
                             child: Text(t.common.selectAll),
                           ),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            tooltip: t.bookshelf.moveTo,
-                            onPressed: state.hasSelection
-                                ? () => _showTargetFolderDialog(
-                                    context,
-                                    onConfirmed: (targets) {
-                                      context.read<FolderShelfBloc>().add(
-                                        FolderShelfMoveSelected(targets),
-                                      );
-                                    },
-                                  )
-                                : null,
-                            icon: const Icon(Icons.drive_file_move_outline),
-                          ),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            tooltip: t.bookshelf.copyTo,
-                            onPressed: state.hasSelection
-                                ? () => _showTargetFolderDialog(
-                                    context,
-                                    onConfirmed: (targets) {
-                                      context.read<FolderShelfBloc>().add(
-                                        FolderShelfCopySelected(targets),
-                                      );
-                                    },
-                                  )
-                                : null,
-                            icon: const Icon(Icons.folder_copy_outlined),
-                          ),
+                          if (state.mode != ShelfPageMode.history)
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              tooltip: t.bookshelf.moveTo,
+                              onPressed: state.hasSelection
+                                  ? () => _showTargetFolderDialog(
+                                      context,
+                                      onConfirmed: (targets) {
+                                        context.read<FolderShelfBloc>().add(
+                                          FolderShelfMoveSelected(targets),
+                                        );
+                                      },
+                                    )
+                                  : null,
+                              icon: const Icon(Icons.drive_file_move_outline),
+                            ),
+                          if (state.mode != ShelfPageMode.history)
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              tooltip: t.bookshelf.copyTo,
+                              onPressed: state.hasSelection
+                                  ? () => _showTargetFolderDialog(
+                                      context,
+                                      onConfirmed: (targets) {
+                                        context.read<FolderShelfBloc>().add(
+                                          FolderShelfCopySelected(targets),
+                                        );
+                                      },
+                                    )
+                                  : null,
+                              icon: const Icon(Icons.folder_copy_outlined),
+                            ),
                           if (state.mode == ShelfPageMode.download)
                             IconButton(
                               visualDensity: VisualDensity.compact,
@@ -879,6 +910,21 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     if (confirmed == true && context.mounted) {
       final uniqueKey = '${info.from.trim()}:${info.id}';
       final state = context.read<FolderShelfBloc>().state;
+      // 历史无 ComicLink：直接软删除历史本体（与旧 LocalShelfPage 一致）。
+      if (state.mode == ShelfPageMode.history) {
+        final history = objectbox.unifiedHistoryBox
+            .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
+            .build()
+            .findFirst();
+        if (history != null) {
+          history
+            ..deleted = true
+            ..updatedAt = DateTime.now().toUtc();
+          objectbox.unifiedHistoryBox.put(history);
+        }
+        context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
+        return;
+      }
       final folderType = switch (state.mode) {
         ShelfPageMode.favorite => ComicFolderType.favorite,
         ShelfPageMode.download => ComicFolderType.download,

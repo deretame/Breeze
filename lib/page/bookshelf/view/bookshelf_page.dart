@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
+import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/search/widget/search_input_dialog.dart';
@@ -126,9 +126,10 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
               refreshSignal: _refreshSignals[0],
               isActive: _currentIndex == 0,
             ),
-            LocalShelfPage(
+            FolderShelfPage(
               mode: ShelfPageMode.history,
               refreshSignal: _refreshSignals[1],
+              isActive: _currentIndex == 1,
             ),
             FolderShelfPage(
               mode: ShelfPageMode.download,

@@ -230,7 +230,7 @@ Future<void> applyBreezeBackupImport(BackupConfig config) async {
 
 /// 清空所有 ObjectBox Box。
 ///
-/// 当 [preserveDownloads] 为 true 时，保留下载记录与下载文件夹，用于导入
+/// 当 [preserveDownloads] 为 true 时，保留下载记录，用于导入
 /// 不含下载文件的备份，避免本机已下载文件变成无记录的孤儿文件。
 ///
 /// 下载任务在任何情况下都不会被导入，因此 [downloadTaskBox] 总是被清空。
@@ -244,12 +244,6 @@ Future<void> _clearObjectBoxData({bool preserveDownloads = false}) async {
   objectbox.unifiedHistoryBox.removeAll();
   objectbox.comicFollowBox.removeAll();
   if (!preserveDownloads) objectbox.unifiedDownloadBox.removeAll();
-  objectbox.favoriteFolderBox.removeAll();
-  objectbox.favoriteFolderItemBox.removeAll();
-  if (!preserveDownloads) {
-    objectbox.downloadFolderBox.removeAll();
-    objectbox.downloadFolderItemBox.removeAll();
-  }
   // 注意：UserSetting 不在这里清除，而是在 _restoreUserSetting 中直接替换/更新，
   // 因为应用其他位置假设 UserSetting 的 id 始终为 1。
   // 下载任务在任何情况下都不导入，所以这里总是先清空本地下载任务。
@@ -341,26 +335,6 @@ Future<void> _restoreObjectBoxData(Map<String, dynamic> json) async {
     objectbox.unifiedDownloadBox,
     json['unifiedComicDownload'] as List?,
     (j) => UnifiedComicDownload.fromJson(j),
-  );
-  putAll(
-    objectbox.favoriteFolderBox,
-    json['favoriteFolder'] as List?,
-    (j) => FavoriteFolder.fromJson(j),
-  );
-  putAll(
-    objectbox.favoriteFolderItemBox,
-    json['favoriteFolderItem'] as List?,
-    (j) => FavoriteFolderItem.fromJson(j),
-  );
-  putAll(
-    objectbox.downloadFolderBox,
-    json['downloadFolder'] as List?,
-    (j) => DownloadFolder.fromJson(j),
-  );
-  putAll(
-    objectbox.downloadFolderItemBox,
-    json['downloadFolderItem'] as List?,
-    (j) => DownloadFolderItem.fromJson(j),
   );
   await _restoreUserSetting(json['userSetting'] as List?);
   // 下载任务不导入，避免恢复后继续执行已过期的下载任务。

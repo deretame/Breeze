@@ -21,10 +21,6 @@ class ObjectBox {
   late final Box<UnifiedComicFavorite> _unifiedComicFavoriteBox;
   late final Box<UnifiedComicHistory> _unifiedComicHistoryBox;
   late final Box<UnifiedComicDownload> _unifiedComicDownloadBox;
-  late final Box<FavoriteFolder> _favoriteFolderBox;
-  late final Box<FavoriteFolderItem> _favoriteFolderItemBox;
-  late final Box<DownloadFolder> _downloadFolderBox;
-  late final Box<DownloadFolderItem> _downloadFolderItemBox;
 
   late final Box<UserSetting> _userSettingBox;
 
@@ -52,10 +48,6 @@ class ObjectBox {
     _unifiedComicFavoriteBox = store.box<UnifiedComicFavorite>();
     _unifiedComicHistoryBox = store.box<UnifiedComicHistory>();
     _unifiedComicDownloadBox = store.box<UnifiedComicDownload>();
-    _favoriteFolderBox = store.box<FavoriteFolder>();
-    _favoriteFolderItemBox = store.box<FavoriteFolderItem>();
-    _downloadFolderBox = store.box<DownloadFolder>();
-    _downloadFolderItemBox = store.box<DownloadFolderItem>();
 
     _userSettingBox = store.box<UserSetting>();
 
@@ -132,10 +124,6 @@ class ObjectBox {
   Box<UnifiedComicHistory> get unifiedHistoryBox => _unifiedComicHistoryBox;
 
   Box<UnifiedComicDownload> get unifiedDownloadBox => _unifiedComicDownloadBox;
-  Box<FavoriteFolder> get favoriteFolderBox => _favoriteFolderBox;
-  Box<FavoriteFolderItem> get favoriteFolderItemBox => _favoriteFolderItemBox;
-  Box<DownloadFolder> get downloadFolderBox => _downloadFolderBox;
-  Box<DownloadFolderItem> get downloadFolderItemBox => _downloadFolderItemBox;
 
   Box<UserSetting> get userSettingBox => _userSettingBox;
 
@@ -197,16 +185,6 @@ class ObjectBox {
     _dumpBoxData<UnifiedComicDownload>(
       _unifiedComicDownloadBox,
       "UnifiedComicDownload",
-    );
-    _dumpBoxData<FavoriteFolder>(_favoriteFolderBox, "FavoriteFolder");
-    _dumpBoxData<FavoriteFolderItem>(
-      _favoriteFolderItemBox,
-      "FavoriteFolderItem",
-    );
-    _dumpBoxData<DownloadFolder>(_downloadFolderBox, "DownloadFolder");
-    _dumpBoxData<DownloadFolderItem>(
-      _downloadFolderItemBox,
-      "DownloadFolderItem",
     );
 
     _dumpBoxData<UserSetting>(_userSettingBox, "UserSetting");
@@ -270,22 +248,6 @@ String _collectObjectBoxDataJson(Store store, bool removeIds) {
     'comicFollow': readBox(store.box<ComicFollow>(), (item) => item.toJson()),
     'unifiedComicDownload': readBox(
       store.box<UnifiedComicDownload>(),
-      (item) => item.toJson(),
-    ),
-    'favoriteFolder': readBox(
-      store.box<FavoriteFolder>(),
-      (item) => item.toJson(),
-    ),
-    'favoriteFolderItem': readBox(
-      store.box<FavoriteFolderItem>(),
-      (item) => item.toJson(),
-    ),
-    'downloadFolder': readBox(
-      store.box<DownloadFolder>(),
-      (item) => item.toJson(),
-    ),
-    'downloadFolderItem': readBox(
-      store.box<DownloadFolderItem>(),
       (item) => item.toJson(),
     ),
     'userSetting': readBox(store.box<UserSetting>(), (item) => item.toJson()),

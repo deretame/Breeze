@@ -5,7 +5,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
-import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
@@ -156,7 +155,6 @@ Future<void> deleteWholeComicDownload({
   if (record != null) {
     objectbox.unifiedDownloadBox.remove(record.id);
   }
-  DownloadFolderService.removeMemberFromAllFolders(uniqueKey);
   ComicLinkService.removeComicFromAll(uniqueKey, ComicFolderType.download);
   await deleteComicDownloadDirectory(from, comicId);
   logger.i('已删除整本下载: $uniqueKey');

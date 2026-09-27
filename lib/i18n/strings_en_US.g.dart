@@ -425,29 +425,16 @@ class _Translations$bookshelf$en_US extends Translations$bookshelf$zh_CN {
 	@override String get sortAsc => 'Time (oldest first)';
 	@override String get viewSortDesc => 'View time (newest first)';
 	@override String get viewSortAsc => 'View time (oldest first)';
-	@override String get folderDeprecated => 'Folders (deprecated)';
 	@override String get source => 'Comic source';
 	@override String get deselectAll => 'Deselect all';
-	@override String get deleteFolder => 'Delete folder';
 	@override String get renameFolder => 'Rename folder';
-	@override String confirmDeleteFolder({required Object name}) => 'Delete folder "${name}"?';
-	@override String get folderAction => 'Please select an action';
 	@override String get createFolder => 'Create folder';
-	@override String get createFolderHint => 'Enter folder name';
 	@override String get multiSelect => 'Multi-select';
 	@override String get copyTo => 'Copy to';
 	@override String get batchExport => 'Batch export';
 	@override String get batchDeleteFailed => 'Batch delete failed';
 	@override String get deleteSelected => 'Delete selected';
 	@override String get cancel => 'Cancel selection';
-	@override String get addToFavorite => 'Add to favorites';
-	@override String get addToDownloadFolder => 'Add to download folder';
-	@override String get createFavoriteFolderFirst => 'Please create a custom favorite folder first';
-	@override String get addedToFavorite => 'Added to favorites';
-	@override String get createDownloadFolderFirst => 'Please create a custom download folder first';
-	@override String get addedToDownloadFolder => 'Added to download folder';
-	@override String get selectFavoriteFolder => 'Select favorite folders (multiple)';
-	@override String get selectDownloadFolder => 'Select download folders (multiple)';
 	@override String selectedCount({required Object count}) => 'Selected ${count} items';
 	@override String get selectTargetFolder => 'Select target folders (multiple)';
 	@override String get confirmDeleteFolderTitle => 'Confirm delete';
@@ -468,7 +455,6 @@ class _Translations$bookshelf$en_US extends Translations$bookshelf$zh_CN {
 	@override String get moveTo => 'Move to';
 	@override String get addToFolder => 'Add to folder';
 	@override String get folderName => 'Folder name';
-	@override String get folderNameHint => 'Enter folder name';
 	@override String get helpContent => '• Favorites and bookshelf are linked: favoriting a comic adds it to the bookshelf; only removing it from all favorite folders unfavorites it.\n• On comic detail page, unfavorite removes it from all favorite folders at once.\n• Same for downloads: only removing a comic from all download folders deletes its downloaded files.';
 	@override String get folderCreated => 'Folder created';
 	@override String get noComic => 'No comics yet';
@@ -500,13 +486,6 @@ class _Translations$bookshelf$en_US extends Translations$bookshelf$zh_CN {
 	@override String get cannotMoveParentToChild => 'Cannot move a parent folder into its subfolder';
 	@override String get cannotCopyFolderToSelfOrChild => 'Cannot copy a folder into itself or its subfolders';
 	@override String get moveFoldersOnlyOneTarget => 'Only one target folder can be selected when moving folders';
-	@override String get favoriteFolderNameEmpty => 'Favorite folder name cannot be empty';
-	@override String get favoriteFolderNameExists => 'A favorite folder with the same name already exists';
-	@override String get downloadFolderNameEmpty => 'Download folder name cannot be empty';
-	@override String get downloadFolderNameExists => 'A download folder with the same name already exists';
-	@override String get removeFromFavoriteFolder => 'Remove from favorite folder';
-	@override String get removeFromDownloadFolder => 'Remove from download folder';
-	@override String get confirmRemoveFromCurrentFolder => 'Remove from current folder?';
 	@override String confirmDeleteSelectedFavorites({required Object count}) => 'Delete selected ${count} favorite records?';
 	@override String confirmDeleteSelectedHistory({required Object count}) => 'Delete selected ${count} history records?';
 	@override String confirmDeleteSelectedDownloads({required Object count}) => 'Delete selected ${count} download records and files?';
@@ -1855,29 +1834,16 @@ extension on TranslationsEnUs {
 			'bookshelf.sortAsc' => 'Time (oldest first)',
 			'bookshelf.viewSortDesc' => 'View time (newest first)',
 			'bookshelf.viewSortAsc' => 'View time (oldest first)',
-			'bookshelf.folderDeprecated' => 'Folders (deprecated)',
 			'bookshelf.source' => 'Comic source',
 			'bookshelf.deselectAll' => 'Deselect all',
-			'bookshelf.deleteFolder' => 'Delete folder',
 			'bookshelf.renameFolder' => 'Rename folder',
-			'bookshelf.confirmDeleteFolder' => ({required Object name}) => 'Delete folder "${name}"?',
-			'bookshelf.folderAction' => 'Please select an action',
 			'bookshelf.createFolder' => 'Create folder',
-			'bookshelf.createFolderHint' => 'Enter folder name',
 			'bookshelf.multiSelect' => 'Multi-select',
 			'bookshelf.copyTo' => 'Copy to',
 			'bookshelf.batchExport' => 'Batch export',
 			'bookshelf.batchDeleteFailed' => 'Batch delete failed',
 			'bookshelf.deleteSelected' => 'Delete selected',
 			'bookshelf.cancel' => 'Cancel selection',
-			'bookshelf.addToFavorite' => 'Add to favorites',
-			'bookshelf.addToDownloadFolder' => 'Add to download folder',
-			'bookshelf.createFavoriteFolderFirst' => 'Please create a custom favorite folder first',
-			'bookshelf.addedToFavorite' => 'Added to favorites',
-			'bookshelf.createDownloadFolderFirst' => 'Please create a custom download folder first',
-			'bookshelf.addedToDownloadFolder' => 'Added to download folder',
-			'bookshelf.selectFavoriteFolder' => 'Select favorite folders (multiple)',
-			'bookshelf.selectDownloadFolder' => 'Select download folders (multiple)',
 			'bookshelf.selectedCount' => ({required Object count}) => 'Selected ${count} items',
 			'bookshelf.selectTargetFolder' => 'Select target folders (multiple)',
 			'bookshelf.confirmDeleteFolderTitle' => 'Confirm delete',
@@ -1898,7 +1864,6 @@ extension on TranslationsEnUs {
 			'bookshelf.moveTo' => 'Move to',
 			'bookshelf.addToFolder' => 'Add to folder',
 			'bookshelf.folderName' => 'Folder name',
-			'bookshelf.folderNameHint' => 'Enter folder name',
 			'bookshelf.helpContent' => '• Favorites and bookshelf are linked: favoriting a comic adds it to the bookshelf; only removing it from all favorite folders unfavorites it.\n• On comic detail page, unfavorite removes it from all favorite folders at once.\n• Same for downloads: only removing a comic from all download folders deletes its downloaded files.',
 			'bookshelf.folderCreated' => 'Folder created',
 			'bookshelf.noComic' => 'No comics yet',
@@ -1930,13 +1895,6 @@ extension on TranslationsEnUs {
 			'bookshelf.cannotMoveParentToChild' => 'Cannot move a parent folder into its subfolder',
 			'bookshelf.cannotCopyFolderToSelfOrChild' => 'Cannot copy a folder into itself or its subfolders',
 			'bookshelf.moveFoldersOnlyOneTarget' => 'Only one target folder can be selected when moving folders',
-			'bookshelf.favoriteFolderNameEmpty' => 'Favorite folder name cannot be empty',
-			'bookshelf.favoriteFolderNameExists' => 'A favorite folder with the same name already exists',
-			'bookshelf.downloadFolderNameEmpty' => 'Download folder name cannot be empty',
-			'bookshelf.downloadFolderNameExists' => 'A download folder with the same name already exists',
-			'bookshelf.removeFromFavoriteFolder' => 'Remove from favorite folder',
-			'bookshelf.removeFromDownloadFolder' => 'Remove from download folder',
-			'bookshelf.confirmRemoveFromCurrentFolder' => 'Remove from current folder?',
 			'bookshelf.confirmDeleteSelectedFavorites' => ({required Object count}) => 'Delete selected ${count} favorite records?',
 			'bookshelf.confirmDeleteSelectedHistory' => ({required Object count}) => 'Delete selected ${count} history records?',
 			'bookshelf.confirmDeleteSelectedDownloads' => ({required Object count}) => 'Delete selected ${count} download records and files?',
@@ -2060,8 +2018,6 @@ extension on TranslationsEnUs {
 			'reader.doublePage' => 'Double page',
 			'reader.doublePageSubtitle' => 'Enable double-page spread in current reading mode',
 			'reader.doublePageSeamless' => 'Seamless double page',
-			_ => null,
-		} ?? switch (path) {
 			'reader.doublePageSeamlessSubtitle' => 'Give each page half the width, preserve its aspect ratio, and remove the gap between them',
 			'reader.doublePageLeadingBlank' => 'Leading blank',
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
@@ -2083,6 +2039,8 @@ extension on TranslationsEnUs {
 			'reader.preloadChapterCount' => 'Preloaded chapter count',
 			'reader.preloadChapterCountSubtitle' => 'Load following chapter information in advance',
 			'reader.background' => 'Background',
+			_ => null,
+		} ?? switch (path) {
 			'reader.auto' => 'Auto',
 			'reader.black' => 'Black',
 			'reader.white' => 'White',
@@ -2574,8 +2532,6 @@ extension on TranslationsEnUs {
 			'comicEntry.deleteFavoriteConfirm' => ({required Object title}) => 'Delete favorite record for "${title}"?',
 			'comicEntry.deleteHistory' => 'Delete History',
 			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => 'Delete history record for "${title}"?',
-			_ => null,
-		} ?? switch (path) {
 			'comicEntry.deleteDownload' => 'Delete Download',
 			'comicEntry.deleteDownloadConfirm' => ({required Object title}) => 'Delete download record and files for "${title}"?',
 			'comicEntry.deleteFailed' => 'Delete failed',
@@ -2597,6 +2553,8 @@ extension on TranslationsEnUs {
 			'comicFollow.latestChapter' => ({required Object count, required Object chapter}) => 'Latest: ${count} / ${chapter}',
 			'comicFollow.noUnread' => 'No updated unread comics',
 			'comicFollow.showAll' => 'Show all',
+			_ => null,
+		} ?? switch (path) {
 			'comicFollow.latestChapterFailed' => 'Failed to get latest chapter',
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '${diff} new chapters, ${total} total',
 			'comicFollow.newUnreadChapters' => ({required Object diff, required Object total}) => '${diff} new unread chapters, ${total} total',

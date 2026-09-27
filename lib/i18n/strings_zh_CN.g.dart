@@ -1043,32 +1043,17 @@ class Translations$bookshelf$zh_CN {
 	/// zh-CN: '观看时间(早→晚)'
 	String get viewSortAsc => '观看时间(早→晚)';
 
-	/// zh-CN: '文件夹（已废弃）'
-	String get folderDeprecated => '文件夹（已废弃）';
-
 	/// zh-CN: '漫画源'
 	String get source => '漫画源';
 
 	/// zh-CN: '取消全选'
 	String get deselectAll => '取消全选';
 
-	/// zh-CN: '删除收藏夹'
-	String get deleteFolder => '删除收藏夹';
-
 	/// zh-CN: '重命名收藏夹'
 	String get renameFolder => '重命名收藏夹';
 
-	/// zh-CN: '是否删除当前文件夹「$name」？'
-	String confirmDeleteFolder({required Object name}) => '是否删除当前文件夹「${name}」？';
-
-	/// zh-CN: '请选择操作'
-	String get folderAction => '请选择操作';
-
 	/// zh-CN: '新建收藏夹'
 	String get createFolder => '新建收藏夹';
-
-	/// zh-CN: '输入收藏夹名称'
-	String get createFolderHint => '输入收藏夹名称';
 
 	/// zh-CN: '多选'
 	String get multiSelect => '多选';
@@ -1087,30 +1072,6 @@ class Translations$bookshelf$zh_CN {
 
 	/// zh-CN: '取消选择'
 	String get cancel => '取消选择';
-
-	/// zh-CN: '加入收藏夹'
-	String get addToFavorite => '加入收藏夹';
-
-	/// zh-CN: '加入下载文件夹'
-	String get addToDownloadFolder => '加入下载文件夹';
-
-	/// zh-CN: '请先创建自定义收藏夹'
-	String get createFavoriteFolderFirst => '请先创建自定义收藏夹';
-
-	/// zh-CN: '已加入收藏夹'
-	String get addedToFavorite => '已加入收藏夹';
-
-	/// zh-CN: '请先创建自定义下载文件夹'
-	String get createDownloadFolderFirst => '请先创建自定义下载文件夹';
-
-	/// zh-CN: '已加入下载文件夹'
-	String get addedToDownloadFolder => '已加入下载文件夹';
-
-	/// zh-CN: '选择收藏夹（可多选）'
-	String get selectFavoriteFolder => '选择收藏夹（可多选）';
-
-	/// zh-CN: '选择下载文件夹（可多选）'
-	String get selectDownloadFolder => '选择下载文件夹（可多选）';
 
 	/// zh-CN: '已选择 $count 项'
 	String selectedCount({required Object count}) => '已选择 ${count} 项';
@@ -1174,9 +1135,6 @@ class Translations$bookshelf$zh_CN {
 
 	/// zh-CN: '文件夹名称'
 	String get folderName => '文件夹名称';
-
-	/// zh-CN: '请输入文件夹名称'
-	String get folderNameHint => '请输入文件夹名称';
 
 	/// zh-CN: '• 收藏和书架是联动的：收藏一本漫画，它会出现在书架里；只有把这本漫画从所有收藏文件夹里都删除，才会自动取消收藏。 • 在漫画详情页“取消收藏”，会一次性从所有收藏文件夹里移除这本漫画。 • 下载也是一样：只有把一本漫画从所有下载文件夹里都删除，才会自动删除它的下载文件。'
 	String get helpContent => '• 收藏和书架是联动的：收藏一本漫画，它会出现在书架里；只有把这本漫画从所有收藏文件夹里都删除，才会自动取消收藏。\n• 在漫画详情页“取消收藏”，会一次性从所有收藏文件夹里移除这本漫画。\n• 下载也是一样：只有把一本漫画从所有下载文件夹里都删除，才会自动删除它的下载文件。';
@@ -1270,27 +1228,6 @@ class Translations$bookshelf$zh_CN {
 
 	/// zh-CN: '移动文件夹时只能选择一个目标文件夹'
 	String get moveFoldersOnlyOneTarget => '移动文件夹时只能选择一个目标文件夹';
-
-	/// zh-CN: '收藏夹名称不能为空'
-	String get favoriteFolderNameEmpty => '收藏夹名称不能为空';
-
-	/// zh-CN: '已存在同名收藏夹'
-	String get favoriteFolderNameExists => '已存在同名收藏夹';
-
-	/// zh-CN: '下载文件夹名称不能为空'
-	String get downloadFolderNameEmpty => '下载文件夹名称不能为空';
-
-	/// zh-CN: '已存在同名下载文件夹'
-	String get downloadFolderNameExists => '已存在同名下载文件夹';
-
-	/// zh-CN: '移出收藏夹'
-	String get removeFromFavoriteFolder => '移出收藏夹';
-
-	/// zh-CN: '移出下载文件夹'
-	String get removeFromDownloadFolder => '移出下载文件夹';
-
-	/// zh-CN: '是否要从本文件夹中移除'
-	String get confirmRemoveFromCurrentFolder => '是否要从本文件夹中移除';
 
 	/// zh-CN: '确定要删除选中的 $count 条收藏记录吗？'
 	String confirmDeleteSelectedFavorites({required Object count}) => '确定要删除选中的 ${count} 条收藏记录吗？';
@@ -4179,29 +4116,16 @@ extension on Translations {
 			'bookshelf.sortAsc' => '时间(早→晚)',
 			'bookshelf.viewSortDesc' => '观看时间(晚→早)',
 			'bookshelf.viewSortAsc' => '观看时间(早→晚)',
-			'bookshelf.folderDeprecated' => '文件夹（已废弃）',
 			'bookshelf.source' => '漫画源',
 			'bookshelf.deselectAll' => '取消全选',
-			'bookshelf.deleteFolder' => '删除收藏夹',
 			'bookshelf.renameFolder' => '重命名收藏夹',
-			'bookshelf.confirmDeleteFolder' => ({required Object name}) => '是否删除当前文件夹「${name}」？',
-			'bookshelf.folderAction' => '请选择操作',
 			'bookshelf.createFolder' => '新建收藏夹',
-			'bookshelf.createFolderHint' => '输入收藏夹名称',
 			'bookshelf.multiSelect' => '多选',
 			'bookshelf.copyTo' => '复制到',
 			'bookshelf.batchExport' => '批量导出',
 			'bookshelf.batchDeleteFailed' => '批量删除失败',
 			'bookshelf.deleteSelected' => '删除选中',
 			'bookshelf.cancel' => '取消选择',
-			'bookshelf.addToFavorite' => '加入收藏夹',
-			'bookshelf.addToDownloadFolder' => '加入下载文件夹',
-			'bookshelf.createFavoriteFolderFirst' => '请先创建自定义收藏夹',
-			'bookshelf.addedToFavorite' => '已加入收藏夹',
-			'bookshelf.createDownloadFolderFirst' => '请先创建自定义下载文件夹',
-			'bookshelf.addedToDownloadFolder' => '已加入下载文件夹',
-			'bookshelf.selectFavoriteFolder' => '选择收藏夹（可多选）',
-			'bookshelf.selectDownloadFolder' => '选择下载文件夹（可多选）',
 			'bookshelf.selectedCount' => ({required Object count}) => '已选择 ${count} 项',
 			'bookshelf.selectTargetFolder' => '选择目标文件夹（可多选）',
 			'bookshelf.confirmDeleteFolderTitle' => '确认删除',
@@ -4223,7 +4147,6 @@ extension on Translations {
 			'bookshelf.moveTo' => '移动到',
 			'bookshelf.addToFolder' => '加入文件夹',
 			'bookshelf.folderName' => '文件夹名称',
-			'bookshelf.folderNameHint' => '请输入文件夹名称',
 			'bookshelf.helpContent' => '• 收藏和书架是联动的：收藏一本漫画，它会出现在书架里；只有把这本漫画从所有收藏文件夹里都删除，才会自动取消收藏。\n• 在漫画详情页“取消收藏”，会一次性从所有收藏文件夹里移除这本漫画。\n• 下载也是一样：只有把一本漫画从所有下载文件夹里都删除，才会自动删除它的下载文件。',
 			'bookshelf.folderCreated' => '文件夹创建成功',
 			'bookshelf.noComic' => '还没有漫画',
@@ -4255,13 +4178,6 @@ extension on Translations {
 			'bookshelf.cannotMoveParentToChild' => '不能将父文件夹移动到子文件夹中',
 			'bookshelf.cannotCopyFolderToSelfOrChild' => '不能复制文件夹到自身或其子路径下',
 			'bookshelf.moveFoldersOnlyOneTarget' => '移动文件夹时只能选择一个目标文件夹',
-			'bookshelf.favoriteFolderNameEmpty' => '收藏夹名称不能为空',
-			'bookshelf.favoriteFolderNameExists' => '已存在同名收藏夹',
-			'bookshelf.downloadFolderNameEmpty' => '下载文件夹名称不能为空',
-			'bookshelf.downloadFolderNameExists' => '已存在同名下载文件夹',
-			'bookshelf.removeFromFavoriteFolder' => '移出收藏夹',
-			'bookshelf.removeFromDownloadFolder' => '移出下载文件夹',
-			'bookshelf.confirmRemoveFromCurrentFolder' => '是否要从本文件夹中移除',
 			'bookshelf.confirmDeleteSelectedFavorites' => ({required Object count}) => '确定要删除选中的 ${count} 条收藏记录吗？',
 			'bookshelf.confirmDeleteSelectedHistory' => ({required Object count}) => '确定要删除选中的 ${count} 条历史记录吗？',
 			'bookshelf.confirmDeleteSelectedDownloads' => ({required Object count}) => '确定要删除选中的 ${count} 条下载记录及文件吗？',
@@ -4384,8 +4300,6 @@ extension on Translations {
 			'reader.singlePageRtl' => '单页式（从右到左）',
 			'reader.doublePage' => '双页阅读',
 			'reader.doublePageSubtitle' => '在当前阅读模式中启用双页并排',
-			_ => null,
-		} ?? switch (path) {
 			'reader.doublePageSeamless' => '双页无缝',
 			'reader.doublePageSeamlessSubtitle' => '左右各占一半宽度，按图片比例独立显示并消除中间留白',
 			'reader.doublePageLeadingBlank' => '首页留白',
@@ -4407,6 +4321,8 @@ extension on Translations {
 			'reader.preloadImageCountSubtitle' => '提前下载当前阅读位置之后的图片',
 			'reader.preloadChapterCount' => '预加载章节数量',
 			'reader.preloadChapterCountSubtitle' => '提前加载后续章节信息',
+			_ => null,
+		} ?? switch (path) {
 			'reader.background' => '阅读背景',
 			'reader.auto' => '自动',
 			'reader.black' => '黑色',
@@ -4898,8 +4814,6 @@ extension on Translations {
 			'comicEntry.deleteFavorite' => '删除收藏',
 			'comicEntry.deleteFavoriteConfirm' => ({required Object title}) => '确定要删除（${title}）的收藏记录吗？',
 			'comicEntry.deleteHistory' => '删除历史记录',
-			_ => null,
-		} ?? switch (path) {
 			'comicEntry.deleteHistoryConfirm' => ({required Object title}) => '确定要删除（${title}）的历史记录吗？',
 			'comicEntry.deleteDownload' => '删除下载记录',
 			'comicEntry.deleteDownloadConfirm' => ({required Object title}) => '确定要删除（${title}）的下载记录及文件吗？',
@@ -4921,6 +4835,8 @@ extension on Translations {
 			'comicFollow.lastReadChapter' => ({required Object chapter}) => '看到：${chapter}',
 			'comicFollow.latestChapter' => ({required Object count, required Object chapter}) => '最新：${count} 话 / ${chapter}',
 			'comicFollow.noUnread' => '暂无已更新未看内容',
+			_ => null,
+		} ?? switch (path) {
 			'comicFollow.showAll' => '显示全部',
 			'comicFollow.latestChapterFailed' => '最新章节获取失败',
 			'comicFollow.newChapters' => ({required Object diff, required Object total}) => '新增 ${diff} 话，共 ${total} 话',

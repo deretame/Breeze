@@ -9,8 +9,6 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
-import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
-import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/models/plugin_runtime_state.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/qjs.dart';
@@ -544,7 +542,6 @@ class PluginRegistryService {
 
     // 收藏/历史属于同步数据，应当软删除（标记 deleted），让同步能把删除传播出去。
     for (final comic in favorites) {
-      FavoriteFolderService.removeMemberFromAllFolders(comic.uniqueKey);
       ComicLinkService.removeComicFromAll(
         comic.uniqueKey,
         ComicFolderType.favorite,
@@ -563,7 +560,6 @@ class PluginRegistryService {
 
     // 下载记录不参与同步，直接物理删除。
     for (final comic in downloads) {
-      DownloadFolderService.removeMemberFromAllFolders(comic.uniqueKey);
       ComicLinkService.removeComicFromAll(
         comic.uniqueKey,
         ComicFolderType.download,

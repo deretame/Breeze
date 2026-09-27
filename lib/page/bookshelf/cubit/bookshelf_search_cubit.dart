@@ -1,8 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
-import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
-import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 
 class BookshelfSearchState {
   const BookshelfSearchState({
@@ -101,38 +99,14 @@ class BookshelfSearchCubit extends Cubit<BookshelfSearchState> {
       final current = nextState
           .stateOf(mode)
           .sources
-          .where((item) => item.trim().isNotEmpty);
-      String? folderToken;
-      if (mode == ShelfPageMode.favorite) {
-        folderToken = FavoriteFolderService.parseFolderKeyFromSources(
-          current.toList(),
-        );
-      } else if (mode == ShelfPageMode.download) {
-        folderToken = DownloadFolderService.parseFolderKeyFromSources(
-          current.toList(),
-        );
-      }
-      final filterSources = mode == ShelfPageMode.download
-          ? DownloadFolderService.stripFolderSourceTokens(current.toList())
-          : FavoriteFolderService.stripFolderSourceTokens(current.toList());
-      final filtered = filterSources.where(available.contains).toSet();
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toSet();
+      final filtered = current.where(available.contains).toSet();
       filtered.addAll(autoSelectSet.where(available.contains));
       final nextSources = filtered.isEmpty
           ? available
           : available.where(filtered.contains).toList();
-      if (mode == ShelfPageMode.favorite) {
-        nextSources.add(
-          FavoriteFolderService.sourceToken(
-            folderToken ?? kFavoriteFolderAllKey,
-          ),
-        );
-      } else if (mode == ShelfPageMode.download) {
-        nextSources.add(
-          DownloadFolderService.sourceToken(
-            folderToken ?? kDownloadFolderAllKey,
-          ),
-        );
-      }
       if (!_listEquals(nextState.stateOf(mode).sources, nextSources)) {
         nextState = nextState.copyMode(
           mode,

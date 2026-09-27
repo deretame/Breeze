@@ -14,8 +14,6 @@ import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
-import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
-import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/rust_loader.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/util/worker_isolate.dart';
@@ -640,8 +638,7 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
         }
       }
     }
-    final sourceFilter = _sourceFilterFromSearch(search, folderType);
-    final folderMembers = _folderMembersFromSearch(search, folderType);
+    final sourceFilter = _sourceFilterFromSearch(search);
 
     // 历史无文件夹体系：直读历史表，按更新时间排序。
     if (mode == ShelfPageMode.history) {
@@ -677,10 +674,6 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
     final comicSearchTexts = <String, String>{};
     final seenKeys = <String>{};
     for (final link in links) {
-      if (folderMembers != null &&
-          !folderMembers.contains(link.comicUniqueKey)) {
-        continue;
-      }
       final resolved = _resolveComic(link.comicUniqueKey, folderType);
       if (resolved == null) continue;
       if (sourceFilter != null &&
@@ -809,56 +802,14 @@ void _sortShelfItemsByViewTime(
   });
 }
 
-Set<String>? _sourceFilterFromSearch(
-  SearchStatusState? search,
-  ComicFolderType folderType,
-) {
+Set<String>? _sourceFilterFromSearch(SearchStatusState? search) {
   if (search == null) return null;
-  final sources = switch (folderType) {
-    ComicFolderType.favorite => FavoriteFolderService.stripFolderSourceTokens(
-      search.sources,
-    ),
-    ComicFolderType.download => DownloadFolderService.stripFolderSourceTokens(
-      search.sources,
-    ),
-    ComicFolderType.history => search.sources,
-  };
-  final cleaned = sources
+  final cleaned = search.sources
       .map((e) => e.trim())
       .where((e) => e.isNotEmpty)
       .toSet();
   if (cleaned.isEmpty) return null;
   return cleaned;
-}
-
-Set<String>? _folderMembersFromSearch(
-  SearchStatusState? search,
-  ComicFolderType folderType,
-) {
-  if (search == null) return null;
-  final folderKey = switch (folderType) {
-    ComicFolderType.favorite => FavoriteFolderService.parseFolderKeyFromSources(
-      search.sources,
-    ),
-    ComicFolderType.download => DownloadFolderService.parseFolderKeyFromSources(
-      search.sources,
-    ),
-    ComicFolderType.history => null,
-  };
-  if (folderKey == null) return null;
-  final isAllFolder = switch (folderType) {
-    ComicFolderType.favorite => folderKey == kFavoriteFolderAllKey,
-    ComicFolderType.download => folderKey == kDownloadFolderAllKey,
-    ComicFolderType.history => true,
-  };
-  if (isAllFolder) return null;
-  final members = switch (folderType) {
-    ComicFolderType.favorite => FavoriteFolderService.membersOf(folderKey),
-    ComicFolderType.download => DownloadFolderService.membersOf(folderKey),
-    ComicFolderType.history => const <String>{},
-  };
-  if (members.isEmpty) return const <String>{};
-  return members;
 }
 
 ({ComicSimplifyEntryInfo info, String searchText})? _resolveComic(

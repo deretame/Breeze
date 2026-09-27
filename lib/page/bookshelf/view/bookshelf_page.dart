@@ -6,8 +6,6 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/page/bookshelf/service/download_folder_service.dart';
-import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -425,30 +423,16 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       return;
     }
 
-    final currentFolderKey = switch (currentMode) {
-      ShelfPageMode.favorite =>
-        FavoriteFolderService.parseFolderKeyFromSources(current.sources) ??
-            kFavoriteFolderAllKey,
-      ShelfPageMode.download =>
-        DownloadFolderService.parseFolderKeyFromSources(current.sources) ??
-            kDownloadFolderAllKey,
-      _ => kFavoriteFolderAllKey,
-    };
-    final stripFolderTokens = switch (currentMode) {
-      ShelfPageMode.favorite => FavoriteFolderService.stripFolderSourceTokens,
-      ShelfPageMode.download => DownloadFolderService.stripFolderSourceTokens,
-      _ => FavoriteFolderService.stripFolderSourceTokens,
-    };
-    var selectedSources = stripFolderTokens(
-      current.sources,
-    ).where(availableSources.contains).toSet();
+    var selectedSources = current.sources
+        .where(availableSources.contains)
+        .toSet();
     if (selectedSources.isEmpty) {
       selectedSources = availableSources.toSet();
     }
 
     final result = await showDialog<_BookshelfFilterResult>(
       context: context,
-      builder: (dialogContext) => _BookshelfFilterDialog(
+      builder: (_) => _BookshelfFilterDialog(
         mode: currentMode,
         initialSort: switch (currentMode) {
           (ShelfPageMode.favorite || ShelfPageMode.download)
@@ -457,13 +441,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           _ when current.sort == 'da' => 'da',
           _ => 'dd',
         },
-        initialFolderKey: currentFolderKey,
         initialSources: selectedSources,
         availableSources: availableSources,
         sourceOptions: sourceOptions,
-        onCreateFolder: () => _showCreateFolderDialog(dialogContext),
-        onRequestFolderAction: (folder) =>
-            _handleFolderAction(dialogContext, folder),
       ),
     );
 
@@ -472,14 +452,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     searchCubit.setSort(currentMode, result.sort);
     _maybePersistSort(currentMode, result.sort);
 
-    var nextSources = result.sources.toList();
-    if (currentMode == ShelfPageMode.favorite &&
-        result.folderKey != kFavoriteFolderAllKey) {
-      nextSources.add(FavoriteFolderService.sourceToken(result.folderKey));
-    } else if (currentMode == ShelfPageMode.download &&
-        result.folderKey != kDownloadFolderAllKey) {
-      nextSources.add(DownloadFolderService.sourceToken(result.folderKey));
-    }
+    final nextSources = result.sources.toList();
     searchCubit.setSources(currentMode, nextSources);
     _triggerRefresh(goTop: true);
   }
@@ -505,183 +478,6 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
     final name = info?['name']?.toString().trim() ?? '';
     return name.isNotEmpty ? name : pluginId;
-  }
-
-  Future<_FolderDialogOutcome?> _handleFolderAction(
-    BuildContext dialogContext,
-    dynamic folder,
-  ) async {
-    final String folderKey = folder.key as String;
-    final String folderName = folder.name as String;
-
-    if (!mounted) {
-      return null;
-    }
-
-    final action = await _showFolderActionDialog(context, folderName);
-    if (!mounted) {
-      return null;
-    }
-    if (action == null) {
-      return null;
-    }
-
-    final isFavoriteMode = _currentIndex == 0;
-    final allKey = isFavoriteMode
-        ? kFavoriteFolderAllKey
-        : kDownloadFolderAllKey;
-
-    if (action == _FolderAction.delete) {
-      final ok = await _confirmDeleteFolder(context, folderName);
-      if (!mounted) {
-        return null;
-      }
-      if (ok != true) {
-        return null;
-      }
-      if (isFavoriteMode) {
-        FavoriteFolderService.deleteFolder(folderKey);
-      } else {
-        DownloadFolderService.deleteFolder(folderKey);
-      }
-      return _FolderDialogOutcome(
-        shouldRefreshFolders: true,
-        selectedFolderKey: allKey,
-      );
-    }
-
-    final renamed = await _showRenameFolderDialog(
-      context,
-      initialName: folderName,
-    );
-    if (!mounted) {
-      return null;
-    }
-    if (renamed == null || renamed.trim().isEmpty) {
-      return null;
-    }
-    try {
-      if (isFavoriteMode) {
-        FavoriteFolderService.renameFolder(folderKey, renamed.trim());
-      } else {
-        DownloadFolderService.renameFolder(folderKey, renamed.trim());
-      }
-      return _FolderDialogOutcome(
-        shouldRefreshFolders: true,
-        selectedFolderKey: folderKey,
-      );
-    } catch (e) {
-      if (dialogContext.mounted) {
-        ScaffoldMessenger.of(
-          dialogContext,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-      return null;
-    }
-  }
-
-  Future<bool?> _confirmDeleteFolder(BuildContext context, String name) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(t.bookshelf.deleteFolder),
-        content: Text(t.bookshelf.confirmDeleteFolder(name: name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(t.common.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(t.common.ok),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<_FolderAction?> _showFolderActionDialog(
-    BuildContext context,
-    String name,
-  ) {
-    return showDialog<_FolderAction>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(name),
-        content: Text(t.bookshelf.folderAction),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(t.common.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(_FolderAction.rename),
-            child: Text(t.common.rename),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(_FolderAction.delete),
-            child: Text(t.common.delete),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<String?> _showRenameFolderDialog(
-    BuildContext context, {
-    required String initialName,
-  }) async {
-    final controller = TextEditingController(text: initialName);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(t.bookshelf.renameFolder),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(hintText: t.bookshelf.folderNameHint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(t.common.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: Text(t.common.ok),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    return result;
-  }
-
-  Future<String?> _showCreateFolderDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(t.bookshelf.createFolder),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(hintText: t.bookshelf.createFolderHint),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(t.common.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: Text(t.common.create),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    return result;
   }
 
   void _syncSourcesFromRegistry(Map<String, PluginRuntimeState> pluginStates) {
@@ -725,23 +521,16 @@ class _BookshelfFilterDialog extends StatefulWidget {
   const _BookshelfFilterDialog({
     required this.mode,
     required this.initialSort,
-    required this.initialFolderKey,
     required this.initialSources,
     required this.availableSources,
     required this.sourceOptions,
-    required this.onCreateFolder,
-    required this.onRequestFolderAction,
   });
 
   final ShelfPageMode mode;
   final String initialSort;
-  final String initialFolderKey;
   final Set<String> initialSources;
   final List<String> availableSources;
   final List<_FilterSourceOption> sourceOptions;
-  final Future<String?> Function() onCreateFolder;
-  final Future<_FolderDialogOutcome?> Function(dynamic folder)
-  onRequestFolderAction;
 
   @override
   State<_BookshelfFilterDialog> createState() => _BookshelfFilterDialogState();
@@ -749,19 +538,15 @@ class _BookshelfFilterDialog extends StatefulWidget {
 
 class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
   late String _selectedSort;
-  late String _selectedFolderKey;
   late Set<String> _selectedSources;
 
   bool get _isFavoriteMode => widget.mode == ShelfPageMode.favorite;
   bool get _isDownloadMode => widget.mode == ShelfPageMode.download;
-  // 文件夹筛选入口已废弃，保留底层文件夹逻辑供其他入口继续使用。
-  bool get _showFolderSection => false;
 
   @override
   void initState() {
     super.initState();
     _selectedSort = widget.initialSort;
-    _selectedFolderKey = widget.initialFolderKey;
     _selectedSources = Set<String>.from(widget.initialSources);
   }
 
@@ -778,10 +563,6 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
             children: [
               _buildSortSection(context),
               const SizedBox(height: 16),
-              if (_showFolderSection) ...[
-                _buildFolderSection(context),
-                const SizedBox(height: 16),
-              ],
               _buildSourceSection(context),
             ],
           ),
@@ -796,7 +577,6 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
           onPressed: () => Navigator.of(context).pop(
             _BookshelfFilterResult(
               sort: _selectedSort,
-              folderKey: _selectedFolderKey,
               sources: _selectedSources,
             ),
           ),
@@ -846,62 +626,6 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
         ),
       ],
     );
-  }
-
-  Widget _buildFolderSection(BuildContext context) {
-    final List<dynamic> folderViews;
-    if (_isFavoriteMode) {
-      folderViews = FavoriteFolderService.listFolders();
-    } else {
-      folderViews = DownloadFolderService.listFolders();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              t.bookshelf.folderDeprecated,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const Spacer(),
-            // TextButton(onPressed: _createFolder, child: const Text('新建')),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final folder in folderViews)
-              GestureDetector(
-                onLongPress: folder.isAll
-                    ? null
-                    : () => _handleFolderLongPress(folder),
-                child: ChoiceChip(
-                  showCheckmark: false,
-                  label: Text(folder.name),
-                  selected: _selectedFolderKey == folder.key,
-                  onSelected: (_) =>
-                      setState(() => _selectedFolderKey = folder.key),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Future<void> _handleFolderLongPress(dynamic folder) async {
-    final outcome = await widget.onRequestFolderAction(folder);
-    if (!mounted || outcome == null) {
-      return;
-    }
-    setState(() {
-      if (outcome.selectedFolderKey != null) {
-        _selectedFolderKey = outcome.selectedFolderKey!;
-      }
-    });
   }
 
   Widget _buildSourceSection(BuildContext context) {
@@ -957,14 +681,10 @@ class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
 }
 
 class _BookshelfFilterResult {
-  _BookshelfFilterResult({
-    required this.sort,
-    required this.folderKey,
-    required Set<String> sources,
-  }) : sources = Set<String>.from(sources);
+  _BookshelfFilterResult({required this.sort, required Set<String> sources})
+    : sources = Set<String>.from(sources);
 
   final String sort;
-  final String folderKey;
   final Set<String> sources;
 }
 
@@ -974,15 +694,3 @@ class _FilterSourceOption {
   final String pluginId;
   final String title;
 }
-
-class _FolderDialogOutcome {
-  const _FolderDialogOutcome({
-    required this.shouldRefreshFolders,
-    this.selectedFolderKey,
-  });
-
-  final bool shouldRefreshFolders;
-  final String? selectedFolderKey;
-}
-
-enum _FolderAction { rename, delete }

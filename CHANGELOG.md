@@ -714,10 +714,12 @@
 ### 功能更新
 
 - 进度条跟随从右到左阅读方向反转
+- 添加墨水屏优化 by [dororo42](https://github.com/dororo42)
 
 ### 修复
 
 - 修复搜索栏部分情况下无法正常搜索的问题
+- 修复低版本安卓闪退 by [dororo42](https://github.com/dororo42)
 
 ### 优化
 

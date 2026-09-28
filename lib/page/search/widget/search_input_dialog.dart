@@ -368,10 +368,12 @@ class _SearchQueryFieldState extends State<SearchQueryField>
                         controller: _controller,
                         focusNode: _focusNode,
                         autofocus: true,
-                        keyboardType: TextInputType.multiline,
+                        // 单行 + search action：移动端软键盘回车即提交搜索。
+                        // 之前用 multiline + maxLines 6 时，Android 上回车会被 IME
+                        // 当作换行，textInputAction.search 直接失效。
+                        keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.search,
-                        minLines: 1,
-                        maxLines: 6,
+                        maxLines: 1,
                         textAlignVertical: TextAlignVertical.center,
                         onChanged: (value) {
                           widget.onChanged?.call(value);

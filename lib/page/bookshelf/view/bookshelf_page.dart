@@ -297,7 +297,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     });
   }
 
-  /// 书架搜索框：复用搜索页的 SearchQueryField（浮层展开、视觉换行多行输入）。
+  /// 书架搜索框：复用搜索页的 SearchQueryField（浮层展开、单行回车即搜）。
   /// 非空输入经 500ms 防抖写入 cubit（列表按 keyword 做 BlocBuilder 实时过滤）；
   /// 清空（删到空/点 ×）是明确的单次操作，立即生效；
   /// 回车提交立即生效、保持浮层展开并回到顶部，方便继续改词。桌面端常驻显示（autoExpand 关），

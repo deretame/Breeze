@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/i18n/strings.g.dart';
@@ -64,6 +65,20 @@ class _SearchQueryFieldState extends State<SearchQueryField>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _prepareAutoExpand();
       });
+    }
+  }
+
+  /// AutoRouteAwareStateMixin.didChangeDependencies 在没有 RouterScope
+  ///（如 widget test 里裸 pump）时会抛 RouterScope 断言。
+  /// 正常路由栈下照常订阅；裸测只跳过订阅，展开/收起逻辑不受影响。
+  @override
+  void didChangeDependencies() {
+    try {
+      super.didChangeDependencies();
+    } on FlutterError catch (e) {
+      if (!e.message.contains('RouterScope')) {
+        rethrow;
+      }
     }
   }
 
@@ -414,12 +429,22 @@ class _SearchQueryFieldState extends State<SearchQueryField>
                         controller: _controller,
                         focusNode: _focusNode,
                         autofocus: true,
-                        // 单行 + search action：移动端软键盘回车即提交搜索。
-                        // 之前用 multiline + maxLines 6 时，Android 上回车会被 IME
-                        // 当作换行，textInputAction.search 直接失效。
+                        // 多行展示 + 回车即搜：keyboardType 必须用 text，不能用 multiline。
+                        // multiline 会让 Android IME 直接忽略 textInputAction.search、
+                        // 把回车当换行（且各家输入法行为不一致），这就是 a45ae20 回退单行的原因；
+                        // 但单行只能显示一行，长词只能左右滚，展示需求就没了。
+                        // text + maxLines 6：engine 下发 inputType=TYPE_CLASS_TEXT
+                        // （无 MULTILINE flag）+ imeOptions=actionSearch，
+                        // 软键盘回车即 search（桌面端硬件回车同样走 performAction）；
+                        // 长文本靠软换行撑到最多 6 行展示，singleLineFormatter 只拦硬换行
+                        // （粘贴带 \n 时），不影响软换行。
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.search,
-                        maxLines: 1,
+                        minLines: 1,
+                        maxLines: 6,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.singleLineFormatter,
+                        ],
                         textAlignVertical: TextAlignVertical.center,
                         onChanged: (value) {
                           widget.onChanged?.call(value);

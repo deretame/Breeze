@@ -9,6 +9,18 @@ class HistoryWidget extends StatefulWidget {
 
   final bool aggregateMode;
 
+  /// 点历史词条前调用，丢弃 [SearchBar] 里待触发的输入防抖。
+  /// 不丢的话：输入框旧词的防抖在提交后才开火，把新词盖掉。
+  static VoidCallback? _cancelPendingKeywordSync;
+
+  static void registerPendingKeywordSyncCanceller(VoidCallback? canceller) {
+    _cancelPendingKeywordSync = canceller;
+  }
+
+  static void cancelPendingKeywordSync() {
+    _cancelPendingKeywordSync?.call();
+  }
+
   @override
   State<HistoryWidget> createState() => _HistoryWidgetState();
 }
@@ -145,11 +157,14 @@ class _HistoryWidgetState extends State<HistoryWidget> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-                onPressed: () => onSearch(
-                  context,
-                  keyword,
-                  aggregateMode: widget.aggregateMode,
-                ),
+                onPressed: () {
+                  HistoryWidget.cancelPendingKeywordSync();
+                  onSearch(
+                    context,
+                    keyword,
+                    aggregateMode: widget.aggregateMode,
+                  );
+                },
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             );

@@ -5,6 +5,7 @@ import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
+import 'package:zephyr/page/search/widget/history.dart';
 import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -28,12 +29,6 @@ class _SearchBarState extends State<SearchBar> {
   // 避免每敲一个字母就触发上层 BlocBuilder 全量 rebuild。
   final _keywordDebouncer = Debouncer(milliseconds: 100);
 
-  @override
-  void dispose() {
-    _keywordDebouncer.cancel();
-    super.dispose();
-  }
-
   List<({String pluginId, String title})> _sourceOptions(BuildContext context) {
     final pluginStates = context.read<PluginRegistryCubit>().state;
     final states = PluginRegistryService.I.sortPlugins(
@@ -53,6 +48,16 @@ class _SearchBarState extends State<SearchBar> {
     super.initState();
     final initialState = context.read<SearchCubit>().state;
     _aggregateSources = Map<String, bool>.from(initialState.aggregateSources);
+    HistoryWidget.registerPendingKeywordSyncCanceller(
+      _keywordDebouncer.cancel,
+    );
+  }
+
+  @override
+  void dispose() {
+    HistoryWidget.registerPendingKeywordSyncCanceller(null);
+    _keywordDebouncer.cancel();
+    super.dispose();
   }
 
   @override
@@ -73,11 +78,18 @@ class _SearchBarState extends State<SearchBar> {
                 hintText: t.search.searchHint,
                 semanticLabel: t.search.title,
                 onChanged: (keyword) {
+                  // 调度时记基线：开火时 cubit 若已被提交/dialog 回写改过，
+                  // 说明这次输入已过期，直接丢弃，否则旧词盖掉新提交。
+                  final scheduledBase =
+                      context.read<SearchCubit>().state.searchKeyword;
                   _keywordDebouncer.run(() {
                     if (!mounted) {
                       return;
                     }
                     final searchCubit = context.read<SearchCubit>();
+                    if (searchCubit.state.searchKeyword != scheduledBase) {
+                      return;
+                    }
                     if (searchCubit.state.searchKeyword == keyword) {
                       return;
                     }
@@ -86,17 +98,22 @@ class _SearchBarState extends State<SearchBar> {
                     );
                   });
                 },
-                onSubmitted: (keyword) => onSearch(
-                  context,
-                  keyword,
-                  aggregateMode: widget.aggregateMode,
-                  aggregateSources: _aggregateSources,
-                ),
+                onSubmitted: (keyword) {
+                  _keywordDebouncer.cancel();
+                  onSearch(
+                    context,
+                    keyword,
+                    aggregateMode: widget.aggregateMode,
+                    aggregateSources: _aggregateSources,
+                  );
+                },
               ),
             ),
             IconButton(
               icon: const Icon(Icons.tune),
               onPressed: () async {
+                // dialog 回写前丢弃残留输入同步，避免旧防抖把 dialog 回写盖掉。
+                _keywordDebouncer.cancel();
                 final searchCubit = context.read<SearchCubit>();
                 if (widget.aggregateMode) {
                   final options = _sourceOptions(context);

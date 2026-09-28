@@ -83,10 +83,7 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _autoExpandFallbackTimer?.cancel();
-    if (_routeAnimation != null && _routeAnimationListener != null) {
-      _routeAnimation!.removeStatusListener(_routeAnimationListener!);
-    }
+    _cancelPendingExpand();
     _removeOverlay();
     _controller.dispose();
     _internalFocusNode?.dispose();
@@ -106,6 +103,16 @@ class _SearchQueryFieldState extends State<SearchQueryField>
 
   Animation<double>? _routeAnimation;
   AnimationStatusListener? _routeAnimationListener;
+
+  void _cancelPendingExpand() {
+    _autoExpandFallbackTimer?.cancel();
+    _autoExpandFallbackTimer = null;
+    if (_routeAnimation != null && _routeAnimationListener != null) {
+      _routeAnimation!.removeStatusListener(_routeAnimationListener!);
+      _routeAnimation = null;
+      _routeAnimationListener = null;
+    }
+  }
 
   void _prepareAutoExpand() {
     if (!mounted || !widget.autoExpand || widget.onTap != null || _isExpanded) {
@@ -145,6 +152,24 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   }
 
   @override
+  void didPushNext() {
+    super.didPushNext();
+    // 本页被盖住：只收视觉浮层，不向父级回写（提交已写过 cubit，
+    // 回写只会把残留旧词经防抖盖掉新词）。
+    _cancelPendingExpand();
+    _hideOverlay();
+  }
+
+  @override
+  void didPop() {
+    super.didPop();
+    // 本页自己被 pop（如搜索页返回键）：收起 rootOverlay 上的浮层。
+    // 不手动关，输入框会悬在上一页上层（dispose 要等转场结束才跑）。
+    _cancelPendingExpand();
+    _hideOverlay();
+  }
+
+  @override
   void didPopNext() {
     super.didPopNext();
     if (!widget.autoExpand) {
@@ -174,10 +199,10 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     if (_isExpanded) {
       return;
     }
-    if (_targetRenderBox == null) {
-      return;
-    }
-
+    // 点框重开浮层时以外部 query 对齐：展开期间 didUpdateWidget 故意不同步
+    // controller，点历史等方式提交后 controller 会落后；重开时补对齐一次。
+    // 初次 autoExpand 是 no-op。
+    _setControllerText(widget.query);
     _overlayState = Overlay.of(context, rootOverlay: true);
     setState(() {
       _isExpanded = true;
@@ -197,6 +222,19 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     _overlayEntry = null;
     _overlayState = null;
     _isExpanded = false;
+  }
+
+  /// 只收视觉浮层，不向父级回写。路由切换（didPushNext/didPop）用：
+  /// 提交已在 push 前把 cubit 写成新词，回写只会把残留旧词排上防抖、
+  /// 返回后盖掉新词。
+  void _hideOverlay() {
+    if (!_isExpanded) {
+      return;
+    }
+    _removeOverlay();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   RenderBox? get _targetRenderBox {
@@ -259,8 +297,16 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     }
   }
 
+  /// 用户主动关浮层（点 ×/关闭、点外部）：同时取消待触发的 autoExpand，
+  /// 否则 600ms 兜底定时器会在路由动画后把浮层又弹出来。
+  void _dismissOverlay() {
+    _cancelPendingExpand();
+    _closeOverlay();
+  }
+
   void _submit() {
     final query = _controller.text;
+    _cancelPendingExpand();
     if (widget.closeOnSubmit) {
       _removeOverlay();
       if (mounted) {
@@ -346,7 +392,7 @@ class _SearchQueryFieldState extends State<SearchQueryField>
         child: child,
       ),
       child: TapRegion(
-        onTapOutside: (_) => _closeOverlay(),
+        onTapOutside: (_) => _dismissOverlay(),
         child: Material(
           color: colorScheme.surfaceContainerHighest,
           elevation: 3,
@@ -399,7 +445,7 @@ class _SearchQueryFieldState extends State<SearchQueryField>
                       tooltip: hasText ? t.common.clear : t.common.close,
                       visualDensity: VisualDensity.compact,
                       icon: Icon(hasText ? Icons.clear : Icons.close),
-                      onPressed: hasText ? _clear : _closeOverlay,
+                      onPressed: hasText ? _clear : _dismissOverlay,
                     ),
                   ],
                 ),

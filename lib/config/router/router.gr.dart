@@ -1536,7 +1536,7 @@ class WebDavSyncRoute extends _i44.PageRouteInfo<void> {
 /// [_i43.WebViewPage]
 class WebViewRoute extends _i44.PageRouteInfo<WebViewRouteArgs> {
   WebViewRoute({
-    _i49.Key? key,
+    _i45.Key? key,
     required List<String> info,
     List<_i44.PageRouteInfo>? children,
   }) : super(
@@ -1559,7 +1559,7 @@ class WebViewRoute extends _i44.PageRouteInfo<WebViewRouteArgs> {
 class WebViewRouteArgs {
   const WebViewRouteArgs({this.key, required this.info});
 
-  final _i49.Key? key;
+  final _i45.Key? key;
 
   final List<String> info;
 

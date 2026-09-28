@@ -477,10 +477,7 @@ class _MetaPill extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 9,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Text(
               label,
               textAlign: TextAlign.center,

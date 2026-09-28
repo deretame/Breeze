@@ -216,9 +216,15 @@ class _SliderContents extends StatelessWidget {
     final totalSlots = context.select(
       (ReaderCubit cubit) => cubit.state.totalSlots,
     );
-    final readSetting = context.select<GlobalSettingCubit, ReadSettingState>(
-      (cubit) => cubit.state.readSetting,
+    // 只订阅有效 readMode：RTL 翻转只跟它有关，需同时监听全局与本漫覆盖。
+    final globalReadMode = context.select(
+      (GlobalSettingCubit cubit) => cubit.state.readSetting.readMode,
     );
+    final overrideReadMode = context.select(
+      (ComicReadPreferenceCubit cubit) => cubit.state.overrideReadMode,
+    );
+    final effectiveReadMode = overrideReadMode ?? globalReadMode;
+    final isRtl = isReverseRowReadMode(effectiveReadMode);
     final sliderValue = context.select(
       (ReaderCubit cubit) => cubit.state.sliderValue,
     );
@@ -241,11 +247,17 @@ class _SliderContents extends StatelessWidget {
       localMaxValue,
     );
 
-    final insertLeadingBlank =
-        readSetting.doublePageMode && readSetting.doublePageLeadingBlank;
+    final doublePageMode = context.select(
+      (GlobalSettingCubit cubit) => cubit.state.readSetting.doublePageMode,
+    );
+    final doublePageLeadingBlank = context.select(
+      (GlobalSettingCubit cubit) =>
+          cubit.state.readSetting.doublePageLeadingBlank,
+    );
+    final insertLeadingBlank = doublePageMode && doublePageLeadingBlank;
     final sliderDisplayPage = getDisplayPageNumber(
       slotIndex: safeSliderValue.round(),
-      enableDoublePage: readSetting.doublePageMode,
+      enableDoublePage: doublePageMode,
       insertLeadingBlank: insertLeadingBlank,
     );
     final currentGlobalSlot = safeGlobalSliderValue.round();
@@ -265,6 +277,76 @@ class _SliderContents extends StatelessWidget {
       });
     }
 
+    // 从右到左阅读时反转滑杆：起始页落在右侧，拖动方向与翻页方向一致。
+    final slider = Slider(
+      value: safeSliderValue,
+      min: 0,
+      max: localMaxValue,
+      divisions: localMaxValue > 0 ? localMaxValue.toInt() : null,
+      label: sliderLabelText,
+      onChangeStart: (value) {
+        owner._lastHapticStep = value.round();
+      },
+      onChanged: (double newValue) {
+        final clampedLocalValue = newValue.clamp(0.0, localMaxValue);
+        final currentStep = clampedLocalValue.round();
+        final targetGlobalSlot =
+            configuration.mapLocalToGlobalSlot?.call(currentStep) ??
+            currentStep;
+        final targetGlobalValue = targetGlobalSlot.toDouble();
+        if (owner._lastHapticStep != currentStep) {
+          HapticFeedback.selectionClick();
+          owner._lastHapticStep = currentStep;
+        }
+        if (sliderValue != targetGlobalValue) {
+          cubit.updateSliderChanged(targetGlobalValue);
+        }
+        cubit.updateIsComicRolling(true);
+        owner._sliderIsRollingTimer?.cancel();
+        final displayPage = getDisplayPageNumber(
+          slotIndex: currentStep,
+          enableDoublePage: doublePageMode,
+          insertLeadingBlank: insertLeadingBlank,
+        );
+        final toastMessage =
+            configuration.isTransitionSlot?.call(targetGlobalSlot) ?? false
+            ? effectiveTransitionLabel
+            : displayPage.toString();
+        owner._showOverlayToast(toastMessage);
+        owner._sliderIsRollingTimer = Timer(
+          const Duration(milliseconds: 300),
+          () {
+            cubit.updateSliderRolling(true);
+            cubit.updateIsComicRolling(true);
+            owner._comicRollingTimer = Timer(
+              const Duration(milliseconds: 350),
+              () {
+                cubit.updateSliderRolling(false);
+                cubit.updateIsComicRolling(false);
+                owner._overlayEntry?.remove();
+                owner._overlayEntry = null;
+              },
+            );
+            final effectiveReadSetting = context.readEffectiveReadSetting();
+            try {
+              if (effectiveReadSetting.readMode == 0) {
+                owner._jumpColumnWithOffsetThenCorrection(
+                  targetGlobalSlot,
+                  effectiveReadSetting,
+                );
+              } else {
+                configuration.pageController.jumpToPage(targetGlobalSlot);
+              }
+            } catch (e) {
+              logger.e(e);
+            }
+          },
+        );
+      },
+      onChangeEnd: (_) {
+        owner._lastHapticStep = null;
+      },
+    );
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
         trackHeight: 6,
@@ -278,81 +360,9 @@ class _SliderContents extends StatelessWidget {
         overlayColor: context.theme.colorScheme.primary.withValues(alpha: 0.16),
         showValueIndicator: ShowValueIndicator.never,
       ),
-      child: Slider(
-        value: safeSliderValue,
-        min: 0,
-        max: localMaxValue,
-        divisions: localMaxValue > 0 ? localMaxValue.toInt() : null,
-        label: sliderLabelText,
-        onChangeStart: (value) {
-          owner._lastHapticStep = value.round();
-        },
-        onChanged: (double newValue) {
-          final clampedLocalValue = newValue.clamp(0.0, localMaxValue);
-          final currentStep = clampedLocalValue.round();
-          final targetGlobalSlot =
-              configuration.mapLocalToGlobalSlot?.call(currentStep) ??
-              currentStep;
-          final targetGlobalValue = targetGlobalSlot.toDouble();
-          if (owner._lastHapticStep != currentStep) {
-            HapticFeedback.selectionClick();
-            owner._lastHapticStep = currentStep;
-          }
-
-          if (sliderValue != targetGlobalValue) {
-            cubit.updateSliderChanged(targetGlobalValue);
-          }
-
-          cubit.updateIsComicRolling(true);
-          owner._sliderIsRollingTimer?.cancel();
-
-          final displayPage = getDisplayPageNumber(
-            slotIndex: currentStep,
-            enableDoublePage: readSetting.doublePageMode,
-            insertLeadingBlank: insertLeadingBlank,
-          );
-          final toastMessage =
-              configuration.isTransitionSlot?.call(targetGlobalSlot) ?? false
-              ? effectiveTransitionLabel
-              : displayPage.toString();
-          owner._showOverlayToast(toastMessage);
-
-          owner._sliderIsRollingTimer = Timer(
-            const Duration(milliseconds: 300),
-            () {
-              cubit.updateSliderRolling(true);
-              cubit.updateIsComicRolling(true);
-              owner._comicRollingTimer = Timer(
-                const Duration(milliseconds: 350),
-                () {
-                  cubit.updateSliderRolling(false);
-                  cubit.updateIsComicRolling(false);
-                  owner._overlayEntry?.remove();
-                  owner._overlayEntry = null;
-                },
-              );
-
-              final effectiveReadSetting = context.readEffectiveReadSetting();
-
-              try {
-                if (effectiveReadSetting.readMode == 0) {
-                  owner._jumpColumnWithOffsetThenCorrection(
-                    targetGlobalSlot,
-                    effectiveReadSetting,
-                  );
-                } else {
-                  configuration.pageController.jumpToPage(targetGlobalSlot);
-                }
-              } catch (e) {
-                logger.e(e);
-              }
-            },
-          );
-        },
-        onChangeEnd: (_) {
-          owner._lastHapticStep = null;
-        },
-      ),
+      child: isRtl
+          ? Directionality(textDirection: TextDirection.rtl, child: slider)
+          : slider,
     );
   }
 }

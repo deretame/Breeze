@@ -2021,6 +2021,9 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '读取本地插件失败: $error'
 	String readLocalPluginFailed({required Object error}) => '读取本地插件失败: ${error}';
 
+	/// zh-CN: '不支持的本地文件类型，仅支持 .js / .cjs / .br 文件：$fileName'
+	String unsupportedLocalFileType({required Object fileName}) => '不支持的本地文件类型，仅支持 .js / .cjs / .br 文件：${fileName}';
+
 	/// zh-CN: '从网络添加插件'
 	String get addFromNetwork => '从网络添加插件';
 
@@ -4549,6 +4552,7 @@ extension on Translations {
 			'plugin.invalidLink' => ({required Object url}) => '无效链接: ${url}',
 			'plugin.cannotOpenLink' => ({required Object url}) => '无法打开链接: ${url}',
 			'plugin.readLocalPluginFailed' => ({required Object error}) => '读取本地插件失败: ${error}',
+			'plugin.unsupportedLocalFileType' => ({required Object fileName}) => '不支持的本地文件类型，仅支持 .js / .cjs / .br 文件：${fileName}',
 			'plugin.addFromNetwork' => '从网络添加插件',
 			'plugin.urlCannotBeEmpty' => 'URL 不能为空',
 			'plugin.startInstall' => '开始安装',
@@ -4948,9 +4952,9 @@ extension on Translations {
 			'searchResult.jumpToPage' => '跳转页面',
 			'searchResult.jump' => '跳转',
 			'searchResult.retry' => '点击重试',
-			'comicList.defaultTitle' => '漫画列表',
 			_ => null,
 		} ?? switch (path) {
+			'comicList.defaultTitle' => '漫画列表',
 			'comicList.missingSource' => '缺少插件来源，无法加载列表',
 			'comicList.reload' => '重新加载',
 			'comicList.loadFailedRetry' => '加载失败，请重试。',

@@ -110,7 +110,11 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       );
       _reportInstallSuccess(message);
     } catch (e) {
-      _reportInstallFailure(t.plugin.readLocalPluginFailed(error: e));
+      _reportInstallFailure(
+        t.plugin.readLocalPluginFailed(
+          error: normalizePluginInstallErrorMessage(e),
+        ),
+      );
     }
   }
 

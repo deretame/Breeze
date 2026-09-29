@@ -768,6 +768,7 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String invalidLink({required Object url}) => 'Invalid link: ${url}';
 	@override String cannotOpenLink({required Object url}) => 'Cannot open link: ${url}';
 	@override String readLocalPluginFailed({required Object error}) => 'Failed to read local plugin: ${error}';
+	@override String unsupportedLocalFileType({required Object fileName}) => 'Unsupported local file type, only .js / .cjs / .br are supported: ${fileName}';
 	@override String get addFromNetwork => 'Add plugin from network';
 	@override String get urlCannotBeEmpty => 'URL cannot be empty';
 	@override String get startInstall => 'Start install';
@@ -2190,6 +2191,7 @@ extension on TranslationsEnUs {
 			'plugin.invalidLink' => ({required Object url}) => 'Invalid link: ${url}',
 			'plugin.cannotOpenLink' => ({required Object url}) => 'Cannot open link: ${url}',
 			'plugin.readLocalPluginFailed' => ({required Object error}) => 'Failed to read local plugin: ${error}',
+			'plugin.unsupportedLocalFileType' => ({required Object fileName}) => 'Unsupported local file type, only .js / .cjs / .br are supported: ${fileName}',
 			'plugin.addFromNetwork' => 'Add plugin from network',
 			'plugin.urlCannotBeEmpty' => 'URL cannot be empty',
 			'plugin.startInstall' => 'Start install',
@@ -2590,9 +2592,9 @@ extension on TranslationsEnUs {
 			'searchResult.jump' => 'Jump',
 			'searchResult.retry' => 'Tap to retry',
 			'comicList.defaultTitle' => 'Comic List',
-			'comicList.missingSource' => 'Missing plugin source, cannot load list',
 			_ => null,
 		} ?? switch (path) {
+			'comicList.missingSource' => 'Missing plugin source, cannot load list',
 			'comicList.reload' => 'Reload',
 			'comicList.loadFailedRetry' => 'Load failed, please retry.',
 			'comicList.nothingHere' => 'Nothing here',

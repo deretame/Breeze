@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -52,15 +55,35 @@ class PluginInstallService {
   }
 
   /// Installs a plugin from local bytes (e.g. picked file).
+  ///
+  /// The file picker intentionally applies no suffix filter (see
+  /// `pickPluginScriptFile`), so unsupported files (e.g. `.txt`, `.pdf`)
+  /// must fail here with a friendly message instead of a cryptic QJS parse
+  /// error. Files with an unknown suffix also go through a content fallback:
+  /// Android's file_selector copies `content://` URIs to a temp path whose
+  /// extension is derived from the (often generic) MIME type and may lose
+  /// the original `.br` suffix, so brotli is retried by content and plain
+  /// text carrying `getInfo` is still accepted.
   Future<String> installFromLocalBytes(
     List<int> bytes, {
     required String fileName,
     String? expectedUuid,
     bool allowReplaceExisting = false,
   }) async {
+    final lowerName = fileName.toLowerCase();
+    if (!lowerName.endsWith('.js') &&
+        !lowerName.endsWith('.cjs') &&
+        !lowerName.endsWith('.br')) {
+      return _installFromUnknownLocalBytes(
+        bytes,
+        fileName: fileName,
+        expectedUuid: expectedUuid,
+        allowReplaceExisting: allowReplaceExisting,
+      );
+    }
     final script = await decodePluginScriptFromBytes(
       bytes: bytes,
-      shouldUseBrotli: fileName.toLowerCase().endsWith('.br'),
+      shouldUseBrotli: lowerName.endsWith('.br'),
     );
     return savePluginByScript(
       script,
@@ -183,4 +206,42 @@ class PluginInstallService {
         .build()
         .findFirst();
   }
+}
+
+/// Installs local [bytes] whose file name carries no supported suffix.
+///
+/// Tries brotli decode first (covers `.br` files renamed by Android's
+/// `content://` copy), then falls back to plain UTF-8 text carrying
+/// `getInfo`. Anything else reports [unsupportedLocalFileType] instead of
+/// leaking a QJS parse error.
+Future<String> _installFromUnknownLocalBytes(
+  List<int> bytes, {
+  required String fileName,
+  String? expectedUuid,
+  bool allowReplaceExisting = false,
+}) async {
+  String? script;
+  try {
+    script = await decodePluginScriptFromBytes(
+      bytes: bytes,
+      shouldUseBrotli: true,
+    );
+  } catch (_) {
+    script = null;
+  }
+  script ??= utf8.decode(bytes, allowMalformed: true);
+  if (script.trim().isEmpty || !_looksLikePluginScript(script)) {
+    throw StateError(t.plugin.unsupportedLocalFileType(fileName: fileName));
+  }
+  return PluginInstallService.I.savePluginByScript(
+    script,
+    sourceLabel: '本地文件: $fileName',
+    allowReplaceExisting: allowReplaceExisting,
+    expectedUuid: expectedUuid,
+  );
+}
+
+/// True when [script] smells like a plugin bundle: declares `getInfo`.
+bool _looksLikePluginScript(String script) {
+  return script.contains('getInfo');
 }

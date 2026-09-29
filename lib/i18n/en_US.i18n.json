@@ -638,6 +638,7 @@
     "invalidLink": "Invalid link: $url",
     "cannotOpenLink": "Cannot open link: $url",
     "readLocalPluginFailed": "Failed to read local plugin: $error",
+    "unsupportedLocalFileType": "Unsupported local file type, only .js / .cjs / .br are supported: $fileName",
     "addFromNetwork": "Add plugin from network",
     "urlCannotBeEmpty": "URL cannot be empty",
     "startInstall": "Start install",

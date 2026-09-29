@@ -639,6 +639,7 @@
     "invalidLink": "无效链接: $url",
     "cannotOpenLink": "无法打开链接: $url",
     "readLocalPluginFailed": "读取本地插件失败: $error",
+    "unsupportedLocalFileType": "不支持的本地文件类型，仅支持 .js / .cjs / .br 文件：$fileName",
     "addFromNetwork": "从网络添加插件",
     "urlCannotBeEmpty": "URL 不能为空",
     "startInstall": "开始安装",

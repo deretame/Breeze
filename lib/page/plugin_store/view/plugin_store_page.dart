@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:file_selector/file_selector.dart';
+import 'package:zephyr/plugin/utils/plugin_local_file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -260,15 +260,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
 
   Future<void> _installFromLocal() async {
     try {
-      final file = await openFile(
-        acceptedTypeGroups: const [
-          XTypeGroup(
-            label: 'plugin script',
-            extensions: ['js', 'cjs', 'br'],
-            uniformTypeIdentifiers: ['public.javascript'],
-          ),
-        ],
-      );
+      final file = await pickPluginScriptFile();
       if (file == null) {
         return;
       }

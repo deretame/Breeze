@@ -36,8 +36,30 @@ class PluginRegistryService {
 
   PluginRuntimeState? getByUuid(String uuid) => _states[uuid];
 
-  Map<String, dynamic>? getCachedPluginInfo(String uuid) =>
-      _pluginInfoCache[uuid];
+  /// 内存缓存未命中时，从 DB 持久化的 `getInfoJson` 兜底水合。
+  ///
+  /// `updateDebugConfig`/`setEnabled`/`upsert`/同步等路径都会清内存缓存，
+  /// 但清完后并不一定触发 `fetchPluginInfo`（调试走 once-call 直读
+  /// debug bundle，不经过缓存），导致名字显示回退成 uuid。
+  /// 这里用上次持久化的 getInfo 补上，各调用方（详情页/书架/搜索）
+  /// 无需改动。
+  Map<String, dynamic>? getCachedPluginInfo(String uuid) {
+    final cached = _pluginInfoCache[uuid];
+    if (cached != null) {
+      return cached;
+    }
+    final persisted = readPersistedGetInfoJson(uuid);
+    if (persisted.isEmpty) {
+      return null;
+    }
+    try {
+      final decoded = requireJsonMap(jsonDecode(persisted));
+      _pluginInfoCache[uuid] = decoded;
+      return decoded;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> init() async {
     _objectbox = objectbox;
@@ -460,9 +482,18 @@ class PluginRegistryService {
     found.updatedAt = DateTime.now().toUtc();
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
-    _pluginInfoCache.remove(uuid);
     _pluginInitDone.remove(uuid);
     _emit();
+    // 用 debug bundle / DB bundle 后台刷新 getInfo（内存 + getInfoJson），
+    // 让详情页/书架/搜索的插件名跟上调试中的脚本；不阻塞返回，
+    // 失败时保留旧名字（getCachedPluginInfo 会用 persisted getInfo 兜底）。
+    unawaited(() async {
+      try {
+        await fetchPluginInfo(uuid: uuid, runtimeName: uuid);
+      } catch (e, st) {
+        logger.w('调试配置更新后刷新 getInfo 失败: $uuid', error: e, stackTrace: st);
+      }
+    }());
   }
 
   Future<void> deletePlugin(String uuid) async {

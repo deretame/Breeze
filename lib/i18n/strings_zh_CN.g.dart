@@ -2135,6 +2135,36 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '网络下载插件失败: $error'
 	String networkDownloadFailed({required Object error}) => '网络下载插件失败: ${error}';
 
+	/// zh-CN: '远程插件文件不存在（404），可能已被删除或版本已更新，请稍后重试或检查更新地址'
+	String get remoteAssetNotFound => '远程插件文件不存在（404），可能已被删除或版本已更新，请稍后重试或检查更新地址';
+
+	/// zh-CN: 'GitHub 访问受限（疑似 IP 被限流），请稍后重试或切换网络；若插件确实不存在也会显示 404'
+	String get githubRateLimited => 'GitHub 访问受限（疑似 IP 被限流），请稍后重试或切换网络；若插件确实不存在也会显示 404';
+
+	/// zh-CN: '远端返回了网页而非插件文件，通常是远程文件不存在或链接已失效，请检查插件仓库的更新地址'
+	String get remoteReturnedWebPage => '远端返回了网页而非插件文件，通常是远程文件不存在或链接已失效，请检查插件仓库的更新地址';
+
+	/// zh-CN: '远端返回内容为空，请稍后重试或检查更新地址'
+	String get remoteEmptyResponse => '远端返回内容为空，请稍后重试或检查更新地址';
+
+	/// zh-CN: '远端拒绝访问（HTTP $status），请检查网络或稍后重试'
+	String remoteAccessDenied({required Object status}) => '远端拒绝访问（HTTP ${status}），请检查网络或稍后重试';
+
+	/// zh-CN: '远端服务器异常（HTTP $status），请稍后重试'
+	String remoteServerError({required Object status}) => '远端服务器异常（HTTP ${status}），请稍后重试';
+
+	/// zh-CN: '远端请求失败（HTTP $status），请稍后重试'
+	String remoteHttpError({required Object status}) => '远端请求失败（HTTP ${status}），请稍后重试';
+
+	/// zh-CN: '下载到的文件不是有效的插件脚本（疑似网页或错误页），请检查远程文件是否存在后再试'
+	String get downloadedScriptInvalid => '下载到的文件不是有效的插件脚本（疑似网页或错误页），请检查远程文件是否存在后再试';
+
+	/// zh-CN: '下载到的插件文件已损坏或解压失败，请稍后重试'
+	String get downloadedScriptCorrupted => '下载到的插件文件已损坏或解压失败，请稍后重试';
+
+	/// zh-CN: '网络不稳定，下载失败，请检查网络后重试'
+	String get networkUnstableRetry => '网络不稳定，下载失败，请检查网络后重试';
+
 	/// zh-CN: '云端 $version'
 	String cloudVersion({required Object version}) => '云端 ${version}';
 
@@ -4554,6 +4584,16 @@ extension on Translations {
 			'plugin.installingFromNetwork' => '正在下载网络插件...',
 			'plugin.cloudDownloadFailed' => ({required Object error}) => '云端下载失败: ${error}',
 			'plugin.networkDownloadFailed' => ({required Object error}) => '网络下载插件失败: ${error}',
+			'plugin.remoteAssetNotFound' => '远程插件文件不存在（404），可能已被删除或版本已更新，请稍后重试或检查更新地址',
+			'plugin.githubRateLimited' => 'GitHub 访问受限（疑似 IP 被限流），请稍后重试或切换网络；若插件确实不存在也会显示 404',
+			'plugin.remoteReturnedWebPage' => '远端返回了网页而非插件文件，通常是远程文件不存在或链接已失效，请检查插件仓库的更新地址',
+			'plugin.remoteEmptyResponse' => '远端返回内容为空，请稍后重试或检查更新地址',
+			'plugin.remoteAccessDenied' => ({required Object status}) => '远端拒绝访问（HTTP ${status}），请检查网络或稍后重试',
+			'plugin.remoteServerError' => ({required Object status}) => '远端服务器异常（HTTP ${status}），请稍后重试',
+			'plugin.remoteHttpError' => ({required Object status}) => '远端请求失败（HTTP ${status}），请稍后重试',
+			'plugin.downloadedScriptInvalid' => '下载到的文件不是有效的插件脚本（疑似网页或错误页），请检查远程文件是否存在后再试',
+			'plugin.downloadedScriptCorrupted' => '下载到的插件文件已损坏或解压失败，请稍后重试',
+			'plugin.networkUnstableRetry' => '网络不稳定，下载失败，请检查网络后重试',
 			'plugin.cloudVersion' => ({required Object version}) => '云端 ${version}',
 			'plugin.localVersion' => ({required Object version}) => '本地 ${version}',
 			'plugin.loginTitle' => ({required Object name}) => '${name} 登录',
@@ -4906,6 +4946,8 @@ extension on Translations {
 			'searchResult.retry' => '点击重试',
 			'comicList.defaultTitle' => '漫画列表',
 			'comicList.missingSource' => '缺少插件来源，无法加载列表',
+			_ => null,
+		} ?? switch (path) {
 			'comicList.reload' => '重新加载',
 			'comicList.loadFailedRetry' => '加载失败，请重试。',
 			'comicList.nothingHere' => '啥都没有',
@@ -4916,8 +4958,6 @@ extension on Translations {
 			'comicList.missingFnPath' => '列表请求缺少 fnPath',
 			'comicEntry.updatedAt' => ({required Object time}) => '更新: ${time}',
 			'comicEntry.finished' => '完结',
-			_ => null,
-		} ?? switch (path) {
 			'comicEntry.ongoing' => '连载中',
 			'comicEntry.likes' => ({required Object count}) => '喜欢 ${count}',
 			'comicEntry.views' => ({required Object count}) => '浏览 ${count}',

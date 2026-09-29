@@ -86,7 +86,11 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       final message = await PluginInstallService.I.installFromCloud(item);
       _reportInstallSuccess(message);
     } catch (e) {
-      _reportInstallFailure(t.plugin.cloudDownloadFailed(error: e));
+      _reportInstallFailure(
+        t.plugin.cloudDownloadFailed(
+          error: normalizePluginInstallErrorMessage(e),
+        ),
+      );
     }
   }
 
@@ -122,7 +126,11 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       );
       _reportInstallSuccess(message);
     } catch (e) {
-      _reportInstallFailure(t.plugin.networkDownloadFailed(error: e));
+      _reportInstallFailure(
+        t.plugin.networkDownloadFailed(
+          error: normalizePluginInstallErrorMessage(e),
+        ),
+      );
     }
   }
 

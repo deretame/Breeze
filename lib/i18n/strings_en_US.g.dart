@@ -806,6 +806,16 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get installingFromNetwork => 'Downloading network plugin...';
 	@override String cloudDownloadFailed({required Object error}) => 'Cloud download failed: ${error}';
 	@override String networkDownloadFailed({required Object error}) => 'Network plugin download failed: ${error}';
+	@override String get remoteAssetNotFound => 'Remote plugin file not found (404). It may have been removed or the version updated. Please check the update URL or retry later';
+	@override String get githubRateLimited => 'GitHub access is rate limited (likely IP-based). Please retry later or switch networks; a truly missing plugin still reports 404';
+	@override String get remoteReturnedWebPage => 'Remote returned a web page instead of a plugin file. The remote file may be missing or the link expired. Please check the plugin update URL';
+	@override String get remoteEmptyResponse => 'Remote returned empty content. Please retry later or check the update URL';
+	@override String remoteAccessDenied({required Object status}) => 'Remote access denied (HTTP ${status}). Please check your network or retry later';
+	@override String remoteServerError({required Object status}) => 'Remote server error (HTTP ${status}). Please retry later';
+	@override String remoteHttpError({required Object status}) => 'Remote request failed (HTTP ${status}). Please retry later';
+	@override String get downloadedScriptInvalid => 'Downloaded file is not a valid plugin script (looks like a web or error page). Please verify the remote file exists and retry';
+	@override String get downloadedScriptCorrupted => 'Downloaded plugin file is corrupted or failed to decompress. Please retry later';
+	@override String get networkUnstableRetry => 'Unstable network, download failed. Please check your connection and retry';
 	@override String cloudVersion({required Object version}) => 'Cloud ${version}';
 	@override String localVersion({required Object version}) => 'Local ${version}';
 	@override String loginTitle({required Object name}) => '${name} Login';
@@ -2217,6 +2227,16 @@ extension on TranslationsEnUs {
 			'plugin.installingFromNetwork' => 'Downloading network plugin...',
 			'plugin.cloudDownloadFailed' => ({required Object error}) => 'Cloud download failed: ${error}',
 			'plugin.networkDownloadFailed' => ({required Object error}) => 'Network plugin download failed: ${error}',
+			'plugin.remoteAssetNotFound' => 'Remote plugin file not found (404). It may have been removed or the version updated. Please check the update URL or retry later',
+			'plugin.githubRateLimited' => 'GitHub access is rate limited (likely IP-based). Please retry later or switch networks; a truly missing plugin still reports 404',
+			'plugin.remoteReturnedWebPage' => 'Remote returned a web page instead of a plugin file. The remote file may be missing or the link expired. Please check the plugin update URL',
+			'plugin.remoteEmptyResponse' => 'Remote returned empty content. Please retry later or check the update URL',
+			'plugin.remoteAccessDenied' => ({required Object status}) => 'Remote access denied (HTTP ${status}). Please check your network or retry later',
+			'plugin.remoteServerError' => ({required Object status}) => 'Remote server error (HTTP ${status}). Please retry later',
+			'plugin.remoteHttpError' => ({required Object status}) => 'Remote request failed (HTTP ${status}). Please retry later',
+			'plugin.downloadedScriptInvalid' => 'Downloaded file is not a valid plugin script (looks like a web or error page). Please verify the remote file exists and retry',
+			'plugin.downloadedScriptCorrupted' => 'Downloaded plugin file is corrupted or failed to decompress. Please retry later',
+			'plugin.networkUnstableRetry' => 'Unstable network, download failed. Please check your connection and retry',
 			'plugin.cloudVersion' => ({required Object version}) => 'Cloud ${version}',
 			'plugin.localVersion' => ({required Object version}) => 'Local ${version}',
 			'plugin.loginTitle' => ({required Object name}) => '${name} Login',
@@ -2570,6 +2590,8 @@ extension on TranslationsEnUs {
 			'comicList.defaultTitle' => 'Comic List',
 			'comicList.missingSource' => 'Missing plugin source, cannot load list',
 			'comicList.reload' => 'Reload',
+			_ => null,
+		} ?? switch (path) {
 			'comicList.loadFailedRetry' => 'Load failed, please retry.',
 			'comicList.nothingHere' => 'Nothing here',
 			'comicList.filter' => 'Filter',
@@ -2580,8 +2602,6 @@ extension on TranslationsEnUs {
 			'comicEntry.updatedAt' => ({required Object time}) => 'Updated: ${time}',
 			'comicEntry.finished' => 'Finished',
 			'comicEntry.ongoing' => 'Ongoing',
-			_ => null,
-		} ?? switch (path) {
 			'comicEntry.likes' => ({required Object count}) => 'Likes ${count}',
 			'comicEntry.views' => ({required Object count}) => 'Views ${count}',
 			'comicEntry.deleteFavorite' => 'Delete Favorite',

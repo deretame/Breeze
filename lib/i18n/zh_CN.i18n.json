@@ -666,6 +666,7 @@
     "description": "描述",
     "repo": "仓库",
     "homepage": "主页",
+    "githubRepo": "GitHub 仓库",
     "download": "下载",
     "downloadUpdate": "下载更新",
     "noCloudPlugins": "暂无云端组件",

@@ -2102,6 +2102,9 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '主页'
 	String get homepage => '主页';
 
+	/// zh-CN: 'GitHub 仓库'
+	String get githubRepo => 'GitHub 仓库';
+
 	/// zh-CN: '下载'
 	String get download => '下载';
 
@@ -4573,6 +4576,7 @@ extension on Translations {
 			'plugin.description' => '描述',
 			'plugin.repo' => '仓库',
 			'plugin.homepage' => '主页',
+			'plugin.githubRepo' => 'GitHub 仓库',
 			'plugin.download' => '下载',
 			'plugin.downloadUpdate' => '下载更新',
 			'plugin.noCloudPlugins' => '暂无云端组件',
@@ -4945,9 +4949,9 @@ extension on Translations {
 			'searchResult.jump' => '跳转',
 			'searchResult.retry' => '点击重试',
 			'comicList.defaultTitle' => '漫画列表',
-			'comicList.missingSource' => '缺少插件来源，无法加载列表',
 			_ => null,
 		} ?? switch (path) {
+			'comicList.missingSource' => '缺少插件来源，无法加载列表',
 			'comicList.reload' => '重新加载',
 			'comicList.loadFailedRetry' => '加载失败，请重试。',
 			'comicList.nothingHere' => '啥都没有',

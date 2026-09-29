@@ -795,6 +795,7 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get description => 'Description';
 	@override String get repo => 'Repository';
 	@override String get homepage => 'Homepage';
+	@override String get githubRepo => 'GitHub Repo';
 	@override String get download => 'Download';
 	@override String get downloadUpdate => 'Download update';
 	@override String get noCloudPlugins => 'No cloud components';
@@ -2216,6 +2217,7 @@ extension on TranslationsEnUs {
 			'plugin.description' => 'Description',
 			'plugin.repo' => 'Repository',
 			'plugin.homepage' => 'Homepage',
+			'plugin.githubRepo' => 'GitHub Repo',
 			'plugin.download' => 'Download',
 			'plugin.downloadUpdate' => 'Download update',
 			'plugin.noCloudPlugins' => 'No cloud components',
@@ -2589,9 +2591,9 @@ extension on TranslationsEnUs {
 			'searchResult.retry' => 'Tap to retry',
 			'comicList.defaultTitle' => 'Comic List',
 			'comicList.missingSource' => 'Missing plugin source, cannot load list',
-			'comicList.reload' => 'Reload',
 			_ => null,
 		} ?? switch (path) {
+			'comicList.reload' => 'Reload',
 			'comicList.loadFailedRetry' => 'Load failed, please retry.',
 			'comicList.nothingHere' => 'Nothing here',
 			'comicList.filter' => 'Filter',

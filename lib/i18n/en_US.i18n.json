@@ -665,6 +665,7 @@
     "description": "Description",
     "repo": "Repository",
     "homepage": "Homepage",
+    "githubRepo": "GitHub Repo",
     "download": "Download",
     "downloadUpdate": "Download update",
     "noCloudPlugins": "No cloud components",

@@ -105,29 +105,91 @@ class CloudPluginCard extends StatelessWidget {
                 _CloudMetaTag(label: t.plugin.author, value: creatorText),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (manifest.home.trim().isNotEmpty) ...[
-                OutlinedButton.icon(
-                  onPressed: installing
+              if (manifest.home.trim().isNotEmpty)
+                _CloudTextAction(
+                  label: t.plugin.homepage,
+                  onTap: installing
                       ? null
                       : () => onOpenHome(manifest.home.trim()),
-                  icon: const Icon(Icons.open_in_new, size: 16),
-                  label: Text(t.plugin.homepage),
                 ),
-                const SizedBox(width: 8),
-              ],
-              OutlinedButton.icon(
-                onPressed: installing ? null : onInstall,
-                icon: const Icon(Icons.download_outlined, size: 16),
-                label: Text(
-                  isInstalled ? t.plugin.downloadUpdate : t.plugin.download,
+              if (item.githubRepositoryUrl.isNotEmpty)
+                _CloudTextAction(
+                  label: t.plugin.githubRepo,
+                  onTap: installing
+                      ? null
+                      : () => onOpenHome(item.githubRepositoryUrl),
                 ),
+              _CloudTextAction(
+                label: isInstalled
+                    ? t.plugin.downloadUpdate
+                    : t.plugin.download,
+                onTap: installing ? null : onInstall,
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 无图标的纯文本小按钮：保留边框、无阴影，对齐 `_ClickableChip` 手感。
+/// `onTap` 为空时置灰且不响应，与禁用态按钮语义一致。
+class _CloudTextAction extends StatefulWidget {
+  const _CloudTextAction({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  State<_CloudTextAction> createState() => _CloudTextActionState();
+}
+
+class _CloudTextActionState extends State<_CloudTextAction> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final primary = colorScheme.primary;
+    final enabled = widget.onTap != null;
+    final foreground = enabled
+        ? primary
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+    final activeHover = enabled && _hovering;
+
+    return MouseRegion(
+      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: activeHover
+                ? primary.withValues(alpha: 0.08)
+                : colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: enabled
+                  ? primary.withValues(alpha: activeHover ? 0.9 : 0.55)
+                  : colorScheme.outlineVariant,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Text(
+            widget.label,
+            style: TextStyle(fontSize: 12, color: foreground),
+          ),
+        ),
       ),
     );
   }

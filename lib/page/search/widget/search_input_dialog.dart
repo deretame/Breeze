@@ -489,7 +489,10 @@ class _SearchQueryFieldState extends State<SearchQueryField>
         heightFactor: value,
         child: child,
       ),
-      child: TapRegion(
+      child: TextFieldTapRegion(
+        // TextField 内部的选词菜单、复制粘贴手柄等也在 EditableText 组里；
+        // 同组点按不算 outside，不触发 _dismissOverlay，菜单才点得开。
+        // 真正点到浮层外部仍走 onTapOutside 收起。
         onTapOutside: (_) => _dismissOverlay(),
         child: Material(
           color: colorScheme.surfaceContainerHighest,

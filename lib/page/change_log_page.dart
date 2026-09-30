@@ -218,29 +218,36 @@ class _ChangelogPageState extends State<ChangelogPage> {
       );
     }
 
+    // 桌面端窄栏居中：与追更/more等页一致，Align + 768 上限，移动端无影响。
     return RefreshIndicator(
       onRefresh: () => _fetchReleases(refresh: true),
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: _releases.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _releases.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          final release = _releases[index];
-          return Container(
-            key: ValueKey(release.id), // 添加 Key 提高性能
-            child: _ReleaseCard(release: release, onLinkTap: _launchUrl)
-                .animate()
-                .fade(duration: 400.ms)
-                .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
-          );
-        },
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 768),
+          child: ListView.builder(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            itemCount: _releases.length + (_hasMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == _releases.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final release = _releases[index];
+              return Container(
+                key: ValueKey(release.id), // 添加 Key 提高性能
+                child: _ReleaseCard(release: release, onLinkTap: _launchUrl)
+                    .animate()
+                    .fade(duration: 400.ms)
+                    .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

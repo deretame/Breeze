@@ -3512,6 +3512,45 @@ class Translations$comicFollow$zh_CN {
 	/// zh-CN: '重试'
 	String get retry => '重试';
 
+	/// zh-CN: '已看 $read / 共 $total 话'
+	String readProgress({required Object read, required Object total}) => '已看 ${read} / 共 ${total} 话';
+
+	/// zh-CN: '共 $total 话'
+	String readProgressUnknown({required Object total}) => '共 ${total} 话';
+
+	/// zh-CN: '刚刚更新'
+	String get updatedJustNow => '刚刚更新';
+
+	/// zh-CN: '$minutes 分钟前更新'
+	String updatedMinutesAgo({required Object minutes}) => '${minutes} 分钟前更新';
+
+	/// zh-CN: '$hours 小时前更新'
+	String updatedHoursAgo({required Object hours}) => '${hours} 小时前更新';
+
+	/// zh-CN: '$days 天前更新'
+	String updatedDaysAgo({required Object days}) => '${days} 天前更新';
+
+	/// zh-CN: '$minutes 分钟前读过'
+	String lastReadMinutesAgo({required Object minutes}) => '${minutes} 分钟前读过';
+
+	/// zh-CN: '$hours 小时前读过'
+	String lastReadHoursAgo({required Object hours}) => '${hours} 小时前读过';
+
+	/// zh-CN: '$days 天前读过'
+	String lastReadDaysAgo({required Object days}) => '${days} 天前读过';
+
+	/// zh-CN: '检测失败，点击重试'
+	String get checkFailedTapRetry => '检测失败，点击重试';
+
+	/// zh-CN: '$count 话未读'
+	String unreadCountBadge({required Object count}) => '${count} 话未读';
+
+	/// zh-CN: '全部标为已读'
+	String get markAllReadHint => '全部标为已读';
+
+	/// zh-CN: '已全部标为已读'
+	String get markAllReadDone => '已全部标为已读';
+
 	/// zh-CN: '漫画更新提醒'
 	String get updateChannelName => '漫画更新提醒';
 
@@ -5003,6 +5042,19 @@ extension on Translations {
 			'comicFollow.newUnreadChaptersShort' => ({required Object diff}) => '新增 ${diff} 话未阅读',
 			'comicFollow.update' => '更新',
 			'comicFollow.retry' => '重试',
+			'comicFollow.readProgress' => ({required Object read, required Object total}) => '已看 ${read} / 共 ${total} 话',
+			'comicFollow.readProgressUnknown' => ({required Object total}) => '共 ${total} 话',
+			'comicFollow.updatedJustNow' => '刚刚更新',
+			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前更新',
+			'comicFollow.updatedHoursAgo' => ({required Object hours}) => '${hours} 小时前更新',
+			'comicFollow.updatedDaysAgo' => ({required Object days}) => '${days} 天前更新',
+			'comicFollow.lastReadMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前读过',
+			'comicFollow.lastReadHoursAgo' => ({required Object hours}) => '${hours} 小时前读过',
+			'comicFollow.lastReadDaysAgo' => ({required Object days}) => '${days} 天前读过',
+			'comicFollow.checkFailedTapRetry' => '检测失败，点击重试',
+			'comicFollow.unreadCountBadge' => ({required Object count}) => '${count} 话未读',
+			'comicFollow.markAllReadHint' => '全部标为已读',
+			'comicFollow.markAllReadDone' => '已全部标为已读',
 			'comicFollow.updateChannelName' => '漫画更新提醒',
 			'comicFollow.updateChannelDesc' => '追更漫画检测到新章节时推送',
 			'comicFollow.updateTitle' => '追更更新',

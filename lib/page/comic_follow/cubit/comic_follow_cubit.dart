@@ -305,7 +305,25 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
     emit(state.copyWith(items: newItems));
   }
 
-  /// 检测全部追更漫画
+  /// 全部标为已读：把每条的 lastChapterCount 对齐到 detectedChapterCount，
+  /// 清掉未读徽标。不碰 detected 数据，只是确认“我看到了当前最新”。
+  Future<void> markAllAsRead() async {
+    final now = DateTime.now().toUtc();
+    final newItems = state.items.map((item) {
+      if (item.deleted || !state.hasUnreadUpdate(item)) {
+        return item;
+      }
+      final marked = item.copyWith(
+        lastChapterCount: item.detectedChapterCount,
+        hasUpdate: false,
+        updatedAt: now,
+      );
+      ComicFollowService.instance.putFollow(marked);
+      return marked;
+    }).toList();
+    emit(state.copyWith(items: newItems));
+  }
+
   Future<int> checkUpdates() async {
     if (state.isCheckingUpdates) {
       return 0;

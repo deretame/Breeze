@@ -1361,6 +1361,19 @@ class _Translations$comicFollow$en_US extends Translations$comicFollow$zh_CN {
 	@override String newUnreadChaptersShort({required Object diff}) => '${diff} unread';
 	@override String get update => 'Update';
 	@override String get retry => 'Retry';
+	@override String readProgress({required Object read, required Object total}) => '${read} of ${total} read';
+	@override String readProgressUnknown({required Object total}) => '${total} total';
+	@override String get updatedJustNow => 'Just updated';
+	@override String updatedMinutesAgo({required Object minutes}) => 'Updated ${minutes} min ago';
+	@override String updatedHoursAgo({required Object hours}) => 'Updated ${hours} h ago';
+	@override String updatedDaysAgo({required Object days}) => 'Updated ${days} d ago';
+	@override String lastReadMinutesAgo({required Object minutes}) => 'Read ${minutes} min ago';
+	@override String lastReadHoursAgo({required Object hours}) => 'Read ${hours} h ago';
+	@override String lastReadDaysAgo({required Object days}) => 'Read ${days} d ago';
+	@override String get checkFailedTapRetry => 'Check failed, tap to retry';
+	@override String unreadCountBadge({required Object count}) => '${count} unread';
+	@override String get markAllReadHint => 'Mark all as read';
+	@override String get markAllReadDone => 'All marked as read';
 	@override String get updateChannelName => 'Comic update reminder';
 	@override String get updateChannelDesc => 'Pushed when followed comics have new chapters';
 	@override String get updateTitle => 'Follow update';
@@ -2642,6 +2655,19 @@ extension on TranslationsEnUs {
 			'comicFollow.newUnreadChaptersShort' => ({required Object diff}) => '${diff} unread',
 			'comicFollow.update' => 'Update',
 			'comicFollow.retry' => 'Retry',
+			'comicFollow.readProgress' => ({required Object read, required Object total}) => '${read} of ${total} read',
+			'comicFollow.readProgressUnknown' => ({required Object total}) => '${total} total',
+			'comicFollow.updatedJustNow' => 'Just updated',
+			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => 'Updated ${minutes} min ago',
+			'comicFollow.updatedHoursAgo' => ({required Object hours}) => 'Updated ${hours} h ago',
+			'comicFollow.updatedDaysAgo' => ({required Object days}) => 'Updated ${days} d ago',
+			'comicFollow.lastReadMinutesAgo' => ({required Object minutes}) => 'Read ${minutes} min ago',
+			'comicFollow.lastReadHoursAgo' => ({required Object hours}) => 'Read ${hours} h ago',
+			'comicFollow.lastReadDaysAgo' => ({required Object days}) => 'Read ${days} d ago',
+			'comicFollow.checkFailedTapRetry' => 'Check failed, tap to retry',
+			'comicFollow.unreadCountBadge' => ({required Object count}) => '${count} unread',
+			'comicFollow.markAllReadHint' => 'Mark all as read',
+			'comicFollow.markAllReadDone' => 'All marked as read',
 			'comicFollow.updateChannelName' => 'Comic update reminder',
 			'comicFollow.updateChannelDesc' => 'Pushed when followed comics have new chapters',
 			'comicFollow.updateTitle' => 'Follow update',

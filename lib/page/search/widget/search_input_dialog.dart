@@ -55,6 +55,17 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   OverlayState? _overlayState;
   Timer? _autoExpandFallbackTimer;
   bool _isExpanded = false;
+  /// 最近一次读到的所在 tab 是否活跃。切 tab 时本页不卸载、
+  /// 收不到路由回调：桌面端 IndexedStack 只翻转 Visibility
+  /// （见 SDK IndexedStack 的 _VisibilityScope），移动端 tab 则被
+  /// Offstage 藏起并关掉 TickerMode。任一变假都算切走；
+  /// null 表示还没读到过。
+  bool? _lastTabActive;
+  /// 新路由盖住本页时焦点被抢走（如搜索页输入框 autofocus），
+  /// 失焦即收起浮层，否则返回后旧浮层悬在新页上层。
+  /// 书架回车（closeOnSubmit=false）焦点不动，不受影响。
+  FocusNode? _listenedFocusNode;
+  VoidCallback? _focusLossListener;
 
   @override
   void initState() {
@@ -80,6 +91,16 @@ class _SearchQueryFieldState extends State<SearchQueryField>
         rethrow;
       }
     }
+    // 切 tab 时本页不卸载、收不到路由回调：桌面端 IndexedStack 翻转
+    // Visibility，移动端 Offstage 关掉 TickerMode。任一变假都算切走，
+    // 此时收起浮层并失焦。切回时不自动重开，等用户再点搜索框。
+    final tabActive =
+        TickerMode.valuesOf(context).enabled && Visibility.of(context);
+    if (_lastTabActive == true && !tabActive) {
+      _cancelPendingExpand();
+      _hideOverlay();
+    }
+    _lastTabActive = tabActive;
   }
 
   @override
@@ -95,11 +116,48 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     }
   }
 
+  /// 浮层打开时监听文本框失焦：被新路由抢走焦点即收起。
+  /// 用 listener 而不用 Focus 包一层——Focus 会新建 scope 并把
+  /// 同一个 FocusNode 当子节点挂进去，框架断言 child != parent 直接炸。
+  void _watchFocusLoss() {
+    final node = _focusNode;
+    if (_listenedFocusNode == node) {
+      return;
+    }
+    _unwatchFocusLoss();
+    _listenedFocusNode = node;
+    _focusLossListener = () {
+      if (!node.hasFocus && _isExpanded && mounted) {
+        // 失焦可能是焦点树整体拆掉（如路由 pop 过程中的 unfocus），
+        // 直接 dismiss 会在 frame 回调里二次触焦点导致断言；
+        // 排到下一帧，真切页才收，假抖动回来还展开着。
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_isExpanded || _focusNode.hasFocus) {
+            return;
+          }
+          _dismissOverlay();
+        });
+      }
+    };
+    node.addListener(_focusLossListener!);
+  }
+
+  void _unwatchFocusLoss() {
+    final node = _listenedFocusNode;
+    final listener = _focusLossListener;
+    _listenedFocusNode = null;
+    _focusLossListener = null;
+    if (node != null && listener != null) {
+      node.removeListener(listener);
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _cancelPendingExpand();
     _removeOverlay();
+    _unwatchFocusLoss();
     _controller.dispose();
     _internalFocusNode?.dispose();
     _internalFocusNode = null;
@@ -130,7 +188,11 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   }
 
   void _prepareAutoExpand() {
-    if (!mounted || !widget.autoExpand || widget.onTap != null || _isExpanded) {
+    if (!mounted ||
+        !widget.autoExpand ||
+        widget.onTap != null ||
+        _isExpanded ||
+        _lastTabActive == false) {
       return;
     }
     final route = ModalRoute.of(context);
@@ -142,7 +204,9 @@ class _SearchQueryFieldState extends State<SearchQueryField>
 
     _routeAnimation = animation;
     _routeAnimationListener = (status) {
-      if (status != AnimationStatus.completed || !mounted) {
+      if (status != AnimationStatus.completed ||
+          !mounted ||
+          _lastTabActive == false) {
         return;
       }
       animation.removeStatusListener(_routeAnimationListener!);
@@ -156,7 +220,7 @@ class _SearchQueryFieldState extends State<SearchQueryField>
     // Keep the original post-transition behavior, but do not leave the field
     // collapsed if that status change was missed by the listener.
     _autoExpandFallbackTimer = Timer(const Duration(milliseconds: 600), () {
-      if (!mounted || _isExpanded) {
+      if (!mounted || _isExpanded || _lastTabActive == false) {
         return;
       }
       animation.removeStatusListener(_routeAnimationListener!);
@@ -169,8 +233,10 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   @override
   void didPushNext() {
     super.didPushNext();
-    // 本页被盖住：只收视觉浮层，不向父级回写（提交已写过 cubit，
-    // 回写只会把残留旧词经防抖盖掉新词）。
+    // 被新路由盖住（push 输入页）：收起浮层，不向父级回写。
+    // 浮层挂 tab 内 Overlay 时新页盖住它不可见，但返回时旧浮层还在；
+    // 不收的话回来就悬在新页上层。提交已在 push 前写过 cubit，
+    // 回写只会把残留半截输入经防抖盖回去。
     _cancelPendingExpand();
     _hideOverlay();
   }
@@ -178,8 +244,8 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   @override
   void didPop() {
     super.didPop();
-    // 本页自己被 pop（如搜索页返回键）：收起 rootOverlay 上的浮层。
-    // 不手动关，输入框会悬在上一页上层（dispose 要等转场结束才跑）。
+    // 本页自己被 pop（如搜索页返回键）：收起浮层。
+    // dispose 要等转场结束才跑，不手动关会有残留帧。
     _cancelPendingExpand();
     _hideOverlay();
   }
@@ -191,12 +257,15 @@ class _SearchQueryFieldState extends State<SearchQueryField>
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _lastTabActive == false) {
+        return;
+      }
       _prepareAutoExpand();
     });
   }
 
   void _openOverlayWhenReady() {
-    if (!mounted || _isExpanded) {
+    if (!mounted || _isExpanded || _lastTabActive == false) {
       return;
     }
     if (_targetRenderBox == null) {
@@ -211,19 +280,20 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   }
 
   void _openOverlay() {
-    if (_isExpanded) {
+    if (_isExpanded || _lastTabActive == false) {
       return;
     }
     // 点框重开浮层时以外部 query 对齐：展开期间 didUpdateWidget 故意不同步
     // controller，点历史等方式提交后 controller 会落后；重开时补对齐一次。
     // 初次 autoExpand 是 no-op。
     _setControllerText(widget.query);
-    _overlayState = Overlay.of(context, rootOverlay: true);
+    _overlayState = Overlay.of(context, rootOverlay: false);
     setState(() {
       _isExpanded = true;
     });
     _overlayEntry = OverlayEntry(builder: _buildOverlay);
     _overlayState!.insert(_overlayEntry!);
+    _watchFocusLoss();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _isExpanded) {
         _focusNode.requestFocus();
@@ -232,6 +302,7 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   }
 
   void _removeOverlay() {
+    _unwatchFocusLoss();
     _focusNode.unfocus();
     _overlayEntry?.remove();
     _overlayEntry = null;
@@ -266,6 +337,18 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   }
 
   Widget _buildOverlay(BuildContext context) {
+    // 所在 tab 切走后 State 的 didChangeDependencies 不一定再跑，
+    // 但 overlay entry 的 builder 在重建时会重跑；看到 tab 不活跃
+    // 就排队收起并返回空占位，不再把输入框画到别的 tab 上层。
+    if (_lastTabActive == false) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _cancelPendingExpand();
+          _hideOverlay();
+        }
+      });
+      return const SizedBox.shrink();
+    }
     final target = _targetRenderBox;
     final overlayRenderObject = _overlayState?.context.findRenderObject();
     if (target == null ||

@@ -48,4 +48,83 @@ void main() {
     await tester.pump();
     expect(submitted, 'abcdef');
   });
+
+  testWidgets('dismisses overlay when focus moves to another page', (
+    tester,
+  ) async {
+    await LocaleSettings.setLocale(AppLocale.zhCn);
+    addTearDown(() => LocaleSettings.useDeviceLocale());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              SearchQueryField(
+                query: 'abc',
+                autoExpand: true,
+                onSubmitted: (_) {},
+              ),
+              const TextField(key: Key('other-page-field')),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // autoExpand 已展开：书架浮层 + 另一个输入框都在树上。
+    expect(find.byType(TextField), findsNWidgets(2));
+
+    // 模拟 push 新路由后焦点被抢走：点新页输入框，书架浮层失焦即收起。
+    await tester.tap(find.byKey(const Key('other-page-field')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TextField), findsOneWidget);
+  });
+
+  testWidgets('hides overlay when tab becomes inactive', (tester) async {
+    await LocaleSettings.setLocale(AppLocale.zhCn);
+    addTearDown(() => LocaleSettings.useDeviceLocale());
+
+    var tabActive = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, refresh) => Column(
+              children: [
+                // 桌面端 IndexedStack 切走：Visibility 翻转但 TickerMode 不变；
+                // 移动端切走：Offstage + TickerMode(enabled:false)。
+                // 这里用 Visibility 复刻桌面端路径。
+                Visibility(
+                  visible: tabActive,
+                  maintainState: true,
+                  child: SearchQueryField(
+                    query: 'abc',
+                    autoExpand: true,
+                    onSubmitted: (_) {},
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => refresh(() => tabActive = false),
+                  child: const Text('switch tab'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // autoExpand 已展开：overlay 里有一个可聚焦的 TextField。
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.tap(find.text('switch tab'));
+    await tester.pumpAndSettle();
+
+    // 浮层收起：TextField 随 overlay entry 一起移除。
+    expect(find.byType(TextField), findsNothing);
+  });
 }

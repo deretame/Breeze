@@ -37,12 +37,12 @@ class PluginSettingsContent extends StatelessWidget {
   final String pluginVersion;
   final ColorScheme colorScheme;
   final Future<void> Function({required bool enabled, required String url})
-      onUpdateDebugConfig;
+  onUpdateDebugConfig;
   final Future<void> Function() onConfirmDeletePlugin;
   final Future<void> Function() onUpdatePlugin;
   final Future<void> Function() onOpenLoginPage;
   final Future<void> Function(Map<String, dynamic> field, dynamic value)
-      onCommitField;
+  onCommitField;
   final Future<void> Function(Map<String, dynamic> action) onRunAction;
   @override
   Widget build(BuildContext context) {

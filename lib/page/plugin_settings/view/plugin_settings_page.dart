@@ -497,11 +497,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
   }
 
   Future<void> _openLoginPage() async {
-    await context.pushRoute(
-      LoginRoute(
-        from: widget.from,
-      ),
-    );
+    await context.pushRoute(LoginRoute(from: widget.from));
     if (!mounted) {
       return;
     }

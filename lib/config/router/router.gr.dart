@@ -818,22 +818,12 @@ class GlobalSettingRoute extends _i44.PageRouteInfo<void> {
 /// generated route for
 /// [_i24.LoginPage]
 class LoginRoute extends _i44.PageRouteInfo<LoginRouteArgs> {
-  LoginRoute({
-    _i45.Key? key,
-    String? from,
-    Map<String, dynamic>? loginScheme,
-    Map<String, dynamic>? loginData,
-    List<_i44.PageRouteInfo>? children,
-  }) : super(
-         LoginRoute.name,
-         args: LoginRouteArgs(
-           key: key,
-           from: from,
-           loginScheme: loginScheme,
-           loginData: loginData,
-         ),
-         initialChildren: children,
-       );
+  LoginRoute({_i45.Key? key, String? from, List<_i44.PageRouteInfo>? children})
+    : super(
+        LoginRoute.name,
+        args: LoginRouteArgs(key: key, from: from),
+        initialChildren: children,
+      );
 
   static const String name = 'LoginRoute';
 
@@ -843,54 +833,32 @@ class LoginRoute extends _i44.PageRouteInfo<LoginRouteArgs> {
       final args = data.argsAs<LoginRouteArgs>(
         orElse: () => const LoginRouteArgs(),
       );
-      return _i24.LoginPage(
-        key: args.key,
-        from: args.from,
-        loginScheme: args.loginScheme,
-        loginData: args.loginData,
-      );
+      return _i24.LoginPage(key: args.key, from: args.from);
     },
   );
 }
 
 class LoginRouteArgs {
-  const LoginRouteArgs({this.key, this.from, this.loginScheme, this.loginData});
+  const LoginRouteArgs({this.key, this.from});
 
   final _i45.Key? key;
 
   final String? from;
 
-  final Map<String, dynamic>? loginScheme;
-
-  final Map<String, dynamic>? loginData;
-
   @override
   String toString() {
-    return 'LoginRouteArgs{key: $key, from: $from, loginScheme: $loginScheme, loginData: $loginData}';
+    return 'LoginRouteArgs{key: $key, from: $from}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! LoginRouteArgs) return false;
-    return key == other.key &&
-        from == other.from &&
-        const _i47.MapEquality<String, dynamic>().equals(
-          loginScheme,
-          other.loginScheme,
-        ) &&
-        const _i47.MapEquality<String, dynamic>().equals(
-          loginData,
-          other.loginData,
-        );
+    return key == other.key && from == other.from;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^
-      from.hashCode ^
-      const _i47.MapEquality<String, dynamic>().hash(loginScheme) ^
-      const _i47.MapEquality<String, dynamic>().hash(loginData);
+  int get hashCode => key.hashCode ^ from.hashCode;
 }
 
 /// generated route for

@@ -45,12 +45,7 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
     );
     if (unauthorized != null) {
       eventBus.fire(
-        NeedLogin(
-          from: unauthorized.pluginId,
-          scheme: unauthorized.scheme,
-          data: unauthorized.data,
-          message: unauthorized.message,
-        ),
+        NeedLogin(from: unauthorized.pluginId, message: unauthorized.message),
       );
       throw Exception(unauthorized.message);
     }

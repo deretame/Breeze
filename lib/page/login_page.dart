@@ -13,10 +13,8 @@ import 'package:zephyr/util/json/json_value.dart';
 @RoutePage()
 class LoginPage extends StatefulWidget {
   final String? from;
-  final Map<String, dynamic>? loginScheme;
-  final Map<String, dynamic>? loginData;
 
-  const LoginPage({super.key, this.from, this.loginScheme, this.loginData});
+  const LoginPage({super.key, this.from});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -81,11 +79,6 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
 
-    if (widget.loginScheme != null) {
-      _applyLoginBundle(widget.loginScheme!, widget.loginData);
-      return;
-    }
-
     try {
       final response = await callUnifiedComicPlugin(
         from: from,
@@ -98,7 +91,8 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         final raw = e.toString();
-        final missingBundle = raw.contains('getLoginBundle') ||
+        final missingBundle =
+            raw.contains('getLoginBundle') ||
             raw.contains('function path not found') ||
             raw.contains('target is not function');
         setState(() {
@@ -176,9 +170,9 @@ class _LoginPageState extends State<LoginPage> {
         _submitFnPath = submitFnPath;
         _submitLabel =
             (action['submitText'] ?? action['label'] ?? scheme['submitText'])
-                    ?.toString()
-                    .trim() ??
-                '';
+                ?.toString()
+                .trim() ??
+            '';
         _schemeError = null;
         _loadingScheme = false;
       });
@@ -356,10 +350,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         if (spec.help.trim().isNotEmpty) ...[
           const SizedBox(height: 6),
-          Text(
-            spec.help,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(spec.help, style: Theme.of(context).textTheme.bodySmall),
         ],
       ],
     );

@@ -3,18 +3,14 @@ import 'dart:convert';
 import 'package:flutter_rust_bridge/flutter_rust_bridge.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
+// need-login 错误只携带插件身份与提示文案。
+// 旧插件可能在错误里附带 scheme/data，解析时直接忽略：
+// 登录页统一跳转后再调 getLoginBundle 现取表单。
 class UnauthorizedPayload {
-  const UnauthorizedPayload({
-    required this.pluginId,
-    required this.message,
-    this.scheme,
-    this.data,
-  });
+  const UnauthorizedPayload({required this.pluginId, required this.message});
 
   final String pluginId;
   final String message;
-  final Map<String, dynamic>? scheme;
-  final Map<String, dynamic>? data;
 }
 
 UnauthorizedPayload? parseUnauthorizedPayload(
@@ -39,8 +35,6 @@ UnauthorizedPayload? parseUnauthorizedPayload(
       message: parsed['message']?.toString().trim().isNotEmpty == true
           ? parsed['message'].toString().trim()
           : '登录过期，请重新登录',
-      scheme: asJsonMap(parsed['scheme']),
-      data: asJsonMap(parsed['data']),
     );
   } catch (_) {
     return null;

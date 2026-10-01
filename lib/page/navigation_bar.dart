@@ -97,12 +97,7 @@ class _NavigationBarState extends State<NavigationBar> {
     });
 
     eventBus.on<NeedLogin>().listen((event) {
-      _goToLoginPage(
-        event.from,
-        loginScheme: event.scheme,
-        loginData: event.data,
-        message: event.message,
-      );
+      _goToLoginPage(event.from, message: event.message);
     });
 
     eventBus.on<ToastEvent>().listen((event) {
@@ -390,12 +385,7 @@ class _NavigationBarState extends State<NavigationBar> {
     }
   }
 
-  void _goToLoginPage(
-    String from, {
-    Map<String, dynamic>? loginScheme,
-    Map<String, dynamic>? loginData,
-    String? message,
-  }) {
+  void _goToLoginPage(String from, {String? message}) {
     try {
       final pluginId = from.trim();
       if (pluginId.isEmpty) {
@@ -431,26 +421,14 @@ class _NavigationBarState extends State<NavigationBar> {
         }
         _lastLoginNavigateAt = now;
         _lastLoginPluginId = pluginId;
-        unawaited(
-          _confirmAndGoToLogin(
-            pluginId,
-            loginScheme: loginScheme,
-            loginData: loginData,
-            message: message,
-          ),
-        );
+        unawaited(_confirmAndGoToLogin(pluginId, message: message));
       });
     } catch (e, stackTrace) {
       logger.e('Failed to navigate to login', error: e, stackTrace: stackTrace);
     }
   }
 
-  Future<void> _confirmAndGoToLogin(
-    String pluginId, {
-    Map<String, dynamic>? loginScheme,
-    Map<String, dynamic>? loginData,
-    String? message,
-  }) async {
+  Future<void> _confirmAndGoToLogin(String pluginId, {String? message}) async {
     if (!mounted) {
       return;
     }
@@ -485,13 +463,7 @@ class _NavigationBarState extends State<NavigationBar> {
       if (hasLoginRoute) {
         return;
       }
-      context.navigateTo(
-        LoginRoute(
-          from: pluginId,
-          loginScheme: loginScheme,
-          loginData: loginData,
-        ),
-      );
+      context.navigateTo(LoginRoute(from: pluginId));
     } catch (e, stackTrace) {
       logger.e('Failed to navigate to login', error: e, stackTrace: stackTrace);
     }

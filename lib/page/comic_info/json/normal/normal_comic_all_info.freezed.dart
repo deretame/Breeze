@@ -379,7 +379,7 @@ $ComicInfoCopyWith<$Res> get comicInfo {
 /// @nodoc
 mixin _$ComicInfoActionItem {
 
-@JsonKey(name: 'name') String get name;@JsonKey(name: 'onTap') Map<String, dynamic> get onTap;@JsonKey(name: 'extern') Map<String, dynamic> get extern;
+@JsonKey(name: 'name') String get name;@JsonKey(name: 'onTap') Map<String, dynamic> get onTap;@JsonKey(name: 'onLongPress') String? get onLongPress;@JsonKey(name: 'extern') Map<String, dynamic> get extern;
 /// Create a copy of ComicInfoActionItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -393,20 +393,20 @@ $ComicInfoActionItemCopyWith<ComicInfoActionItem> get copyWith => _$ComicInfoAct
 @override
 bool operator ==(Object other) {
   final _this = this as ComicInfoActionItem;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfoActionItem&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.onTap, _this.onTap)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicInfoActionItem&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.onTap, _this.onTap)&&(identical(other.onLongPress, _this.onLongPress) || other.onLongPress == _this.onLongPress)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ComicInfoActionItem;
-  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.onTap),const DeepCollectionEquality().hash(_this.extern));
+  return Object.hash(runtimeType,_this.name,const DeepCollectionEquality().hash(_this.onTap),_this.onLongPress,const DeepCollectionEquality().hash(_this.extern));
 }
 
 @override
 String toString() {
   final _this = this as ComicInfoActionItem;
-  return 'ComicInfoActionItem(name: ${_this.name}, onTap: ${_this.onTap}, extern: ${_this.extern})';
+  return 'ComicInfoActionItem(name: ${_this.name}, onTap: ${_this.onTap}, onLongPress: ${_this.onLongPress}, extern: ${_this.extern})';
 }
 
 
@@ -417,7 +417,7 @@ abstract mixin class $ComicInfoActionItemCopyWith<$Res>  {
   factory $ComicInfoActionItemCopyWith(ComicInfoActionItem value, $Res Function(ComicInfoActionItem) _then) = _$ComicInfoActionItemCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'name') String name,@JsonKey(name: 'onTap') Map<String, dynamic> onTap,@JsonKey(name: 'extern') Map<String, dynamic> extern
+@JsonKey(name: 'name') String name,@JsonKey(name: 'onTap') Map<String, dynamic> onTap,@JsonKey(name: 'onLongPress') String? onLongPress,@JsonKey(name: 'extern') Map<String, dynamic> extern
 });
 
 
@@ -434,11 +434,12 @@ class _$ComicInfoActionItemCopyWithImpl<$Res>
 
 /// Create a copy of ComicInfoActionItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? onTap = null,Object? extern = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? onTap = null,Object? onLongPress = freezed,Object? extern = null,}) {
   return _then(ComicInfoActionItem(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,onTap: null == onTap ? _self.onTap : onTap // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,onLongPress: freezed == onLongPress ? _self.onLongPress : onLongPress // ignore: cast_nullable_to_non_nullable
+as String?,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }
@@ -524,10 +525,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap, @JsonKey(name: 'onLongPress')  String? onLongPress, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ComicInfoActionItem() when $default != null:
-return $default(_that.name,_that.onTap,_that.extern);case _:
+return $default(_that.name,_that.onTap,_that.onLongPress,_that.extern);case _:
   return orElse();
 
 }
@@ -545,10 +546,10 @@ return $default(_that.name,_that.onTap,_that.extern);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap, @JsonKey(name: 'extern')  Map<String, dynamic> extern)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap, @JsonKey(name: 'onLongPress')  String? onLongPress, @JsonKey(name: 'extern')  Map<String, dynamic> extern)  $default,) {final _that = this;
 switch (_that) {
 case _ComicInfoActionItem():
-return $default(_that.name,_that.onTap,_that.extern);case _:
+return $default(_that.name,_that.onTap,_that.onLongPress,_that.extern);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -565,10 +566,10 @@ return $default(_that.name,_that.onTap,_that.extern);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'name')  String name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'name')  String name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap, @JsonKey(name: 'onLongPress')  String? onLongPress, @JsonKey(name: 'extern')  Map<String, dynamic> extern)?  $default,) {final _that = this;
 switch (_that) {
 case _ComicInfoActionItem() when $default != null:
-return $default(_that.name,_that.onTap,_that.extern);case _:
+return $default(_that.name,_that.onTap,_that.onLongPress,_that.extern);case _:
   return null;
 
 }
@@ -580,7 +581,7 @@ return $default(_that.name,_that.onTap,_that.extern);case _:
 @JsonSerializable()
 
 class _ComicInfoActionItem implements ComicInfoActionItem {
-  const _ComicInfoActionItem({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap = const {}, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _onTap = onTap,_extern = extern;
+  const _ComicInfoActionItem({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'onTap')  Map<String, dynamic> onTap = const {}, @JsonKey(name: 'onLongPress') this.onLongPress, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _onTap = onTap,_extern = extern;
   factory _ComicInfoActionItem.fromJson(Map<String, dynamic> json) => _$ComicInfoActionItemFromJson(json);
 
 @override@JsonKey(name: 'name') final  String name;
@@ -591,6 +592,7 @@ class _ComicInfoActionItem implements ComicInfoActionItem {
   return EqualUnmodifiableMapView(_onTap);
 }
 
+@override@JsonKey(name: 'onLongPress') final  String? onLongPress;
  final  Map<String, dynamic> _extern;
 @override@JsonKey(name: 'extern') Map<String, dynamic> get extern {
   if (_extern is EqualUnmodifiableMapView) return _extern;
@@ -612,18 +614,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfoActionItem&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.onTap, _onTap)&&const DeepCollectionEquality().equals(other.extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicInfoActionItem&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.onTap, _onTap)&&(identical(other.onLongPress, onLongPress) || other.onLongPress == onLongPress)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_onTap),const DeepCollectionEquality().hash(_extern));
+    return Object.hash(runtimeType,name,const DeepCollectionEquality().hash(_onTap),onLongPress,const DeepCollectionEquality().hash(_extern));
 }
 
 @override
 String toString() {
-    return 'ComicInfoActionItem(name: $name, onTap: $onTap, extern: $extern)';
+    return 'ComicInfoActionItem(name: $name, onTap: $onTap, onLongPress: $onLongPress, extern: $extern)';
 }
 
 
@@ -634,7 +636,7 @@ abstract mixin class _$ComicInfoActionItemCopyWith<$Res> implements $ComicInfoAc
   factory _$ComicInfoActionItemCopyWith(_ComicInfoActionItem value, $Res Function(_ComicInfoActionItem) _then) = __$ComicInfoActionItemCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'name') String name,@JsonKey(name: 'onTap') Map<String, dynamic> onTap,@JsonKey(name: 'extern') Map<String, dynamic> extern
+@JsonKey(name: 'name') String name,@JsonKey(name: 'onTap') Map<String, dynamic> onTap,@JsonKey(name: 'onLongPress') String? onLongPress,@JsonKey(name: 'extern') Map<String, dynamic> extern
 });
 
 
@@ -651,11 +653,12 @@ class __$ComicInfoActionItemCopyWithImpl<$Res>
 
 /// Create a copy of ComicInfoActionItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? onTap = null,Object? extern = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? onTap = null,Object? onLongPress = freezed,Object? extern = null,}) {
   return _then(_ComicInfoActionItem(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,onTap: null == onTap ? _self._onTap : onTap // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,onLongPress: freezed == onLongPress ? _self.onLongPress : onLongPress // ignore: cast_nullable_to_non_nullable
+as String?,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }

@@ -49,6 +49,7 @@ abstract class ComicInfoActionItem with _$ComicInfoActionItem {
   const factory ComicInfoActionItem({
     @JsonKey(name: 'name') required String name,
     @JsonKey(name: 'onTap') @Default({}) Map<String, dynamic> onTap,
+    @JsonKey(name: 'onLongPress') String? onLongPress,
     @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _ComicInfoActionItem;
 

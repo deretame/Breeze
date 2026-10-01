@@ -58,6 +58,7 @@ _ComicInfoActionItem _$ComicInfoActionItemFromJson(Map<String, dynamic> json) =>
     _ComicInfoActionItem(
       name: json['name'] as String,
       onTap: json['onTap'] as Map<String, dynamic>? ?? const {},
+      onLongPress: json['onLongPress'] as String?,
       extern: json['extern'] as Map<String, dynamic>? ?? const {},
     );
 
@@ -66,6 +67,7 @@ Map<String, dynamic> _$ComicInfoActionItemToJson(
 ) => <String, dynamic>{
   'name': instance.name,
   'onTap': instance.onTap,
+  'onLongPress': instance.onLongPress,
   'extern': instance.extern,
 };
 

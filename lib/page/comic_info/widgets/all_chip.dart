@@ -55,9 +55,11 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                         ).let(convertChineseForDisplay),
                         onTap: () => _onTap(item),
                         onLongPress: () {
-                          Clipboard.setData(
-                            ClipboardData(text: processText(item.name)),
-                          );
+                          final copyText =
+                              item.onLongPress?.trim().isNotEmpty == true
+                              ? item.onLongPress!.trim()
+                              : processText(item.name);
+                          Clipboard.setData(ClipboardData(text: copyText));
                           showSuccessToast(
                             t.comicInfo.copiedToClipboard(
                               name: item.name.let(convertChineseForDisplay),

@@ -12,7 +12,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
-    show ComicInfo;
+    show ComicInfo, ComicInfoActionItem;
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/enum.dart';
@@ -312,10 +312,7 @@ class _InfoColumnState extends State<_InfoColumn> {
           spacing: 8,
           runSpacing: 8,
           children: widget.comicInfo.titleMeta
-              .map(
-                (item) =>
-                    _MetaPill(label: item.name.let(convertChineseForDisplay)),
-              )
+              .map((item) => _MetaPill(item: item))
               .toList(),
         ),
         _ContinueReadingBanner(onContinueRead: widget.onContinueRead),
@@ -452,9 +449,9 @@ class _ContinueReadingBanner extends StatelessWidget {
 }
 
 class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.label});
+  const _MetaPill({required this.item});
 
-  final String label;
+  final ComicInfoActionItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -479,7 +476,7 @@ class _MetaPill extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Text(
-              label,
+              item.name.let(convertChineseForDisplay),
               textAlign: TextAlign.center,
               softWrap: true,
               style: context.theme.textTheme.bodySmall?.copyWith(
@@ -494,8 +491,13 @@ class _MetaPill extends StatelessWidget {
 
     return GestureDetector(
       onLongPress: () async {
-        await Clipboard.setData(ClipboardData(text: label));
-        showSuccessToast(t.comicInfo.copied(label: label));
+        final copyText = item.onLongPress?.trim().isNotEmpty == true
+            ? item.onLongPress!.trim()
+            : item.name;
+        await Clipboard.setData(ClipboardData(text: copyText));
+        showSuccessToast(
+          t.comicInfo.copied(label: item.name.let(convertChineseForDisplay)),
+        );
       },
       child: pill,
     );

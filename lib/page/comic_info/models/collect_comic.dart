@@ -166,6 +166,7 @@ Map<String, dynamic> _titleMetaToMap(ComicInfoActionItem item) {
   return sanitizeDynamic({
     'name': item.name,
     'onTap': item.onTap,
+    'onLongPress': item.onLongPress,
     'extern': item.extern,
   });
 }
@@ -179,6 +180,7 @@ Map<String, dynamic> _metadataToMap(ComicInfoMetadata item) {
           (entry) => sanitizeDynamic({
             'name': entry.name,
             'onTap': entry.onTap,
+            'onLongPress': entry.onLongPress,
             'extern': entry.extern,
           }),
         )

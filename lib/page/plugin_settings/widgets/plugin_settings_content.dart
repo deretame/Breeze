@@ -23,6 +23,7 @@ class PluginSettingsContent extends StatelessWidget {
     required this.onUpdateDebugConfig,
     required this.onConfirmDeletePlugin,
     required this.onUpdatePlugin,
+    required this.onOpenLoginPage,
     required this.onCommitField,
     required this.onRunAction,
   });
@@ -36,13 +37,13 @@ class PluginSettingsContent extends StatelessWidget {
   final String pluginVersion;
   final ColorScheme colorScheme;
   final Future<void> Function({required bool enabled, required String url})
-  onUpdateDebugConfig;
+      onUpdateDebugConfig;
   final Future<void> Function() onConfirmDeletePlugin;
   final Future<void> Function() onUpdatePlugin;
+  final Future<void> Function() onOpenLoginPage;
   final Future<void> Function(Map<String, dynamic> field, dynamic value)
-  onCommitField;
+      onCommitField;
   final Future<void> Function(Map<String, dynamic> action) onRunAction;
-
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -74,6 +75,15 @@ class PluginSettingsContent extends StatelessWidget {
       if (debugEnabled) _buildDebugUrlRow(context),
       _buildDeletePluginRow(),
     ];
+  }
+
+  Widget _buildLoginRow() {
+    return PluginSettingsFieldRow(
+      title: t.plugin.accountLogin,
+      subtitle: t.plugin.accountLoginSubtitle,
+      trailing: const Icon(Icons.login, size: 18),
+      onTap: deleted ? null : onOpenLoginPage,
+    );
   }
 
   Widget _buildVersionRow() {
@@ -160,6 +170,9 @@ class PluginSettingsContent extends StatelessWidget {
     final userInfoSection = _buildUserInfoSection(context);
     if (userInfoSection != null) {
       sections.add(userInfoSection);
+    } else if (state.loginSupported) {
+      // 插件声明了登录能力但没有用户信息区时，单独给一个登录入口。
+      sections.add(_buildLoginSection());
     }
     sections.addAll(_buildSettingSections(context));
     final actionsSection = _buildActionsSection(context);
@@ -212,7 +225,21 @@ class PluginSettingsContent extends StatelessWidget {
       child: PluginSettingsSectionCard(
         title: state.userInfo['title']?.toString() ?? t.plugin.userInfoTitle,
         colorScheme: colorScheme,
-        children: _buildUserInfoChildren(context),
+        children: [
+          ..._buildUserInfoChildren(context),
+          if (state.loginSupported) _buildLoginRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: PluginSettingsSectionCard(
+        title: t.plugin.userInfoTitle,
+        colorScheme: colorScheme,
+        children: [_buildLoginRow()],
       ),
     );
   }

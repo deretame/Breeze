@@ -96,7 +96,9 @@
     "syncFailed": "同步失败",
     "autoSyncFailed": "自动同步失败",
     "syncFailedMessage": "请检查网络连接或稍后再试。\n$error",
-    "loginExpired": "登录过期，请重新登录"
+    "loginExpired": "登录过期，请重新登录",
+    "needLoginTitle": "需要登录",
+    "goLogin": "去登录"
   },
   "settings": {
     "title": "设置",
@@ -650,9 +652,11 @@
     "deleteFailed": "删除失败: $error",
     "pluginDeleted": "插件已删除",
     "executeFailed": "执行失败: $error",
+    "deletePluginSubtitle": "彻底删除插件，并删除相关数据",
     "debugMode": "调试模式",
     "debugAddress": "调试地址",
-    "deletePluginSubtitle": "彻底删除插件，并删除相关数据",
+    "accountLogin": "账号登录",
+    "accountLoginSubtitle": "前往登录",
     "pluginSettings": "插件设置",
     "noUserInfo": "暂无用户信息",
     "operations": "操作",
@@ -1182,7 +1186,9 @@
     "loginSuccess": "登录成功",
     "loginFailed": "登录失败",
     "loginButton": "登录",
-    "retry": "重试"
+    "retry": "重试",
+    "requiredFieldEmpty": "请填写 $label",
+    "loginNotSupported": "该插件暂未适配新版登录页，请前往插件设置中填写账号信息"
   },
   "fontSetting": {
     "title": "字体设置",

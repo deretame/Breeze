@@ -16,6 +16,7 @@ class PluginSettingsState {
     this.values = const <String, dynamic>{},
     this.userInfo = const <String, dynamic>{},
     this.canShowUserInfo = false,
+    this.loginSupported = false,
     this.loadingUserInfo = false,
     this.userInfoError = '',
   });
@@ -27,9 +28,9 @@ class PluginSettingsState {
   final Map<String, dynamic> values;
   final Map<String, dynamic> userInfo;
   final bool canShowUserInfo;
+  final bool loginSupported;
   final bool loadingUserInfo;
   final String userInfoError;
-
   PluginSettingsState copyWith({
     bool? loading,
     String? error,
@@ -38,6 +39,7 @@ class PluginSettingsState {
     Map<String, dynamic>? values,
     Map<String, dynamic>? userInfo,
     bool? canShowUserInfo,
+    bool? loginSupported,
     bool? loadingUserInfo,
     String? userInfoError,
   }) {
@@ -49,6 +51,7 @@ class PluginSettingsState {
       values: values ?? this.values,
       userInfo: userInfo ?? this.userInfo,
       canShowUserInfo: canShowUserInfo ?? this.canShowUserInfo,
+      loginSupported: loginSupported ?? this.loginSupported,
       loadingUserInfo: loadingUserInfo ?? this.loadingUserInfo,
       userInfoError: userInfoError ?? this.userInfoError,
     );
@@ -74,6 +77,10 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
       ).map((item) => asJsonMap(item)).toList();
       final values = asJsonMap(settingsEnvelope.data['values']);
       final canShowUserInfo = settingsEnvelope.data['canShowUserInfo'] == true;
+      final loginSupported = await _resolveLoginSupported(
+        from,
+        settingsEnvelope.data,
+      );
 
       List<Map<String, dynamic>> actions = const [];
       try {
@@ -100,6 +107,7 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
           values: values,
           userInfo: const <String, dynamic>{},
           canShowUserInfo: canShowUserInfo,
+          loginSupported: loginSupported,
           userInfoError: '',
           actions: actions,
         ),
@@ -115,6 +123,31 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
       emit(
         state.copyWith(loading: false, error: normalizeSearchErrorMessage(e)),
       );
+    }
+  }
+
+  /// 插件在 getSettingsBundle 的 data 中声明 `canLogin: true` 即支持登录。
+  /// 未声明时用 getLoginBundle 探测一次，兼容 JM / Bika 等旧插件。
+  Future<bool> _resolveLoginSupported(
+    String from,
+    Map<String, dynamic> data,
+  ) async {
+    if (data['canLogin'] == true) {
+      return true;
+    }
+    if (data.containsKey('canLogin')) {
+      return false;
+    }
+    try {
+      await callUnifiedComicPlugin(
+        from: from,
+        fnPath: 'getLoginBundle',
+        core: const <String, dynamic>{},
+        extern: const <String, dynamic>{},
+      );
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 

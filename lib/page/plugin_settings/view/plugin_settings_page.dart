@@ -487,12 +487,25 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
             onUpdateDebugConfig: _updateDebugConfig,
             onConfirmDeletePlugin: _confirmDeletePlugin,
             onUpdatePlugin: _updatePlugin,
+            onOpenLoginPage: _openLoginPage,
             onCommitField: _commitField,
             onRunAction: (action) => _runAction(context, action),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _openLoginPage() async {
+    await context.pushRoute(
+      LoginRoute(
+        from: widget.from,
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    await context.read<PluginSettingsCubit>().load(widget.from);
   }
 
   Future<void> _syncPlugin() async {

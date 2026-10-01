@@ -91,12 +91,14 @@
     "bookshelf": "Bookshelf",
     "discover": "Discover",
     "more": "More",
-    "syncSuccess": "Sync successful!",
+    "syncSuccess": "Synced successfully!",
     "autoSyncSuccess": "Auto sync successful!",
     "syncFailed": "Sync failed",
     "autoSyncFailed": "Auto sync failed",
     "syncFailedMessage": "Please check your network connection or try again later.\n$error",
-    "loginExpired": "Login expired, please log in again"
+    "loginExpired": "Login expired, please log in again",
+    "needLoginTitle": "Login required",
+    "goLogin": "Log in"
   },
   "settings": {
     "title": "Settings",
@@ -649,9 +651,10 @@
     "deleteFailed": "Delete failed: $error",
     "pluginDeleted": "Plugin deleted",
     "executeFailed": "Execute failed: $error",
-    "debugMode": "Debug mode",
-    "debugAddress": "Debug address",
     "deletePluginSubtitle": "Delete plugin and related data permanently",
+    "debugMode": "Debug mode",
+    "accountLoginSubtitle": "Go to login",
+    "accountLogin": "Account login",
     "pluginSettings": "Plugin settings",
     "noUserInfo": "No user info",
     "operations": "Operations",
@@ -1181,7 +1184,9 @@
     "loginSuccess": "Login successful",
     "loginFailed": "Login failed",
     "loginButton": "Login",
-    "retry": "Retry"
+    "retry": "Retry",
+    "requiredFieldEmpty": "Please fill in $label",
+    "loginNotSupported": "This plugin doesn't support the new login page yet. Please fill in your account in plugin settings."
   },
   "fontSetting": {
     "title": "Font Settings",

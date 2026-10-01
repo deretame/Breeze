@@ -22,15 +22,38 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+class _LoginFieldSpec {
+  const _LoginFieldSpec({
+    required this.key,
+    required this.kind,
+    required this.label,
+    this.required = false,
+    this.placeholder = '',
+    this.help = '',
+  });
+
+  final String key;
+  final String kind;
+  final String label;
+  final bool required;
+  final String placeholder;
+  final String help;
+
+  bool get obscure => kind == 'password';
+
+  bool get multiline => kind == 'multiline';
+}
+
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _account = TextEditingController();
-  final TextEditingController _password = TextEditingController();
+  final Map<String, TextEditingController> _controllers = {};
 
   String title = '';
   late String from;
-  String accountLabel = '';
-  String passwordLabel = '';
+  List<_LoginFieldSpec> _fields = const [];
+  String _submitFnPath = '';
+  String _submitLabel = '';
   bool _loadingScheme = true;
+  bool _submitting = false;
   String? _schemeError;
 
   @override
@@ -74,8 +97,14 @@ class _LoginPageState extends State<LoginPage> {
       _applyLoginBundle(envelope.scheme, envelope.data);
     } catch (e) {
       if (mounted) {
+        final raw = e.toString();
+        final missingBundle = raw.contains('getLoginBundle') ||
+            raw.contains('function path not found') ||
+            raw.contains('target is not function');
         setState(() {
-          _schemeError = t.login.loadConfigFailed(error: e);
+          _schemeError = missingBundle
+              ? t.login.loginNotSupported
+              : t.login.loadConfigFailed(error: e);
           _loadingScheme = false;
         });
       }
@@ -86,10 +115,37 @@ class _LoginPageState extends State<LoginPage> {
     Map<String, dynamic> scheme,
     Map<String, dynamic>? data,
   ) {
+    final action = asJsonMap(scheme['action']);
+    final submitFnPath =
+        (action['fnPath'] ?? scheme['submitFnPath'] ?? scheme['fnPath'])
+            ?.toString()
+            .trim() ??
+        '';
     final fields = asJsonList(
       scheme['fields'],
     ).map((item) => asJsonMap(item)).toList();
-    if (fields.length < 2) {
+    final specs = <_LoginFieldSpec>[];
+    for (final field in fields) {
+      final key = field['key']?.toString().trim() ?? '';
+      if (key.isEmpty) {
+        continue;
+      }
+      specs.add(
+        _LoginFieldSpec(
+          key: key,
+          kind: field['kind']?.toString().trim().isNotEmpty == true
+              ? field['kind'].toString().trim()
+              : 'text',
+          label: field['label']?.toString().trim().isNotEmpty == true
+              ? field['label'].toString().trim()
+              : key,
+          required: field['required'] == true,
+          placeholder: field['placeholder']?.toString() ?? '',
+          help: field['help']?.toString() ?? '',
+        ),
+      );
+    }
+    if (specs.isEmpty || submitFnPath.isEmpty) {
       if (mounted) {
         setState(() {
           _schemeError = t.login.insufficientFields;
@@ -99,25 +155,41 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    for (final entry in _controllers.values) {
+      entry.dispose();
+    }
+    _controllers.clear();
+    final values = <String, dynamic>{
+      ...asJsonMap(data),
+      ...asJsonMap(data?['values']),
+    };
+    for (final spec in specs) {
+      _controllers[spec.key] = TextEditingController(
+        text: values[spec.key]?.toString() ?? '',
+      );
+    }
+
     if (mounted) {
       setState(() {
         title = scheme['title']?.toString().trim() ?? '';
-        accountLabel = fields.first['label']?.toString().trim() ?? '';
-        passwordLabel = fields[1]['label']?.toString().trim() ?? '';
+        _fields = specs;
+        _submitFnPath = submitFnPath;
+        _submitLabel =
+            (action['submitText'] ?? action['label'] ?? scheme['submitText'])
+                    ?.toString()
+                    .trim() ??
+                '';
         _schemeError = null;
         _loadingScheme = false;
       });
     }
-
-    final payload = data ?? const <String, dynamic>{};
-    _account.text = payload['account']?.toString() ?? _account.text;
-    _password.text = payload['password']?.toString() ?? _password.text;
   }
 
   @override
   void dispose() {
-    _account.dispose();
-    _password.dispose();
+    for (final entry in _controllers.values) {
+      entry.dispose();
+    }
     super.dispose();
   }
 
@@ -150,21 +222,34 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitForm() async {
     if (!mounted) return;
-    if (_loadingScheme || _schemeError != null) {
-      showErrorToast(t.login.configNotReady);
+    if (_loadingScheme || _schemeError != null || _submitting) {
+      if (!_submitting) {
+        showErrorToast(t.login.configNotReady);
+      }
       return;
     }
+    final values = <String, dynamic>{};
+    for (final spec in _fields) {
+      final text = _controllers[spec.key]?.text ?? '';
+      if (spec.required && text.trim().isEmpty) {
+        showErrorToast(t.login.requiredFieldEmpty(label: spec.label));
+        return;
+      }
+      values[spec.key] = text;
+    }
+    setState(() {
+      _submitting = true;
+    });
     showInfoToast(t.login.loggingIn);
 
     try {
-      final result = await callUnifiedComicPlugin(
+      // 新旧兼容：新插件读 core.values，旧插件读顶层 account/password。
+      await callUnifiedComicPlugin(
         from: from,
-        fnPath: 'loginWithPassword',
-        core: {'account': _account.text, 'password': _password.text},
+        fnPath: _submitFnPath,
+        core: {...values, 'values': values},
         extern: const <String, dynamic>{},
       );
-
-      final _ = asJsonMap(result['raw']);
       showSuccessToast(t.login.loginSuccess);
 
       if (!mounted) return;
@@ -172,6 +257,12 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       logger.e(e);
       _showDialog(t.login.loginFailed, normalizeSearchErrorMessage(e));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
     }
   }
 
@@ -203,9 +294,12 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
 
+    final submitLabel = _submitLabel.isEmpty
+        ? t.login.loginButton
+        : _submitLabel;
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(title.isEmpty ? t.login.title : title),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
@@ -213,47 +307,61 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // 子组件在水平方向上靠左对齐
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // 账号输入框
-            TextField(
-              controller: _account,
-              decoration: InputDecoration(
-                labelText: accountLabel,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20), // 用于添加空间
-            // 密码输入框
-            TextField(
-              controller: _password,
-              decoration: InputDecoration(
-                labelText: passwordLabel,
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true, // 隐藏输入内容
-            ),
-            const SizedBox(height: 10), // 用于添加空间
+            for (var i = 0; i < _fields.length; i++) ...[
+              if (i > 0) const SizedBox(height: 20),
+              _buildField(_fields[i]),
+            ],
+            const SizedBox(height: 10),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center, // 设置Row中的内容水平居中
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: _submitForm,
-                  child: Text(t.login.loginButton),
+                  onPressed: _submitting ? null : _submitForm,
+                  child: _submitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(submitLabel),
                 ),
               ],
             ),
-            const SizedBox(height: 10), // 用于添加空间
-            Expanded(
-              child: Container(), // 占据剩余空间
-            ),
-            const SizedBox.shrink(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildField(_LoginFieldSpec spec) {
+    final controller = _controllers[spec.key];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: spec.required ? '${spec.label} *' : spec.label,
+            hintText: spec.placeholder.isEmpty ? null : spec.placeholder,
+            border: const OutlineInputBorder(),
+          ),
+          obscureText: spec.obscure,
+          maxLines: spec.multiline ? 5 : 1,
+          minLines: spec.multiline ? 3 : 1,
+        ),
+        if (spec.help.trim().isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            spec.help,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ],
     );
   }
 }

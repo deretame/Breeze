@@ -379,6 +379,12 @@ class Translations$navigation$zh_CN {
 
 	/// zh-CN: '登录过期，请重新登录'
 	String get loginExpired => '登录过期，请重新登录';
+
+	/// zh-CN: '需要登录'
+	String get needLoginTitle => '需要登录';
+
+	/// zh-CN: '去登录'
+	String get goLogin => '去登录';
 }
 
 // Path: settings
@@ -2054,14 +2060,20 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '执行失败: $error'
 	String executeFailed({required Object error}) => '执行失败: ${error}';
 
+	/// zh-CN: '彻底删除插件，并删除相关数据'
+	String get deletePluginSubtitle => '彻底删除插件，并删除相关数据';
+
 	/// zh-CN: '调试模式'
 	String get debugMode => '调试模式';
 
 	/// zh-CN: '调试地址'
 	String get debugAddress => '调试地址';
 
-	/// zh-CN: '彻底删除插件，并删除相关数据'
-	String get deletePluginSubtitle => '彻底删除插件，并删除相关数据';
+	/// zh-CN: '账号登录'
+	String get accountLogin => '账号登录';
+
+	/// zh-CN: '前往登录'
+	String get accountLoginSubtitle => '前往登录';
 
 	/// zh-CN: '插件设置'
 	String get pluginSettings => '插件设置';
@@ -3712,6 +3724,12 @@ class Translations$login$zh_CN {
 
 	/// zh-CN: '重试'
 	String get retry => '重试';
+
+	/// zh-CN: '请填写 $label'
+	String requiredFieldEmpty({required Object label}) => '请填写 ${label}';
+
+	/// zh-CN: '该插件暂未适配新版登录页，请前往插件设置中填写账号信息'
+	String get loginNotSupported => '该插件暂未适配新版登录页，请前往插件设置中填写账号信息';
 }
 
 // Path: fontSetting
@@ -4057,6 +4075,8 @@ extension on Translations {
 			'navigation.autoSyncFailed' => '自动同步失败',
 			'navigation.syncFailedMessage' => ({required Object error}) => '请检查网络连接或稍后再试。\n${error}',
 			'navigation.loginExpired' => '登录过期，请重新登录',
+			'navigation.needLoginTitle' => '需要登录',
+			'navigation.goLogin' => '去登录',
 			'settings.title' => '设置',
 			'settings.globalTitle' => '设置',
 			'settings.appearance' => '外观与显示',
@@ -4475,10 +4495,10 @@ extension on Translations {
 			'reader.horizontalPositionLeft' => '左侧',
 			'reader.horizontalPositionCenter' => '居中',
 			'reader.horizontalPositionRight' => '右侧',
-			'reader.readingDirectionLtr' => '从左到右',
-			'reader.readingDirectionRtl' => '从右到左',
 			_ => null,
 		} ?? switch (path) {
+			'reader.readingDirectionLtr' => '从左到右',
+			'reader.readingDirectionRtl' => '从右到左',
 			'reader.readingDirectionVertical' => '从上到下',
 			'reader.webtoon' => '条漫',
 			'reader.singlePageLtr' => '单页式（从左到右）',
@@ -4602,9 +4622,11 @@ extension on Translations {
 			'plugin.deleteFailed' => ({required Object error}) => '删除失败: ${error}',
 			'plugin.pluginDeleted' => '插件已删除',
 			'plugin.executeFailed' => ({required Object error}) => '执行失败: ${error}',
+			'plugin.deletePluginSubtitle' => '彻底删除插件，并删除相关数据',
 			'plugin.debugMode' => '调试模式',
 			'plugin.debugAddress' => '调试地址',
-			'plugin.deletePluginSubtitle' => '彻底删除插件，并删除相关数据',
+			'plugin.accountLogin' => '账号登录',
+			'plugin.accountLoginSubtitle' => '前往登录',
 			'plugin.pluginSettings' => '插件设置',
 			'plugin.noUserInfo' => '暂无用户信息',
 			'plugin.operations' => '操作',
@@ -4987,12 +5009,12 @@ extension on Translations {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
 			'searchResult.enterPageNumber' => '输入页数',
 			'searchResult.pleaseEnterNumber' => '请输入数字',
+			_ => null,
+		} ?? switch (path) {
 			'searchResult.returnToTop' => '返回顶部',
 			'searchResult.jumpToPage' => '跳转页面',
 			'searchResult.jump' => '跳转',
 			'searchResult.retry' => '点击重试',
-			_ => null,
-		} ?? switch (path) {
 			'comicList.defaultTitle' => '漫画列表',
 			'comicList.missingSource' => '缺少插件来源，无法加载列表',
 			'comicList.reload' => '重新加载',
@@ -5097,6 +5119,8 @@ extension on Translations {
 			'login.loginFailed' => '登录失败',
 			'login.loginButton' => '登录',
 			'login.retry' => '重试',
+			'login.requiredFieldEmpty' => ({required Object label}) => '请填写 ${label}',
+			'login.loginNotSupported' => '该插件暂未适配新版登录页，请前往插件设置中填写账号信息',
 			'fontSetting.title' => '字体设置',
 			'fontSetting.clear' => '清空',
 			'fontSetting.hint' => '按字重分别选择字体文件。',

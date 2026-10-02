@@ -214,6 +214,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  /// 登录提交返回值约定：`message?: string | null`，缺省/空白时用默认文案。
+  String _resolveLoginSuccessMessage(Map<String, dynamic> result) {
+    final message = result['message']?.toString().trim();
+    if (message?.isNotEmpty == true) return message!;
+    final dataMessage = asJsonMap(result['data'])['message']?.toString().trim();
+    if (dataMessage?.isNotEmpty == true) return dataMessage!;
+    return t.login.loginSuccess;
+  }
+
   void _submitForm() async {
     if (!mounted) return;
     if (_loadingScheme || _schemeError != null || _submitting) {
@@ -238,13 +247,13 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       // 新旧兼容：新插件读 core.values，旧插件读顶层 account/password。
-      await callUnifiedComicPlugin(
+      final result = await callUnifiedComicPlugin(
         from: from,
         fnPath: _submitFnPath,
         core: {...values, 'values': values},
         extern: const <String, dynamic>{},
       );
-      showSuccessToast(t.login.loginSuccess);
+      showSuccessToast(_resolveLoginSuccessMessage(result));
 
       if (!mounted) return;
       context.maybePop();

@@ -505,7 +505,7 @@ fn encode_bridge_return_value(value: Value) -> Value {
     }
 
     BRIDGE_BYTES_OUT.fetch_add(bytes.len() as u64, Ordering::Relaxed);
-    let id = native_buffer_put_raw(bytes);
+    let id = native_buffer_put_bytes(bytes);
     json!({
         "__hostProtocol": BRIDGE_BINARY_PROTOCOL,
         "__hostReturnKind": "bytes",
@@ -532,7 +532,7 @@ fn bridge_call_inner(
         }
         "native.put" => {
             let bytes = parse_u8_json_value(require_arg(&args, 0, "bytes")?)?;
-            let id = native_buffer_put_raw(bytes);
+            let id = native_buffer_put_bytes(bytes);
             Ok(json!(id))
         }
         "native.take" => {
@@ -591,7 +591,7 @@ async fn bridge_call_inner_async(
         }
         "native.put" => {
             let bytes = parse_u8_json_value(require_arg(&args, 0, "bytes")?)?;
-            let id = native_buffer_put_raw(bytes);
+            let id = native_buffer_put_bytes(bytes);
             Ok(json!(id))
         }
         "native.take" => {

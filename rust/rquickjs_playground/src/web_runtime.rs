@@ -85,7 +85,9 @@ use self::fs_ops::{
 use self::http::{
     HttpClientState, cleanup_stale_pending, cleanup_stale_pending_abort, http_io_sem,
 };
-use self::native_buffer::{NATIVE_BUF_ID, native_pool, start_native_buffer_gc_loop};
+use self::native_buffer::{
+    NATIVE_BUF_ID, native_buffer_put_bytes, native_pool, start_native_buffer_gc_loop,
+};
 use self::state::cleanup_stale_fetch_state;
 
 const WEB_POLYFILL_CORE: &str = concat!(
@@ -784,7 +786,7 @@ fn base64_decode_to_native_buffer(ctx: Ctx, text: String) -> rquickjs::Result<u6
     let bytes = BASE64_STANDARD
         .decode(text.as_bytes())
         .map_err(|e| map_crypto_err(&ctx, anyhow!(crate::tr!("base64-decode-failed-2", e = e))))?;
-    Ok(native_buffer_put_raw(bytes))
+    Ok(native_buffer_put_bytes(bytes))
 }
 const LOG_MAX_PENDING: u64 = 16_384;
 

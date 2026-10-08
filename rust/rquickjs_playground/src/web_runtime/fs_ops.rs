@@ -1,4 +1,4 @@
-use super::native_buffer::{native_buffer_put_raw, native_buffer_take_raw};
+use super::native_buffer::{native_buffer_put_bytes, native_buffer_take_raw};
 
 pub(crate) fn fs_task_dispatch(op: String, args_json: String) -> String {
     let args: Vec<Value> = match serde_json::from_str(&args_json) {
@@ -212,7 +212,7 @@ pub fn fs_read_file(path: String, encoding: Option<String>) -> String {
         Ok(bytes) => {
             let encoding = normalize_encoding(encoding);
             if encoding.is_empty() {
-                let native_buffer_id = native_buffer_put_raw(bytes);
+                let native_buffer_id = native_buffer_put_bytes(bytes);
                 json!({
                     "ok": true,
                     "kind": "native",

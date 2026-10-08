@@ -87,10 +87,19 @@
     if (bytes) {
       if (
         typeof globalThis.__native_buffer_put_raw === "function"
+        || typeof globalThis.__native_buffer_put_binary === "function"
         || typeof globalThis.__native_buffer_put === "function"
       ) {
+        // put_raw / put_binary 现均接受 TypedArray（Rust 侧 QjsValue 手动分发），
+        // 直接传 bytes，一次 memcpy 入池。不再 Array.from 走 JSON。
         let id = null;
-        if (typeof globalThis.__native_buffer_put_raw === "function") {
+        if (typeof globalThis.__native_buffer_put_binary === "function") {
+          try {
+            id = globalThis.__native_buffer_put_binary(bytes);
+          } catch (_) {
+          }
+        }
+        if ((id === null || id === undefined) && typeof globalThis.__native_buffer_put_raw === "function") {
           try {
             id = globalThis.__native_buffer_put_raw(bytes);
           } catch (_) {

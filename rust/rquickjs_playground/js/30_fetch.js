@@ -361,17 +361,26 @@
         const id = Number(this.nativeBufferId);
         this.nativeBufferId = null;
         return globalThis.native.take(id).then((bytes) => {
-          const out = new Uint8Array(bytes.length);
-          out.set(bytes);
-          Object.defineProperty(out.buffer, "__breezeHttpStatus", {
+          // take 出来的 buffer 已是调用方独占（take 即从池删除），直接挂
+          // metadata 返回，不再 new + set 复制一次。注意 take 的回退路径
+          // 可能返回非全包 view，此时 slice 出恰好大小的独占 buffer。
+          let buffer = bytes.buffer instanceof ArrayBuffer ? bytes.buffer : null;
+          if (
+            !buffer
+            || bytes.byteOffset !== 0
+            || bytes.byteLength !== buffer.byteLength
+          ) {
+            buffer = bytes.slice(0).buffer;
+          }
+          Object.defineProperty(buffer, "__breezeHttpStatus", {
             value: this.status,
             enumerable: false,
           });
-          Object.defineProperty(out.buffer, "__breezeHttpBodyLength", {
+          Object.defineProperty(buffer, "__breezeHttpBodyLength", {
             value: this.offloadedBytes,
             enumerable: false,
           });
-          return out.buffer;
+          return buffer;
         });
       }
       const produce = () => {

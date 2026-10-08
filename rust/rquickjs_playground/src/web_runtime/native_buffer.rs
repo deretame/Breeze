@@ -82,22 +82,32 @@ fn parse_u8_json_array(data_json: &str) -> AnyResult<Vec<u8>> {
     Ok(out)
 }
 
-pub fn native_buffer_put_binary(value: QjsValue) -> rquickjs::Result<u64> {
-    let bytes: Vec<u8> = if let Ok(ta) = rquickjs::TypedArray::<u8>::from_value(value.clone()) {
-        ta.as_bytes().map(|b| b.to_vec()).unwrap_or_default()
-    } else if let Some(ab) = rquickjs::ArrayBuffer::from_value(value.clone()) {
-        ab.as_bytes().map(|b| b.to_vec()).unwrap_or_default()
-    } else if let Some(arr) = rquickjs::Object::from_value(value)?.into_array() {
-        arr.iter::<u8>().collect::<rquickjs::Result<Vec<u8>>>()?
-    } else {
-        return Err(rquickjs::Error::new_from_js_message(
-            "binary object",
-            "Vec<u8>",
-            "expected ArrayBuffer, TypedArray, or byte array",
-        ));
-    };
+/// 从 JS 值提取字节（TypedArray / ArrayBuffer / 普通字节数组均可）。
+///
+/// 为什么不用 `Vec<u8>` 签名：rquickjs 里 `Vec<T>` 只能从真 Array 逐元素
+/// collect，`Uint8Array` 的 `type_of()` 是 Object，接不住会抛异常；
+/// JS 侧一旦传 TypedArray 就掉进 JSON 回退（见 `js/60_native.js` 的 put）。
+/// 这里手动分发，TypedArray/ArrayBuffer 走一次 `memcpy`，普通数组才逐元素收集。
+fn extract_bytes_from_js_value(value: QjsValue) -> rquickjs::Result<Vec<u8>> {
+    if let Ok(ta) = rquickjs::TypedArray::<u8>::from_value(value.clone()) {
+        return Ok(ta.as_bytes().map(|b| b.to_vec()).unwrap_or_default());
+    }
+    if let Some(ab) = rquickjs::ArrayBuffer::from_value(value.clone()) {
+        return Ok(ab.as_bytes().map(|b| b.to_vec()).unwrap_or_default());
+    }
+    if let Some(arr) = rquickjs::Object::from_value(value)?.into_array() {
+        return arr.iter::<u8>().collect::<rquickjs::Result<Vec<u8>>>();
+    }
+    Err(rquickjs::Error::new_from_js_message(
+        "binary object",
+        "Vec<u8>",
+        "expected ArrayBuffer, TypedArray, or byte array",
+    ))
+}
 
-    Ok(native_buffer_put_raw(bytes))
+pub fn native_buffer_put_binary(value: QjsValue) -> rquickjs::Result<u64> {
+    let bytes = extract_bytes_from_js_value(value)?;
+    Ok(native_buffer_put_bytes(bytes))
 }
 
 pub fn native_buffer_put(data_json: String) -> String {
@@ -113,7 +123,8 @@ pub fn native_buffer_put(data_json: String) -> String {
     json!({ "ok": true, "id": id }).to_string()
 }
 
-pub fn native_buffer_put_raw(bytes: Vec<u8>) -> u64 {
+/// 内部快道：Rust 侧已有字节直接入池（零 JS 转换开销）。
+pub(crate) fn native_buffer_put_bytes(bytes: Vec<u8>) -> u64 {
     let id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
     let mut pool = native_pool()
         .lock()
@@ -122,11 +133,19 @@ pub fn native_buffer_put_raw(bytes: Vec<u8>) -> u64 {
     id
 }
 
+/// JS 可调用：TypedArray / ArrayBuffer / 字节数组均可，不再经 JSON 回退。
+pub fn native_buffer_put_raw(value: QjsValue) -> rquickjs::Result<u64> {
+    let bytes = extract_bytes_from_js_value(value)?;
+    Ok(native_buffer_put_bytes(bytes))
+}
+
+/// JS 可调用：同上，附带 HTTP 响应元数据。
 pub fn native_buffer_put_raw_with_http_response(
-    bytes: Vec<u8>,
+    value: QjsValue,
     status_code: u16,
     body_length: u64,
-) -> u64 {
+) -> rquickjs::Result<u64> {
+    let bytes = extract_bytes_from_js_value(value)?;
     let id = NATIVE_BUF_ID.fetch_add(1, Ordering::Relaxed);
     let mut pool = native_pool()
         .lock()
@@ -141,7 +160,7 @@ pub fn native_buffer_put_raw_with_http_response(
             },
         ),
     );
-    id
+    Ok(id)
 }
 
 pub fn native_buffer_take(id: u64) -> String {

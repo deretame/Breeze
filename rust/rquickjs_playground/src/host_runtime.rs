@@ -1665,9 +1665,10 @@ fn build_bundle_call_once_script(
                   }}
                 }} catch (_err) {{}}
               }}
+              // put_raw 现接受 TypedArray，直接传 bytes（一次 memcpy），不再 Array.from。
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put_raw === "function") {{
                 try {{
-                  id = globalThis.__native_buffer_put_raw(Array.from(bytes));
+                  id = globalThis.__native_buffer_put_raw(bytes);
                 }} catch (_err) {{}}
               }}
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put === "function") {{
@@ -1867,9 +1868,10 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
                   }}
                 }} catch (_err) {{}}
               }}
+              // put_raw 现接受 TypedArray，直接传 bytes（一次 memcpy），不再 Array.from。
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put_raw === "function") {{
                 try {{
-                  id = globalThis.__native_buffer_put_raw(Array.from(bytes));
+                  id = globalThis.__native_buffer_put_raw(bytes);
                 }} catch (_err) {{}}
               }}
               if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put === "function") {{

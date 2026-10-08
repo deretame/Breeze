@@ -707,6 +707,83 @@ fn native_buffer_put_binary_accepts_byte_array() {
 }
 
 #[test]
+fn native_buffer_put_raw_accepts_typed_array_without_json_fallback() {
+    // 根治验证：put_raw 签名改为 QjsValue 手动分发后，传 Uint8Array
+    // 必须一次 memcpy 入池，不再抛异常掉进 JSON.stringify 回退。
+    let script = r#"
+      (async () => {
+        const input = new Uint8Array([1, 2, 3, 255]);
+        const id = await native.put(input);
+        const out = await native.take(id);
+        return JSON.stringify({
+          idType: typeof id,
+          len: out.length,
+          v0: out[0],
+          v1: out[1],
+          v2: out[2],
+          v3: out[3]
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
+    assert_eq!(parsed["idType"], "number");
+    assert_eq!(parsed["len"], 4);
+    assert_eq!(parsed["v0"], 1);
+    assert_eq!(parsed["v1"], 2);
+    assert_eq!(parsed["v2"], 3);
+    assert_eq!(parsed["v3"], 255);
+}
+
+#[test]
+fn native_buffer_put_raw_accepts_array_buffer_and_plain_array() {
+    let script = r#"
+      (async () => {
+        const fromAb = __native_buffer_put_raw(new Uint8Array([4, 5, 6]).buffer);
+        const fromArr = __native_buffer_put_raw([7, 8, 9]);
+        const outAb = __native_buffer_take_raw(fromAb);
+        const outArr = __native_buffer_take_raw(fromArr);
+        return JSON.stringify({
+          abLen: outAb.length,
+          ab0: outAb[0],
+          arrLen: outArr.length,
+          arr0: outArr[0]
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
+    assert_eq!(parsed["abLen"], 3);
+    assert_eq!(parsed["ab0"], 4);
+    assert_eq!(parsed["arrLen"], 3);
+    assert_eq!(parsed["arr0"], 7);
+}
+
+#[test]
+fn bridge_native_put_accepts_typed_array_arg() {
+    // kit 的 nativePut 走 bridge.call("native.put")，参数经 normalizeArg。
+    // 根治后大 TypedArray 参数应一次 memcpy 入池，不再 JSON 化撞 8MB 上限。
+    let script = r#"
+      (async () => {
+        const input = new Uint8Array(1024);
+        for (let i = 0; i < input.length; i += 1) input[i] = i & 255;
+        const id = await bridge.call("native.put", input);
+        const out = await bridge.call("native.take", Number(id));
+        return JSON.stringify({ len: out.length, v0: out[0], v255: out[255], v256: out[256] });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect(&crate::tr!("failed-to-execute-script"));
+    let parsed: Value = serde_json::from_str(&result).expect(&crate::tr!("failed-to-parse-result"));
+    assert_eq!(parsed["len"], 1024);
+    assert_eq!(parsed["v0"], 0);
+    assert_eq!(parsed["v255"], 255);
+    assert_eq!(parsed["v256"], 0);
+}
+
+#[test]
 fn bridge_args_size_limit_returns_structured_error() {
     let script = r#"
       (async () => {

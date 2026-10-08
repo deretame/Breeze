@@ -50,6 +50,17 @@
       } catch (_) {
       }
     }
+    // put_raw 现已接受 TypedArray（Rust 侧 QjsValue 手动分发），直接传 arr，
+    // 不再 Array.from。put_binary 与之同构，留作旧运行时的兼容快道。
+    if (typeof globalThis.__native_buffer_put_binary === "function") {
+      try {
+        const id = globalThis.__native_buffer_put_binary(arr);
+        if (typeof id === "number" && Number.isFinite(id) && id > 0) {
+          return id;
+        }
+      } catch (_) {
+      }
+    }
     if (typeof globalThis.__native_buffer_put_raw === "function") {
       try {
         const id = globalThis.__native_buffer_put_raw(arr);

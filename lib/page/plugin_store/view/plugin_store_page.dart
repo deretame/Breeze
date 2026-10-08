@@ -125,7 +125,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
     final displayPlugins = state.cloudPlugins.where((item) {
       if (query.isEmpty) return true;
       final name = item.manifest.name.toLowerCase();
-      final creator = item.manifest.creatorName.toLowerCase();
+      final creator = item.manifest.authorOf(item.repo).toLowerCase();
       final repo = item.repo.toLowerCase();
       return name.contains(query) ||
           creator.contains(query) ||

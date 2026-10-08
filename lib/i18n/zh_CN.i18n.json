@@ -657,6 +657,8 @@
     "debugAddress": "调试地址",
     "accountLogin": "账号登录",
     "accountLoginSubtitle": "前往登录",
+    "pluginDetail": "插件详情",
+    "pluginDetailSubtitle": "查看插件介绍与主页",
     "pluginSettings": "插件设置",
     "noUserInfo": "暂无用户信息",
     "operations": "操作",

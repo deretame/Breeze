@@ -24,6 +24,7 @@ class PluginSettingsContent extends StatelessWidget {
     required this.onConfirmDeletePlugin,
     required this.onUpdatePlugin,
     required this.onOpenLoginPage,
+    required this.onOpenDetailPage,
     required this.onCommitField,
     required this.onRunAction,
   });
@@ -41,6 +42,7 @@ class PluginSettingsContent extends StatelessWidget {
   final Future<void> Function() onConfirmDeletePlugin;
   final Future<void> Function() onUpdatePlugin;
   final Future<void> Function() onOpenLoginPage;
+  final Future<void> Function() onOpenDetailPage;
   final Future<void> Function(Map<String, dynamic> field, dynamic value)
   onCommitField;
   final Future<void> Function(Map<String, dynamic> action) onRunAction;
@@ -51,6 +53,7 @@ class PluginSettingsContent extends StatelessWidget {
       children: [
         // 插件自身设置优先，宿主管理项沉底
         ..._buildBodySections(context),
+        if (state.detailSupported) _buildDetailSection(),
         _buildManagementSection(context),
       ],
     );
@@ -78,11 +81,26 @@ class PluginSettingsContent extends StatelessWidget {
   }
 
   Widget _buildLoginRow() {
+    final title = state.loginTitle.trim().isEmpty
+        ? t.plugin.accountLogin
+        : state.loginTitle.trim();
+    final subtitle = state.loginSubtitle.trim().isEmpty
+        ? t.plugin.accountLoginSubtitle
+        : state.loginSubtitle.trim();
     return PluginSettingsFieldRow(
-      title: t.plugin.accountLogin,
-      subtitle: t.plugin.accountLoginSubtitle,
+      title: title,
+      subtitle: subtitle,
       trailing: const Icon(Icons.login, size: 18),
       onTap: deleted ? null : onOpenLoginPage,
+    );
+  }
+
+  Widget _buildDetailRow() {
+    return PluginSettingsFieldRow(
+      title: t.plugin.pluginDetail,
+      subtitle: t.plugin.pluginDetailSubtitle,
+      trailing: const Icon(Icons.info_outline, size: 18),
+      onTap: deleted ? null : onOpenDetailPage,
     );
   }
 
@@ -240,6 +258,17 @@ class PluginSettingsContent extends StatelessWidget {
         title: t.plugin.userInfoTitle,
         colorScheme: colorScheme,
         children: [_buildLoginRow()],
+      ),
+    );
+  }
+
+  Widget _buildDetailSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: PluginSettingsSectionCard(
+        title: t.plugin.pluginDetail,
+        colorScheme: colorScheme,
+        children: [_buildDetailRow()],
       ),
     );
   }

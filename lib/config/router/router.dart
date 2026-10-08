@@ -62,6 +62,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: DownloadTaskRoute.page),
     AutoRoute(page: PluginStoreRoute.page),
     AutoRoute(page: PluginSettingsRoute.page),
+    AutoRoute(page: PluginDetailRoute.page),
     AutoRoute(page: PluginFunctionRoute.page),
     AutoRoute(page: OldHomeRoute.page),
     AutoRoute(page: OldRankingRoute.page),

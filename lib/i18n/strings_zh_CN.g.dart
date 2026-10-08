@@ -2075,6 +2075,12 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '前往登录'
 	String get accountLoginSubtitle => '前往登录';
 
+	/// zh-CN: '插件详情'
+	String get pluginDetail => '插件详情';
+
+	/// zh-CN: '查看插件介绍与主页'
+	String get pluginDetailSubtitle => '查看插件介绍与主页';
+
 	/// zh-CN: '插件设置'
 	String get pluginSettings => '插件设置';
 
@@ -4627,6 +4633,8 @@ extension on Translations {
 			'plugin.debugAddress' => '调试地址',
 			'plugin.accountLogin' => '账号登录',
 			'plugin.accountLoginSubtitle' => '前往登录',
+			'plugin.pluginDetail' => '插件详情',
+			'plugin.pluginDetailSubtitle' => '查看插件介绍与主页',
 			'plugin.pluginSettings' => '插件设置',
 			'plugin.noUserInfo' => '暂无用户信息',
 			'plugin.operations' => '操作',
@@ -5007,10 +5015,10 @@ extension on Translations {
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
-			'searchResult.enterPageNumber' => '输入页数',
-			'searchResult.pleaseEnterNumber' => '请输入数字',
 			_ => null,
 		} ?? switch (path) {
+			'searchResult.enterPageNumber' => '输入页数',
+			'searchResult.pleaseEnterNumber' => '请输入数字',
 			'searchResult.returnToTop' => '返回顶部',
 			'searchResult.jumpToPage' => '跳转页面',
 			'searchResult.jump' => '跳转',

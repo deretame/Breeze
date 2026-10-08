@@ -488,6 +488,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
             onConfirmDeletePlugin: _confirmDeletePlugin,
             onUpdatePlugin: _updatePlugin,
             onOpenLoginPage: _openLoginPage,
+            onOpenDetailPage: _openDetailPage,
             onCommitField: _commitField,
             onRunAction: (action) => _runAction(context, action),
           ),
@@ -502,6 +503,16 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       return;
     }
     await context.read<PluginSettingsCubit>().load(widget.from);
+  }
+
+  Future<void> _openDetailPage() async {
+    await context.pushRoute(
+      PluginDetailRoute(
+        from: widget.from,
+        pluginUuid: widget.pluginUuid,
+        pluginDisplayName: widget.pluginDisplayName,
+      ),
+    );
   }
 
   Future<void> _syncPlugin() async {

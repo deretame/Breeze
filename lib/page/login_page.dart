@@ -44,6 +44,7 @@ class _LoginFieldSpec {
 
 class _LoginPageState extends State<LoginPage> {
   final Map<String, TextEditingController> _controllers = {};
+  final Set<String> _revealedSecrets = {};
 
   String title = '';
   late String from;
@@ -343,6 +344,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildField(_LoginFieldSpec spec) {
     final controller = _controllers[spec.key];
+    final revealed = _revealedSecrets.contains(spec.key);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -352,8 +354,24 @@ class _LoginPageState extends State<LoginPage> {
             labelText: spec.required ? '${spec.label} *' : spec.label,
             hintText: spec.placeholder.isEmpty ? null : spec.placeholder,
             border: const OutlineInputBorder(),
+            suffixIcon: spec.obscure
+                ? IconButton(
+                    onPressed: () {
+                      setState(() {
+                        if (revealed) {
+                          _revealedSecrets.remove(spec.key);
+                        } else {
+                          _revealedSecrets.add(spec.key);
+                        }
+                      });
+                    },
+                    icon: Icon(
+                      revealed ? Icons.visibility : Icons.visibility_off,
+                    ),
+                  )
+                : null,
           ),
-          obscureText: spec.obscure,
+          obscureText: spec.obscure && !revealed,
           maxLines: spec.multiline ? 5 : 1,
           minLines: spec.multiline ? 3 : 1,
         ),

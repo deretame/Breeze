@@ -105,16 +105,11 @@ class PluginCard extends StatelessWidget {
     final rawFunctions = asJsonList(
       info['functions'] ?? info['function'] ?? const <dynamic>[],
     ).map((item) => asJsonMap(item)).toList();
-    final creator = asJsonMap(info['creator']);
     final pluginName = info['name']?.toString().trim() ?? '';
-    final creatorName = creator['name']?.toString().trim() ?? '';
     final title = pluginName.isNotEmpty
         ? pluginName
-        : (creatorName.isNotEmpty ? creatorName : t.discover.pluginCapability);
-    final iconUrl =
-        info['iconUrl']?.toString().trim() ??
-        creator['coverUrl']?.toString().trim() ??
-        '';
+        : t.discover.pluginCapability;
+    final iconUrl = info['iconUrl']?.toString().trim() ?? '';
     final iconWidget = ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: PluginIcon(

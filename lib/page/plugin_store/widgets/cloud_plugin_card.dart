@@ -26,10 +26,8 @@ class CloudPluginCard extends StatelessWidget {
         ? PluginRegistryService.I.getByUuid(manifest.uuid)
         : null;
     final isInstalled = localState != null && !localState.isDeleted;
-    final isActive =
-        localState != null && localState.isEnabled && !localState.isDeleted;
     final localVersion = localState?.version.trim() ?? '';
-    final creatorText = manifest.creatorName.trim();
+    final creatorText = manifest.authorOf(item.repo);
     final title = manifest.name.trim().isNotEmpty
         ? manifest.name.trim()
         : item.repo;
@@ -74,7 +72,7 @@ class CloudPluginCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isActive && localVersion.isNotEmpty
+                      isInstalled && localVersion.isNotEmpty
                           ? '${t.plugin.cloudVersion(version: manifest.version)}  ·  ${t.plugin.localVersion(version: localVersion)}'
                           : t.plugin.cloudVersion(version: manifest.version),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(

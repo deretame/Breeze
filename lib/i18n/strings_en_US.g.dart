@@ -785,6 +785,8 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get debugMode => 'Debug mode';
 	@override String get accountLoginSubtitle => 'Go to login';
 	@override String get accountLogin => 'Account login';
+	@override String get pluginDetail => 'Plugin detail';
+	@override String get pluginDetailSubtitle => 'View description and homepage';
 	@override String get pluginSettings => 'Plugin settings';
 	@override String get noUserInfo => 'No user info';
 	@override String get operations => 'Operations';
@@ -2226,6 +2228,8 @@ extension on TranslationsEnUs {
 			'plugin.debugMode' => 'Debug mode',
 			'plugin.accountLoginSubtitle' => 'Go to login',
 			'plugin.accountLogin' => 'Account login',
+			'plugin.pluginDetail' => 'Plugin detail',
+			'plugin.pluginDetailSubtitle' => 'View description and homepage',
 			'plugin.pluginSettings' => 'Plugin settings',
 			'plugin.noUserInfo' => 'No user info',
 			'plugin.operations' => 'Operations',
@@ -2608,10 +2612,10 @@ extension on TranslationsEnUs {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
 			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
-			'searchResult.returnToTop' => 'Return to top',
-			'searchResult.jumpToPage' => 'Jump to page',
 			_ => null,
 		} ?? switch (path) {
+			'searchResult.returnToTop' => 'Return to top',
+			'searchResult.jumpToPage' => 'Jump to page',
 			'searchResult.jump' => 'Jump',
 			'searchResult.retry' => 'Tap to retry',
 			'comicList.defaultTitle' => 'Comic List',

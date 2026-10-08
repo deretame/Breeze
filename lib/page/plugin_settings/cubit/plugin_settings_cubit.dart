@@ -17,6 +17,9 @@ class PluginSettingsState {
     this.userInfo = const <String, dynamic>{},
     this.canShowUserInfo = false,
     this.loginSupported = false,
+    this.loginTitle = '',
+    this.loginSubtitle = '',
+    this.detailSupported = false,
     this.loadingUserInfo = false,
     this.userInfoError = '',
   });
@@ -29,6 +32,9 @@ class PluginSettingsState {
   final Map<String, dynamic> userInfo;
   final bool canShowUserInfo;
   final bool loginSupported;
+  final String loginTitle;
+  final String loginSubtitle;
+  final bool detailSupported;
   final bool loadingUserInfo;
   final String userInfoError;
   PluginSettingsState copyWith({
@@ -40,6 +46,9 @@ class PluginSettingsState {
     Map<String, dynamic>? userInfo,
     bool? canShowUserInfo,
     bool? loginSupported,
+    String? loginTitle,
+    String? loginSubtitle,
+    bool? detailSupported,
     bool? loadingUserInfo,
     String? userInfoError,
   }) {
@@ -52,6 +61,9 @@ class PluginSettingsState {
       userInfo: userInfo ?? this.userInfo,
       canShowUserInfo: canShowUserInfo ?? this.canShowUserInfo,
       loginSupported: loginSupported ?? this.loginSupported,
+      loginTitle: loginTitle ?? this.loginTitle,
+      loginSubtitle: loginSubtitle ?? this.loginSubtitle,
+      detailSupported: detailSupported ?? this.detailSupported,
       loadingUserInfo: loadingUserInfo ?? this.loadingUserInfo,
       userInfoError: userInfoError ?? this.userInfoError,
     );
@@ -108,6 +120,11 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
           userInfo: const <String, dynamic>{},
           canShowUserInfo: canShowUserInfo,
           loginSupported: loginSupported,
+          loginTitle: _resolveLoginText(settingsEnvelope.data['loginTitle']),
+          loginSubtitle: _resolveLoginText(
+            settingsEnvelope.data['loginSubtitle'],
+          ),
+          detailSupported: settingsEnvelope.data['canShowDetail'] == true,
           userInfoError: '',
           actions: actions,
         ),
@@ -126,8 +143,10 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
     }
   }
 
+  /// 登录入口文案：插件可经 `loginTitle` / `loginSubtitle` 自定义，空白回退宿主默认。
+  String _resolveLoginText(dynamic value) => value?.toString().trim() ?? '';
+
   /// 插件在 getSettingsBundle 的 data 中声明 `canLogin: true` 即支持登录。
-  /// 未声明时用 getLoginBundle 探测一次，兼容 JM / Bika 等旧插件。
   Future<bool> _resolveLoginSupported(
     String from,
     Map<String, dynamic> data,

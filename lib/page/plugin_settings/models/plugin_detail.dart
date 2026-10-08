@@ -1,7 +1,7 @@
 import 'package:zephyr/util/json/json_value.dart';
 
 /// 新插件详情页数据：`getPluginDetail` 返回体。
-/// `describe` 为一句话简介，长文说明走可选 `markdown`（md 渲染）。
+/// `describe` 支持 md 渲染。
 class PluginDetail {
   const PluginDetail({
     required this.source,
@@ -9,7 +9,6 @@ class PluginDetail {
     this.creatorName = '',
     this.creatorDescribe = '',
     this.creatorIconUrl = '',
-    this.markdown = '',
     this.home = '',
   });
 
@@ -18,7 +17,6 @@ class PluginDetail {
   final String creatorName;
   final String creatorDescribe;
   final String creatorIconUrl;
-  final String markdown;
   final String home;
 
   factory PluginDetail.fromMap(Map<String, dynamic> map) {
@@ -30,7 +28,6 @@ class PluginDetail {
       creatorName: creator['name']?.toString().trim() ?? '',
       creatorDescribe: creator['describe']?.toString().trim() ?? '',
       creatorIconUrl: creator['iconUrl']?.toString().trim() ?? '',
-      markdown: data['markdown']?.toString().trim() ?? '',
       home: data['home']?.toString().trim() ?? '',
     );
   }

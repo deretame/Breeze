@@ -156,24 +156,14 @@ class _PluginDetailPageState extends State<PluginDetailPage> {
           padding: const EdgeInsets.all(16),
           children: [
             _buildCenterHeader(colorScheme, detail),
-            if (detail.describe.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                detail.describe,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
             if (detail.creatorName.isNotEmpty ||
                 detail.creatorDescribe.isNotEmpty) ...[
               const SizedBox(height: 16),
               _buildAuthorCard(colorScheme, detail, markdownConfig),
             ],
-            if (detail.markdown.isNotEmpty) ...[
+            if (detail.describe.isNotEmpty) ...[
               const SizedBox(height: 16),
-              _buildMarkdownCard(markdownConfig, detail.markdown),
+              _buildMarkdownCard(markdownConfig, detail.describe),
             ],
             if (home.isNotEmpty) ...[
               const SizedBox(height: 16),

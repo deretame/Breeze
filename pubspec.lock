@@ -85,10 +85,10 @@ packages:
     dependency: "direct main"
     description:
       name: battery_plus
-      sha256: "3853aa1e18ea1d15493dd1d3edac05770b4b95c1e691fb85934c5fd3b1ac0fcc"
+      sha256: "49f75523cd5461a44202d67c5e1c73b790f16a822475b6f116d50714cd64a0ab"
       url: "https://pub.dev"
     source: hosted
-    version: "7.1.1"
+    version: "7.1.2"
   battery_plus_platform_interface:
     dependency: transitive
     description:
@@ -173,10 +173,10 @@ packages:
     dependency: transitive
     description:
       name: built_collection
-      sha256: "376e3dd27b51ea877c28d525560790aee2e6fbb5f20e2f85d5081027d94e2100"
+      sha256: "44922ecebd8e3d0cef743dadd3b54df4e87e2a4c52a29465a1872aa9e192caa8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.1"
+    version: "5.1.2"
   built_value:
     dependency: transitive
     description:
@@ -316,10 +316,10 @@ packages:
     dependency: transitive
     description:
       name: cupertino_ui
-      sha256: c23816577a1280cff409e989541767887011f8f1d8c1863a794ed308af46f2a9
+      sha256: ea0b8170b40a86262b2fc21ac0625303f52df209dbf6fccc2b98b27eff44f6ce
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.1.2"
   dart_style:
     dependency: transitive
     description:
@@ -347,10 +347,10 @@ packages:
     dependency: "direct main"
     description:
       name: device_info_plus
-      sha256: "0891702f96b2e465fe567b7ec448380e6b1c14f60af552a8536d9f583b6b8442"
+      sha256: ade1c36f8355d6284c98e4a47992ea263887ed3d1acb281e37635dd45f04c4aa
       url: "https://pub.dev"
     source: hosted
-    version: "13.2.0"
+    version: "13.3.0"
   device_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -371,10 +371,10 @@ packages:
     dependency: "direct main"
     description:
       name: easy_refresh
-      sha256: "513a5dc82c044f8a9c9a3d600b3d5d3256070575bfd8761940533d8e209ba79b"
+      sha256: e8a3c60f940b53d7fb8365d5f14fbf2c2b157ba69f947dcccebed41736b0aacf
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.1"
+    version: "4.0.0"
   encrypter_plus:
     dependency: "direct main"
     description:
@@ -706,10 +706,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_shaders
-      sha256: "34794acadd8275d971e02df03afee3dee0f98dbfb8c4837082ad0034f612a3e2"
+      sha256: "16cd456daf2fd6ed7ac0c5168716c5e2fe18f91d82631b775f1af9100fb3f586"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.3"
+    version: "0.1.5"
   flutter_socks_proxy:
     dependency: "direct main"
     description:
@@ -756,10 +756,10 @@ packages:
     dependency: transitive
     description:
       name: frontend_server_client
-      sha256: f64a0333a82f30b0cca061bc3d143813a486dc086b574bfb233b7c1372427694
+      sha256: "404dbf9bce29beafbe9dcb19219447b6f7d49900cd42b8d3b7af102b24508e25"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.0"
+    version: "4.1.0"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
@@ -1038,10 +1038,10 @@ packages:
     dependency: "direct main"
     description:
       name: material_ui
-      sha256: "134ab2f0843545c4e661e4ba2753fe1bcf0753cb690d5a9ee4870638a40411e9"
+      sha256: "98ab9eda579ecae623e4b376c603035c5def78ce706f735f30bd632af5814695"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.6.0"
   meta:
     dependency: "direct overridden"
     description:
@@ -1127,10 +1127,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: ad56fd53a78ff6b1472fa59ff2a4e8b8ccabafc586fc263a1dfad0b99b5553e3
+      sha256: "5c80c2ad6e2c0397de5db38c6d653e69616a3397e13aa7633bf39eb668f2041b"
       url: "https://pub.dev"
     source: hosted
-    version: "9.6.0"
+    version: "9.6.2"
   open_file:
     dependency: "direct main"
     description:
@@ -1207,10 +1207,10 @@ packages:
     dependency: "direct main"
     description:
       name: package_info_plus
-      sha256: "127e1751e37ffb2ff4658beeaca77bad0c27bf5f932bd3a501c2296926d4b481"
+      sha256: "73ef2cd5c11a7548f9b7f6fc2a4f6113de2e64aa2a70de63feede95548822908"
       url: "https://pub.dev"
     source: hosted
-    version: "10.2.1"
+    version: "10.2.2"
   package_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -1368,10 +1368,10 @@ packages:
     dependency: transitive
     description:
       name: petitparser
-      sha256: "91bd59303e9f769f108f8df05e371341b15d59e995e6806aefab827b58336675"
+      sha256: "2f1564aadb14215e478563b5406cb80729d022158c01dc50c96013c2f7eb4790"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.2"
+    version: "7.1.0"
   photo_view:
     dependency: "direct main"
     description:
@@ -1528,10 +1528,10 @@ packages:
     dependency: transitive
     description:
       name: sentry
-      sha256: ab4c2b5874b201cd92e1d31daef67b82dcd2ad4b6ab06aea94c4fb6bc5b4b8cd
+      sha256: "9af537233fc1bb2219bb6d105194a436be52a1acec088ddf1208cffab8b8699c"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.0-rc.0"
+    version: "10.0.0-rc.2"
   sentry_dart_plugin:
     dependency: "direct dev"
     description:
@@ -1544,10 +1544,10 @@ packages:
     dependency: "direct main"
     description:
       name: sentry_flutter
-      sha256: "80adf158dd940eb265a89306133d37b8de1b30c45ddf73c8ba7e61f4f3345057"
+      sha256: b76e71b908736998defa2c253de97f4e0a9bd3989da8496b5c0f41f980ebc29a
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.0-rc.0"
+    version: "10.0.0-rc.2"
   serial_csv:
     dependency: transitive
     description:
@@ -1560,10 +1560,10 @@ packages:
     dependency: "direct main"
     description:
       name: shared_preferences
-      sha256: c3025c5534b01739267eb7d76959bbc25a6d10f6988e1c2a3036940133dd10bf
+      sha256: "1e85e0dccf5b4a016077fea7dfbb4a7cb39c759ac1596fcf60c06deadb7da91f"
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.5"
+    version: "2.5.6"
   shared_preferences_android:
     dependency: transitive
     description:
@@ -1797,10 +1797,10 @@ packages:
     dependency: "direct main"
     description:
       name: url_launcher
-      sha256: f6a7e5c4835bb4e3026a04793a4199ca2d14c739ec378fdfe23fc8075d0439f8
+      sha256: e8cc955c97e06df9879140a1fe301f3d493f01b7c62dec7f46834be31d7e9fda
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.2"
+    version: "6.3.3"
   url_launcher_android:
     dependency: transitive
     description:

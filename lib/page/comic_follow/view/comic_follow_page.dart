@@ -508,20 +508,6 @@ class _FollowCard extends StatelessWidget {
         if (hasUnreadUpdate) ...[
           const SizedBox(width: 8),
           _UnreadPill(count: unreadChapterCount),
-        ] else if (follow.hasUpdate && follow.detectedChapterCount > 0) ...[
-          // 已读完最新：小圆点表示“刚更新过”，不抢视觉。
-          const SizedBox(width: 8),
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
         ],
       ],
     );

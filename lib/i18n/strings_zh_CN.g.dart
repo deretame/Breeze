@@ -3482,8 +3482,8 @@ class Translations$comicFollow$zh_CN {
 	/// zh-CN: '最后阅读'
 	String get lastRead => '最后阅读';
 
-	/// zh-CN: '最近检测更新'
-	String get lastUpdate => '最近检测更新';
+	/// zh-CN: '最近检测'
+	String get lastUpdate => '最近检测';
 
 	/// zh-CN: '检测时间：$time'
 	String checkTime({required Object time}) => '检测时间：${time}';
@@ -3536,17 +3536,17 @@ class Translations$comicFollow$zh_CN {
 	/// zh-CN: '共 $total 话'
 	String readProgressUnknown({required Object total}) => '共 ${total} 话';
 
-	/// zh-CN: '刚刚更新'
-	String get updatedJustNow => '刚刚更新';
+	/// zh-CN: '刚刚检测'
+	String get updatedJustNow => '刚刚检测';
 
-	/// zh-CN: '$minutes 分钟前更新'
-	String updatedMinutesAgo({required Object minutes}) => '${minutes} 分钟前更新';
+	/// zh-CN: '$minutes 分钟前检测'
+	String updatedMinutesAgo({required Object minutes}) => '${minutes} 分钟前检测';
 
-	/// zh-CN: '$hours 小时前更新'
-	String updatedHoursAgo({required Object hours}) => '${hours} 小时前更新';
+	/// zh-CN: '$hours 小时前检测'
+	String updatedHoursAgo({required Object hours}) => '${hours} 小时前检测';
 
-	/// zh-CN: '$days 天前更新'
-	String updatedDaysAgo({required Object days}) => '${days} 天前更新';
+	/// zh-CN: '$days 天前检测'
+	String updatedDaysAgo({required Object days}) => '${days} 天前检测';
 
 	/// zh-CN: '$minutes 分钟前读过'
 	String lastReadMinutesAgo({required Object minutes}) => '${minutes} 分钟前读过';
@@ -5056,7 +5056,7 @@ extension on Translations {
 			'comicFollow.unread' => '已更新未看',
 			'comicFollow.sort' => '排序',
 			'comicFollow.lastRead' => '最后阅读',
-			'comicFollow.lastUpdate' => '最近检测更新',
+			'comicFollow.lastUpdate' => '最近检测',
 			'comicFollow.checkTime' => ({required Object time}) => '检测时间：${time}',
 			'comicFollow.notRead' => '尚未阅读',
 			'comicFollow.lastReadChapter' => ({required Object chapter}) => '看到：${chapter}',
@@ -5074,10 +5074,10 @@ extension on Translations {
 			'comicFollow.retry' => '重试',
 			'comicFollow.readProgress' => ({required Object read, required Object total}) => '已看 ${read} / 共 ${total} 话',
 			'comicFollow.readProgressUnknown' => ({required Object total}) => '共 ${total} 话',
-			'comicFollow.updatedJustNow' => '刚刚更新',
-			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前更新',
-			'comicFollow.updatedHoursAgo' => ({required Object hours}) => '${hours} 小时前更新',
-			'comicFollow.updatedDaysAgo' => ({required Object days}) => '${days} 天前更新',
+			'comicFollow.updatedJustNow' => '刚刚检测',
+			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前检测',
+			'comicFollow.updatedHoursAgo' => ({required Object hours}) => '${hours} 小时前检测',
+			'comicFollow.updatedDaysAgo' => ({required Object days}) => '${days} 天前检测',
 			'comicFollow.lastReadMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前读过',
 			'comicFollow.lastReadHoursAgo' => ({required Object hours}) => '${hours} 小时前读过',
 			'comicFollow.lastReadDaysAgo' => ({required Object days}) => '${days} 天前读过',

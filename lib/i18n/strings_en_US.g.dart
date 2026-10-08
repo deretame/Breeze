@@ -1350,7 +1350,7 @@ class _Translations$comicFollow$en_US extends Translations$comicFollow$zh_CN {
 	@override String get unread => 'Updated and unread';
 	@override String get sort => 'Sort';
 	@override String get lastRead => 'Last read';
-	@override String get lastUpdate => 'Latest update check';
+	@override String get lastUpdate => 'Latest check';
 	@override String checkTime({required Object time}) => 'Check time: ${time}';
 	@override String get notRead => 'Not read yet';
 	@override String lastReadChapter({required Object chapter}) => 'Read to: ${chapter}';
@@ -1368,10 +1368,10 @@ class _Translations$comicFollow$en_US extends Translations$comicFollow$zh_CN {
 	@override String get retry => 'Retry';
 	@override String readProgress({required Object read, required Object total}) => '${read} of ${total} read';
 	@override String readProgressUnknown({required Object total}) => '${total} total';
-	@override String get updatedJustNow => 'Just updated';
-	@override String updatedMinutesAgo({required Object minutes}) => 'Updated ${minutes} min ago';
-	@override String updatedHoursAgo({required Object hours}) => 'Updated ${hours} h ago';
-	@override String updatedDaysAgo({required Object days}) => 'Updated ${days} d ago';
+	@override String get updatedJustNow => 'Just checked';
+	@override String updatedMinutesAgo({required Object minutes}) => 'Checked ${minutes} min ago';
+	@override String updatedHoursAgo({required Object hours}) => 'Checked ${hours} h ago';
+	@override String updatedDaysAgo({required Object days}) => 'Checked ${days} d ago';
 	@override String lastReadMinutesAgo({required Object minutes}) => 'Read ${minutes} min ago';
 	@override String lastReadHoursAgo({required Object hours}) => 'Read ${hours} h ago';
 	@override String lastReadDaysAgo({required Object days}) => 'Read ${days} d ago';
@@ -2651,7 +2651,7 @@ extension on TranslationsEnUs {
 			'comicFollow.unread' => 'Updated and unread',
 			'comicFollow.sort' => 'Sort',
 			'comicFollow.lastRead' => 'Last read',
-			'comicFollow.lastUpdate' => 'Latest update check',
+			'comicFollow.lastUpdate' => 'Latest check',
 			'comicFollow.checkTime' => ({required Object time}) => 'Check time: ${time}',
 			'comicFollow.notRead' => 'Not read yet',
 			'comicFollow.lastReadChapter' => ({required Object chapter}) => 'Read to: ${chapter}',
@@ -2669,10 +2669,10 @@ extension on TranslationsEnUs {
 			'comicFollow.retry' => 'Retry',
 			'comicFollow.readProgress' => ({required Object read, required Object total}) => '${read} of ${total} read',
 			'comicFollow.readProgressUnknown' => ({required Object total}) => '${total} total',
-			'comicFollow.updatedJustNow' => 'Just updated',
-			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => 'Updated ${minutes} min ago',
-			'comicFollow.updatedHoursAgo' => ({required Object hours}) => 'Updated ${hours} h ago',
-			'comicFollow.updatedDaysAgo' => ({required Object days}) => 'Updated ${days} d ago',
+			'comicFollow.updatedJustNow' => 'Just checked',
+			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => 'Checked ${minutes} min ago',
+			'comicFollow.updatedHoursAgo' => ({required Object hours}) => 'Checked ${hours} h ago',
+			'comicFollow.updatedDaysAgo' => ({required Object days}) => 'Checked ${days} d ago',
 			'comicFollow.lastReadMinutesAgo' => ({required Object minutes}) => 'Read ${minutes} min ago',
 			'comicFollow.lastReadHoursAgo' => ({required Object hours}) => 'Read ${hours} h ago',
 			'comicFollow.lastReadDaysAgo' => ({required Object days}) => 'Read ${days} d ago',

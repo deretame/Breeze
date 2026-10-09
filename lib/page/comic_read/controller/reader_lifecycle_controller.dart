@@ -3,8 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/page/comic_read/controller/reader_auto_read_controller.dart';
 import 'package:zephyr/page/comic_read/controller/reader_history_controller.dart';
 import 'package:zephyr/page/comic_read/controller/reader_system_ui_controller.dart';
@@ -130,7 +129,7 @@ class ReaderLifecycleController {
       readerCubit.updateMenuVisible(visible: false);
       await systemUiController.applyVisibility(false, force: true);
       if (!context.mounted) return;
-      final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+      final readSetting = context.readEffectiveReadSetting();
       volumeController.sync(readSetting, readerCubit.state.isMenuVisible);
     });
   }

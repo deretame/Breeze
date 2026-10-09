@@ -6,7 +6,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/page/comic_read/controller/reader_action_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
@@ -122,9 +121,7 @@ class ReaderInputController {
       event,
       actionController,
       reverseHorizontal: context
-          .read<GlobalSettingCubit>()
-          .state
-          .readSetting
+          .readEffectiveReadSetting()
           .reverseHorizontalPageTurn,
     );
     return handled ? KeyEventResult.handled : KeyEventResult.ignored;
@@ -135,7 +132,7 @@ class ReaderInputController {
     await Future.delayed(Duration.zero);
     if (_tapDownDetails == null || !context.mounted) return;
 
-    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final readSetting = context.readEffectiveReadSetting();
     ReaderGestureLogic.handleTap(
       actionController: actionController,
       controller: pageController,
@@ -157,7 +154,7 @@ class ReaderInputController {
   void _onDoubleTap() {
     if (!context.mounted) return;
     _tapDownDetails = null;
-    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final readSetting = context.readEffectiveReadSetting();
     if (readSetting.doubleTapZoom) {
       _onDoubleTapZoom();
       return;

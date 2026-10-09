@@ -175,6 +175,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   final TransformationController _transformationController =
       TransformationController();
   StreamSubscription<bool>? _volumeKeyPageTurnSubscription;
+  StreamSubscription<dynamic>? _perComicVolumeKeySubscription;
   StreamSubscription<ReaderState>? _einkRefreshSubscription;
   int _einkLastSlot = -1;
   int _einkTurnCount = 0;
@@ -233,6 +234,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_lifecycleController.dispose());
     _volumeKeyPageTurnSubscription?.cancel();
+    _perComicVolumeKeySubscription?.cancel();
     _einkRefreshSubscription?.cancel();
     _inputController.dispose();
     _imagePrefetchController.dispose();

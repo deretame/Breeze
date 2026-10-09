@@ -29,9 +29,8 @@ class _TapPageTurnModeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final mode = globalSettingState.readSetting.tapPageTurnMode;
+    final effective = context.watchTargetReadSetting();
+    final mode = effective.tapPageTurnMode;
 
     return _SettingsSection(
       title: t.reader.pageMode,
@@ -47,7 +46,8 @@ class _TapPageTurnModeSection extends StatelessWidget {
                 if (mode == ReaderTapPageTurnMode.fullScreen) {
                   return;
                 }
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     tapPageTurnMode: ReaderTapPageTurnMode.fullScreen,
                   ),
@@ -61,7 +61,8 @@ class _TapPageTurnModeSection extends StatelessWidget {
                 if (mode == ReaderTapPageTurnMode.leftHand) {
                   return;
                 }
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     tapPageTurnMode: ReaderTapPageTurnMode.leftHand,
                   ),
@@ -75,7 +76,8 @@ class _TapPageTurnModeSection extends StatelessWidget {
                 if (mode == ReaderTapPageTurnMode.rightHand) {
                   return;
                 }
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     tapPageTurnMode: ReaderTapPageTurnMode.rightHand,
                   ),
@@ -87,9 +89,10 @@ class _TapPageTurnModeSection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.reverseHorizontalPageTurn,
           subtitle: t.reader.reverseHorizontalPageTurnSubtitle,
-          value: globalSettingState.readSetting.reverseHorizontalPageTurn,
+          value: effective.reverseHorizontalPageTurn,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(reverseHorizontalPageTurn: value),
             );
           },
@@ -104,8 +107,7 @@ class _WebtoonTapPageTurnSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final readSetting = context.watch<GlobalSettingCubit>().state.readSetting;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final effective = context.watchTargetReadSetting();
 
     return _SettingsSection(
       title: t.reader.webtoonTapPageTurn,
@@ -113,9 +115,10 @@ class _WebtoonTapPageTurnSection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.enableWebtoonTapPageTurn,
           subtitle: t.reader.webtoonTapPageTurnSubtitle,
-          value: readSetting.tapPageTurnInWebtoon,
+          value: effective.tapPageTurnInWebtoon,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(tapPageTurnInWebtoon: value),
             );
           },
@@ -130,9 +133,7 @@ class _DoubleTapSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final readSetting = globalSettingState.readSetting;
+    final effective = context.watchTargetReadSetting();
 
     return _SettingsSection(
       title: t.reader.doubleTapAction,
@@ -140,9 +141,10 @@ class _DoubleTapSection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.doubleTapZoom,
           subtitle: t.reader.doubleTapZoomSubtitle,
-          value: readSetting.doubleTapZoom,
+          value: effective.doubleTapZoom,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(
                 doubleTapZoom: value,
                 doubleTapOpenMenu: value ? false : current.doubleTapOpenMenu,
@@ -153,9 +155,10 @@ class _DoubleTapSection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.doubleTapOpenMenu,
           subtitle: t.reader.doubleTapOpenMenuSubtitle,
-          value: readSetting.doubleTapOpenMenu,
+          value: effective.doubleTapOpenMenu,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(
                 doubleTapOpenMenu: value,
                 doubleTapZoom: value ? false : current.doubleTapZoom,
@@ -173,9 +176,7 @@ class _VolumeKeyPageTurnSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final readSetting = globalSettingState.readSetting;
+    final effective = context.watchTargetReadSetting();
 
     return _SettingsSection(
       title: t.reader.volumeKeyPageTurn,
@@ -183,24 +184,26 @@ class _VolumeKeyPageTurnSection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.enableVolumeKeyPageTurn,
           subtitle: t.reader.volumeKeyPageTurnSubtitle,
-          value: readSetting.volumeKeyPageTurn,
+          value: effective.volumeKeyPageTurn,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(volumeKeyPageTurn: value),
             );
           },
         ),
-        if (readSetting.volumeKeyPageTurn)
+        if (effective.volumeKeyPageTurn)
           _SettingsSliderCard(
             title: t.reader.webtoonScrollDistance,
-            value: readSetting.volumeKeyPageTurnDistancePercent.clamp(10, 100),
+            value: effective.volumeKeyPageTurnDistancePercent.clamp(10, 100),
             min: 10,
             max: 100,
             divisions: 90,
             suffix: t.reader.screenHeightPercent,
             onChanged: (value) {
               final percent = value.clamp(10, 100);
-              globalSettingCubit.updateReadSetting(
+              context.updateEffectiveReadSetting(
+                effective,
                 (current) =>
                     current.copyWith(volumeKeyPageTurnDistancePercent: percent),
               );

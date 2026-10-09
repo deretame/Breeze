@@ -25,14 +25,12 @@ class _PageInfoVisibilitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final readSetting = globalSettingState.readSetting;
+    final effective = context.watchTargetReadSetting();
     final allHidden =
-        !readSetting.pageInfoShowPage &&
-        !readSetting.pageInfoShowNetwork &&
-        !readSetting.pageInfoShowBattery &&
-        !readSetting.pageInfoShowTime;
+        !effective.pageInfoShowPage &&
+        !effective.pageInfoShowNetwork &&
+        !effective.pageInfoShowBattery &&
+        !effective.pageInfoShowTime;
 
     return _SettingsSection(
       title: t.reader.infoDisplay,
@@ -40,9 +38,10 @@ class _PageInfoVisibilitySection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.pageNumber,
           subtitle: t.reader.pageNumberSubtitle,
-          value: readSetting.pageInfoShowPage,
+          value: effective.pageInfoShowPage,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoShowPage: value),
             );
           },
@@ -50,9 +49,10 @@ class _PageInfoVisibilitySection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.networkStatus,
           subtitle: t.reader.networkStatusSubtitle,
-          value: readSetting.pageInfoShowNetwork,
+          value: effective.pageInfoShowNetwork,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoShowNetwork: value),
             );
           },
@@ -60,9 +60,10 @@ class _PageInfoVisibilitySection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.battery,
           subtitle: t.reader.batterySubtitle,
-          value: readSetting.pageInfoShowBattery,
+          value: effective.pageInfoShowBattery,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoShowBattery: value),
             );
           },
@@ -70,9 +71,10 @@ class _PageInfoVisibilitySection extends StatelessWidget {
         _SettingsSwitchTile(
           title: t.reader.time,
           subtitle: t.reader.timeSubtitle,
-          value: readSetting.pageInfoShowTime,
+          value: effective.pageInfoShowTime,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoShowTime: value),
             );
           },
@@ -88,11 +90,9 @@ class _PageInfoPlacementSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final readSetting = globalSettingState.readSetting;
+    final effective = context.watchTargetReadSetting();
     final isHorizontalCenter =
-        readSetting.pageInfoHorizontalPosition ==
+        effective.pageInfoHorizontalPosition ==
         ReaderInfoHorizontalPosition.center;
 
     return _SettingsSection(
@@ -105,10 +105,11 @@ class _PageInfoPlacementSection extends StatelessWidget {
             _SettingsChoiceChip(
               title: t.reader.verticalPositionTop,
               selected:
-                  readSetting.pageInfoVerticalPosition ==
+                  effective.pageInfoVerticalPosition ==
                   ReaderInfoVerticalPosition.top,
               onTap: () {
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     pageInfoVerticalPosition: ReaderInfoVerticalPosition.top,
                   ),
@@ -118,10 +119,11 @@ class _PageInfoPlacementSection extends StatelessWidget {
             _SettingsChoiceChip(
               title: t.reader.verticalPositionBottom,
               selected:
-                  readSetting.pageInfoVerticalPosition ==
+                  effective.pageInfoVerticalPosition ==
                   ReaderInfoVerticalPosition.bottom,
               onTap: () {
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     pageInfoVerticalPosition: ReaderInfoVerticalPosition.bottom,
                   ),
@@ -130,15 +132,16 @@ class _PageInfoPlacementSection extends StatelessWidget {
             ),
           ],
         ),
-        if (readSetting.pageInfoVerticalPosition ==
+        if (effective.pageInfoVerticalPosition ==
             ReaderInfoVerticalPosition.top)
           _SettingsSwitchTile(
             title: t.reader.showInStatusBar,
             subtitle: t.reader.showInStatusBarSubtitle,
-            value: readSetting.pageInfoTopInStatusBar,
+            value: effective.pageInfoTopInStatusBar,
             onChanged: (value) {
               logger.d('pageInfoTopInStatusBar: $value');
-              globalSettingCubit.updateReadSetting(
+              context.updateEffectiveReadSetting(
+                effective,
                 (current) => current.copyWith(pageInfoTopInStatusBar: value),
               );
             },
@@ -150,10 +153,11 @@ class _PageInfoPlacementSection extends StatelessWidget {
             _SettingsChoiceChip(
               title: t.reader.horizontalPositionLeft,
               selected:
-                  readSetting.pageInfoHorizontalPosition ==
+                  effective.pageInfoHorizontalPosition ==
                   ReaderInfoHorizontalPosition.left,
               onTap: () {
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     pageInfoHorizontalPosition:
                         ReaderInfoHorizontalPosition.left,
@@ -164,10 +168,11 @@ class _PageInfoPlacementSection extends StatelessWidget {
             _SettingsChoiceChip(
               title: t.reader.horizontalPositionCenter,
               selected:
-                  readSetting.pageInfoHorizontalPosition ==
+                  effective.pageInfoHorizontalPosition ==
                   ReaderInfoHorizontalPosition.center,
               onTap: () {
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     pageInfoHorizontalPosition:
                         ReaderInfoHorizontalPosition.center,
@@ -178,10 +183,11 @@ class _PageInfoPlacementSection extends StatelessWidget {
             _SettingsChoiceChip(
               title: t.reader.horizontalPositionRight,
               selected:
-                  readSetting.pageInfoHorizontalPosition ==
+                  effective.pageInfoHorizontalPosition ==
                   ReaderInfoHorizontalPosition.right,
               onTap: () {
-                globalSettingCubit.updateReadSetting(
+                context.updateEffectiveReadSetting(
+                  effective,
                   (current) => current.copyWith(
                     pageInfoHorizontalPosition:
                         ReaderInfoHorizontalPosition.right,
@@ -193,14 +199,15 @@ class _PageInfoPlacementSection extends StatelessWidget {
         ),
         _SettingsSliderCard(
           title: t.reader.edgePadding,
-          value: readSetting.pageInfoEdgePadding.clamp(0, 48),
+          value: effective.pageInfoEdgePadding.clamp(0, 48),
           min: 0,
           max: 48,
           divisions: 48,
           suffix: t.reader.pixels,
           enabled: !isHorizontalCenter,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoEdgePadding: value),
             );
           },
@@ -217,35 +224,35 @@ class _PageInfoAppearanceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final readSetting = globalSettingState.readSetting;
+    final effective = context.watchTargetReadSetting();
 
     return _SettingsSection(
       title: t.reader.infoBarStyle,
       children: [
         _SettingsSliderCard(
           title: t.reader.backgroundOpacity,
-          value: readSetting.pageInfoOpacityPercent.clamp(20, 100),
+          value: effective.pageInfoOpacityPercent.clamp(20, 100),
           min: 20,
           max: 100,
           divisions: 80,
           suffix: t.reader.percent,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoOpacityPercent: value),
             );
           },
         ),
         _SettingsSliderCard(
           title: t.reader.fontSize,
-          value: readSetting.pageInfoFontSize.clamp(10, 20),
+          value: effective.pageInfoFontSize.clamp(10, 20),
           min: 10,
           max: 20,
           divisions: 10,
           suffix: t.reader.pixels,
           onChanged: (value) {
-            globalSettingCubit.updateReadSetting(
+            context.updateEffectiveReadSetting(
+              effective,
               (current) => current.copyWith(pageInfoFontSize: value),
             );
           },

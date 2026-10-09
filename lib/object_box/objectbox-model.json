@@ -1590,7 +1590,7 @@
     },
     {
       "id": "23:8024759089770245234",
-      "lastPropertyId": "7:2403847445825609405",
+      "lastPropertyId": "8:3176024571099844938",
       "name": "ComicReadPreference",
       "properties": [
         {
@@ -1630,6 +1630,11 @@
           "id": "7:2403847445825609405",
           "name": "deleted",
           "type": 1
+        },
+        {
+          "id": "8:3176024571099844938",
+          "name": "overridesJson",
+          "type": 9
         }
       ],
       "relations": []

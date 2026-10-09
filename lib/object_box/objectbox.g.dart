@@ -1898,7 +1898,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(23, 8024759089770245234),
     name: 'ComicReadPreference',
-    lastPropertyId: const obx_int.IdUid(7, 2403847445825609405),
+    lastPropertyId: const obx_int.IdUid(8, 3176024571099844938),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1942,6 +1942,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(7, 2403847445825609405),
         name: 'deleted',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 3176024571099844938),
+        name: 'overridesJson',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -4450,7 +4456,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
         final sourceOffset = fbb.writeString(object.source);
         final comicIdOffset = fbb.writeString(object.comicId);
-        fbb.startTable(8);
+        final overridesJsonOffset = fbb.writeString(object.overridesJson);
+        fbb.startTable(9);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uniqueKeyOffset);
         fbb.addOffset(2, sourceOffset);
@@ -4458,6 +4465,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(4, object.readMode);
         fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
         fbb.addBool(6, object.deleted);
+        fbb.addOffset(7, overridesJsonOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -4479,12 +4487,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final comicIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
-        final readModeParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          12,
-          0,
-        );
+        final overridesJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
         final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
         );
@@ -4494,15 +4499,22 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
-        final object = ComicReadPreference(
-          id: idParam,
-          uniqueKey: uniqueKeyParam,
-          source: sourceParam,
-          comicId: comicIdParam,
-          readMode: readModeParam,
-          updatedAt: updatedAtParam,
-          deleted: deletedParam,
-        );
+        final object =
+            ComicReadPreference(
+                id: idParam,
+                uniqueKey: uniqueKeyParam,
+                source: sourceParam,
+                comicId: comicIdParam,
+                overridesJson: overridesJsonParam,
+                updatedAt: updatedAtParam,
+                deleted: deletedParam,
+              )
+              ..readMode = const fb.Int64Reader().vTableGet(
+                buffer,
+                rootOffset,
+                12,
+                0,
+              );
 
         return object;
       },
@@ -6018,5 +6030,10 @@ class ComicReadPreference_ {
   /// See [ComicReadPreference.deleted].
   static final deleted = obx.QueryBooleanProperty<ComicReadPreference>(
     _entities[15].properties[6],
+  );
+
+  /// See [ComicReadPreference.overridesJson].
+  static final overridesJson = obx.QueryStringProperty<ComicReadPreference>(
+    _entities[15].properties[7],
   );
 }

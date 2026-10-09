@@ -1,7 +1,7 @@
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -26,9 +26,7 @@ class VerticalPullNavigator extends StatelessWidget {
     const offset = 8;
     final triggerOffset = context.screenHeight / offset;
     final brightness = Theme.of(context).brightness;
-    final readSetting = context.select(
-      (GlobalSettingCubit c) => c.state.readSetting,
-    );
+    final readSetting = context.watchEffectiveReadSetting();
     final foregroundColor = readSetting.resolveReaderForegroundColor(
       brightness,
     );

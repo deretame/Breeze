@@ -217,13 +217,7 @@ class _SliderContents extends StatelessWidget {
       (ReaderCubit cubit) => cubit.state.totalSlots,
     );
     // 只订阅有效 readMode：RTL 翻转只跟它有关，需同时监听全局与本漫覆盖。
-    final globalReadMode = context.select(
-      (GlobalSettingCubit cubit) => cubit.state.readSetting.readMode,
-    );
-    final overrideReadMode = context.select(
-      (ComicReadPreferenceCubit cubit) => cubit.state.overrideReadMode,
-    );
-    final effectiveReadMode = overrideReadMode ?? globalReadMode;
+    final effectiveReadMode = context.watchEffectiveReadMode();
     final isRtl = isReverseRowReadMode(effectiveReadMode);
     final sliderValue = context.select(
       (ReaderCubit cubit) => cubit.state.sliderValue,
@@ -247,13 +241,9 @@ class _SliderContents extends StatelessWidget {
       localMaxValue,
     );
 
-    final doublePageMode = context.select(
-      (GlobalSettingCubit cubit) => cubit.state.readSetting.doublePageMode,
-    );
-    final doublePageLeadingBlank = context.select(
-      (GlobalSettingCubit cubit) =>
-          cubit.state.readSetting.doublePageLeadingBlank,
-    );
+    final effective = context.watchEffectiveReadSetting();
+    final doublePageMode = effective.doublePageMode;
+    final doublePageLeadingBlank = effective.doublePageLeadingBlank;
     final insertLeadingBlank = doublePageMode && doublePageLeadingBlank;
     final sliderDisplayPage = getDisplayPageNumber(
       slotIndex: safeSliderValue.round(),

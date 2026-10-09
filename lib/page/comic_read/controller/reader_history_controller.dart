@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_cubit.dart';
@@ -84,7 +84,7 @@ class ReaderHistoryController {
 
     if (!shouldScroll) {
       if (isHistoryEntry() || isSkipped) return;
-      final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+      final readSetting = context.readEffectiveReadSetting();
       final seamlessCubit = context.read<ReaderSeamlessCubit>();
       if (!seamlessCubit.isSeamlessEnabled()) {
         isSkipped = true;
@@ -116,23 +116,22 @@ class ReaderHistoryController {
       if (!context.mounted) return;
 
       final cubit = context.read<ReaderCubit>();
-      final globalSettingState = context.read<GlobalSettingCubit>().state;
+      final readSetting = context.readEffectiveReadSetting();
       final totalSlots = cubit.state.totalSlots;
       if (totalSlots <= 0) return;
 
-      final enableDoublePage = globalSettingState.readSetting.doublePageMode;
+      final enableDoublePage = readSetting.doublePageMode;
       var targetIndex = getSlotIndexFromStoredHistoryPage(
         storedHistoryPage: historyIndex,
         enableDoublePage: enableDoublePage,
         insertLeadingBlank:
-            enableDoublePage &&
-            globalSettingState.readSetting.doublePageLeadingBlank,
+            enableDoublePage && readSetting.doublePageLeadingBlank,
       );
       final seamlessCubit = context.read<ReaderSeamlessCubit>();
       if (seamlessCubit.isSeamlessEnabled()) {
         targetIndex = seamlessCubit.resolveHistoryGlobalSlot(
           targetIndex,
-          globalSettingState.readSetting,
+          readSetting,
         );
       }
       targetIndex = targetIndex.clamp(0, totalSlots - 1);

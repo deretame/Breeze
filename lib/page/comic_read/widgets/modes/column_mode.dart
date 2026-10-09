@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
@@ -63,14 +64,12 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final hideTop = context.select(
-          (GlobalSettingCubit c) => !c.state.readSetting.comicReadTopContainer,
-        );
+        final hideTop = !context
+            .watchEffectiveReadSetting()
+            .comicReadTopContainer;
         final padding = MediaQuery.paddingOf(context);
         final viewPadding = MediaQuery.viewPaddingOf(context);
-        final readSetting = context.select(
-          (GlobalSettingCubit c) => c.state.readSetting,
-        );
+        final readSetting = context.watchEffectiveReadSetting();
         final backgroundColor = readSetting.resolveReaderBackgroundColor(
           Theme.of(context).brightness,
         );

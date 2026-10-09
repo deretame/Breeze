@@ -38,56 +38,71 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
 
   // 自动阅读悬浮控制按钮。
   Widget _autoReadControlWidget() {
-    return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
+    // 外层同时订阅本漫覆盖：本漫改了 autoScroll 也要 rebuild。
+    return BlocBuilder<ComicReadPreferenceCubit, ComicReadPreferenceState>(
       buildWhen: (previous, current) =>
-          previous.readSetting.autoScroll != current.readSetting.autoScroll ||
-          previous.readSetting.autoScrollHidePauseButton !=
-              current.readSetting.autoScrollHidePauseButton ||
-          previous.leftHandModeEnabled != current.leftHandModeEnabled,
-      builder: (context, globalSettingState) {
-        if (globalSettingState.readSetting.autoScroll == false ||
-            globalSettingState.readSetting.autoScrollHidePauseButton) {
-          return const Positioned.fill(
-            child: IgnorePointer(child: SizedBox.shrink()),
-          );
-        }
+          previous.override?.setting != current.override?.setting,
+      builder: (context, _) {
+        return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
+          buildWhen: (previous, current) =>
+              previous.readSetting.autoScroll !=
+                  current.readSetting.autoScroll ||
+              previous.readSetting.autoScrollHidePauseButton !=
+                  current.readSetting.autoScrollHidePauseButton ||
+              previous.leftHandModeEnabled != current.leftHandModeEnabled,
+          builder: (context, globalSettingState) {
+            final readSetting = context.watchEffectiveReadSetting();
+            // 有效值变化就重配 ticker：改设置即时生效（全局/本漫统一）。
+            // sync 内部有 configChanged 判断，无变化不重配，无副作用。
+            _syncAutoRead(
+              readSetting: readSetting,
+              readMode: readSetting.readMode,
+            );
+            if (readSetting.autoScroll == false ||
+                readSetting.autoScrollHidePauseButton) {
+              return const Positioned.fill(
+                child: IgnorePointer(child: SizedBox.shrink()),
+              );
+            }
 
-        final leftHandMode = globalSettingState.leftHandModeEnabled;
-        return BlocSelector<ReaderCubit, ReaderState, bool>(
-          selector: (state) => state.isMenuVisible,
-          builder: (context, isMenuVisible) {
-            final bottomSafe = context.bottomSafeHeight;
-            // 墨水屏：按钮位移与图标缩放都会留下残影，直接落位。
-            final eInkInstant = globalSettingState.eInkSetting.enabled;
-            return AnimatedPositioned(
-              duration: eInkInstant
-                  ? Duration.zero
-                  : const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              left: leftHandMode ? 14 : null,
-              right: leftHandMode ? null : 14,
-              bottom: (isMenuVisible ? 122.0 : 14.0) + bottomSafe,
-              child: FloatingActionButton.small(
-                heroTag: 'comic_auto_read_toggle',
-                tooltip: _autoReadController.isPaused
-                    ? t.reader.resumeAutoRead
-                    : t.reader.pauseAutoRead,
-                onPressed: _toggleAutoReadPaused,
-                child: AnimatedSwitcher(
+            final leftHandMode = globalSettingState.leftHandModeEnabled;
+            return BlocSelector<ReaderCubit, ReaderState, bool>(
+              selector: (state) => state.isMenuVisible,
+              builder: (context, isMenuVisible) {
+                final bottomSafe = context.bottomSafeHeight;
+                // 墨水屏：按钮位移与图标缩放都会留下残影，直接落位。
+                final eInkInstant = globalSettingState.eInkSetting.enabled;
+                return AnimatedPositioned(
                   duration: eInkInstant
                       ? Duration.zero
-                      : const Duration(milliseconds: 220),
-                  transitionBuilder: (child, animation) {
-                    return ScaleTransition(scale: animation, child: child);
-                  },
-                  child: Icon(
-                    _autoReadController.isPaused
-                        ? Icons.play_arrow_rounded
-                        : Icons.pause_rounded,
-                    key: ValueKey(_autoReadController.isPaused),
+                      : const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  left: leftHandMode ? 14 : null,
+                  right: leftHandMode ? null : 14,
+                  bottom: (isMenuVisible ? 122.0 : 14.0) + bottomSafe,
+                  child: FloatingActionButton.small(
+                    heroTag: 'comic_auto_read_toggle',
+                    tooltip: _autoReadController.isPaused
+                        ? t.reader.resumeAutoRead
+                        : t.reader.pauseAutoRead,
+                    onPressed: _toggleAutoReadPaused,
+                    child: AnimatedSwitcher(
+                      duration: eInkInstant
+                          ? Duration.zero
+                          : const Duration(milliseconds: 220),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: Icon(
+                        _autoReadController.isPaused
+                            ? Icons.play_arrow_rounded
+                            : Icons.pause_rounded,
+                        key: ValueKey(_autoReadController.isPaused),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         );

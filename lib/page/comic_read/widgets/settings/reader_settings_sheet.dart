@@ -15,6 +15,7 @@ import 'package:zephyr/widgets/fluent_dropdown.dart';
 part 'reader_settings_gesture_tab.dart';
 part 'reader_settings_info_tab.dart';
 part 'reader_settings_read_tab.dart';
+part 'reader_settings_per_comic_tab.dart';
 
 Future<void> showReaderSettingsSheet(
   BuildContext context, {
@@ -31,11 +32,16 @@ Future<void> showReaderSettingsSheet(
     isDismissible: true,
     enableDrag: true,
     builder: (context) {
-      return _ReaderSettingsSheet(
-        changePageIndex: changePageIndex ?? (_) {},
-        onLandscapeChanged: onLandscapeChanged,
-        source: source,
-        comicId: comicId,
+      // 外层钉死全局：前三个 tab 与全局入口恒写全局，不回退读 cubit；
+      // 第四个 tab 内层的 perComic:true 会覆盖这一层。
+      return _PerComicScope(
+        perComic: false,
+        child: _ReaderSettingsSheet(
+          changePageIndex: changePageIndex ?? (_) {},
+          onLandscapeChanged: onLandscapeChanged,
+          source: source,
+          comicId: comicId,
+        ),
       );
     },
   );
@@ -117,6 +123,10 @@ class _ReaderSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
 
+    final perComicAvailable =
+        source.trim().isNotEmpty && comicId.trim().isNotEmpty;
+    final tabLength = perComicAvailable ? 4 : 3;
+
     return Material(
       color: colorScheme.surface.withValues(alpha: 0.96),
       elevation: 16,
@@ -124,11 +134,11 @@ class _ReaderSettingsCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       clipBehavior: Clip.antiAlias,
       child: DefaultTabController(
-        length: 3,
+        length: tabLength,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _ReaderSettingsHeader(),
+            _ReaderSettingsHeader(showPerComicTab: perComicAvailable),
             const SizedBox(height: 8),
             Expanded(
               child: TabBarView(
@@ -141,6 +151,14 @@ class _ReaderSettingsCard extends StatelessWidget {
                   ),
                   _ReaderSettingsGestureTab(isAndroidPhone: isAndroidPhone),
                   const _ReaderSettingsInfoTab(),
+                  if (perComicAvailable)
+                    _ReaderSettingsPerComicTab(
+                      changePageIndex: changePageIndex,
+                      onLandscapeChanged: onLandscapeChanged,
+                      source: source,
+                      comicId: comicId,
+                      isAndroidPhone: isAndroidPhone,
+                    ),
                 ],
               ),
             ),
@@ -151,8 +169,11 @@ class _ReaderSettingsCard extends StatelessWidget {
   }
 }
 
+/// 设置页头部：把手 + TabBar（阅读页入口多一个“本漫”tab）。
 class _ReaderSettingsHeader extends StatelessWidget {
-  const _ReaderSettingsHeader();
+  final bool showPerComicTab;
+
+  const _ReaderSettingsHeader({this.showPerComicTab = false});
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +207,7 @@ class _ReaderSettingsHeader extends StatelessWidget {
               Tab(text: t.reader.settings),
               Tab(text: t.reader.gesture),
               Tab(text: t.reader.infoBar),
+              if (showPerComicTab) Tab(text: t.reader.perComicThisComic),
             ],
           ),
         ],
@@ -237,22 +259,89 @@ class _SettingsTabContent extends StatelessWidget {
   }
 }
 
+/// 阅读设置 sheet 内通用的“读目标值 + 按目标写”。
+/// 读：[watchTargetReadSetting]——本漫 tab 读有效值（patch 已合并），其余只读全局。
+/// 写：按当前编辑目标路由——改全局走 `GlobalSettingCubit`，
+/// 改本漫走 `ComicReadPreferenceCubit.updateField`，只写变化的 key。
+/// 需要震动反馈由调用方自己加；需要跳页（如切阅读模式）也由调用方自己调。
+///
+/// 写目标只看 [_PerComicScope]：外层恒包 `perComic: false`，
+/// 第四个“本漫”tab 内层包 `perComic: true`，里面所有控件读写全钉本漫。
+/// 加新设置项只写一遍 Section，第四 tab 复用同一个，不写第二遍。
+extension EffectiveReadSettingX on BuildContext {
+  /// 当前编辑目标是不是本漫：只看最近的 [_PerComicScope]，不回退读 cubit。
+  ///
+  /// 旧漫画的绑定状态漏不进全局页——全局入口与前三个 tab 恒为 false。
+  bool get isEditingPerComic => _PerComicScope.maybeOf(this)?.perComic ?? false;
+
+  /// 当前编辑目标的值：本漫 tab 读有效值，其余只读全局。
+  ///
+  /// 设置 UI 一律读这个，保证“显示什么就改什么”；渲染层继续用
+  /// [ComicReadPreferenceContextX.watchEffectiveReadSetting]。
+  ReadSettingState watchTargetReadSetting() {
+    if (isEditingPerComic) return watchEffectiveReadSetting();
+    return watch<GlobalSettingCubit>().state.readSetting;
+  }
+
+  /// 按编辑目标写入：本漫→patch（只含变化 key），全局→全局设置。
+  Future<Set<String>> updateEffectiveReadSetting(
+    ReadSettingState effective,
+    ReadSettingState Function(ReadSettingState current) fn,
+  ) {
+    if (isEditingPerComic) {
+      return read<ComicReadPreferenceCubit>().updateField(effective, fn);
+    }
+    read<GlobalSettingCubit>().updateReadSetting(fn);
+    return Future.value(const <String>{});
+  }
+}
+
+/// 钉死子树写目标：`perComic: true` 包住第四 tab，里面全写本漫。
+class _PerComicScope extends InheritedWidget {
+  final bool perComic;
+
+  const _PerComicScope({required this.perComic, required super.child});
+
+  static _PerComicScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_PerComicScope>();
+  }
+
+  @override
+  bool updateShouldNotify(_PerComicScope oldWidget) {
+    return perComic != oldWidget.perComic;
+  }
+}
+
 class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const _SettingsSection({required this.title, required this.children});
+  /// 标题行右侧动作（如本漫 tab 阅读模式旁的“跟随全局”）。
+  final Widget? trailing;
+
+  const _SettingsSection({
+    required this.title,
+    required this.children,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: context.theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: context.theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            ...?trailing != null ? [trailing!] : null,
+          ],
         ),
         const SizedBox(height: 10),
         for (int i = 0; i < children.length; i++) ...[

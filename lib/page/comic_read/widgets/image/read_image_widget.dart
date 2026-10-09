@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -39,9 +40,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final readSetting = context.select(
-      (GlobalSettingCubit c) => c.state.readSetting,
-    );
+    final readSetting = context.watchEffectiveReadSetting();
     final brightness = Theme.of(context).brightness;
     final backgroundColor = readSetting.resolveReaderBackgroundColor(
       brightness,

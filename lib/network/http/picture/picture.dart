@@ -6,14 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
-import 'package:zephyr/service/download/download_asset_store.dart';
-import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/page/setting/real_sr/service/real_sr_super_resolution.dart';
-
+import 'package:zephyr/service/download/download_asset_store.dart';
+import 'package:zephyr/service/download/download_cancel_signal.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/decode/decode.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/get_path.dart';
 
 export 'package:zephyr/service/download/download_asset_store.dart'
@@ -27,6 +26,66 @@ void _throwIfDownloadCancelled(String taskGroupKey) {
   if (taskGroupKey.isNotEmpty && isDownloadCancelSignaled(taskGroupKey)) {
     throw const DownloadTaskCancelledException();
   }
+}
+
+const _kJmCheckFnPath = 'isJm';
+
+/// 插件是否需要 JM 反混淆的记忆缓存：key 为归一化后的插件 id（调试运行时会带上 runtime 名）。
+///
+/// 首次命中时调用插件 `isJm` 探测并记忆结果，避免每张图都走一次 QJS 调用；
+/// 探测抛错与返回 false 都记为 false（插件未实现该函数时抛错是常态）。
+final Map<String, bool> _jmPluginDeobfuscationCache = <String, bool>{};
+final Map<String, Future<bool>> _jmPluginDeobfuscationInflight =
+    <String, Future<bool>>{};
+
+/// 是否对该插件的图片做 JM 反混淆：`(uuid 命中 || 插件 isJm 返回 true) && page`。
+Future<bool> _shouldApplyJmDeobfuscation({
+  required String pluginId,
+  String? runtimeName,
+  required PictureType pictureType,
+  bool probePlugin = true,
+}) async {
+  if (pictureType != PictureType.page) return false;
+  if (pluginId == _kJmPluginUuid) return true;
+  if (!probePlugin) return false;
+  final trimmedRuntime = runtimeName?.trim() ?? '';
+  final cacheKey = trimmedRuntime.isEmpty || trimmedRuntime == pluginId
+      ? pluginId
+      : '$pluginId::$trimmedRuntime';
+  final cached = _jmPluginDeobfuscationCache[cacheKey];
+  if (cached != null) return cached;
+  final inflight = _jmPluginDeobfuscationInflight[cacheKey];
+  if (inflight != null) return inflight;
+  final future = _queryPluginIsJm(
+    pluginId,
+    trimmedRuntime.isEmpty ? null : trimmedRuntime,
+  );
+  _jmPluginDeobfuscationInflight[cacheKey] = future;
+  final isJm = await future;
+  logger.d(isJm);
+  _jmPluginDeobfuscationInflight.remove(cacheKey);
+  _jmPluginDeobfuscationCache[cacheKey] = isJm;
+  return isJm;
+}
+
+/// 调用插件 `isJm` 函数；任何错误都吞掉并视为 false。
+Future<bool> _queryPluginIsJm(String pluginId, String? runtimeName) async {
+  try {
+    final raw = await executeQjsCall(
+      pluginId: pluginId,
+      runtimeName: runtimeName,
+      fnPath: _kJmCheckFnPath,
+      argsJson: '{}',
+    );
+    return _parseIsJmResult(jsonDecode(raw));
+  } catch (_) {
+    return false;
+  }
+}
+
+/// 插件 `isJm` 只返回裸 `bool`；其他形状一律视为 false。
+bool _parseIsJmResult(Object? decoded) {
+  return decoded == true;
 }
 
 Future<String> getCachePicture({
@@ -136,7 +195,12 @@ Future<String> getCachePicture({
     imageData = response.body;
   }
 
-  if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
+  final shouldDeobfuscateCache = await _shouldApplyJmDeobfuscation(
+    pluginId: resolvedFrom,
+    pictureType: pictureType,
+    probePlugin: usePlugin,
+  );
+  if (shouldDeobfuscateCache) {
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
@@ -392,7 +456,12 @@ Future<DownloadPictureResult> downloadPictureResult({
   final downloadFilePath = await assetStore.canonicalDownloadPath();
 
   try {
-    if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
+    final shouldDeobfuscateDownload = await _shouldApplyJmDeobfuscation(
+      pluginId: resolvedFrom,
+      runtimeName: qjsName,
+      pictureType: pictureType,
+    );
+    if (shouldDeobfuscateDownload) {
       await decodeAndSaveImage(
         imageData,
         chapterId.let(toInt),

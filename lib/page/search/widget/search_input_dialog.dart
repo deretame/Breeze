@@ -55,12 +55,14 @@ class _SearchQueryFieldState extends State<SearchQueryField>
   OverlayState? _overlayState;
   Timer? _autoExpandFallbackTimer;
   bool _isExpanded = false;
+
   /// 最近一次读到的所在 tab 是否活跃。切 tab 时本页不卸载、
   /// 收不到路由回调：桌面端 IndexedStack 只翻转 Visibility
   /// （见 SDK IndexedStack 的 _VisibilityScope），移动端 tab 则被
   /// Offstage 藏起并关掉 TickerMode。任一变假都算切走；
   /// null 表示还没读到过。
   bool? _lastTabActive;
+
   /// 新路由盖住本页时焦点被抢走（如搜索页输入框 autofocus），
   /// 失焦即收起浮层，否则返回后旧浮层悬在新页上层。
   /// 书架回车（closeOnSubmit=false）焦点不动，不受影响。

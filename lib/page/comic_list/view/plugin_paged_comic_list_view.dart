@@ -265,34 +265,63 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<PluginPagedComicListCubit, PluginPagedComicListState>(
-      builder: (context, state) {
-        switch (state.status) {
-          case PluginPagedComicListStatus.initial:
-            return const Center(child: CircularProgressIndicator());
-          case PluginPagedComicListStatus.failure:
-            return ErrorView(
-              errorMessage: '${state.result}\n${t.comicList.loadFailedRetry}',
-              onRetry: () =>
-                  context.read<PluginPagedComicListCubit>().loadInitial(),
-            );
-          case PluginPagedComicListStatus.loadingMore:
-          case PluginPagedComicListStatus.loadingMoreFailure:
-          case PluginPagedComicListStatus.success:
-            return _buildContent(context, state);
-        }
-      },
+    return RefreshIndicator(
+      onRefresh: () => context.read<PluginPagedComicListCubit>().loadInitial(),
+      child: BlocBuilder<PluginPagedComicListCubit, PluginPagedComicListState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case PluginPagedComicListStatus.initial:
+              return const CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ],
+              );
+            case PluginPagedComicListStatus.failure:
+              return CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ErrorView(
+                      errorMessage:
+                          '${state.result}\n${t.comicList.loadFailedRetry}',
+                      onRetry: () => context
+                          .read<PluginPagedComicListCubit>()
+                          .loadInitial(),
+                    ),
+                  ),
+                ],
+              );
+            case PluginPagedComicListStatus.loadingMore:
+            case PluginPagedComicListStatus.loadingMoreFailure:
+            case PluginPagedComicListStatus.success:
+              return _buildContent(context, state);
+          }
+        },
+      ),
     );
   }
 
   Widget _buildContent(BuildContext context, PluginPagedComicListState state) {
     if (state.list.isEmpty &&
         state.status == PluginPagedComicListStatus.success) {
-      return Center(
-        child: Text(
-          t.comicList.nothingHere,
-          style: const TextStyle(fontSize: 20.0),
-        ),
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                t.comicList.nothingHere,
+                style: const TextStyle(fontSize: 20.0),
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -309,7 +338,7 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
           context.read<PluginPagedComicListCubit>().retryLoadMore(),
       onLoadMore: () => context.read<PluginPagedComicListCubit>().loadMore(),
       shrinkWrap: widget.shrinkWrap,
-      physics: widget.physics,
+      physics: widget.physics ?? const AlwaysScrollableScrollPhysics(),
       collectionTargetId: widget.collectionTargetId,
       collectionTargetName: widget.collectionTargetName,
     );

@@ -48,9 +48,7 @@ class _SearchBarState extends State<SearchBar> {
     super.initState();
     final initialState = context.read<SearchCubit>().state;
     _aggregateSources = Map<String, bool>.from(initialState.aggregateSources);
-    HistoryWidget.registerPendingKeywordSyncCanceller(
-      _keywordDebouncer.cancel,
-    );
+    HistoryWidget.registerPendingKeywordSyncCanceller(_keywordDebouncer.cancel);
   }
 
   @override
@@ -80,8 +78,10 @@ class _SearchBarState extends State<SearchBar> {
                 onChanged: (keyword) {
                   // 调度时记基线：开火时 cubit 若已被提交/dialog 回写改过，
                   // 说明这次输入已过期，直接丢弃，否则旧词盖掉新提交。
-                  final scheduledBase =
-                      context.read<SearchCubit>().state.searchKeyword;
+                  final scheduledBase = context
+                      .read<SearchCubit>()
+                      .state
+                      .searchKeyword;
                   _keywordDebouncer.run(() {
                     if (!mounted) {
                       return;

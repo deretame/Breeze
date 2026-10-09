@@ -1,75 +1,16 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_info/bloc/comic_preview_event.dart';
+import 'package:zephyr/page/comic_info/bloc/comic_preview_state.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_info/models/comic_preview.dart';
 import 'package:zephyr/page/comic_info/models/unified_plugin_preview.dart';
 import 'package:zephyr/util/error_filter.dart';
 
-enum ComicPreviewStatus {
-  initial,
-  success,
-  failure,
-  loadingMore,
-  getMoreFailure,
-}
-
-final class ComicPreviewState extends Equatable {
-  const ComicPreviewState({
-    this.status = ComicPreviewStatus.initial,
-    this.items = const <UnifiedPluginPreviewItem>[],
-    this.page = 0,
-    this.hasReachedMax = false,
-    this.pluginExtern = const <String, dynamic>{},
-    this.result = '',
-  });
-
-  final ComicPreviewStatus status;
-  final List<UnifiedPluginPreviewItem> items;
-  final int page;
-  final bool hasReachedMax;
-  final Map<String, dynamic> pluginExtern;
-  final String result;
-
-  ComicPreviewState copyWith({
-    ComicPreviewStatus? status,
-    List<UnifiedPluginPreviewItem>? items,
-    int? page,
-    bool? hasReachedMax,
-    Map<String, dynamic>? pluginExtern,
-    String? result,
-  }) {
-    return ComicPreviewState(
-      status: status ?? this.status,
-      items: items ?? this.items,
-      page: page ?? this.page,
-      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
-      pluginExtern: pluginExtern ?? this.pluginExtern,
-      result: result ?? this.result,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-    status,
-    items,
-    page,
-    hasReachedMax,
-    pluginExtern,
-    result,
-  ];
-}
-
-final class LoadComicPreview extends Equatable {
-  const LoadComicPreview({this.loadMore = false});
-
-  final bool loadMore;
-
-  @override
-  List<Object> get props => [loadMore];
-}
+export 'package:zephyr/page/comic_info/bloc/comic_preview_event.dart';
+export 'package:zephyr/page/comic_info/bloc/comic_preview_state.dart';
 
 EventTransformer<E> _throttleDroppable<E>(Duration duration) {
   return (events, mapper) {

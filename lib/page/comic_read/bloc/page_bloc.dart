@@ -1,16 +1,16 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:zephyr/page/comic_read/bloc/page_event.dart';
+import 'package:zephyr/page/comic_read/bloc/page_state.dart';
 import 'package:zephyr/page/comic_read/method/get_local_info.dart';
 import 'package:zephyr/page/comic_read/method/get_plugin_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
-import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/error_filter.dart';
 
-part 'page_event.dart';
-part 'page_state.dart';
+export 'package:zephyr/page/comic_read/bloc/page_event.dart';
+export 'package:zephyr/page/comic_read/bloc/page_state.dart';
 
 const throttleDuration = Duration(milliseconds: 100);
 
@@ -21,7 +21,7 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
 }
 
 class PageBloc extends Bloc<PageEvent, PageState> {
-  PageBloc() : super(PageState()) {
+  PageBloc() : super(const PageState()) {
     on<PageEvent>(
       _fetchPages,
       transformer: throttleDroppable(throttleDuration),

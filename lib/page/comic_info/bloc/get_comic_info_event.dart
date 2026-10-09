@@ -1,18 +1,14 @@
-part of 'get_comic_info_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:zephyr/type/enum.dart';
 
-class GetComicInfoEvent extends Equatable {
-  final String comicId;
-  final String from;
-  final ComicEntryType type;
-  final Map<String, dynamic>? extern;
+part 'get_comic_info_event.freezed.dart';
 
-  const GetComicInfoEvent({
-    required this.comicId,
-    required this.from,
-    required this.type,
-    this.extern,
-  });
-
-  @override
-  List<Object?> get props => [comicId, from, type, extern];
+@freezed
+abstract class GetComicInfoEvent with _$GetComicInfoEvent {
+  const factory GetComicInfoEvent({
+    required String comicId,
+    required String from,
+    required ComicEntryType type,
+    Map<String, dynamic>? extern,
+  }) = _GetComicInfoEvent;
 }

@@ -1,4 +1,7 @@
 export 'package:zephyr/page/comic_list/cubit/comic_list_cubit.dart';
+export 'package:zephyr/page/comic_list/cubit/comic_list_state.dart';
+export 'package:zephyr/page/comic_list/cubit/plugin_paged_comic_list_cubit.dart';
+export 'package:zephyr/page/comic_list/cubit/plugin_paged_comic_list_state.dart';
 export 'package:zephyr/page/comic_list/models/models.dart';
 export 'package:zephyr/page/comic_list/widgets/widgets.dart';
 export 'package:zephyr/page/comic_list/view/view.dart';

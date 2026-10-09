@@ -1,152 +1,14 @@
 import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_state.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/service/comic_follow/comic_follow_service.dart';
 
-enum ComicFollowStatus { initial, loading, success, failure }
-
-enum ComicFollowFilter { all, unread }
-
-enum ComicFollowSort { lastRead, update }
-
-class ComicFollowState extends Equatable {
-  final ComicFollowStatus status;
-  final List<ComicFollow> items;
-  final bool isCheckingUpdates;
-  final String result;
-  final int revision;
-  final Map<String, UnifiedComicHistory> histories;
-  final ComicFollowFilter filter;
-  final ComicFollowSort sort;
-
-  const ComicFollowState({
-    this.status = ComicFollowStatus.initial,
-    this.items = const <ComicFollow>[],
-    this.isCheckingUpdates = false,
-    this.result = '',
-    this.revision = 0,
-    this.histories = const <String, UnifiedComicHistory>{},
-    this.filter = ComicFollowFilter.all,
-    this.sort = ComicFollowSort.lastRead,
-  });
-
-  int get updateCount => items.where(hasUnreadUpdate).length;
-
-  List<ComicFollow> get visibleItems {
-    final result = items
-        .where(
-          (item) => filter == ComicFollowFilter.all || hasUnreadUpdate(item),
-        )
-        .toList();
-    result.sort(_compareItems);
-    return result;
-  }
-
-  UnifiedComicHistory? historyFor(ComicFollow follow) =>
-      histories[follow.uniqueKey];
-
-  bool hasUnreadUpdate(ComicFollow follow) {
-    if (!follow.hasUpdate ||
-        follow.detectedChapterCount <= follow.lastChapterCount) {
-      return false;
-    }
-
-    final history = historyFor(follow);
-    if (history == null || history.chapterOrder <= 0) {
-      return true;
-    }
-    return history.chapterOrder < follow.detectedChapterCount;
-  }
-
-  int unreadChapterCount(ComicFollow follow) {
-    if (!hasUnreadUpdate(follow)) return 0;
-
-    final history = historyFor(follow);
-    final readChapterOrder = history?.chapterOrder ?? 0;
-    final readBaseline = readChapterOrder > follow.lastChapterCount
-        ? readChapterOrder
-        : follow.lastChapterCount;
-    return (follow.detectedChapterCount - readBaseline).clamp(
-      0,
-      follow.detectedChapterCount,
-    );
-  }
-
-  int _compareItems(ComicFollow left, ComicFollow right) {
-    if (filter == ComicFollowFilter.unread) {
-      final rightUnread = hasUnreadUpdate(right);
-      final leftUnread = hasUnreadUpdate(left);
-      final unreadCompare = rightUnread == leftUnread
-          ? 0
-          : (rightUnread ? 1 : -1);
-      if (unreadCompare != 0) return unreadCompare;
-    }
-
-    if (sort == ComicFollowSort.lastRead) {
-      final leftTime = historyFor(left)?.lastReadAt;
-      final rightTime = historyFor(right)?.lastReadAt;
-      if (leftTime == null && rightTime != null) return 1;
-      if (leftTime != null && rightTime == null) return -1;
-      if (leftTime != null && rightTime != null) {
-        final timeCompare = rightTime.compareTo(leftTime);
-        if (timeCompare != 0) return timeCompare;
-      }
-    } else {
-      final timeCompare = right.updateTime.compareTo(left.updateTime);
-      if (timeCompare != 0) return timeCompare;
-    }
-
-    return right.createdAt.compareTo(left.createdAt);
-  }
-
-  bool isFollowing(String source, String comicId) {
-    final key = '${source.trim()}:${comicId.trim()}';
-    return items.any((item) => item.uniqueKey == key && !item.deleted);
-  }
-
-  ComicFollowState copyWith({
-    ComicFollowStatus? status,
-    List<ComicFollow>? items,
-    bool? isCheckingUpdates,
-    String? result,
-    int? revision,
-    Map<String, UnifiedComicHistory>? histories,
-    ComicFollowFilter? filter,
-    ComicFollowSort? sort,
-  }) {
-    final shouldIncrementRevision =
-        items != null && !identical(items, this.items);
-    return ComicFollowState(
-      status: status ?? this.status,
-      items: items ?? this.items,
-      isCheckingUpdates: isCheckingUpdates ?? this.isCheckingUpdates,
-      result: result ?? this.result,
-      revision:
-          revision ??
-          (shouldIncrementRevision ? this.revision + 1 : this.revision),
-      histories: histories ?? this.histories,
-      filter: filter ?? this.filter,
-      sort: sort ?? this.sort,
-    );
-  }
-
-  @override
-  List<Object?> get props => [
-    status,
-    items,
-    isCheckingUpdates,
-    result,
-    revision,
-    histories,
-    filter,
-    sort,
-  ];
-}
+export 'package:zephyr/page/comic_follow/cubit/comic_follow_state.dart';
 
 class ComicFollowCubit extends Cubit<ComicFollowState> {
   ComicFollowCubit() : super(const ComicFollowState()) {
@@ -164,6 +26,7 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
           status: ComicFollowStatus.success,
           items: items,
           histories: histories,
+          revision: state.revision + 1,
         ),
       );
     } catch (e, s) {
@@ -287,7 +150,13 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
     } else {
       newItems.add(follow);
     }
-    emit(state.copyWith(status: ComicFollowStatus.success, items: newItems));
+    emit(
+      state.copyWith(
+        status: ComicFollowStatus.success,
+        items: newItems,
+        revision: state.revision + 1,
+      ),
+    );
   }
 
   Future<void> removeFollow(String source, String comicId) async {
@@ -302,7 +171,7 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
     final newItems = state.items
         .where((item) => item.uniqueKey != removed.uniqueKey || item.deleted)
         .toList();
-    emit(state.copyWith(items: newItems));
+    emit(state.copyWith(items: newItems, revision: state.revision + 1));
   }
 
   /// 全部标为已读：把每条的 lastChapterCount 对齐到 detectedChapterCount，
@@ -321,7 +190,7 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
       ComicFollowService.instance.putFollow(marked);
       return marked;
     }).toList();
-    emit(state.copyWith(items: newItems));
+    emit(state.copyWith(items: newItems, revision: state.revision + 1));
   }
 
   Future<int> checkUpdates() async {
@@ -407,7 +276,7 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
     } else {
       newItems.add(updated);
     }
-    emit(state.copyWith(items: newItems));
+    emit(state.copyWith(items: newItems, revision: state.revision + 1));
 
     return state.hasUnreadUpdate(updated) && !wasUnread;
   }

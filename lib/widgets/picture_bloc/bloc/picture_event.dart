@@ -1,18 +1,12 @@
-part of 'picture_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:zephyr/widgets/picture_bloc/models/models.dart';
 
-sealed class PictureEvent extends Equatable {
-  const PictureEvent();
+part 'picture_event.freezed.dart';
 
-  @override
-  List<Object> get props => [];
-}
-
-class GetPicture extends PictureEvent {
-  final PictureInfo pictureInfo;
-  final bool usePlugin;
-
-  const GetPicture(this.pictureInfo, {this.usePlugin = true});
-
-  @override
-  List<Object> get props => [pictureInfo, usePlugin];
+@freezed
+abstract class PictureEvent with _$PictureEvent {
+  const factory PictureEvent.getPicture(
+    PictureInfo pictureInfo, {
+    @Default(true) bool usePlugin,
+  }) = GetPicture;
 }

@@ -1,40 +1,21 @@
-part of 'page_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
+import 'package:zephyr/type/enum.dart';
 
-class PageEvent extends Equatable {
-  final String comicId;
-  final int epsId;
-  final String chapterId;
-  final String requestId;
-  final String storageChapterId;
-  final String logicalKey;
-  final ChapterExtern chapterExtern;
-  final String from;
-  final ComicEntryType type;
-  final dynamic comicInfo;
+part 'page_event.freezed.dart';
 
-  const PageEvent(
-    this.comicId,
-    this.epsId,
-    this.chapterId,
-    this.requestId,
-    this.storageChapterId,
-    this.logicalKey,
-    this.chapterExtern,
-    this.from,
-    this.type, {
-    this.comicInfo,
-  });
-
-  @override
-  List<Object> get props => [
-    comicId,
-    epsId,
-    chapterId,
-    requestId,
-    storageChapterId,
-    logicalKey,
-    chapterExtern,
-    from,
-    type,
-  ];
+@freezed
+abstract class PageEvent with _$PageEvent {
+  const factory PageEvent(
+    String comicId,
+    int epsId,
+    String chapterId,
+    String requestId,
+    String storageChapterId,
+    String logicalKey,
+    ChapterExtern chapterExtern,
+    String from,
+    ComicEntryType type, {
+    dynamic comicInfo,
+  }) = _PageEvent;
 }

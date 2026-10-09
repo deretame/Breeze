@@ -83,7 +83,6 @@ dependencies:
   logger: ^2.5.0 # 工具: 日志输出
   stack_trace: ^1.12.0 # 工具: 堆栈处理
   collection: ^1.18.0 # 工具: 集合扩展
-  equatable: ^2.0.3 # 工具: 值相等比较
   stream_transform: ^2.1.1 # 工具: Stream 变换
   intl: ^0.20.2 # 国际化: 文案与格式化
   code_assets: ^2.0.0 # FFI: hooks/build.dart 使用的目标平台配置类型

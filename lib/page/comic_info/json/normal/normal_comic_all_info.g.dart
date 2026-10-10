@@ -126,7 +126,13 @@ _ComicInfo _$ComicInfoFromJson(Map<String, dynamic> json) => _ComicInfo(
   titleMeta: (json['titleMeta'] as List<dynamic>)
       .map((e) => ComicInfoActionItem.fromJson(e as Map<String, dynamic>))
       .toList(),
-  creator: Creator.fromJson(json['creator'] as Map<String, dynamic>),
+  creator: json['creator'] == null
+      ? const Creator(
+          id: '',
+          name: '',
+          avatar: ComicImage(id: '', url: '', name: ''),
+        )
+      : Creator.fromJson(json['creator'] as Map<String, dynamic>),
   description: json['description'] as String,
   cover: ComicImage.fromJson(json['cover'] as Map<String, dynamic>),
   metadata: (json['metadata'] as List<dynamic>)

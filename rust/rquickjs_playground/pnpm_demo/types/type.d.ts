@@ -522,13 +522,13 @@ export type ComicDetailNormal = {
     id: string;
     title: string;
     titleMeta: ActionItem[];
-    creator: {
+    creator?: {
       id: string;
       name: string;
       avatar: ImageItem;
       onTap: StringMap;
       extern: StringMap;
-    };
+    } | null;
     description: string;
     cover: ImageItem;
     metadata: MetadataListItem[];

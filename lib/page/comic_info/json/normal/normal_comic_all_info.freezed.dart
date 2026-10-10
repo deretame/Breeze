@@ -1776,7 +1776,7 @@ return $default(_that.id,_that.title,_that.titleMeta,_that.creator,_that.descrip
 @JsonSerializable()
 
 class _ComicInfo implements ComicInfo {
-  const _ComicInfo({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'titleMeta') required  List<ComicInfoActionItem> titleMeta, @JsonKey(name: 'creator') required this.creator, @JsonKey(name: 'description') required this.description, @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata') required  List<ComicInfoMetadata> metadata, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _titleMeta = titleMeta,_metadata = metadata,_extern = extern;
+  const _ComicInfo({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'title') required this.title, @JsonKey(name: 'titleMeta') required  List<ComicInfoActionItem> titleMeta, @JsonKey(name: 'creator') this.creator = const Creator(id: '', name: '', avatar: ComicImage(id: '', url: '', name: '')), @JsonKey(name: 'description') required this.description, @JsonKey(name: 'cover') required this.cover, @JsonKey(name: 'metadata') required  List<ComicInfoMetadata> metadata, @JsonKey(name: 'extern')  Map<String, dynamic> extern = const {}}): _titleMeta = titleMeta,_metadata = metadata,_extern = extern;
   factory _ComicInfo.fromJson(Map<String, dynamic> json) => _$ComicInfoFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;

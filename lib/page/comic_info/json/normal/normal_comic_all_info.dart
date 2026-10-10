@@ -103,7 +103,15 @@ abstract class ComicInfo with _$ComicInfo {
     @JsonKey(name: 'id') required String id,
     @JsonKey(name: 'title') required String title,
     @JsonKey(name: 'titleMeta') required List<ComicInfoActionItem> titleMeta,
-    @JsonKey(name: 'creator') required Creator creator,
+    @JsonKey(name: 'creator')
+    @Default(
+      Creator(
+        id: '',
+        name: '',
+        avatar: ComicImage(id: '', url: '', name: ''),
+      ),
+    )
+    Creator creator,
     @JsonKey(name: 'description') required String description,
     @JsonKey(name: 'cover') required ComicImage cover,
     @JsonKey(name: 'metadata') required List<ComicInfoMetadata> metadata,

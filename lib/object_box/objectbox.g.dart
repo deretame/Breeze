@@ -4490,6 +4490,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final overridesJsonParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 18, '');
+        final readModeParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          12,
+          0,
+        );
         final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
         );
@@ -4499,22 +4505,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
           16,
           false,
         );
-        final object =
-            ComicReadPreference(
-                id: idParam,
-                uniqueKey: uniqueKeyParam,
-                source: sourceParam,
-                comicId: comicIdParam,
-                overridesJson: overridesJsonParam,
-                updatedAt: updatedAtParam,
-                deleted: deletedParam,
-              )
-              ..readMode = const fb.Int64Reader().vTableGet(
-                buffer,
-                rootOffset,
-                12,
-                0,
-              );
+        final object = ComicReadPreference(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          source: sourceParam,
+          comicId: comicIdParam,
+          overridesJson: overridesJsonParam,
+          readMode: readModeParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
 
         return object;
       },

@@ -15,8 +15,7 @@ enum ComicPreviewStatus {
 abstract class ComicPreviewState with _$ComicPreviewState {
   const factory ComicPreviewState({
     @Default(ComicPreviewStatus.initial) ComicPreviewStatus status,
-    @Default(<UnifiedPluginPreviewItem>[])
-    List<UnifiedPluginPreviewItem> items,
+    @Default(<UnifiedPluginPreviewItem>[]) List<UnifiedPluginPreviewItem> items,
     @Default(0) int page,
     @Default(false) bool hasReachedMax,
     @Default(<String, dynamic>{}) Map<String, dynamic> pluginExtern,

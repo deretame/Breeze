@@ -108,9 +108,22 @@ Future<void> main() async {
     final String projectRoot = Directory(scriptDir).parent.path;
 
     _printColor('项目根目录: $projectRoot', _cyan);
+    // 步骤计数：新增步骤时只需改 totalSteps，无需手动重排编号
+    var step = 0;
+    const totalSteps = 5;
+    String stepLabel(String title) => '--- (${++step}/$totalSteps) $title ---';
 
-    // --- 2. 运行 build_runner ---
-    _printColor('--- (1/4) 正在运行 build_runner ---', _green);
+    // --- 2. 生成 slang 国际化代码 ---
+    _printColor(stepLabel('正在生成 slang 国际化代码'), _green);
+    // 必须走 flutter 通道：纯 dart 命令在 Flutter 工程里解析不了 SDK 依赖（如 integration_test）
+    await _runCommand('flutter', [
+      'pub',
+      'run',
+      'slang',
+    ], workingDirectory: projectRoot);
+
+    // --- 3. 运行 build_runner ---
+    _printColor(stepLabel('正在运行 build_runner'), _green);
     // 使用 flutter pub run build_runner
     await _runCommand('flutter', [
       'pub',
@@ -120,8 +133,8 @@ Future<void> main() async {
       '--delete-conflicting-outputs',
     ], workingDirectory: projectRoot);
 
-    // --- 3. 智能安装/检查 flutter_rust_bridge_codegen ---
-    _printColor('--- (2/4) 检查 flutter_rust_bridge_codegen ---', _green);
+    // --- 4. 智能安装/检查 flutter_rust_bridge_codegen ---
+    _printColor(stepLabel('检查 flutter_rust_bridge_codegen'), _green);
     const codegenTool = 'flutter_rust_bridge_codegen';
 
     // 优化：先检查是否存在，避免每次都运行 cargo install
@@ -135,12 +148,12 @@ Future<void> main() async {
       ], workingDirectory: projectRoot);
     }
 
-    // --- 4. 运行 codegen ---
-    _printColor('--- (3/4) 正在生成 Rust Bridge 代码 ---', _green);
+    // --- 5. 运行 codegen ---
+    _printColor(stepLabel('正在生成 Rust Bridge 代码'), _green);
     await _runCommand(codegenTool, ['generate'], workingDirectory: projectRoot);
 
-    // --- 5. 格式化代码 ---
-    _printColor('--- (4/4) 正在格式化代码 ---', _green);
+    // --- 6. 格式化代码 ---
+    _printColor(stepLabel('正在格式化代码'), _green);
     await _runCommand(
       'dart',
       ['format', './lib/'], // 只格式化 lib 目录，节省时间

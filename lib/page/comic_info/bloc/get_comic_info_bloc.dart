@@ -17,6 +17,7 @@ import 'package:zephyr/util/error_filter.dart';
 
 export 'package:zephyr/page/comic_info/bloc/get_comic_info_event.dart';
 export 'package:zephyr/page/comic_info/bloc/get_comic_info_state.dart';
+
 const _throttleDuration = Duration(milliseconds: 100);
 
 EventTransformer<E> _throttleDroppable<E>(Duration duration) {

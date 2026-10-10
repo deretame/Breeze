@@ -726,9 +726,10 @@ ComicReadPreference _$ComicReadPreferenceFromJson(Map<String, dynamic> json) =>
       source: json['source'] as String,
       comicId: json['comicId'] as String,
       overridesJson: json['overridesJson'] as String? ?? '{}',
+      readMode: (json['readMode'] as num?)?.toInt() ?? 0,
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       deleted: json['deleted'] as bool? ?? false,
-    )..readMode = (json['readMode'] as num).toInt();
+    );
 
 Map<String, dynamic> _$ComicReadPreferenceToJson(
   ComicReadPreference instance,

@@ -3736,6 +3736,15 @@ class Translations$login$zh_CN {
 
 	/// zh-CN: '该插件暂未适配新版登录页，请前往插件设置中填写账号信息'
 	String get loginNotSupported => '该插件暂未适配新版登录页，请前往插件设置中填写账号信息';
+
+	/// zh-CN: '看不清？点击刷新'
+	String get captchaTapToRefresh => '看不清？点击刷新';
+
+	/// zh-CN: '验证码加载中...'
+	String get captchaLoading => '验证码加载中...';
+
+	/// zh-CN: '验证码加载失败，点击重试'
+	String get captchaLoadFailed => '验证码加载失败，点击重试';
 }
 
 // Path: fontSetting
@@ -5129,6 +5138,9 @@ extension on Translations {
 			'login.retry' => '重试',
 			'login.requiredFieldEmpty' => ({required Object label}) => '请填写 ${label}',
 			'login.loginNotSupported' => '该插件暂未适配新版登录页，请前往插件设置中填写账号信息',
+			'login.captchaTapToRefresh' => '看不清？点击刷新',
+			'login.captchaLoading' => '验证码加载中...',
+			'login.captchaLoadFailed' => '验证码加载失败，点击重试',
 			'fontSetting.title' => '字体设置',
 			'fontSetting.clear' => '清空',
 			'fontSetting.hint' => '按字重分别选择字体文件。',

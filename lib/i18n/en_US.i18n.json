@@ -1188,7 +1188,10 @@
     "loginButton": "Login",
     "retry": "Retry",
     "requiredFieldEmpty": "Please fill in $label",
-    "loginNotSupported": "This plugin doesn't support the new login page yet. Please fill in your account in plugin settings."
+    "loginNotSupported": "This plugin doesn't support the new login page yet. Please fill in your account in plugin settings.",
+    "captchaTapToRefresh": "Can't see? Tap to refresh",
+    "captchaLoading": "Loading captcha...",
+    "captchaLoadFailed": "Failed to load captcha, tap to retry"
   },
   "fontSetting": {
     "title": "Font Settings",

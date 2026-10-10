@@ -1459,6 +1459,9 @@ class _Translations$login$en_US extends Translations$login$zh_CN {
 	@override String get retry => 'Retry';
 	@override String requiredFieldEmpty({required Object label}) => 'Please fill in ${label}';
 	@override String get loginNotSupported => 'This plugin doesn\'t support the new login page yet. Please fill in your account in plugin settings.';
+	@override String get captchaTapToRefresh => 'Can\'t see? Tap to refresh';
+	@override String get captchaLoading => 'Loading captcha...';
+	@override String get captchaLoadFailed => 'Failed to load captcha, tap to retry';
 }
 
 // Path: fontSetting
@@ -2724,6 +2727,9 @@ extension on TranslationsEnUs {
 			'login.retry' => 'Retry',
 			'login.requiredFieldEmpty' => ({required Object label}) => 'Please fill in ${label}',
 			'login.loginNotSupported' => 'This plugin doesn\'t support the new login page yet. Please fill in your account in plugin settings.',
+			'login.captchaTapToRefresh' => 'Can\'t see? Tap to refresh',
+			'login.captchaLoading' => 'Loading captcha...',
+			'login.captchaLoadFailed' => 'Failed to load captcha, tap to retry',
 			'fontSetting.title' => 'Font Settings',
 			'fontSetting.clear' => 'Clear',
 			'fontSetting.hint' => 'Select font files for each weight.',

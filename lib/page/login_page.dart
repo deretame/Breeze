@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/main.dart';
@@ -9,7 +12,6 @@ import 'package:zephyr/widgets/toast.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
-
 @RoutePage()
 class LoginPage extends StatefulWidget {
   final String? from;
@@ -28,6 +30,8 @@ class _LoginFieldSpec {
     this.required = false,
     this.placeholder = '',
     this.help = '',
+    this.captchaFetchFnPath = '',
+    this.captchaRefreshText = '',
   });
 
   final String key;
@@ -37,14 +41,25 @@ class _LoginFieldSpec {
   final String placeholder;
   final String help;
 
+  /// captcha-image 字段取图函数（插件 fnPath），空表示非验证码字段。
+  final String captchaFetchFnPath;
+
+  /// 验证码图下方刷新提示文案，空时用默认文案。
+  final String captchaRefreshText;
+
   bool get obscure => kind == 'password';
 
   bool get multiline => kind == 'multiline';
-}
 
+  bool get isCaptchaImage => kind == 'captcha-image';
+}
 class _LoginPageState extends State<LoginPage> {
   final Map<String, TextEditingController> _controllers = {};
   final Set<String> _revealedSecrets = {};
+  final Map<String, Uint8List> _captchaImages = {};
+  final Set<String> _captchaLoading = {};
+  final Set<String> _captchaFailed = {};
+
 
   String title = '';
   late String from;
@@ -125,6 +140,7 @@ class _LoginPageState extends State<LoginPage> {
       if (key.isEmpty) {
         continue;
       }
+      final captcha = asJsonMap(field['captcha']);
       specs.add(
         _LoginFieldSpec(
           key: key,
@@ -137,6 +153,8 @@ class _LoginPageState extends State<LoginPage> {
           required: field['required'] == true,
           placeholder: field['placeholder']?.toString() ?? '',
           help: field['help']?.toString() ?? '',
+          captchaFetchFnPath: captcha['fetchFnPath']?.toString().trim() ?? '',
+          captchaRefreshText: captcha['refreshText']?.toString() ?? '',
         ),
       );
     }
@@ -176,7 +194,72 @@ class _LoginPageState extends State<LoginPage> {
             '';
         _schemeError = null;
         _loadingScheme = false;
+        _captchaImages.clear();
+        _captchaLoading.clear();
+        _captchaFailed.clear();
       });
+      // 验证码字段自动取图（每次进入登录页都是新图+新会话）。
+      for (final spec in specs) {
+        if (spec.isCaptchaImage && spec.captchaFetchFnPath.isNotEmpty) {
+          _fetchCaptcha(spec.key);
+        }
+      }
+    }
+  }
+
+  /// 取验证码图：插件返回 `{ imageBase64: string; mimeType?: string }`。
+  /// 会话（Set-Cookie）由插件 JS 侧保管，提交时自动带回。
+  Future<void> _fetchCaptcha(String key) async {
+    final spec = _fields.where((e) => e.key == key).firstOrNull;
+    if (spec == null || spec.captchaFetchFnPath.isEmpty) return;
+    if (_captchaLoading.contains(key)) return;
+    if (mounted) {
+      setState(() {
+        _captchaLoading.add(key);
+        _captchaFailed.remove(key);
+      });
+    }
+    try {
+      final result = await callUnifiedComicPlugin(
+        from: from,
+        fnPath: spec.captchaFetchFnPath,
+        core: const <String, dynamic>{},
+        extern: const <String, dynamic>{},
+      );
+      final raw = (result['imageBase64'] ?? result['image'] ?? '').toString();
+      final bytes = base64Decode(raw.replaceAll(RegExp(r'\s'), ''));
+      if (bytes.isEmpty) throw StateError('empty captcha image');
+      if (!mounted) return;
+      setState(() {
+        _captchaImages[key] = bytes;
+      });
+      // 取到新图后清空旧输入：旧码已随新图作废。
+      _controllers[key]?.clear();
+    } catch (e) {
+      logger.e(e);
+      if (mounted) {
+        setState(() {
+          _captchaFailed.add(key);
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _captchaLoading.remove(key);
+        });
+      }
+    }
+  }
+
+  bool get _hasCaptchaField =>
+      _fields.any((e) => e.isCaptchaImage && e.captchaFetchFnPath.isNotEmpty);
+
+  /// 刷新全部验证码图（提交失败后自动调用，保证旧码作废后用户拿到新图）。
+  void _refreshAllCaptchas() {
+    for (final spec in _fields) {
+      if (spec.isCaptchaImage && spec.captchaFetchFnPath.isNotEmpty) {
+        _fetchCaptcha(spec.key);
+      }
     }
   }
 
@@ -260,7 +343,11 @@ class _LoginPageState extends State<LoginPage> {
       context.maybePop();
     } catch (e) {
       logger.e(e);
-      _showDialog(t.login.loginFailed, normalizeSearchErrorMessage(e));
+      final message = normalizeSearchErrorMessage(e);
+      _showDialog(t.login.loginFailed, message);
+      // 失败自动刷新：验证码一次一码，旧码提交后即作废；
+      // 无论失败原因是码错还是账密错，都换一张新图 + 清空输入。
+      if (_hasCaptchaField) _refreshAllCaptchas();
     } finally {
       if (mounted) {
         setState(() {
@@ -313,36 +400,44 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            for (var i = 0; i < _fields.length; i++) ...[
-              if (i > 0) const SizedBox(height: 20),
-              _buildField(_fields[i]),
-            ],
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: _submitting ? null : _submitForm,
-                  child: _submitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(submitLabel),
+        child: Center(
+          // 桌面端居中限宽（与其他表单页一致），移动端全宽。
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                for (var i = 0; i < _fields.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 20),
+                  _buildField(_fields[i]),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: _submitting ? null : _submitForm,
+                      child: _submitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(submitLabel),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildField(_LoginFieldSpec spec) {
+    if (spec.isCaptchaImage) return _buildCaptchaField(spec);
+
     final controller = _controllers[spec.key];
     final revealed = _revealedSecrets.contains(spec.key);
     return Column(
@@ -381,5 +476,134 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ],
     );
+  }
+
+  /// 验证码字段：左输入框 + 右图片（点击刷新），常规网站布局。
+  /// 提交失败后宿主自动刷图，取到新图时清空旧输入（旧码已作废）。
+  Widget _buildCaptchaField(_LoginFieldSpec spec) {
+    final controller = _controllers[spec.key];
+    final bytes = _captchaImages[spec.key];
+    final loading = _captchaLoading.contains(spec.key);
+    final failed = _captchaFailed.contains(spec.key);
+    final refreshText = spec.captchaRefreshText.isEmpty
+        ? t.login.captchaTapToRefresh
+        : spec.captchaRefreshText;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  labelText: spec.required ? '${spec.label} *' : spec.label,
+                  hintText: spec.placeholder.isEmpty ? null : spec.placeholder,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 右侧图与输入框等高，只负责显示不挡字；点图放大看，点按钮刷新。
+            GestureDetector(
+              onTap: loading || bytes == null
+                  ? null
+                  : () => _showCaptchaZoom(spec.key),
+              child: Container(
+                // 输入框默认高度约 56；图按 200x62 等比放大到同高。
+                height: 56,
+                width: 180,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: loading
+                    ? Text(
+                        t.login.captchaLoading,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      )
+                    : (bytes != null
+                          ? Image.memory(
+                              bytes,
+                              height: 56,
+                              width: 180,
+                              fit: BoxFit.fill,
+                            )
+                          : Text(
+                              failed
+                                  ? t.login.captchaLoadFailed
+                                  : t.login.captchaLoading,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            )),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Tooltip(
+              message: refreshText,
+              child: IconButton(
+                onPressed: loading ? null : () => _fetchCaptcha(spec.key),
+                icon: const Icon(Icons.refresh),
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+        if (spec.help.trim().isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(spec.help, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ],
+    );
+  }
+
+  /// 点图放大：双倍尺寸看大字，弹窗内可直接刷新换一张。
+  Future<void> _showCaptchaZoom(String key) async {
+    final spec = _fields.where((e) => e.key == key).firstOrNull;
+    if (spec == null) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final bytes = _captchaImages[key];
+        final loading = _captchaLoading.contains(key);
+        return AlertDialog(
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (bytes != null)
+                  Image.memory(bytes, width: 400, fit: BoxFit.fitWidth)
+                else
+                  Text(t.login.captchaLoading),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: loading
+                          ? null
+                          : () {
+                              _fetchCaptcha(key);
+                              Navigator.of(dialogContext).pop();
+                            },
+                      child: Text(t.login.retry),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(t.common.ok),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    // 弹窗里刷了图的话外层跟着重建。
+    if (mounted) setState(() {});
   }
 }

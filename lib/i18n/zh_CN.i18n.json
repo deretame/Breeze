@@ -1190,7 +1190,10 @@
     "loginButton": "登录",
     "retry": "重试",
     "requiredFieldEmpty": "请填写 $label",
-    "loginNotSupported": "该插件暂未适配新版登录页，请前往插件设置中填写账号信息"
+    "loginNotSupported": "该插件暂未适配新版登录页，请前往插件设置中填写账号信息",
+    "captchaTapToRefresh": "看不清？点击刷新",
+    "captchaLoading": "验证码加载中...",
+    "captchaLoadFailed": "验证码加载失败，点击重试"
   },
   "fontSetting": {
     "title": "字体设置",

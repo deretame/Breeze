@@ -65,4 +65,28 @@ void main() {
     expect(result, 42);
     expect(attempts, 5);
   });
+
+  test('stops retrying when the switch is turned off mid-flight', () async {
+    var attempts = 0;
+    var switchOn = true;
+
+    await expectLater(
+      retryDownloadOperation<int>(
+        operation: 'test operation',
+        ensureTaskRunning: () async {},
+        // 前 5 次开着（无限重试），第 6 次起关闭：累计尝试已超静默预算，
+        // 下一次失败即停，不再给新的静默次数。
+        shouldRetryUntilSuccess: () => switchOn,
+        retryDelay: Duration.zero,
+        action: () async {
+          attempts++;
+          if (attempts >= 6) switchOn = false;
+          throw StateError('temporary failure');
+        },
+      ),
+      throwsStateError,
+    );
+
+    expect(attempts, 6);
+  });
 }

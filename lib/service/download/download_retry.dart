@@ -12,10 +12,10 @@ Future<T> retryDownloadOperation<T>({
   bool Function()? shouldRetryUntilSuccess,
   Duration retryDelay = const Duration(seconds: 1),
 }) async {
-  Object? lastError;
-  StackTrace? lastStackTrace;
-
-  for (var attempt = 0; attempt <= downloadSilentRetryCount; attempt++) {
+  var attempt = 0;
+  // 开启“失败后持续重试”时不设尝试上限：退出只靠取消、
+  // 不可重试错误（404/空数据），或开关关闭且打满静默次数。
+  while (true) {
     // 取消检查放在 try 外，取消不会被当成普通网络错误再次重试。
     await ensureTaskRunning();
     try {
@@ -28,9 +28,8 @@ Future<T> retryDownloadOperation<T>({
         Error.throwWithStackTrace(error, stackTrace);
       }
 
-      lastError = error;
-      lastStackTrace = stackTrace;
       final retryNumber = attempt + 1;
+      attempt += 1;
       logger.w(
         retryForever
             ? '$operation 失败，准备持续重试 (第 $retryNumber 次)'
@@ -41,9 +40,6 @@ Future<T> retryDownloadOperation<T>({
       await Future<void>.delayed(retryDelay);
     }
   }
-
-  // 逻辑上不会到达这里；保留栈信息，避免错误被意外吞掉。
-  Error.throwWithStackTrace(lastError!, lastStackTrace!);
 }
 
 bool _isDownloadCancellation(Object error) {

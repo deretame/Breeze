@@ -71,7 +71,8 @@ android {
     }
 
     defaultConfig {
-        minSdk = flutter.minSdkVersion
+        // sentry v10 原生层要求 API 26+，Flutter 默认 24 会导致 release 构建失败
+        minSdk = 26
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName

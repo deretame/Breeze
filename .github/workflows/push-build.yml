@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -15,10 +18,21 @@ env:
     secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
 
 jobs:
+  # Fork 仓库 / Fork PR 拿不到 secrets，直接提示跳过原因，避免 UI 上只有一排灰色 Skipped 让人困惑
+  android-skip-notice:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.GIT_CRYPT_KEY == '' }}
+    steps:
+      - name: 提示跳过 Android 构建
+        run: |
+          echo "跳过 Android 构建：未检测到 GIT_CRYPT_KEY（Fork 仓库推送 / Fork PR 无此 secret），其他平台正常构建。"
+
   # ══════════════════════════════════════════
   # 1. Android 构建
   # ══════════════════════════════════════════
   build-android:
+    # 需要 git-crypt 解密签名文件，无 GIT_CRYPT_KEY（Fork 仓库推送 / Fork PR）时直接跳过整个 job
+    if: ${{ secrets.GIT_CRYPT_KEY != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

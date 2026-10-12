@@ -1460,6 +1460,15 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '$index'
 	String episodeLabel({required Object index}) => '${index}';
 
+	/// zh-CN: '$count 话'
+	String groupEpisodeCount({required Object count}) => '${count} 话';
+
+	/// zh-CN: '未分组'
+	String get untitledGroup => '未分组';
+
+	/// zh-CN: '下载本组'
+	String get downloadGroup => '下载本组';
+
 	/// zh-CN: '作者'
 	String get author => '作者';
 
@@ -4441,6 +4450,9 @@ extension on Translations {
 			'comicInfo.episodeCount' => ({required Object count}) => '${count} 话',
 			'comicInfo.episodeFallback' => ({required Object index}) => '${index}',
 			'comicInfo.episodeLabel' => ({required Object index}) => '${index}',
+			'comicInfo.groupEpisodeCount' => ({required Object count}) => '${count} 话',
+			'comicInfo.untitledGroup' => '未分组',
+			'comicInfo.downloadGroup' => '下载本组',
 			'comicInfo.author' => '作者',
 			'comicInfo.tags' => '标签',
 			'comicInfo.works' => '作品',
@@ -4507,11 +4519,11 @@ extension on Translations {
 			'reader.time' => '时间',
 			'reader.verticalPositionTop' => '顶部',
 			'reader.verticalPositionBottom' => '底部',
+			_ => null,
+		} ?? switch (path) {
 			'reader.horizontalPositionLeft' => '左侧',
 			'reader.horizontalPositionCenter' => '居中',
 			'reader.horizontalPositionRight' => '右侧',
-			_ => null,
-		} ?? switch (path) {
 			'reader.readingDirectionLtr' => '从左到右',
 			'reader.readingDirectionRtl' => '从右到左',
 			'reader.readingDirectionVertical' => '从上到下',
@@ -5021,11 +5033,11 @@ extension on Translations {
 			'discover.pluginCapability' => '插件能力',
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',
+			_ => null,
+		} ?? switch (path) {
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'searchResult.enterPageNumber' => '输入页数',
 			'searchResult.pleaseEnterNumber' => '请输入数字',
 			'searchResult.returnToTop' => '返回顶部',

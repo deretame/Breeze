@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadChapterTaskRef {
 
- String get chapterId; String get requestId; String get storageChapterId; String get logicalKey; String get title; int get order; Map<String, dynamic> get extern;
+ String get chapterId; String get requestId; String get storageChapterId; String get logicalKey; String get title; String get groupTitle; int get order; Map<String, dynamic> get extern;
 /// Create a copy of DownloadChapterTaskRef
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $DownloadChapterTaskRefCopyWith<DownloadChapterTaskRef> get copyWith => _$Downlo
 @override
 bool operator ==(Object other) {
   final _this = this as DownloadChapterTaskRef;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadChapterTaskRef&&(identical(other.chapterId, _this.chapterId) || other.chapterId == _this.chapterId)&&(identical(other.requestId, _this.requestId) || other.requestId == _this.requestId)&&(identical(other.storageChapterId, _this.storageChapterId) || other.storageChapterId == _this.storageChapterId)&&(identical(other.logicalKey, _this.logicalKey) || other.logicalKey == _this.logicalKey)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.order, _this.order) || other.order == _this.order)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadChapterTaskRef&&(identical(other.chapterId, _this.chapterId) || other.chapterId == _this.chapterId)&&(identical(other.requestId, _this.requestId) || other.requestId == _this.requestId)&&(identical(other.storageChapterId, _this.storageChapterId) || other.storageChapterId == _this.storageChapterId)&&(identical(other.logicalKey, _this.logicalKey) || other.logicalKey == _this.logicalKey)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.groupTitle, _this.groupTitle) || other.groupTitle == _this.groupTitle)&&(identical(other.order, _this.order) || other.order == _this.order)&&const DeepCollectionEquality().equals(other.extern, _this.extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DownloadChapterTaskRef;
-  return Object.hash(runtimeType,_this.chapterId,_this.requestId,_this.storageChapterId,_this.logicalKey,_this.title,_this.order,const DeepCollectionEquality().hash(_this.extern));
+  return Object.hash(runtimeType,_this.chapterId,_this.requestId,_this.storageChapterId,_this.logicalKey,_this.title,_this.groupTitle,_this.order,const DeepCollectionEquality().hash(_this.extern));
 }
 
 @override
 String toString() {
   final _this = this as DownloadChapterTaskRef;
-  return 'DownloadChapterTaskRef(chapterId: ${_this.chapterId}, requestId: ${_this.requestId}, storageChapterId: ${_this.storageChapterId}, logicalKey: ${_this.logicalKey}, title: ${_this.title}, order: ${_this.order}, extern: ${_this.extern})';
+  return 'DownloadChapterTaskRef(chapterId: ${_this.chapterId}, requestId: ${_this.requestId}, storageChapterId: ${_this.storageChapterId}, logicalKey: ${_this.logicalKey}, title: ${_this.title}, groupTitle: ${_this.groupTitle}, order: ${_this.order}, extern: ${_this.extern})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $DownloadChapterTaskRefCopyWith<$Res>  {
   factory $DownloadChapterTaskRefCopyWith(DownloadChapterTaskRef value, $Res Function(DownloadChapterTaskRef) _then) = _$DownloadChapterTaskRefCopyWithImpl;
 @useResult
 $Res call({
- String chapterId, String requestId, String storageChapterId, String logicalKey, String title, int order, Map<String, dynamic> extern
+ String chapterId, String requestId, String storageChapterId, String logicalKey, String title, String groupTitle, int order, Map<String, dynamic> extern
 });
 
 
@@ -71,13 +71,14 @@ class _$DownloadChapterTaskRefCopyWithImpl<$Res>
 
 /// Create a copy of DownloadChapterTaskRef
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? chapterId = null,Object? requestId = null,Object? storageChapterId = null,Object? logicalKey = null,Object? title = null,Object? order = null,Object? extern = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? chapterId = null,Object? requestId = null,Object? storageChapterId = null,Object? logicalKey = null,Object? title = null,Object? groupTitle = null,Object? order = null,Object? extern = null,}) {
   return _then(DownloadChapterTaskRef(
 chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable
 as String,requestId: null == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
 as String,storageChapterId: null == storageChapterId ? _self.storageChapterId : storageChapterId // ignore: cast_nullable_to_non_nullable
 as String,logicalKey: null == logicalKey ? _self.logicalKey : logicalKey // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,groupTitle: null == groupTitle ? _self.groupTitle : groupTitle // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
@@ -165,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String chapterId,  String requestId,  String storageChapterId,  String logicalKey,  String title,  int order,  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String chapterId,  String requestId,  String storageChapterId,  String logicalKey,  String title,  String groupTitle,  int order,  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DownloadChapterTaskRef() when $default != null:
-return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.logicalKey,_that.title,_that.order,_that.extern);case _:
+return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.logicalKey,_that.title,_that.groupTitle,_that.order,_that.extern);case _:
   return orElse();
 
 }
@@ -186,10 +187,10 @@ return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.log
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String chapterId,  String requestId,  String storageChapterId,  String logicalKey,  String title,  int order,  Map<String, dynamic> extern)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String chapterId,  String requestId,  String storageChapterId,  String logicalKey,  String title,  String groupTitle,  int order,  Map<String, dynamic> extern)  $default,) {final _that = this;
 switch (_that) {
 case _DownloadChapterTaskRef():
-return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.logicalKey,_that.title,_that.order,_that.extern);case _:
+return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.logicalKey,_that.title,_that.groupTitle,_that.order,_that.extern);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +207,10 @@ return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.log
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String chapterId,  String requestId,  String storageChapterId,  String logicalKey,  String title,  int order,  Map<String, dynamic> extern)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String chapterId,  String requestId,  String storageChapterId,  String logicalKey,  String title,  String groupTitle,  int order,  Map<String, dynamic> extern)?  $default,) {final _that = this;
 switch (_that) {
 case _DownloadChapterTaskRef() when $default != null:
-return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.logicalKey,_that.title,_that.order,_that.extern);case _:
+return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.logicalKey,_that.title,_that.groupTitle,_that.order,_that.extern);case _:
   return null;
 
 }
@@ -221,7 +222,7 @@ return $default(_that.chapterId,_that.requestId,_that.storageChapterId,_that.log
 
 @JsonSerializable(explicitToJson: true)
 class _DownloadChapterTaskRef implements DownloadChapterTaskRef {
-  const _DownloadChapterTaskRef({this.chapterId = '', this.requestId = '', this.storageChapterId = '', this.logicalKey = '', this.title = '', this.order = 0,  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
+  const _DownloadChapterTaskRef({this.chapterId = '', this.requestId = '', this.storageChapterId = '', this.logicalKey = '', this.title = '', this.groupTitle = '', this.order = 0,  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
   factory _DownloadChapterTaskRef.fromJson(Map<String, dynamic> json) => _$DownloadChapterTaskRefFromJson(json);
 
 @override@JsonKey() final  String chapterId;
@@ -229,6 +230,7 @@ class _DownloadChapterTaskRef implements DownloadChapterTaskRef {
 @override@JsonKey() final  String storageChapterId;
 @override@JsonKey() final  String logicalKey;
 @override@JsonKey() final  String title;
+@override@JsonKey() final  String groupTitle;
 @override@JsonKey() final  int order;
  final  Map<String, dynamic> _extern;
 @override@JsonKey() Map<String, dynamic> get extern {
@@ -251,18 +253,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadChapterTaskRef&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&(identical(other.title, title) || other.title == title)&&(identical(other.order, order) || other.order == order)&&const DeepCollectionEquality().equals(other.extern, _extern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadChapterTaskRef&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.requestId, requestId) || other.requestId == requestId)&&(identical(other.storageChapterId, storageChapterId) || other.storageChapterId == storageChapterId)&&(identical(other.logicalKey, logicalKey) || other.logicalKey == logicalKey)&&(identical(other.title, title) || other.title == title)&&(identical(other.groupTitle, groupTitle) || other.groupTitle == groupTitle)&&(identical(other.order, order) || other.order == order)&&const DeepCollectionEquality().equals(other.extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,chapterId,requestId,storageChapterId,logicalKey,title,order,const DeepCollectionEquality().hash(_extern));
+    return Object.hash(runtimeType,chapterId,requestId,storageChapterId,logicalKey,title,groupTitle,order,const DeepCollectionEquality().hash(_extern));
 }
 
 @override
 String toString() {
-    return 'DownloadChapterTaskRef(chapterId: $chapterId, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, title: $title, order: $order, extern: $extern)';
+    return 'DownloadChapterTaskRef(chapterId: $chapterId, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, title: $title, groupTitle: $groupTitle, order: $order, extern: $extern)';
 }
 
 
@@ -273,7 +275,7 @@ abstract mixin class _$DownloadChapterTaskRefCopyWith<$Res> implements $Download
   factory _$DownloadChapterTaskRefCopyWith(_DownloadChapterTaskRef value, $Res Function(_DownloadChapterTaskRef) _then) = __$DownloadChapterTaskRefCopyWithImpl;
 @override @useResult
 $Res call({
- String chapterId, String requestId, String storageChapterId, String logicalKey, String title, int order, Map<String, dynamic> extern
+ String chapterId, String requestId, String storageChapterId, String logicalKey, String title, String groupTitle, int order, Map<String, dynamic> extern
 });
 
 
@@ -290,13 +292,14 @@ class __$DownloadChapterTaskRefCopyWithImpl<$Res>
 
 /// Create a copy of DownloadChapterTaskRef
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? chapterId = null,Object? requestId = null,Object? storageChapterId = null,Object? logicalKey = null,Object? title = null,Object? order = null,Object? extern = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? chapterId = null,Object? requestId = null,Object? storageChapterId = null,Object? logicalKey = null,Object? title = null,Object? groupTitle = null,Object? order = null,Object? extern = null,}) {
   return _then(_DownloadChapterTaskRef(
 chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable
 as String,requestId: null == requestId ? _self.requestId : requestId // ignore: cast_nullable_to_non_nullable
 as String,storageChapterId: null == storageChapterId ? _self.storageChapterId : storageChapterId // ignore: cast_nullable_to_non_nullable
 as String,logicalKey: null == logicalKey ? _self.logicalKey : logicalKey // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,groupTitle: null == groupTitle ? _self.groupTitle : groupTitle // ignore: cast_nullable_to_non_nullable
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,

@@ -71,6 +71,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
                   : FloatingActionButtonLocation.endFloat,
               floatingActionButton: state.canCommentComic
                   ? FloatingActionButton(
+                      heroTag: null,
                       onPressed: state.posting
                           ? null
                           : () => _postComicComment(cubit),

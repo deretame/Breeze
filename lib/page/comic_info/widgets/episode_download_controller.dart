@@ -223,6 +223,7 @@ class EpisodeDownloadController {
         storageChapterId: chapter.effectiveStorageId,
         logicalKey: chapter.id,
         title: chapter.displayName,
+        groupTitle: chapter.groupTitle,
         order: chapter.order,
         extern: Map<String, dynamic>.from(chapter.extern),
       ),

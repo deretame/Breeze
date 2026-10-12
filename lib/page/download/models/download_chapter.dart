@@ -19,6 +19,7 @@ class DownloadChapter {
     required this.order,
     this.requestId,
     this.storageId,
+    this.groupTitle = '',
     required this.extern,
     required this.images,
   });
@@ -41,7 +42,10 @@ class DownloadChapter {
   /// 本地存储 key。为空时 [effectiveStorageId] 会基于 [id] 生成 hash。
   final String? storageId;
 
-  /// 插件透传 extern。
+  /// 视觉分组标题（空=不分组）。只做展示与分组，不参与章节身份匹配。
+  final String groupTitle;
+
+  /// 插件透传 extern.
   final Map<String, dynamic> extern;
 
   /// 已下载图片列表。
@@ -74,6 +78,7 @@ class DownloadChapter {
     int? order,
     String? requestId,
     String? storageId,
+    String? groupTitle,
     Map<String, dynamic>? extern,
     List<DownloadImage>? images,
   }) {
@@ -83,6 +88,7 @@ class DownloadChapter {
       order: order ?? this.order,
       requestId: requestId ?? this.requestId,
       storageId: storageId ?? this.storageId,
+      groupTitle: groupTitle ?? this.groupTitle,
       extern: extern ?? this.extern,
       images: images ?? this.images,
     );

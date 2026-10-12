@@ -110,6 +110,7 @@ class DownloadChapterAdapter {
       order: order,
       requestId: requestId,
       storageId: storageId,
+      groupTitle: _string(map['groupTitle']),
       extern: const {},
       images: _imagesFromList(map['images'] as List?),
     );
@@ -133,6 +134,7 @@ class DownloadChapterAdapter {
       storageId: ref.storageChapterId.trim().isNotEmpty
           ? ref.storageChapterId.trim()
           : null,
+      groupTitle: ref.groupTitle.trim(),
       extern: Map<String, dynamic>.from(ref.extern),
       images: const [],
     );
@@ -156,6 +158,7 @@ class DownloadChapterAdapter {
       storageId: episode.storageChapterId.trim().isNotEmpty
           ? episode.storageChapterId.trim()
           : null,
+      groupTitle: episode.groupTitle.trim(),
       extern: Map<String, dynamic>.from(episode.extern),
       images: const [],
     );
@@ -179,6 +182,7 @@ class DownloadChapterAdapter {
       storageId: ref.storageChapterId.trim().isNotEmpty
           ? ref.storageChapterId.trim()
           : null,
+      groupTitle: ref.groupTitle.trim(),
       extern: Map<String, dynamic>.from(ref.extern),
       images: const [],
     );
@@ -202,6 +206,7 @@ class DownloadChapterAdapter {
       storageId: chapter.storageChapterId.trim().isNotEmpty
           ? chapter.storageChapterId.trim()
           : null,
+      groupTitle: chapter.groupTitle.trim(),
       extern: Map<String, dynamic>.from(chapter.extern),
       images: chapter.images
           .map(

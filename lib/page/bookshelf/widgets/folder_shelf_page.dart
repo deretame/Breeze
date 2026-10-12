@@ -321,6 +321,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     // 历史只有一个多选入口：不用 SpeedDial 展开，直接放同款圆形按钮。
     if (state.mode == ShelfPageMode.history) {
       return FloatingActionButton(
+        heroTag: null,
         shape: roundedRect(16),
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,

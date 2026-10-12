@@ -569,6 +569,9 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String episodeCount({required Object count}) => '${count} Episodes';
 	@override String episodeFallback({required Object index}) => '${index}';
 	@override String episodeLabel({required Object index}) => '${index}';
+	@override String groupEpisodeCount({required Object count}) => '${count} Episodes';
+	@override String get untitledGroup => 'Ungrouped';
+	@override String get downloadGroup => 'Download group';
 	@override String get author => 'Author';
 	@override String get tags => 'Tags';
 	@override String get works => 'Works';
@@ -2031,6 +2034,9 @@ extension on TranslationsEnUs {
 			'comicInfo.episodeCount' => ({required Object count}) => '${count} Episodes',
 			'comicInfo.episodeFallback' => ({required Object index}) => '${index}',
 			'comicInfo.episodeLabel' => ({required Object index}) => '${index}',
+			'comicInfo.groupEpisodeCount' => ({required Object count}) => '${count} Episodes',
+			'comicInfo.untitledGroup' => 'Ungrouped',
+			'comicInfo.downloadGroup' => 'Download group',
 			'comicInfo.author' => 'Author',
 			'comicInfo.tags' => 'Tags',
 			'comicInfo.works' => 'Works',
@@ -2098,11 +2104,11 @@ extension on TranslationsEnUs {
 			'reader.verticalPositionTop' => 'Top',
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
+			_ => null,
+		} ?? switch (path) {
 			'reader.horizontalPositionCenter' => 'Center',
 			'reader.horizontalPositionRight' => 'Right',
 			'reader.readingDirectionLtr' => 'Left to right',
-			_ => null,
-		} ?? switch (path) {
 			'reader.readingDirectionRtl' => 'Right to left',
 			'reader.readingDirectionVertical' => 'Top to bottom',
 			'reader.webtoon' => 'Webtoon',
@@ -2612,11 +2618,11 @@ extension on TranslationsEnUs {
 			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
+			_ => null,
+		} ?? switch (path) {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
 			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
-			_ => null,
-		} ?? switch (path) {
 			'searchResult.returnToTop' => 'Return to top',
 			'searchResult.jumpToPage' => 'Jump to page',
 			'searchResult.jump' => 'Jump',

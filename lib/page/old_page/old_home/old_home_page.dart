@@ -105,6 +105,7 @@ class _OldHomePageState extends State<OldHomePage> {
           : FloatingActionButtonLocation.endFloat,
       floatingActionButton: panels.length > 1
           ? FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 setState(() {
                   _tabIndex = effectiveIndex == 0 ? 1 : 0;

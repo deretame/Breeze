@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/comic_info/method/chapter_group.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
@@ -44,6 +45,10 @@ class EpButtonWidget extends StatelessWidget {
   final EpisodeDownloadController controller;
   final dynamic allInfo;
   final int epsLength;
+
+  /// 组内总数：分组显示时行号按组内 1..N 编排（null 时回退 [epsLength]，
+  /// 即今天的扁平行为）。阅读器用的总章节数仍走 [epsLength]。
+  final int? displayTotal;
   final ComicEntryType type;
   final String comicId;
   final String from;
@@ -64,6 +69,7 @@ class EpButtonWidget extends StatelessWidget {
     required this.controller,
     required this.allInfo,
     required this.epsLength,
+    this.displayTotal,
     required this.type,
     required this.comicId,
     required this.from,
@@ -79,11 +85,14 @@ class EpButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 不依赖插件返回的 order，按当前显示位置自主计算序号：
-    // 正序从上到下 1..N，倒序从下到上 N..1。
+    // 正序从上到下 1..N，倒序从下到上 N..1。分组时 N 为组内总数。
     // 标题只在外层 build 算一次（带 FFI 缓存），选中/进度变化只走内层监听，
-    // 不会重复触发转换。
-    final displayNumber = isReversed ? epsLength - index : index + 1;
-    final rawTitle = doc.name.trim();
+    final numberTotal = displayTotal ?? epsLength;
+    final displayNumber = isReversed ? numberTotal - index : index + 1;
+    final rawTitle = chapterDisplayName(
+      name: doc.name.trim(),
+      groupTitle: resolveChapterGroupTitle(groupTitle: doc.groupTitle),
+    );
     final title = rawTitle.isEmpty
         ? t.comicInfo.episodeFallback(index: displayNumber)
         : _cachedConvertForDisplay(rawTitle);

@@ -1290,6 +1290,7 @@ List<UnifiedComicDownloadStoredChapter> _withSequentialChapterOrders(
         id: chapter.id,
         name: chapter.name,
         order: i + 1,
+        groupTitle: chapter.groupTitle,
         images: chapter.images,
       ),
     );

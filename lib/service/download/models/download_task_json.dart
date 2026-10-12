@@ -58,6 +58,7 @@ abstract class DownloadChapterTaskRef with _$DownloadChapterTaskRef {
     @Default('') String storageChapterId,
     @Default('') String logicalKey,
     @Default('') String title,
+    @Default('') String groupTitle,
     @Default(0) int order,
     @Default(<String, dynamic>{}) Map<String, dynamic> extern,
   }) = _DownloadChapterTaskRef;

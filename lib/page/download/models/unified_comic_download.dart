@@ -50,6 +50,7 @@ class UnifiedComicDownloadStoredChapter {
     this.logicalKey = '',
     this.taskChapterId = '',
     this.storageChapterId = '',
+    this.groupTitle = '',
     this.images = const [],
   });
 
@@ -59,6 +60,7 @@ class UnifiedComicDownloadStoredChapter {
   final String logicalKey;
   final String taskChapterId;
   final String storageChapterId;
+  final String groupTitle;
   final List<UnifiedComicDownloadImage> images;
 
   factory UnifiedComicDownloadStoredChapter.fromMap(Map<String, dynamic> map) {
@@ -70,6 +72,7 @@ class UnifiedComicDownloadStoredChapter {
       logicalKey: map['logicalKey']?.toString() ?? '',
       taskChapterId: map['taskChapterId']?.toString() ?? '',
       storageChapterId: map['storageChapterId']?.toString() ?? '',
+      groupTitle: map['groupTitle']?.toString() ?? '',
       images: rawImages
           .whereType<Map>()
           .map(
@@ -87,6 +90,7 @@ class UnifiedComicDownloadStoredChapter {
     'logicalKey': logicalKey,
     'taskChapterId': taskChapterId,
     'storageChapterId': storageChapterId,
+    'groupTitle': groupTitle,
     'images': images.map((image) => image.toMap()).toList(),
   };
 }
@@ -99,6 +103,7 @@ class UnifiedComicDownloadChapter {
     this.requestId = '',
     this.storageChapterId = '',
     this.logicalKey = '',
+    this.groupTitle = '',
     this.images = const [],
     this.extern = const <String, dynamic>{},
   });
@@ -109,6 +114,7 @@ class UnifiedComicDownloadChapter {
   final String requestId;
   final String storageChapterId;
   final String logicalKey;
+  final String groupTitle;
   final List<UnifiedComicDownloadImage> images;
   final Map<String, dynamic> extern;
 
@@ -124,6 +130,7 @@ class UnifiedComicDownloadChapter {
       requestId: map['requestId']?.toString() ?? '',
       storageChapterId: map['storageChapterId']?.toString() ?? '',
       logicalKey: map['logicalKey']?.toString() ?? '',
+      groupTitle: map['groupTitle']?.toString() ?? '',
       images: ((map['images'] as List?) ?? const [])
           .whereType<Map>()
           .map(
@@ -173,6 +180,7 @@ class UnifiedComicDownloadInfo {
         requestId: chapter.requestId.trim(),
         storageChapterId: chapter.storageChapterId.trim(),
         logicalKey: chapter.logicalKey.trim(),
+        groupTitle: chapter.groupTitle.trim(),
         images: const [],
         extern: extern,
       );
@@ -299,6 +307,7 @@ List<Map<String, dynamic>> buildChapterCatalog(List<Ep> eps) {
           'requestId': ep.requestId,
           'order': ep.order,
           'name': ep.name,
+          'groupTitle': ep.groupTitle,
         },
       )
       .toList();
@@ -338,6 +347,7 @@ List<DownloadChapter> readChapterCatalog(UnifiedComicDownload record) {
         displayName: map['name']?.toString() ?? '',
         order: int.tryParse(map['order']?.toString() ?? '') ?? 0,
         requestId: requestId.isNotEmpty ? requestId : null,
+        groupTitle: map['groupTitle']?.toString() ?? '',
         extern: const {},
         images: const [],
       );
@@ -441,6 +451,7 @@ List<Ep> buildDownloadEps(
               ? chapter.storageChapterId
               : chapter.id,
           logicalKey: chapter.logicalKey,
+          groupTitle: chapter.groupTitle,
         ),
       )
       .toList();

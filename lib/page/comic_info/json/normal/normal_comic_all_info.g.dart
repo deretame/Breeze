@@ -160,6 +160,7 @@ _Ep _$EpFromJson(Map<String, dynamic> json) => _Ep(
   requestId: json['requestId'] as String? ?? '',
   storageChapterId: json['storageChapterId'] as String? ?? '',
   logicalKey: json['logicalKey'] as String? ?? '',
+  groupTitle: json['groupTitle'] as String? ?? '',
   extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -170,6 +171,7 @@ Map<String, dynamic> _$EpToJson(_Ep instance) => <String, dynamic>{
   'requestId': instance.requestId,
   'storageChapterId': instance.storageChapterId,
   'logicalKey': instance.logicalKey,
+  'groupTitle': instance.groupTitle,
   'extern': instance.extern,
 };
 

@@ -63,6 +63,7 @@ class _DiscoverView extends StatelessWidget {
           ? FloatingActionButtonLocation.startFloat
           : FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         tooltip: t.discover.search,
         onPressed: () => _search(context),
         child: const Icon(Icons.search),

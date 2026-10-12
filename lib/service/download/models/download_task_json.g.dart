@@ -14,6 +14,7 @@ _DownloadChapterTaskRef _$DownloadChapterTaskRefFromJson(
   storageChapterId: json['storageChapterId'] as String? ?? '',
   logicalKey: json['logicalKey'] as String? ?? '',
   title: json['title'] as String? ?? '',
+  groupTitle: json['groupTitle'] as String? ?? '',
   order: (json['order'] as num?)?.toInt() ?? 0,
   extern: json['extern'] as Map<String, dynamic>? ?? const <String, dynamic>{},
 );
@@ -26,6 +27,7 @@ Map<String, dynamic> _$DownloadChapterTaskRefToJson(
   'storageChapterId': instance.storageChapterId,
   'logicalKey': instance.logicalKey,
   'title': instance.title,
+  'groupTitle': instance.groupTitle,
   'order': instance.order,
   'extern': instance.extern,
 };

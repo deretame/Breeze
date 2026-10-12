@@ -120,6 +120,7 @@ class _OldRankingPageState extends State<OldRankingPage> {
           : FloatingActionButtonLocation.endFloat,
       floatingActionButton: panels.length > 1
           ? FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 setState(() {
                   _panelIndex = effectiveIndex == 0 ? 1 : 0;

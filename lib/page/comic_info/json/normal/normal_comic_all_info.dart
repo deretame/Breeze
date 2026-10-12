@@ -131,6 +131,7 @@ abstract class Ep with _$Ep {
     @JsonKey(name: 'requestId') @Default('') String requestId,
     @JsonKey(name: 'storageChapterId') @Default('') String storageChapterId,
     @JsonKey(name: 'logicalKey') @Default('') String logicalKey,
+    @JsonKey(name: 'groupTitle') @Default('') String groupTitle,
     @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Ep;
 

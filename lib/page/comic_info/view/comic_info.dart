@@ -1030,7 +1030,10 @@ class _ComicInfoState extends State<_ComicInfo>
         showInfoToast(error.result.message ?? '云端收藏操作未完成');
       }
     } catch (e) {
-      showErrorToast(t.error.operationFailed);
+      showErrorToast(
+        normalizeSearchErrorMessage(e),
+        duration: const Duration(seconds: 5),
+      );
     }
   }
 }

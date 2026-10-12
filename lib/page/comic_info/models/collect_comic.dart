@@ -309,7 +309,10 @@ Future<FavoriteWorkflowExecutionResult> _runFavoriteWorkflow({
       case FavoriteWorkflowStatus.cancelled:
         final executionResult = _toExecutionResult(result);
         if (result.status == FavoriteWorkflowStatus.failed) {
-          throw StateError(result.message ?? t.error.operationFailed);
+          final message = result.message?.trim() ?? '';
+          throw StateError(
+            message.isNotEmpty ? message : t.error.executionFailed,
+          );
         }
         throw FavoriteWorkflowIncompleteException(executionResult);
       case FavoriteWorkflowStatus.awaitingInput:

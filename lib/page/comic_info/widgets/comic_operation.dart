@@ -265,7 +265,10 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       if (!mounted) {
         return;
       }
-      showErrorToast(t.error.operationFailed);
+      showErrorToast(
+        normalizeSearchErrorMessage(error),
+        duration: const Duration(seconds: 5),
+      );
     }
   }
 

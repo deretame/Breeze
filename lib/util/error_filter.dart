@@ -46,8 +46,23 @@ String normalizeSearchErrorMessage(Object error) {
     AnyhowException(message: final message) => message.trim(),
     _ => error.toString().trim(),
   };
-  if (message.isNotEmpty) {
-    return message;
+  // Dart 侧 StateError.toString() 会带上 `Bad state: ` 前缀，直接展示会让用户困惑；
+  // 与 plugin_cloud_download_utils 的 _rawPluginErrorText 保持一致，展示前剥掉。
+  var result = message;
+  const prefixes = ['Bad state: ', 'Exception: '];
+  var changed = true;
+  while (changed) {
+    changed = false;
+    for (final prefix in prefixes) {
+      if (result.startsWith(prefix)) {
+        result = result.substring(prefix.length).trim();
+        changed = true;
+        break;
+      }
+    }
+  }
+  if (result.isNotEmpty) {
+    return result;
   }
   return t.error.executionFailed;
 }

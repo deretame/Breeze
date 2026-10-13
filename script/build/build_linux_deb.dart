@@ -66,7 +66,7 @@ Future<String> _runCapture(
 
 String _projectRoot() {
   final scriptFile = File.fromUri(Platform.script);
-  return Directory(scriptFile.parent.path).parent.path;
+  return Directory(scriptFile.parent.path).parent.parent.path;
 }
 
 Future<String> _readDebVersion(String projectRoot) async {

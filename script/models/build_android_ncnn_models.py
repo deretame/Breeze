@@ -2,10 +2,10 @@
 """Package Android NCNN super-resolution models into realsr-android.7z.
 
 Usage:
-    python script/build_android_ncnn_models.py <models_source_dir>
+    python script/models/build_android_ncnn_models.py <models_source_dir>
 
 Example:
-    python script/build_android_ncnn_models.py \
+    python script/models/build_android_ncnn_models.py \
         third_party/RealSR-NCNN-Android/RealSR-NCNN-Android-CLI/assets/Linux-x64
 
 The source directory is expected to contain model directories such as:
@@ -89,7 +89,7 @@ def main() -> int:
         print(f"Source directory does not exist: {source}", file=sys.stderr)
         return 1
 
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = Path(__file__).resolve().parent.parent.parent
     output = project_root / "realsr-android.7z"
 
     model_dirs = [

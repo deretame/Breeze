@@ -12,7 +12,7 @@ Android 端已彻底从 **JNI + ncnn 共享库** 方案切换到 **waifu2x-ncnn 
 - 运行时 Dart 层通过 `MethodChannel` 获取该 so 在 `nativeLibraryDir` 中的真实路径，然后直接用 `Process.run` 调用它。
 - 超分模型（waifu2x / Real-CUGAN）不打包进 APK，首次使用时从网络下载 `realsr-android.7z` 并解压到应用的 `files/super_resolution/` 目录。
 
-> 当前 ABI 只支持 `arm64-v8a`，其余 ABI 需要扩展 `script/build_waifu2x_cli_android.py` 的 `ABIS` 列表并解决对应依赖。
+> 当前 ABI 只支持 `arm64-v8a`，其余 ABI 需要扩展 `script/android/build_waifu2x_cli_android.py` 的 `ABIS` 列表并解决对应依赖。
 
 ---
 
@@ -38,7 +38,7 @@ Android 端已彻底从 **JNI + ncnn 共享库** 方案切换到 **waifu2x-ncnn 
 waifu2x CLI 编译需要 OpenCV Android SDK 和 libwebp 源码，运行：
 
 ```bash
-python script/prepare_android_waifu2x_deps.py
+python script/android/prepare_android_waifu2x_deps.py
 ```
 
 这个脚本会：
@@ -55,7 +55,7 @@ python script/prepare_android_waifu2x_deps.py
 waifu2x CLI 需要静态链接 ncnn（关闭 OpenMP、开启 Vulkan），运行：
 
 ```bash
-python script/build_ncnn_static_android.py
+python script/android/build_ncnn_static_android.py
 ```
 
 这个脚本会：
@@ -71,7 +71,7 @@ python script/build_ncnn_static_android.py
 ## 5. 编译 waifu2x CLI
 
 ```bash
-python script/build_waifu2x_cli_android.py
+python script/android/build_waifu2x_cli_android.py
 ```
 
 这个脚本会：
@@ -88,10 +88,10 @@ python script/build_waifu2x_cli_android.py
 
 ```bash
 # Windows (PowerShell)
-$env:FORCE_REBUILD=1; python script/build_waifu2x_cli_android.py
+$env:FORCE_REBUILD=1; python script/android/build_waifu2x_cli_android.py
 
 # Linux / macOS
-FORCE_REBUILD=1 python script/build_waifu2x_cli_android.py
+FORCE_REBUILD=1 python script/android/build_waifu2x_cli_android.py
 ```
 
 ---
@@ -105,7 +105,7 @@ FORCE_REBUILD=1 python script/build_waifu2x_cli_android.py
 flutter build apk --debug --target-platform=android-arm64
 
 # Release（正式构建）
-dart ./script/build_apk.dart
+dart ./script/build/build_apk.dart
 ```
 
 构建完成后，APK 的 `lib/arm64-v8a/` 下应包含：
@@ -215,8 +215,8 @@ super_resolution/
 ### 9.2 需要强制重编
 
 ```bash
-FORCE_REBUILD=1 python script/build_ncnn_static_android.py
-FORCE_REBUILD=1 python script/build_waifu2x_cli_android.py
+FORCE_REBUILD=1 python script/android/build_ncnn_static_android.py
+FORCE_REBUILD=1 python script/android/build_waifu2x_cli_android.py
 ```
 
 ### 9.3 产物没有被打包进 APK
@@ -235,11 +235,11 @@ FORCE_REBUILD=1 python script/build_waifu2x_cli_android.py
 
 | 文件 | 作用 |
 |------|------|
-| `script/prepare_android_waifu2x_deps.py` | 下载 OpenCV / libwebp 依赖 |
-| `script/build_ncnn_static_android.py` | 编译静态 ncnn |
-| `script/build_waifu2x_cli_android.py` | 编译 waifu2x CLI 并伪装成 so |
-| `script/android_build_utils.py` | 跨平台工具函数 |
+| `script/android/prepare_android_waifu2x_deps.py` | 下载 OpenCV / libwebp 依赖 |
+| `script/android/build_ncnn_static_android.py` | 编译静态 ncnn |
+| `script/android/build_waifu2x_cli_android.py` | 编译 waifu2x CLI 并伪装成 so |
+| `script/android/android_build_utils.py` | 跨平台工具函数 |
 | `android/app/src/main/cpp/waifu2x_cli/CMakeLists.txt` | CLI 的 CMake 配置 |
-| `lib/util/real_sr/real_sr_super_resolution.dart` | Dart 侧超分入口与 CLI 调用 |
+| `lib/page/setting/real_sr/service/real_sr_super_resolution.dart` | Dart 侧超分入口与 CLI 调用 |
 | `android/app/src/main/kotlin/com/zephyr/breeze/MainActivity.kt` | `getWaifu2xCliPath` MethodChannel |
 | `integration_test/real_sr_android_test.dart` | 真机集成测试 |

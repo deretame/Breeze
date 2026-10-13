@@ -183,7 +183,7 @@ Future<void> main(List<String> args) async {
   // 使用 path 库（p.join）可以更优雅地处理路径，这里保持字符串拼接兼容原代码
   final String scriptPath = Platform.script.toFilePath();
   final String scriptDir = Directory(scriptPath).parent.path;
-  final String projectRoot = Directory(scriptDir).parent.path;
+  final String projectRoot = Directory(scriptDir).parent.parent.path;
   final String binDir = '$scriptDir${sep}bin';
 
   const String flutterExecutable = 'flutter';

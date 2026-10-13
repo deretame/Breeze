@@ -47,7 +47,7 @@ Real-CUGAN 官方只提供 PyTorch / NCNN 权重，没有现成的 CoreML 模型
 项目里提供了转换脚本：
 
 ```bash
-python script/convert_realcugan_coreml.py \
+python script/models/convert_realcugan_coreml.py \
     --src /path/to/Real-CUGAN \
     --weight up2x-latest-no-denoise.pth \
     --output RealCUGAN_2x_no-denoise_block156.mlpackage

@@ -10,8 +10,8 @@ All dependencies are placed under:
 
 These paths are referenced by:
     android/app/src/main/cpp/waifu2x_cli/CMakeLists.txt
-    script/build_ncnn_static_android.py
-    script/build_waifu2x_cli_android.py
+    script/android/build_ncnn_static_android.py
+    script/android/build_waifu2x_cli_android.py
 """
 
 import os
@@ -30,7 +30,7 @@ LIBWEBP_REPO = "https://github.com/webmproject/libwebp.git"
 
 
 def project_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def deps_dir() -> Path:

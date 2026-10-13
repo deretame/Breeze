@@ -22,7 +22,7 @@ BUILD_PARALLEL = os.cpu_count() or 4
 
 
 def project_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def ncnn_src_dir() -> Path:

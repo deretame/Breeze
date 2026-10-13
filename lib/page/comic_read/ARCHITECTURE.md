@@ -312,7 +312,7 @@ service/       # jump、history isolate 协作
 flutter analyze lib/page/comic_read
 ```
 
-涉及 freezed / 路由时再跑 `dart ./script/code_generate.dart`。
+涉及 freezed / 路由时再跑 `dart ./script/codegen/code_generate.dart`。
 
 ---
 

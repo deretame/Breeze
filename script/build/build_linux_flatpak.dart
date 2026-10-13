@@ -152,7 +152,7 @@ Future<void> main() async {
 
   final scriptFile = File.fromUri(Platform.script);
   final scriptDir = scriptFile.parent.path;
-  final projectRoot = Directory(scriptDir).parent.path;
+  final projectRoot = Directory(scriptDir).parent.parent.path;
 
   _log('=== Breeze Linux Build Pipeline ===', color: _green);
   _log('Project root: $projectRoot', color: _green);

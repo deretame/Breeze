@@ -29,7 +29,7 @@ UPSTREAM_COMMIT = "0eb16763761e46f55c6223439ca1ad20216bc4ab"
 
 
 def project_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def deps_dir() -> Path:

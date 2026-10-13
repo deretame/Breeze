@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-ROOT = Path(__file__).resolve().parent.parent / "lib"
+ROOT = Path(__file__).resolve().parent.parent.parent / "lib"
 PAT = re.compile(r"""^(import|export)\s+(['"])([^'"]+)\2""")
 SKIP_SUFFIXES = (".g.dart", ".freezed.dart", ".gr.dart")
 

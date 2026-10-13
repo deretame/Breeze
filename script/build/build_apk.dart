@@ -167,7 +167,7 @@ Future<Map<String, String>> _initializePaths() async {
   final sep = Platform.pathSeparator;
   final String scriptPath = Platform.script.toFilePath();
   final String scriptDir = Directory(scriptPath).parent.path;
-  final String projectRoot = Directory(scriptDir).parent.path;
+  final String projectRoot = Directory(scriptDir).parent.parent.path;
 
   const String flutterExecutable = 'flutter';
 

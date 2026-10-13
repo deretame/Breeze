@@ -105,7 +105,7 @@ Future<void> main() async {
     // --- 1. 初始化路径 ---
     final String scriptPath = Platform.script.toFilePath();
     final String scriptDir = Directory(scriptPath).parent.path;
-    final String projectRoot = Directory(scriptDir).parent.path;
+    final String projectRoot = Directory(scriptDir).parent.parent.path;
 
     _printColor('项目根目录: $projectRoot', _cyan);
     // 步骤计数：新增步骤时只需改 totalSteps，无需手动重排编号

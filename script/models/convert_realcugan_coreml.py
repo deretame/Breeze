@@ -5,7 +5,7 @@
     pip install torch numpy opencv-python coremltools
 
 用法：
-    python script/convert_realcugan_coreml.py \
+    python script/models/convert_realcugan_coreml.py \
         --src /path/to/Real-CUGAN \
         --weight up2x-latest-no-denoise.pth \
         --output asset/coreml_models/RealCUGAN_2x_no-denoise_block156.mlpackage

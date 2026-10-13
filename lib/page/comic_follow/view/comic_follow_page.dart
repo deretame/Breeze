@@ -211,9 +211,11 @@ class _SummaryBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  unread > 0
-                      ? t.comicFollow.unreadCountBadge(count: unread)
-                      : t.comicFollow.noUnread,
+                  unread == 1
+                      ? t.comicFollow.updatedComicsSingle
+                      : unread > 1
+                          ? t.comicFollow.updatedComicsMultiple(count: unread)
+                          : t.comicFollow.noUnread,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -804,7 +806,7 @@ class _UnreadPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        t.comicFollow.unreadCountBadge(count: count),
+        t.comicFollow.newChaptersShort(diff: count),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: scheme.onPrimary,
           fontWeight: FontWeight.w700,

@@ -1143,8 +1143,8 @@
     "updateChannelName": "Comic update reminder",
     "updateChannelDesc": "Pushed when followed comics have new chapters",
     "updateTitle": "Follow update",
-    "updateBodySingle": "1 followed comic has updates",
-    "updateBodyMultiple": "$count followed comics have updates"
+    "updatedComicsSingle": "1 followed comic updated",
+    "updatedComicsMultiple": "$count followed comics updated"
   },
   "changelog": {
     "title": "Changelog",

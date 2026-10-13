@@ -125,6 +125,10 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _cloudFavoriteStateOverridden = false;
   bool _isLocalCollected = false;
   String _localCollectSyncedFor = '';
+  // 追更线上总数同步护栏：记住已同步到的章节数。数字变大才再同步一次，
+  // 下拉刷新后长出的新话不会被吞；下载入口的 comicInfoDyn 是本地快照
+  // （已下载数），不能当线上总数写——只在 PluginComicDetailSource 时同步。
+  final Map<String, int> _followSyncedCounts = {};
 
   // 章节显示顺序缓存：raw 列表实例不变且倒序开关不变时直接复用，
   // 避免每次 build 都 sort + reversed.toList()。
@@ -326,6 +330,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     _isCloudCollected = state.allInfo?.isFavourite ?? false;
                   }
                   _syncLocalCollectStatus(state.allInfo!);
+                  _syncFollowFromOnlineDetail(state.comicInfo, state.allInfo!);
                   initHistory(
                     context,
                     _comicId,
@@ -925,6 +930,35 @@ class _ComicInfoState extends State<_ComicInfo>
     setState(() {
       _isLocalCollected = collected;
     });
+  }
+
+  /// 进在线详情即确认：把当前线上总数记为已确认基线并清掉红点。
+  ///
+  /// 只有 `comicInfo` 是 [PluginComicDetailSource]（在线详情）时才同步：
+  /// 下载入口的是本地快照（已下载数），不能当线上总数写。
+  void _syncFollowFromOnlineDetail(
+    dynamic comicInfo,
+    NormalComicAllInfo info,
+  ) {
+    if (comicInfo is! PluginComicDetailSource) return;
+    final comicId = info.comicInfo.id;
+    final eps = comicInfo.eps;
+    if (eps.isEmpty) return;
+    // 同一数只同步一次；下拉刷新后变大才再同步。
+    if ((_followSyncedCounts[comicId] ?? 0) >= eps.length) return;
+    _followSyncedCounts[comicId] = eps.length;
+    final latest = eps.reduce(
+      (left, right) => left.order >= right.order ? left : right,
+    );
+    context.read<ComicFollowCubit>().syncFollowFromDetailAndPersist(
+      source: widget.from,
+      comicId: comicId,
+      onlineChapterCount: eps.length,
+      onlineLatestTitle: chapterQualifiedName(
+        name: latest.name,
+        groupTitle: resolveChapterGroupTitle(groupTitle: latest.groupTitle),
+      ),
+    );
   }
 
   Future<void> _toggleLocalCollectFromMenu() async {

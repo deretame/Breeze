@@ -1145,8 +1145,8 @@
     "updateChannelName": "漫画更新提醒",
     "updateChannelDesc": "追更漫画检测到新章节时推送",
     "updateTitle": "追更更新",
-    "updateBodySingle": "有 1 部追更漫画更新了",
-    "updateBodyMultiple": "有 $count 部追更漫画更新了"
+    "updatedComicsSingle": "有 1 部漫画更新",
+    "updatedComicsMultiple": "有 $count 部漫画更新"
   },
   "changelog": {
     "title": "更新日志",

@@ -114,8 +114,8 @@ class ComicFollowService {
   Future<void> notifyUpdate(int updateCount) async {
     final title = t.comicFollow.updateTitle;
     final body = updateCount == 1
-        ? t.comicFollow.updateBodySingle
-        : t.comicFollow.updateBodyMultiple(count: updateCount);
+        ? t.comicFollow.updatedComicsSingle
+        : t.comicFollow.updatedComicsMultiple(count: updateCount);
 
     try {
       await flutterLocalNotificationsPlugin.show(

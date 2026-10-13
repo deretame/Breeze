@@ -3587,11 +3587,11 @@ class Translations$comicFollow$zh_CN {
 	/// zh-CN: '追更更新'
 	String get updateTitle => '追更更新';
 
-	/// zh-CN: '有 1 部追更漫画更新了'
-	String get updateBodySingle => '有 1 部追更漫画更新了';
+	/// zh-CN: '有 1 部漫画更新'
+	String get updatedComicsSingle => '有 1 部漫画更新';
 
-	/// zh-CN: '有 $count 部追更漫画更新了'
-	String updateBodyMultiple({required Object count}) => '有 ${count} 部追更漫画更新了';
+	/// zh-CN: '有 $count 部漫画更新'
+	String updatedComicsMultiple({required Object count}) => '有 ${count} 部漫画更新';
 }
 
 // Path: changelog
@@ -5109,8 +5109,8 @@ extension on Translations {
 			'comicFollow.updateChannelName' => '漫画更新提醒',
 			'comicFollow.updateChannelDesc' => '追更漫画检测到新章节时推送',
 			'comicFollow.updateTitle' => '追更更新',
-			'comicFollow.updateBodySingle' => '有 1 部追更漫画更新了',
-			'comicFollow.updateBodyMultiple' => ({required Object count}) => '有 ${count} 部追更漫画更新了',
+			'comicFollow.updatedComicsSingle' => '有 1 部漫画更新',
+			'comicFollow.updatedComicsMultiple' => ({required Object count}) => '有 ${count} 部漫画更新',
 			'changelog.title' => '更新日志',
 			'changelog.loadFailed' => '加载失败',
 			'changelog.loadFailedWithError' => ({required Object error}) => '加载失败: ${error}',

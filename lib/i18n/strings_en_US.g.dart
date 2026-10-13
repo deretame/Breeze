@@ -1385,8 +1385,8 @@ class _Translations$comicFollow$en_US extends Translations$comicFollow$zh_CN {
 	@override String get updateChannelName => 'Comic update reminder';
 	@override String get updateChannelDesc => 'Pushed when followed comics have new chapters';
 	@override String get updateTitle => 'Follow update';
-	@override String get updateBodySingle => '1 followed comic has updates';
-	@override String updateBodyMultiple({required Object count}) => '${count} followed comics have updates';
+	@override String get updatedComicsSingle => '1 followed comic updated';
+	@override String updatedComicsMultiple({required Object count}) => '${count} followed comics updated';
 }
 
 // Path: changelog
@@ -2692,8 +2692,8 @@ extension on TranslationsEnUs {
 			'comicFollow.updateChannelName' => 'Comic update reminder',
 			'comicFollow.updateChannelDesc' => 'Pushed when followed comics have new chapters',
 			'comicFollow.updateTitle' => 'Follow update',
-			'comicFollow.updateBodySingle' => '1 followed comic has updates',
-			'comicFollow.updateBodyMultiple' => ({required Object count}) => '${count} followed comics have updates',
+			'comicFollow.updatedComicsSingle' => '1 followed comic updated',
+			'comicFollow.updatedComicsMultiple' => ({required Object count}) => '${count} followed comics updated',
 			'changelog.title' => 'Changelog',
 			'changelog.loadFailed' => 'Load failed',
 			'changelog.loadFailedWithError' => ({required Object error}) => 'Load failed: ${error}',

@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/page/comic_follow/cubit/comic_follow_state.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/method/chapter_group.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_state.dart';
+import 'package:zephyr/page/comic_follow/cubit/comic_follow_sync.dart';
 import 'package:zephyr/service/comic_follow/comic_follow_service.dart';
 
 export 'package:zephyr/page/comic_follow/cubit/comic_follow_state.dart';
@@ -165,6 +166,39 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
         revision: state.revision + 1,
       ),
     );
+  }
+
+  /// 进在线详情即确认：把当前线上总数记为已确认基线并清掉红点。
+  ///
+  /// [onlineChapterCount]/[onlineLatestTitle] 必须来自**在线详情**
+  /// （`PluginComicDetailSource.eps`），下载快照/本地记录不要传——
+  /// 那是已下载数，语义不对，只增不减的守卫也救不了。
+  /// 无需同步（未追更/已删除/数没变大）时返回 null。
+  ComicFollow? syncFollowFromDetailAndPersist({
+    required String source,
+    required String comicId,
+    required int onlineChapterCount,
+    required String onlineLatestTitle,
+  }) {
+    final updated = resolveFollowSyncFromDetail(
+      follow: getFollow(source, comicId),
+      onlineChapterCount: onlineChapterCount,
+      onlineLatestTitle: onlineLatestTitle,
+      now: DateTime.now().toUtc(),
+    );
+    if (updated == null) return null;
+    ComicFollowService.instance.putFollow(updated);
+    final newItems = List<ComicFollow>.from(state.items);
+    final index = newItems.indexWhere(
+      (item) => item.uniqueKey == updated.uniqueKey,
+    );
+    if (index >= 0) {
+      newItems[index] = updated;
+    } else {
+      newItems.add(updated);
+    }
+    emit(state.copyWith(items: newItems, revision: state.revision + 1));
+    return updated;
   }
 
   Future<void> removeFollow(String source, String comicId) async {

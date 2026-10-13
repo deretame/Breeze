@@ -19,8 +19,8 @@ import 'package:zephyr/util/worker_isolate.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_event.dart';
 import 'package:zephyr/page/bookshelf/bloc/folder_shelf_state.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
-export 'folder_shelf_event.dart';
-export 'folder_shelf_state.dart';
+export 'package:zephyr/page/bookshelf/bloc/folder_shelf_event.dart';
+export 'package:zephyr/page/bookshelf/bloc/folder_shelf_state.dart';
 
 class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
   FolderShelfBloc({required ShelfPageMode mode})

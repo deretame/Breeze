@@ -209,8 +209,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
   String transitionTitleByOrder(int order, int otherOrder) {
     final name = chapterTitleByOrder(order);
     final group = chapterRefByOrder(order)?.groupTitle.trim() ?? '';
-    final otherGroup =
-        chapterRefByOrder(otherOrder)?.groupTitle.trim() ?? '';
+    final otherGroup = chapterRefByOrder(otherOrder)?.groupTitle.trim() ?? '';
     if (group.isEmpty || group == otherGroup) {
       return chapterDisplayName(name: name, groupTitle: group);
     }
@@ -247,10 +246,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
           entries.add(
             ReadModeEntry.transition(
               chapterOrder: chapterOrder,
-              chapterTitle: transitionTitleByOrder(
-                chapterOrder,
-                previousOrder,
-              ),
+              chapterTitle: transitionTitleByOrder(chapterOrder, previousOrder),
               previousChapterOrder: previousOrder,
               previousChapterTitle: transitionTitleByOrder(
                 previousOrder,
@@ -387,10 +383,7 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
           entries.add(
             ReadModeEntry.transition(
               chapterOrder: chapterOrder,
-              chapterTitle: transitionTitleByOrder(
-                chapterOrder,
-                previousOrder,
-              ),
+              chapterTitle: transitionTitleByOrder(chapterOrder, previousOrder),
               previousChapterOrder: previousOrder,
               previousChapterTitle: transitionTitleByOrder(
                 previousOrder,

@@ -12,6 +12,7 @@ import 'package:zephyr/widgets/toast.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
+
 @RoutePage()
 class LoginPage extends StatefulWidget {
   final String? from;
@@ -53,13 +54,13 @@ class _LoginFieldSpec {
 
   bool get isCaptchaImage => kind == 'captcha-image';
 }
+
 class _LoginPageState extends State<LoginPage> {
   final Map<String, TextEditingController> _controllers = {};
   final Set<String> _revealedSecrets = {};
   final Map<String, Uint8List> _captchaImages = {};
   final Set<String> _captchaLoading = {};
   final Set<String> _captchaFailed = {};
-
 
   String title = '';
   late String from;

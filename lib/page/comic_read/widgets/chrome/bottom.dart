@@ -482,9 +482,7 @@ class _ChapterPickerDialogState extends State<_ChapterPickerDialog> {
                   ),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

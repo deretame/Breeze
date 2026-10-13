@@ -90,9 +90,7 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
         ? ''
         : chapterQualifiedName(
             name: latest.name,
-            groupTitle: resolveChapterGroupTitle(
-              groupTitle: latest.groupTitle,
-            ),
+            groupTitle: resolveChapterGroupTitle(groupTitle: latest.groupTitle),
           );
 
     // 直接从数据库查询，避免仅依赖内存状态导致重复插入违反唯一约束

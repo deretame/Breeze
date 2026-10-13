@@ -44,6 +44,7 @@ String chapterGroupDisplayTitle(String title, String untitledLabel) {
   final trimmed = title.trim();
   return trimmed.isEmpty ? untitledLabel : trimmed;
 }
+
 class ChapterGroup<T> {
   ChapterGroup({required this.title, required this.items});
 

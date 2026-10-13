@@ -91,7 +91,10 @@ class ComicFollowService {
           chapterCount: eps.length,
           latestChapterTitle: latest == null
               ? ''
-              : chapterQualifiedName(name: latest.name, groupTitle: latestGroup),
+              : chapterQualifiedName(
+                  name: latest.name,
+                  groupTitle: latestGroup,
+                ),
         );
       } catch (e, s) {
         logger.w(

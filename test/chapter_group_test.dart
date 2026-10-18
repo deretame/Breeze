@@ -33,4 +33,13 @@ void main() {
     expect(groups.single.title, '');
     expect(groups.single.items, ['x', 'y']);
   });
+
+  test('下标分组与通用分组一致且无中间 List 分配', () {
+    const items = ['a1', 'b1', 'a2', 'c1', 'b2'];
+    final indexed = groupIndicesByTitle(items.length, (i) => items[i][0]);
+    expect(indexed.map((g) => g.title), ['a', 'b', 'c']);
+    expect(indexed[0].items, [0, 2]);
+    expect(indexed[1].items, [1, 4]);
+    expect(indexed[2].items, [3]);
+  });
 }

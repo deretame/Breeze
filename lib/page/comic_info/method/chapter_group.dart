@@ -48,3 +48,24 @@ List<ChapterGroup<T>> groupChaptersByTitle<T>(
   }
   return groups;
 }
+/// 下标分组：与 [groupChaptersByTitle] 同样的首次出现顺序，但直接按下标循环，
+/// 避免调用方 `List.generate(N)` 的中间分配。详情页章节列表用它（`displayEps`
+/// 已全局排序，组顺序即首次出现顺序）。
+List<ChapterGroup<int>> groupIndicesByTitle(
+  int length,
+  String Function(int index) groupOf,
+) {
+  final groups = <ChapterGroup<int>>[];
+  final indexByTitle = <String, int>{};
+  for (var i = 0; i < length; i++) {
+    final title = groupOf(i);
+    final existing = indexByTitle[title];
+    if (existing == null) {
+      indexByTitle[title] = groups.length;
+      groups.add(ChapterGroup<int>(title: title, items: [i]));
+    } else {
+      groups[existing].items.add(i);
+    }
+  }
+  return groups;
+}

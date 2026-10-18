@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
-import 'package:zephyr/page/comic_info/method/chapter_group.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/models/download_chapter.dart';
@@ -89,10 +88,7 @@ class EpButtonWidget extends StatelessWidget {
     // 标题只在外层 build 算一次（带 FFI 缓存），选中/进度变化只走内层监听，
     final numberTotal = displayTotal ?? epsLength;
     final displayNumber = isReversed ? numberTotal - index : index + 1;
-    final rawTitle = chapterDisplayName(
-      name: doc.name.trim(),
-      groupTitle: resolveChapterGroupTitle(groupTitle: doc.groupTitle),
-    );
+    final rawTitle = doc.name.trim();
     final title = rawTitle.isEmpty
         ? t.comicInfo.episodeFallback(index: displayNumber)
         : _cachedConvertForDisplay(rawTitle);

@@ -936,10 +936,7 @@ class _ComicInfoState extends State<_ComicInfo>
   ///
   /// 只有 `comicInfo` 是 [PluginComicDetailSource]（在线详情）时才同步：
   /// 下载入口的是本地快照（已下载数），不能当线上总数写。
-  void _syncFollowFromOnlineDetail(
-    dynamic comicInfo,
-    NormalComicAllInfo info,
-  ) {
+  void _syncFollowFromOnlineDetail(dynamic comicInfo, NormalComicAllInfo info) {
     if (comicInfo is! PluginComicDetailSource) return;
     final comicId = info.comicInfo.id;
     final eps = comicInfo.eps;
@@ -954,10 +951,7 @@ class _ComicInfoState extends State<_ComicInfo>
       source: widget.from,
       comicId: comicId,
       onlineChapterCount: eps.length,
-      onlineLatestTitle: chapterQualifiedName(
-        name: latest.name,
-        groupTitle: resolveChapterGroupTitle(groupTitle: latest.groupTitle),
-      ),
+      onlineLatestTitle: latest.name,
     );
   }
 

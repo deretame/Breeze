@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/page/comic_info/method/chapter_group.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_seamless_state.dart';
 import 'package:zephyr/page/comic_read/method/get_local_info.dart';
@@ -204,18 +203,6 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
     return t.reader.chapterOrder(order: order);
   }
 
-  /// 过渡卡片标题：同组内去前缀，跨组带 `组—标题` 消歧义。
-  /// [nextOrder]/[previousOrder] 为过渡两侧的 order。
-  String transitionTitleByOrder(int order, int otherOrder) {
-    final name = chapterTitleByOrder(order);
-    final group = chapterRefByOrder(order)?.groupTitle.trim() ?? '';
-    final otherGroup = chapterRefByOrder(otherOrder)?.groupTitle.trim() ?? '';
-    if (group.isEmpty || group == otherGroup) {
-      return chapterDisplayName(name: name, groupTitle: group);
-    }
-    return chapterQualifiedName(name: name, groupTitle: group);
-  }
-
   // ==================== 条目构建与槽位计算 ====================
 
   List<ReadModeEntry> buildColumnEntries(ReadSettingState readSetting) {
@@ -246,12 +233,9 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
           entries.add(
             ReadModeEntry.transition(
               chapterOrder: chapterOrder,
-              chapterTitle: transitionTitleByOrder(chapterOrder, previousOrder),
+              chapterTitle: chapterTitleByOrder(chapterOrder),
               previousChapterOrder: previousOrder,
-              previousChapterTitle: transitionTitleByOrder(
-                previousOrder,
-                chapterOrder,
-              ),
+              previousChapterTitle: chapterTitleByOrder(previousOrder),
               transitionStatus: _transitionStatusByNextOrderValue(chapterOrder),
             ),
           );
@@ -284,15 +268,9 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         entries.add(
           ReadModeEntry.transition(
             chapterOrder: endBoundaryNextOrder,
-            chapterTitle: transitionTitleByOrder(
-              endBoundaryNextOrder,
-              previousOrder,
-            ),
+            chapterTitle: chapterTitleByOrder(endBoundaryNextOrder),
             previousChapterOrder: previousOrder,
-            previousChapterTitle: transitionTitleByOrder(
-              previousOrder,
-              endBoundaryNextOrder,
-            ),
+            previousChapterTitle: chapterTitleByOrder(previousOrder),
             transitionStatus: _transitionStatusByNextOrderValue(
               endBoundaryNextOrder,
             ),
@@ -383,12 +361,9 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
           entries.add(
             ReadModeEntry.transition(
               chapterOrder: chapterOrder,
-              chapterTitle: transitionTitleByOrder(chapterOrder, previousOrder),
+              chapterTitle: chapterTitleByOrder(chapterOrder),
               previousChapterOrder: previousOrder,
-              previousChapterTitle: transitionTitleByOrder(
-                previousOrder,
-                chapterOrder,
-              ),
+              previousChapterTitle: chapterTitleByOrder(previousOrder),
               transitionStatus: _transitionStatusByNextOrderValue(chapterOrder),
             ),
           );
@@ -420,15 +395,9 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         entries.add(
           ReadModeEntry.transition(
             chapterOrder: endBoundaryNextOrder,
-            chapterTitle: transitionTitleByOrder(
-              endBoundaryNextOrder,
-              previousOrder,
-            ),
+            chapterTitle: chapterTitleByOrder(endBoundaryNextOrder),
             previousChapterOrder: previousOrder,
-            previousChapterTitle: transitionTitleByOrder(
-              previousOrder,
-              endBoundaryNextOrder,
-            ),
+            previousChapterTitle: chapterTitleByOrder(previousOrder),
             transitionStatus: _transitionStatusByNextOrderValue(
               endBoundaryNextOrder,
             ),

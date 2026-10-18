@@ -5,7 +5,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import 'package:zephyr/page/comic_info/method/chapter_group.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_state.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_sync.dart';
 import 'package:zephyr/service/comic_follow/comic_follow_service.dart';
@@ -86,13 +85,7 @@ class ComicFollowCubit extends Cubit<ComicFollowState> {
         : info.eps.reduce(
             (left, right) => left.order >= right.order ? left : right,
           );
-    // 跨组消歧义：有组时 `组—标题`，无组/单组时原样。
-    final latestChapterTitle = latest == null
-        ? ''
-        : chapterQualifiedName(
-            name: latest.name,
-            groupTitle: resolveChapterGroupTitle(groupTitle: latest.groupTitle),
-          );
+    final latestChapterTitle = latest == null ? '' : latest.name;
 
     // 直接从数据库查询，避免仅依赖内存状态导致重复插入违反唯一约束
     final existing = ComicFollowService.instance.getFollowByUniqueKey(key);

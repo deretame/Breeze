@@ -153,9 +153,7 @@ void main() {
     });
 
     test('无未读时部数为 0', () {
-      final state = ComicFollowState(
-        items: [_follow(last: 5, detected: 5)],
-      );
+      final state = ComicFollowState(items: [_follow(last: 5, detected: 5)]);
       expect(state.updateCount, 0);
     });
   });

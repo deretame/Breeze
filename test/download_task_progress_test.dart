@@ -55,9 +55,7 @@ void main() {
 
   test('payload 进度换算', () {
     expect(
-      downloadTaskPayloadProgressFraction(
-        _payload(completed: 3, total: 4),
-      ),
+      downloadTaskPayloadProgressFraction(_payload(completed: 3, total: 4)),
       0.75,
     );
   });

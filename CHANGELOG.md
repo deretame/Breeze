@@ -759,6 +759,7 @@
 ### 功能更新
 
 - 章节目录添加分组支持
+- 首页与排行榜改为插件通用页：插件通过 getPluginHomePagesBundle / getPluginCloudFavoritePagesBundle 提供多 Tab 内容，支持本机记忆上次选择的插件
 - 评论添加复制，查看头像功能
 
 ### 优化

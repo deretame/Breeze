@@ -186,8 +186,6 @@
     "exitApp": "退出",
     "appLock": "应用锁",
     "appLockSubtitle": "开启后进入应用需要验证",
-    "oldPageRollback": "旧版首页",
-    "oldPageRollbackSubtitle": "开启后使用旧版首页布局",
     "cloudFavoritePreferred": "优先云端收藏",
     "cloudFavoritePreferredSubtitle": "开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏",
     "autoFollowOnCollect": "收藏自动追更",

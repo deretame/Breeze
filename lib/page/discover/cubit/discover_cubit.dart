@@ -1,70 +1,73 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-/// 单个插件 info 的加载状态。
-class DiscoverPluginInfoState {
-  const DiscoverPluginInfoState({this.loading = true, this.error, this.data});
-
-  final bool loading;
-  final String? error;
-  final Map<String, dynamic>? data;
-
-  DiscoverPluginInfoState copyWith({
-    bool? loading,
-    String? error,
-    Map<String, dynamic>? data,
-  }) {
-    return DiscoverPluginInfoState(
-      loading: loading ?? this.loading,
-      error: error,
-      data: data ?? this.data,
-    );
-  }
-}
-
-/// Discover 页状态：插件列表 + 每个插件的 info 加载状态 + 开关状态。
+/// Discover 页状态：插件列表 + 全局 info 快照引用 + 开关状态。
+///
+/// info 数据与失败态都来自全局 [PluginRegistryCubit]，本页只做热切换，
+/// 不再各自 fetch + 本地缓存。插件更新后新功能自动显示，无需手动刷新。
 class DiscoverState {
   const DiscoverState({
     this.plugins = const {},
-    this.infoStates = const {},
+    this.infos = const {},
+    this.infoErrors = const {},
     this.togglingUuids = const {},
   });
 
   final Map<String, PluginRuntimeState> plugins;
-  final Map<String, DiscoverPluginInfoState> infoStates;
+  final Map<String, Map<String, dynamic>> infos;
+  final Map<String, String> infoErrors;
   final Set<String> togglingUuids;
 
   DiscoverState copyWith({
     Map<String, PluginRuntimeState>? plugins,
-    Map<String, DiscoverPluginInfoState>? infoStates,
+    Map<String, Map<String, dynamic>>? infos,
+    Map<String, String>? infoErrors,
     Set<String>? togglingUuids,
   }) {
     return DiscoverState(
       plugins: plugins ?? this.plugins,
-      infoStates: infoStates ?? this.infoStates,
+      infos: infos ?? this.infos,
+      infoErrors: infoErrors ?? this.infoErrors,
       togglingUuids: togglingUuids ?? this.togglingUuids,
     );
   }
 }
 
 class DiscoverCubit extends Cubit<DiscoverState> {
-  DiscoverCubit({PluginRegistryService? service})
-    : _service = service ?? PluginRegistryService.I,
-      super(const DiscoverState()) {
-    _subscription = _service.stream.listen((_) => _syncPluginsAndLoad());
-    _syncPluginsAndLoad();
+  DiscoverCubit({
+    PluginRegistryService? service,
+    required PluginRegistryCubit registry,
+  }) : _service = service ?? PluginRegistryService.I,
+       super(
+         DiscoverState(
+           plugins: registry.state.plugins,
+           infos: registry.state.infos,
+           infoErrors: registry.state.infoErrors,
+         ),
+       ) {
+    _registrySubscription = registry.stream.listen((registryState) {
+      if (isClosed) {
+        return;
+      }
+      emit(
+        state.copyWith(
+          plugins: registryState.plugins,
+          infos: registryState.infos,
+          infoErrors: registryState.infoErrors,
+        ),
+      );
+    });
   }
 
   final PluginRegistryService _service;
-  late final StreamSubscription<Map<String, PluginRuntimeState>> _subscription;
+  late final StreamSubscription<PluginRegistryState> _registrySubscription;
 
-  final Set<String> _loadingUuids = <String>{};
   final Set<String> _togglingUuids = <String>{};
-  final Map<String, String> _cacheKeys = <String, String>{};
 
   /// 当前默认插件源：优先已启用，否则取首个可见插件。
   String get currentFrom {
@@ -108,122 +111,19 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     emit(state.copyWith(togglingUuids: Set<String>.from(_togglingUuids)));
   }
 
-  /// 初始加载，与 [reload] 区别是不清空缓存，仅补齐缺失的 info。
-  void load() => _syncPluginsAndLoad();
+  /// 初始加载：全量刷新 getInfo（后台 warmup，成功即热切换）。
+  void load() => _service.warmupPluginInfos();
 
-  /// 重新加载所有可见插件的 info。
-  Future<void> reload() async {
-    _cacheKeys.clear();
-    emit(state.copyWith(infoStates: const {}));
-    _syncPluginsAndLoad();
-  }
+  /// 下拉刷新：同 load。
+  Future<void> reload() => _service.warmupPluginInfos();
 
-  /// 强制重新加载指定插件的 info。
-  Future<void> retryLoadInfo(String uuid) async {
-    _cacheKeys.remove(uuid);
-    final infoStates = Map<String, DiscoverPluginInfoState>.from(
-      state.infoStates,
-    )..remove(uuid);
-    emit(state.copyWith(infoStates: infoStates));
-    await _loadPluginInfo(uuid);
-  }
-
-  void _syncPluginsAndLoad() {
-    final snapshot = _service.snapshot;
-    final visiblePlugins = _service.sortPlugins(
-      snapshot.values.where((plugin) => !plugin.isDeleted),
-    );
-    final plugins = <String, PluginRuntimeState>{
-      for (final plugin in visiblePlugins) plugin.uuid: plugin,
-    };
-
-    final newInfoStates = Map<String, DiscoverPluginInfoState>.from(
-      state.infoStates,
-    );
-    final newCacheKeys = <String, String>{};
-
-    for (final entry in plugins.entries) {
-      final uuid = entry.key;
-      final pluginState = entry.value;
-      final cacheKey = _pluginInfoCacheKey(pluginState);
-      final previousCacheKey = _cacheKeys[uuid];
-
-      if (previousCacheKey != null && previousCacheKey != cacheKey) {
-        newInfoStates.remove(uuid);
-      }
-      newCacheKeys[uuid] = cacheKey;
-
-      if (!newInfoStates.containsKey(uuid) && !_loadingUuids.contains(uuid)) {
-        final cached = _service.getCachedPluginInfo(uuid);
-        if (cached != null) {
-          newInfoStates[uuid] = DiscoverPluginInfoState(
-            loading: false,
-            data: cached,
-          );
-        } else {
-          newInfoStates[uuid] = const DiscoverPluginInfoState(loading: true);
-          _loadPluginInfo(uuid);
-        }
-      }
-    }
-
-    // 清理已删除插件的 info 状态。
-    for (final uuid in state.infoStates.keys.toList()) {
-      if (!plugins.containsKey(uuid)) {
-        newInfoStates.remove(uuid);
-      }
-    }
-
-    _cacheKeys
-      ..clear()
-      ..addAll(newCacheKeys);
-
-    emit(state.copyWith(plugins: plugins, infoStates: newInfoStates));
-  }
-
-  Future<void> _loadPluginInfo(String uuid) async {
-    if (_loadingUuids.contains(uuid)) {
-      return;
-    }
-    _loadingUuids.add(uuid);
-
-    try {
-      final data = await _service.fetchPluginInfo(
-        uuid: uuid,
-        runtimeName: uuid,
-      );
-      if (!isClosed) {
-        final infoStates = Map<String, DiscoverPluginInfoState>.from(
-          state.infoStates,
-        )..[uuid] = DiscoverPluginInfoState(loading: false, data: data);
-        emit(state.copyWith(infoStates: infoStates));
-      }
-    } catch (e) {
-      final pluginState = _service.getByUuid(uuid);
-      if (pluginState?.debug == true) {
-        showErrorToast(t.discover.pluginDebugLoadFailed(error: e));
-      }
-      if (!isClosed) {
-        final infoStates =
-            Map<String, DiscoverPluginInfoState>.from(state.infoStates)
-              ..[uuid] = DiscoverPluginInfoState(
-                loading: false,
-                error: e.toString(),
-              );
-        emit(state.copyWith(infoStates: infoStates));
-      }
-    } finally {
-      _loadingUuids.remove(uuid);
-    }
-  }
-
-  String _pluginInfoCacheKey(PluginRuntimeState state) {
-    return '${state.isDeleted}|${state.debug}|${state.debugUrl ?? ''}';
-  }
+  /// 重试指定插件：后台拉取该插件 getInfo，成功即热切换。
+  Future<void> retryLoadInfo(String uuid) =>
+      _service.fetchPluginInfo(uuid: uuid, runtimeName: uuid).then((_) {});
 
   @override
   Future<void> close() async {
-    await _subscription.cancel();
+    await _registrySubscription.cancel();
     return super.close();
   }
 }

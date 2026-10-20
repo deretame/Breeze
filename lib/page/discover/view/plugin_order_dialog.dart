@@ -1,4 +1,6 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 
@@ -40,25 +42,10 @@ class _PluginOrderDialogState extends State<PluginOrderDialog> {
           itemCount: _plugins.length,
           itemBuilder: (context, index) {
             final plugin = _plugins[index];
-            final info = PluginRegistryService.I.getCachedPluginInfo(
-              plugin.uuid,
-            );
-            final name = info?['name']?.toString().trim();
-            return ListTile(
+            return _PluginOrderRow(
               key: ValueKey(plugin.uuid),
-              title: Text(
-                name?.isNotEmpty == true ? name! : plugin.uuid,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: plugin.isActive ? null : Text(t.discover.disabled),
-              trailing: ReorderableDragStartListener(
-                index: index,
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.drag_handle),
-                ),
-              ),
+              plugin: plugin,
+              index: index,
             );
           },
           onReorderItem: (oldIndex, newIndex) {
@@ -108,5 +95,32 @@ class _PluginOrderDialogState extends State<PluginOrderDialog> {
     if (mounted) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+/// 排序单行：独立 widget 订阅自己的名字，热切换只重建该行。
+/// 不能在 ReorderableListView itemBuilder 里用 select（sliver 上下文断言）。
+class _PluginOrderRow extends StatelessWidget {
+  const _PluginOrderRow({super.key, required this.plugin, required this.index});
+
+  final PluginRuntimeState plugin;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = context.select<PluginRegistryCubit, String>(
+      (cubit) => cubit.state.pluginName(plugin.uuid),
+    );
+    return ListTile(
+      title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: plugin.isActive ? null : Text(t.discover.disabled),
+      trailing: ReorderableDragStartListener(
+        index: index,
+        child: const Padding(
+          padding: EdgeInsets.all(8),
+          child: Icon(Icons.drag_handle),
+        ),
+      ),
+    );
   }
 }

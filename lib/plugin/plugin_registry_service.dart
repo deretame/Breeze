@@ -25,24 +25,69 @@ class PluginRegistryService {
   final Map<String, PluginRuntimeState> _states = {};
   final _streamController =
       StreamController<Map<String, PluginRuntimeState>>.broadcast();
-  ObjectBox? _objectbox;
-  final Map<String, Map<String, dynamic>> _pluginInfoCache = {};
-  final Set<String> _pluginInitDone = <String>{};
-
   Stream<Map<String, PluginRuntimeState>> get stream =>
       _streamController.stream;
 
   Map<String, PluginRuntimeState> get snapshot => Map.unmodifiable(_states);
 
+  final Set<String> _pluginInitDone = <String>{};
+
+  /// init 已成功跑完的插件（内存态，重启后 warmup 重跑恢复）。
+  ///
+  /// 与 [updateLoadResult] 的 lastLoadSuccess 独立：后者 getInfo 成功也会写，
+  /// 不能表达“init 跑完”。安装/启用流程不等待本集合，只后台标记。
+  final Set<String> _pluginInitOk = <String>{};
+
+  bool isPluginInitOk(String uuid) => _pluginInitOk.contains(uuid);
+
+  final _initOkStreamController = StreamController<Set<String>>.broadcast();
+
+  /// init 成功集合流：后台任务等 init 跑完即广播，供 UI 显示“已就绪”。
+  Stream<Set<String>> get initOkStream => _initOkStreamController.stream;
+
+  Set<String> get initOkSnapshot => Set.unmodifiable(_pluginInitOk);
+
+  void _markInitOk(String uuid) {
+    if (_pluginInitOk.add(uuid)) {
+      _initOkStreamController.add(initOkSnapshot);
+    }
+  }
+
+  void _clearInitOk(String uuid) {
+    if (_pluginInitOk.remove(uuid)) {
+      _initOkStreamController.add(initOkSnapshot);
+    }
+  }
+
+  ObjectBox? _objectbox;
+  final Map<String, Map<String, dynamic>> _pluginInfoCache = {};
+  final _infoStreamController =
+      StreamController<Map<String, Map<String, dynamic>>>.broadcast();
+  final Map<String, String> _infoErrorCache = {};
+  final _infoErrorStreamController =
+      StreamController<Map<String, String>>.broadcast();
+
+  /// getInfo 状态流：fetch 成功 / 缓存失效时广播，供全局 cubit 热切换。
+  /// 只读快照走 [infoSnapshot]，订阅增量走本流。
+  Stream<Map<String, Map<String, dynamic>>> get infoStream =>
+      _infoStreamController.stream;
+
+  Map<String, Map<String, dynamic>> get infoSnapshot =>
+      Map.unmodifiable(_pluginInfoCache);
+
+  /// getInfo 失败态：只保留最近一次错误，fetch 成功即清除。
+  Stream<Map<String, String>> get infoErrorStream =>
+      _infoErrorStreamController.stream;
+
+  Map<String, String> get infoErrorSnapshot =>
+      Map.unmodifiable(_infoErrorCache);
+
   PluginRuntimeState? getByUuid(String uuid) => _states[uuid];
 
-  /// 内存缓存未命中时，从 DB 持久化的 `getInfoJson` 兜底水合。
+  /// 同步读内存/DB 兜底的 getInfo（仅 service 内部与特殊路径使用）。
   ///
-  /// `updateDebugConfig`/`setEnabled`/`upsert`/同步等路径都会清内存缓存，
-  /// 但清完后并不一定触发 `fetchPluginInfo`（调试走 once-call 直读
-  /// debug bundle，不经过缓存），导致名字显示回退成 uuid。
-  /// 这里用上次持久化的 getInfo 补上，各调用方（详情页/书架/搜索）
-  /// 无需改动。
+  /// UI 层一律订阅全局 cubit 的 infos/infoErrors 做热切换，
+  /// 不再直接调本方法，避免状态不一致（插件更新后新功能不显示）。
   Map<String, dynamic>? getCachedPluginInfo(String uuid) {
     final cached = _pluginInfoCache[uuid];
     if (cached != null) {
@@ -109,8 +154,9 @@ class PluginRegistryService {
     );
 
     for (final uuid in affected) {
-      _pluginInfoCache.remove(uuid);
+      _dropInfoCache(uuid);
       _pluginInitDone.remove(uuid);
+      _clearInitOk(uuid);
 
       final runtimeName = resolveRuntimeName(uuid);
       try {
@@ -211,18 +257,29 @@ class PluginRegistryService {
     }
 
     final onceRuntimeName = 'plugin_info_${uuid.replaceAll('-', '_')}';
-    final bundleJs = await _resolveBundleJs(plugin);
-    final bytes = await qjsTaskCall(
-      runtimeName: onceRuntimeName,
-      taskGroupKey: '',
-      isOnce: true,
-      bundleJs: bundleJs,
-      fnPath: 'getInfo',
-      argsJson: '{}',
-    );
-    final raw = utf8.decode(bytes, allowMalformed: true);
-    final decoded = requireJsonMap(jsonDecode(raw));
+    Map<String, dynamic> decoded;
+    try {
+      final bundleJs = await _resolveBundleJs(plugin);
+      final bytes = await qjsTaskCall(
+        runtimeName: onceRuntimeName,
+        taskGroupKey: '',
+        isOnce: true,
+        bundleJs: bundleJs,
+        fnPath: 'getInfo',
+        argsJson: '{}',
+      );
+      final raw = utf8.decode(bytes, allowMalformed: true);
+      decoded = requireJsonMap(jsonDecode(raw));
+    } catch (e) {
+      _infoErrorCache[uuid] = e.toString();
+      _infoErrorStreamController.add(infoErrorSnapshot);
+      rethrow;
+    }
     _pluginInfoCache[uuid] = decoded;
+    _infoStreamController.add(infoSnapshot);
+    if (_infoErrorCache.remove(uuid) != null) {
+      _infoErrorStreamController.add(infoErrorSnapshot);
+    }
     await updateLoadResult(uuid, success: true, error: null);
     await persistGetInfoJson(uuid, jsonEncode(decoded));
     return decoded;
@@ -391,8 +448,9 @@ class PluginRegistryService {
 
     objectbox.pluginInfoBox.put(info);
     _states[info.uuid] = _toState(info);
-    _pluginInfoCache.remove(info.uuid);
+    _dropInfoCache(info.uuid);
     _pluginInitDone.remove(info.uuid);
+    _clearInitOk(info.uuid);
     _emit();
   }
 
@@ -412,8 +470,9 @@ class PluginRegistryService {
     found.updatedAt = DateTime.now().toUtc();
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
-    _pluginInfoCache.remove(uuid);
+    _dropInfoCache(uuid);
     _pluginInitDone.remove(uuid);
+    _clearInitOk(uuid);
     _emit();
 
     final runtimeName = resolveRuntimeName(uuid);
@@ -483,6 +542,7 @@ class PluginRegistryService {
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
     _pluginInitDone.remove(uuid);
+    _clearInitOk(uuid);
     _emit();
     // 用 debug bundle / DB bundle 后台刷新 getInfo（内存 + getInfoJson），
     // 让详情页/书架/搜索的插件名跟上调试中的脚本；不阻塞返回，
@@ -535,8 +595,9 @@ class PluginRegistryService {
       ..lastLoadError = null;
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
-    _pluginInfoCache.remove(uuid);
+    _dropInfoCache(uuid);
     _pluginInitDone.remove(uuid);
+    _clearInitOk(uuid);
     _emit();
   }
 
@@ -683,6 +744,7 @@ class PluginRegistryService {
       ),
     );
     _pluginInitDone.remove(plugin.uuid);
+    _clearInitOk(plugin.uuid);
   }
 
   Future<void> runPluginInitIfNeeded(
@@ -694,6 +756,8 @@ class PluginRegistryService {
     }
 
     // init 不需要等待结果，触发后即返回，避免阻塞安装/启用流程。
+    // 另起后台任务等 init 跑完：成功（或未实现视为成功）才记 _pluginInitOk，
+    // 失败不记，不阻塞、不抛。
     Future(() async {
       try {
         await callUnifiedComicPlugin(
@@ -702,11 +766,13 @@ class PluginRegistryService {
           core: {},
         );
         _pluginInitDone.add(plugin.uuid);
+        _markInitOk(plugin.uuid);
         await updateLoadResult(plugin.uuid, success: true, error: null);
       } catch (e) {
         final err = e.toString();
         if (err.contains('target is not function: init')) {
           _pluginInitDone.add(plugin.uuid);
+          _markInitOk(plugin.uuid);
           logger.w('插件未实现 init，已跳过: ${plugin.uuid}');
           return;
         }
@@ -779,6 +845,18 @@ class PluginRegistryService {
 
   void _emit() {
     _streamController.add(snapshot);
+  }
+
+  /// 丢弃内存 info 缓存并广播：调用方重新按需拉取，订阅方热切换。
+  void _dropInfoCache(String uuid) {
+    var changed = _pluginInfoCache.remove(uuid) != null;
+    if (_infoErrorCache.remove(uuid) != null) {
+      changed = true;
+      _infoErrorStreamController.add(infoErrorSnapshot);
+    }
+    if (changed) {
+      _infoStreamController.add(infoSnapshot);
+    }
   }
 
   int _comparePluginOrder(PluginRuntimeState a, PluginRuntimeState b) {

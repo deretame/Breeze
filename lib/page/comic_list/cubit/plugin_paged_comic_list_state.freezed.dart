@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PluginPagedComicListState {
 
- PluginPagedComicListStatus get status; List<UnifiedComicListItem> get list; bool get hasReachedMax; int get page; String get result;
+ PluginPagedComicListStatus get status; List<UnifiedComicListItem> get list; bool get hasReachedMax; int get page; String get result; String get loginPluginId;
 /// Create a copy of PluginPagedComicListState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $PluginPagedComicListStateCopyWith<PluginPagedComicListState> get copyWith => _$
 @override
 bool operator ==(Object other) {
   final _this = this as PluginPagedComicListState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PluginPagedComicListState&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.list, _this.list)&&(identical(other.hasReachedMax, _this.hasReachedMax) || other.hasReachedMax == _this.hasReachedMax)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.result, _this.result) || other.result == _this.result));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PluginPagedComicListState&&(identical(other.status, _this.status) || other.status == _this.status)&&const DeepCollectionEquality().equals(other.list, _this.list)&&(identical(other.hasReachedMax, _this.hasReachedMax) || other.hasReachedMax == _this.hasReachedMax)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.result, _this.result) || other.result == _this.result)&&(identical(other.loginPluginId, _this.loginPluginId) || other.loginPluginId == _this.loginPluginId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PluginPagedComicListState;
-  return Object.hash(runtimeType,_this.status,const DeepCollectionEquality().hash(_this.list),_this.hasReachedMax,_this.page,_this.result);
+  return Object.hash(runtimeType,_this.status,const DeepCollectionEquality().hash(_this.list),_this.hasReachedMax,_this.page,_this.result,_this.loginPluginId);
 }
 
 @override
 String toString() {
   final _this = this as PluginPagedComicListState;
-  return 'PluginPagedComicListState(status: ${_this.status}, list: ${_this.list}, hasReachedMax: ${_this.hasReachedMax}, page: ${_this.page}, result: ${_this.result})';
+  return 'PluginPagedComicListState(status: ${_this.status}, list: ${_this.list}, hasReachedMax: ${_this.hasReachedMax}, page: ${_this.page}, result: ${_this.result}, loginPluginId: ${_this.loginPluginId})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $PluginPagedComicListStateCopyWith<$Res>  {
   factory $PluginPagedComicListStateCopyWith(PluginPagedComicListState value, $Res Function(PluginPagedComicListState) _then) = _$PluginPagedComicListStateCopyWithImpl;
 @useResult
 $Res call({
- PluginPagedComicListStatus status, List<UnifiedComicListItem> list, bool hasReachedMax, int page, String result
+ PluginPagedComicListStatus status, List<UnifiedComicListItem> list, bool hasReachedMax, int page, String result, String loginPluginId
 });
 
 
@@ -68,13 +68,14 @@ class _$PluginPagedComicListStateCopyWithImpl<$Res>
 
 /// Create a copy of PluginPagedComicListState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? list = null,Object? hasReachedMax = null,Object? page = null,Object? result = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? list = null,Object? hasReachedMax = null,Object? page = null,Object? result = null,Object? loginPluginId = null,}) {
   return _then(PluginPagedComicListState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as PluginPagedComicListStatus,list: null == list ? _self.list : list // ignore: cast_nullable_to_non_nullable
 as List<UnifiedComicListItem>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
 as bool,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as String,loginPluginId: null == loginPluginId ? _self.loginPluginId : loginPluginId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PluginPagedComicListStatus status,  List<UnifiedComicListItem> list,  bool hasReachedMax,  int page,  String result)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PluginPagedComicListStatus status,  List<UnifiedComicListItem> list,  bool hasReachedMax,  int page,  String result,  String loginPluginId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PluginPagedComicListState() when $default != null:
-return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.result);case _:
+return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.result,_that.loginPluginId);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.res
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PluginPagedComicListStatus status,  List<UnifiedComicListItem> list,  bool hasReachedMax,  int page,  String result)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PluginPagedComicListStatus status,  List<UnifiedComicListItem> list,  bool hasReachedMax,  int page,  String result,  String loginPluginId)  $default,) {final _that = this;
 switch (_that) {
 case _PluginPagedComicListState():
-return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.result);case _:
+return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.result,_that.loginPluginId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.res
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PluginPagedComicListStatus status,  List<UnifiedComicListItem> list,  bool hasReachedMax,  int page,  String result)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PluginPagedComicListStatus status,  List<UnifiedComicListItem> list,  bool hasReachedMax,  int page,  String result,  String loginPluginId)?  $default,) {final _that = this;
 switch (_that) {
 case _PluginPagedComicListState() when $default != null:
-return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.result);case _:
+return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.result,_that.loginPluginId);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.status,_that.list,_that.hasReachedMax,_that.page,_that.res
 
 
 class _PluginPagedComicListState implements PluginPagedComicListState {
-  const _PluginPagedComicListState({this.status = PluginPagedComicListStatus.initial,  List<UnifiedComicListItem> list = const <UnifiedComicListItem>[], this.hasReachedMax = false, this.page = 1, this.result = ''}): _list = list;
+  const _PluginPagedComicListState({this.status = PluginPagedComicListStatus.initial,  List<UnifiedComicListItem> list = const <UnifiedComicListItem>[], this.hasReachedMax = false, this.page = 1, this.result = '', this.loginPluginId = ''}): _list = list;
   
 
 @override@JsonKey() final  PluginPagedComicListStatus status;
@@ -230,6 +231,7 @@ class _PluginPagedComicListState implements PluginPagedComicListState {
 @override@JsonKey() final  bool hasReachedMax;
 @override@JsonKey() final  int page;
 @override@JsonKey() final  String result;
+@override@JsonKey() final  String loginPluginId;
 
 /// Create a copy of PluginPagedComicListState
 /// with the given fields replaced by the non-null parameter values.
@@ -241,18 +243,18 @@ _$PluginPagedComicListStateCopyWith<_PluginPagedComicListState> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PluginPagedComicListState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.list, _list)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.page, page) || other.page == page)&&(identical(other.result, result) || other.result == result));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PluginPagedComicListState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.list, _list)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.page, page) || other.page == page)&&(identical(other.result, result) || other.result == result)&&(identical(other.loginPluginId, loginPluginId) || other.loginPluginId == loginPluginId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_list),hasReachedMax,page,result);
+    return Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_list),hasReachedMax,page,result,loginPluginId);
 }
 
 @override
 String toString() {
-    return 'PluginPagedComicListState(status: $status, list: $list, hasReachedMax: $hasReachedMax, page: $page, result: $result)';
+    return 'PluginPagedComicListState(status: $status, list: $list, hasReachedMax: $hasReachedMax, page: $page, result: $result, loginPluginId: $loginPluginId)';
 }
 
 
@@ -263,7 +265,7 @@ abstract mixin class _$PluginPagedComicListStateCopyWith<$Res> implements $Plugi
   factory _$PluginPagedComicListStateCopyWith(_PluginPagedComicListState value, $Res Function(_PluginPagedComicListState) _then) = __$PluginPagedComicListStateCopyWithImpl;
 @override @useResult
 $Res call({
- PluginPagedComicListStatus status, List<UnifiedComicListItem> list, bool hasReachedMax, int page, String result
+ PluginPagedComicListStatus status, List<UnifiedComicListItem> list, bool hasReachedMax, int page, String result, String loginPluginId
 });
 
 
@@ -280,13 +282,14 @@ class __$PluginPagedComicListStateCopyWithImpl<$Res>
 
 /// Create a copy of PluginPagedComicListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? list = null,Object? hasReachedMax = null,Object? page = null,Object? result = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? list = null,Object? hasReachedMax = null,Object? page = null,Object? result = null,Object? loginPluginId = null,}) {
   return _then(_PluginPagedComicListState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as PluginPagedComicListStatus,list: null == list ? _self._list : list // ignore: cast_nullable_to_non_nullable
 as List<UnifiedComicListItem>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
 as bool,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as String,loginPluginId: null == loginPluginId ? _self.loginPluginId : loginPluginId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

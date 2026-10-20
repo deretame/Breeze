@@ -13,7 +13,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo, ComicInfoActionItem;
-import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -233,7 +233,9 @@ class _InfoColumnState extends State<_InfoColumn> {
 
   @override
   Widget build(BuildContext context) {
-    final displaySource = _resolvePluginDisplayName(widget.from);
+    final displaySource = context.select<PluginRegistryCubit, String>(
+      (cubit) => cubit.state.pluginName(_normalizePluginId(widget.from)),
+    );
     final titleStyle = context.theme.textTheme.headlineSmall?.copyWith(
       fontWeight: FontWeight.w800,
       height: 1.15,
@@ -318,16 +320,6 @@ class _InfoColumnState extends State<_InfoColumn> {
         _ContinueReadingBanner(onContinueRead: widget.onContinueRead),
       ],
     );
-  }
-
-  String _resolvePluginDisplayName(String pluginIdRaw) {
-    final pluginId = _normalizePluginId(pluginIdRaw);
-    if (pluginId.isEmpty) {
-      return pluginIdRaw.trim();
-    }
-    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
-    final name = info?['name']?.toString().trim() ?? '';
-    return name.isNotEmpty ? name : pluginId;
   }
 
   String _normalizePluginId(String raw) {

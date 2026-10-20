@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/network/http/plugin/unauthorized_payload.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/page/comic_list/cubit/comic_list_state.dart';
@@ -17,6 +18,9 @@ class ComicListCubit extends Cubit<ComicListState> {
     this.sceneSource,
     this.sceneBundleFnPath,
     this.sceneBundleFnPathFallback,
+    // 新两页（插件首页/云收藏）内的 scene 传 true：登录错误不出全局弹窗，
+    // 由外层错误页出登录/刷新按钮。其他调用方保持默认行为。
+    this.suppressNeedLoginEvent = false,
   }) : super(const ComicListState()) {
     _init();
   }
@@ -25,6 +29,7 @@ class ComicListCubit extends Cubit<ComicListState> {
   final String? sceneSource;
   final String? sceneBundleFnPath;
   final String? sceneBundleFnPathFallback;
+  final bool suppressNeedLoginEvent;
 
   void _init() {
     final currentFrom = initialScene?.from ?? (sceneSource ?? '').trim();
@@ -65,7 +70,13 @@ class ComicListCubit extends Cubit<ComicListState> {
       return;
     }
 
-    emit(state.copyWith(sceneLoading: true, sceneError: null));
+    emit(
+      state.copyWith(
+        sceneLoading: true,
+        sceneError: null,
+        sceneLoginPluginId: '',
+      ),
+    );
 
     try {
       final sceneFnPath = sceneBundleFnPath?.trim().isNotEmpty == true
@@ -79,6 +90,7 @@ class ComicListCubit extends Cubit<ComicListState> {
           fnPath: sceneFnPath,
           core: const <String, dynamic>{},
           extern: const <String, dynamic>{},
+          suppressNeedLoginEvent: suppressNeedLoginEvent,
         );
       } catch (_) {
         final fallback = sceneBundleFnPathFallback?.trim() ?? '';
@@ -89,7 +101,7 @@ class ComicListCubit extends Cubit<ComicListState> {
           from: from,
           fnPath: fallback,
           core: const <String, dynamic>{},
-          extern: const <String, dynamic>{},
+          suppressNeedLoginEvent: suppressNeedLoginEvent,
         );
       }
 
@@ -108,9 +120,9 @@ class ComicListCubit extends Cubit<ComicListState> {
           scene: loadedScene,
           sceneLoading: false,
           sceneError: null,
+          sceneLoginPluginId: '',
         ),
       );
-      _onSceneAvailable(from);
     } catch (e) {
       if (isClosed) {
         return;
@@ -119,6 +131,7 @@ class ComicListCubit extends Cubit<ComicListState> {
         state.copyWith(
           sceneError: normalizeSearchErrorMessage(e),
           sceneLoading: false,
+          sceneLoginPluginId: _loginPluginId(e, from),
         ),
       );
     }
@@ -162,7 +175,13 @@ class ComicListCubit extends Cubit<ComicListState> {
       return;
     }
 
-    emit(state.copyWith(filterLoading: true, filterError: null));
+    emit(
+      state.copyWith(
+        filterLoading: true,
+        filterError: null,
+        filterLoginPluginId: '',
+      ),
+    );
 
     try {
       final response = await callUnifiedComicPlugin(
@@ -170,6 +189,7 @@ class ComicListCubit extends Cubit<ComicListState> {
         fnPath: filterRequest.fnPath,
         core: filterRequest.core,
         extern: filterRequest.extern,
+        suppressNeedLoginEvent: suppressNeedLoginEvent,
       );
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final bundle = _parseFilterBundle(envelope);
@@ -187,6 +207,7 @@ class ComicListCubit extends Cubit<ComicListState> {
         state.copyWith(
           filterError: normalizeSearchErrorMessage(e),
           filterLoading: false,
+          filterLoginPluginId: _loginPluginId(e, from),
         ),
       );
     }
@@ -218,8 +239,19 @@ class ComicListCubit extends Cubit<ComicListState> {
         resolvedFilterExtern: resolved.extern,
         filterLoading: false,
         filterError: null,
+        filterLoginPluginId: '',
       ),
     );
+  }
+
+  /// 登录错误取插件身份（只认 callUnifiedComicPlugin 抛的类型化错误，
+  /// 不做二次文本解析），非登录错误返回空。错误文案由调用方透传。
+  String _loginPluginId(Object e, String from) {
+    if (e is PluginUnauthorizedException) {
+      final id = e.pluginId.trim();
+      return id.isNotEmpty ? id : from;
+    }
+    return '';
   }
 
   ListFilterBundle _parseFilterBundle(UnifiedPluginEnvelope envelope) {

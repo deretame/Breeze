@@ -13,6 +13,9 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
   required Map<String, dynamic> core,
   Map<String, dynamic>? extern,
   String? runtimeName,
+  // 新两页（插件首页/云收藏）传 true：登录错误由页面自己出
+  // “登录/刷新”按钮，不走全局 NeedLogin 跳转。默认 false 保持现有行为。
+  bool suppressNeedLoginEvent = false,
 }) async {
   final resolvedFnPath = fnPath.trim();
   if (resolvedFnPath.isEmpty) {
@@ -44,10 +47,15 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
       fallbackPluginId: resolvedPluginId,
     );
     if (unauthorized != null) {
-      eventBus.fire(
-        NeedLogin(from: unauthorized.pluginId, message: unauthorized.message),
+      if (!suppressNeedLoginEvent) {
+        eventBus.fire(
+          NeedLogin(from: unauthorized.pluginId, message: unauthorized.message),
+        );
+      }
+      throw PluginUnauthorizedException(
+        pluginId: unauthorized.pluginId,
+        message: unauthorized.message,
       );
-      throw Exception(unauthorized.message);
     }
     rethrow;
   }

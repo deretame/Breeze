@@ -23,33 +23,23 @@ class AppBehaviorSettingPage extends StatefulWidget {
 class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
   DesktopCloseBehavior _desktopCloseBehavior = DesktopCloseBehavior.ask;
 
-  List<String> _splashPageList(bool oldPageRollbackEnabled) {
-    if (oldPageRollbackEnabled) {
-      return [
-        t.navigation.home,
-        t.navigation.rank,
-        t.navigation.bookshelf,
-        t.navigation.discover,
-        t.navigation.more,
-      ];
-    }
-    return [t.navigation.bookshelf, t.navigation.discover, t.navigation.more];
+  List<String> _splashPageList() {
+    return [
+      t.navigation.home,
+      t.navigation.rank,
+      t.navigation.bookshelf,
+      t.navigation.discover,
+      t.navigation.more,
+    ];
   }
 
-  Map<String, int> _splashPageMap(bool oldPageRollbackEnabled) {
-    if (oldPageRollbackEnabled) {
-      return {
-        t.navigation.home: 0,
-        t.navigation.rank: 1,
-        t.navigation.bookshelf: 2,
-        t.navigation.discover: 3,
-        t.navigation.more: 4,
-      };
-    }
+  Map<String, int> _splashPageMap() {
     return {
-      t.navigation.bookshelf: 0,
-      t.navigation.discover: 1,
-      t.navigation.more: 2,
+      t.navigation.home: 0,
+      t.navigation.rank: 1,
+      t.navigation.bookshelf: 2,
+      t.navigation.discover: 3,
+      t.navigation.more: 4,
     };
   }
 
@@ -85,7 +75,6 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           if (Platform.isAndroid) _androidKeepAlive(state, cubit),
           if (Platform.isAndroid) _backPressExit(state, cubit),
           _appLockSetting(state, cubit),
-          _oldPageRollback(state, cubit),
           _cloudFavoritePreferred(state, cubit),
           _autoFollowOnCollect(state, cubit),
           _leftHandMode(state, cubit),
@@ -97,8 +86,8 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
   }
 
   Widget _splashPage(GlobalSettingState state, GlobalSettingCubit cubit) {
-    final splashPageList = _splashPageList(state.oldPageRollbackEnabled);
-    final splashPage = _splashPageMap(state.oldPageRollbackEnabled);
+    final splashPageList = _splashPageList();
+    final splashPage = _splashPageMap();
     final selectedIndex = splashPageList.isEmpty
         ? 0
         : state.welcomePageNum.clamp(0, splashPageList.length - 1);
@@ -121,22 +110,6 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _oldPageRollback(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return SwitchListTile(
-      secondary: const Icon(Icons.restore_outlined),
-      title: Text(t.settings.oldPageRollback),
-      subtitle: Text(t.settings.oldPageRollbackSubtitle),
-      thumbIcon: kSettingSwitchThumbIcon,
-      value: state.oldPageRollbackEnabled,
-      onChanged: (bool value) {
-        cubit.updateState(
-          (current) => current.copyWith(oldPageRollbackEnabled: value),
-        );
-        showSuccessToast(t.common.restartToTakeEffect);
-      },
     );
   }
 

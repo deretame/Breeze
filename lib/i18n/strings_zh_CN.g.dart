@@ -650,12 +650,6 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后进入应用需要验证'
 	String get appLockSubtitle => '开启后进入应用需要验证';
 
-	/// zh-CN: '旧版首页'
-	String get oldPageRollback => '旧版首页';
-
-	/// zh-CN: '开启后使用旧版首页布局'
-	String get oldPageRollbackSubtitle => '开启后使用旧版首页布局';
-
 	/// zh-CN: '优先云端收藏'
 	String get cloudFavoritePreferred => '优先云端收藏';
 
@@ -4186,8 +4180,6 @@ extension on Translations {
 			'settings.exitApp' => '退出',
 			'settings.appLock' => '应用锁',
 			'settings.appLockSubtitle' => '开启后进入应用需要验证',
-			'settings.oldPageRollback' => '旧版首页',
-			'settings.oldPageRollbackSubtitle' => '开启后使用旧版首页布局',
 			'settings.cloudFavoritePreferred' => '优先云端收藏',
 			'settings.cloudFavoritePreferredSubtitle' => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏',
 			'settings.autoFollowOnCollect' => '收藏自动追更',
@@ -4519,10 +4511,10 @@ extension on Translations {
 			'reader.time' => '时间',
 			'reader.verticalPositionTop' => '顶部',
 			'reader.verticalPositionBottom' => '底部',
-			_ => null,
-		} ?? switch (path) {
 			'reader.horizontalPositionLeft' => '左侧',
 			'reader.horizontalPositionCenter' => '居中',
+			_ => null,
+		} ?? switch (path) {
 			'reader.horizontalPositionRight' => '右侧',
 			'reader.readingDirectionLtr' => '从左到右',
 			'reader.readingDirectionRtl' => '从右到左',
@@ -5033,10 +5025,10 @@ extension on Translations {
 			'discover.pluginCapability' => '插件能力',
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',
-			_ => null,
-		} ?? switch (path) {
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
+			_ => null,
+		} ?? switch (path) {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
 			'searchResult.enterPageNumber' => '输入页数',
 			'searchResult.pleaseEnterNumber' => '请输入数字',

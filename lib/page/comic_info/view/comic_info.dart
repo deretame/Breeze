@@ -1615,7 +1615,6 @@ class _DescriptionCardState extends State<_DescriptionCard> {
 double _constrainedHorizontalPadding(double crossAxisExtent) =>
     ((crossAxisExtent - 1120) / 2).clamp(20.0, double.infinity).toDouble();
 
-
 /// 章节列表头（标题 + 计数/倒序 badge），与 _SectionCard 的标题区同样式，
 /// 虚拟化后作为独立 sliver，列表本体是下面的 _EpisodeBoard。
 class _EpisodeHeader extends StatelessWidget {

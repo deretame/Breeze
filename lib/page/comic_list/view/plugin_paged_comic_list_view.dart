@@ -21,6 +21,8 @@ class PluginPagedComicListView extends StatelessWidget {
     this.physics,
     this.collectionTargetId,
     this.collectionTargetName,
+    // 新两页内的列表传 true：登录错误不出全局弹窗，由外层出登录/刷新。
+    this.suppressNeedLoginEvent = false,
   });
 
   final String pluginId;
@@ -31,6 +33,7 @@ class PluginPagedComicListView extends StatelessWidget {
   final ScrollPhysics? physics;
   final String? collectionTargetId;
   final String? collectionTargetName;
+  final bool suppressNeedLoginEvent;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +43,7 @@ class PluginPagedComicListView extends StatelessWidget {
         fnPath: fnPath,
         coreBuilder: coreBuilder,
         externBuilder: externBuilder,
+        suppressNeedLoginEvent: suppressNeedLoginEvent,
       )..loadInitial(),
       child: _PluginPagedComicListBody(
         shrinkWrap: shrinkWrap,
@@ -116,6 +120,7 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
                     child: ErrorView(
                       errorMessage:
                           '${state.result}\n${t.comicList.loadFailedRetry}',
+                      loginPluginId: state.loginPluginId,
                       onRetry: () => context
                           .read<PluginPagedComicListCubit>()
                           .loadInitial(),

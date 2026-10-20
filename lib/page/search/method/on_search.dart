@@ -32,10 +32,10 @@ void onSearch(
   final event = SearchEvent().copyWith(searchStates: searchCubit.state);
 
   if (aggregateMode) {
-    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final registry = context.read<PluginRegistryCubit>().state;
     final availableSources = PluginRegistryService.I
         .sortPlugins(
-          pluginStates.values.where(
+          registry.plugins.values.where(
             (plugin) => plugin.isEnabled && !plugin.isDeleted,
           ),
         )

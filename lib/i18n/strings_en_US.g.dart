@@ -288,8 +288,6 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get exitApp => 'Exit';
 	@override String get appLock => 'App lock';
 	@override String get appLockSubtitle => 'Require verification when entering the app';
-	@override String get oldPageRollback => 'Old home page';
-	@override String get oldPageRollbackSubtitle => 'Use old home page layout';
 	@override String get cloudFavoritePreferred => 'Prefer cloud favorites';
 	@override String get cloudFavoritePreferredSubtitle => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection';
 	@override String get autoFollowOnCollect => 'Auto-follow on collect';
@@ -1771,8 +1769,6 @@ extension on TranslationsEnUs {
 			'settings.exitApp' => 'Exit',
 			'settings.appLock' => 'App lock',
 			'settings.appLockSubtitle' => 'Require verification when entering the app',
-			'settings.oldPageRollback' => 'Old home page',
-			'settings.oldPageRollbackSubtitle' => 'Use old home page layout',
 			'settings.cloudFavoritePreferred' => 'Prefer cloud favorites',
 			'settings.cloudFavoritePreferredSubtitle' => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection',
 			'settings.autoFollowOnCollect' => 'Auto-follow on collect',
@@ -2104,10 +2100,10 @@ extension on TranslationsEnUs {
 			'reader.verticalPositionTop' => 'Top',
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
-			_ => null,
-		} ?? switch (path) {
 			'reader.horizontalPositionCenter' => 'Center',
 			'reader.horizontalPositionRight' => 'Right',
+			_ => null,
+		} ?? switch (path) {
 			'reader.readingDirectionLtr' => 'Left to right',
 			'reader.readingDirectionRtl' => 'Right to left',
 			'reader.readingDirectionVertical' => 'Top to bottom',
@@ -2618,10 +2614,10 @@ extension on TranslationsEnUs {
 			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
 			'searchResult.enterPageNumber' => 'Enter page number',
+			_ => null,
+		} ?? switch (path) {
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
 			'searchResult.returnToTop' => 'Return to top',
 			'searchResult.jumpToPage' => 'Jump to page',

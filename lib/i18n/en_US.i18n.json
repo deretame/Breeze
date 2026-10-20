@@ -186,8 +186,6 @@
     "exitApp": "Exit",
     "appLock": "App lock",
     "appLockSubtitle": "Require verification when entering the app",
-    "oldPageRollback": "Old home page",
-    "oldPageRollbackSubtitle": "Use old home page layout",
     "cloudFavoritePreferred": "Prefer cloud favorites",
     "cloudFavoritePreferredSubtitle": "When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection",
     "autoFollowOnCollect": "Auto-follow on collect",

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ComicListState {
 
- String get currentFrom; ComicListScene? get scene; bool get sceneLoading; String? get sceneError; bool get filterLoading; String? get filterError; ListFilterBundle? get filterBundle; Map<String, String> get filterSelections; Map<String, dynamic> get resolvedUiParams; Map<String, dynamic> get resolvedFilterCore; Map<String, dynamic> get resolvedFilterExtern;
+ String get currentFrom; ComicListScene? get scene; bool get sceneLoading; String? get sceneError; String get sceneLoginPluginId; bool get filterLoading; String? get filterError; String get filterLoginPluginId; ListFilterBundle? get filterBundle; Map<String, String> get filterSelections; Map<String, dynamic> get resolvedUiParams; Map<String, dynamic> get resolvedFilterCore; Map<String, dynamic> get resolvedFilterExtern;
 /// Create a copy of ComicListState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $ComicListStateCopyWith<ComicListState> get copyWith => _$ComicListStateCopyWith
 @override
 bool operator ==(Object other) {
   final _this = this as ComicListState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicListState&&(identical(other.currentFrom, _this.currentFrom) || other.currentFrom == _this.currentFrom)&&(identical(other.scene, _this.scene) || other.scene == _this.scene)&&(identical(other.sceneLoading, _this.sceneLoading) || other.sceneLoading == _this.sceneLoading)&&(identical(other.sceneError, _this.sceneError) || other.sceneError == _this.sceneError)&&(identical(other.filterLoading, _this.filterLoading) || other.filterLoading == _this.filterLoading)&&(identical(other.filterError, _this.filterError) || other.filterError == _this.filterError)&&(identical(other.filterBundle, _this.filterBundle) || other.filterBundle == _this.filterBundle)&&const DeepCollectionEquality().equals(other.filterSelections, _this.filterSelections)&&const DeepCollectionEquality().equals(other.resolvedUiParams, _this.resolvedUiParams)&&const DeepCollectionEquality().equals(other.resolvedFilterCore, _this.resolvedFilterCore)&&const DeepCollectionEquality().equals(other.resolvedFilterExtern, _this.resolvedFilterExtern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicListState&&(identical(other.currentFrom, _this.currentFrom) || other.currentFrom == _this.currentFrom)&&(identical(other.scene, _this.scene) || other.scene == _this.scene)&&(identical(other.sceneLoading, _this.sceneLoading) || other.sceneLoading == _this.sceneLoading)&&(identical(other.sceneError, _this.sceneError) || other.sceneError == _this.sceneError)&&(identical(other.sceneLoginPluginId, _this.sceneLoginPluginId) || other.sceneLoginPluginId == _this.sceneLoginPluginId)&&(identical(other.filterLoading, _this.filterLoading) || other.filterLoading == _this.filterLoading)&&(identical(other.filterError, _this.filterError) || other.filterError == _this.filterError)&&(identical(other.filterLoginPluginId, _this.filterLoginPluginId) || other.filterLoginPluginId == _this.filterLoginPluginId)&&(identical(other.filterBundle, _this.filterBundle) || other.filterBundle == _this.filterBundle)&&const DeepCollectionEquality().equals(other.filterSelections, _this.filterSelections)&&const DeepCollectionEquality().equals(other.resolvedUiParams, _this.resolvedUiParams)&&const DeepCollectionEquality().equals(other.resolvedFilterCore, _this.resolvedFilterCore)&&const DeepCollectionEquality().equals(other.resolvedFilterExtern, _this.resolvedFilterExtern));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ComicListState;
-  return Object.hash(runtimeType,_this.currentFrom,_this.scene,_this.sceneLoading,_this.sceneError,_this.filterLoading,_this.filterError,_this.filterBundle,const DeepCollectionEquality().hash(_this.filterSelections),const DeepCollectionEquality().hash(_this.resolvedUiParams),const DeepCollectionEquality().hash(_this.resolvedFilterCore),const DeepCollectionEquality().hash(_this.resolvedFilterExtern));
+  return Object.hash(runtimeType,_this.currentFrom,_this.scene,_this.sceneLoading,_this.sceneError,_this.sceneLoginPluginId,_this.filterLoading,_this.filterError,_this.filterLoginPluginId,_this.filterBundle,const DeepCollectionEquality().hash(_this.filterSelections),const DeepCollectionEquality().hash(_this.resolvedUiParams),const DeepCollectionEquality().hash(_this.resolvedFilterCore),const DeepCollectionEquality().hash(_this.resolvedFilterExtern));
 }
 
 @override
 String toString() {
   final _this = this as ComicListState;
-  return 'ComicListState(currentFrom: ${_this.currentFrom}, scene: ${_this.scene}, sceneLoading: ${_this.sceneLoading}, sceneError: ${_this.sceneError}, filterLoading: ${_this.filterLoading}, filterError: ${_this.filterError}, filterBundle: ${_this.filterBundle}, filterSelections: ${_this.filterSelections}, resolvedUiParams: ${_this.resolvedUiParams}, resolvedFilterCore: ${_this.resolvedFilterCore}, resolvedFilterExtern: ${_this.resolvedFilterExtern})';
+  return 'ComicListState(currentFrom: ${_this.currentFrom}, scene: ${_this.scene}, sceneLoading: ${_this.sceneLoading}, sceneError: ${_this.sceneError}, sceneLoginPluginId: ${_this.sceneLoginPluginId}, filterLoading: ${_this.filterLoading}, filterError: ${_this.filterError}, filterLoginPluginId: ${_this.filterLoginPluginId}, filterBundle: ${_this.filterBundle}, filterSelections: ${_this.filterSelections}, resolvedUiParams: ${_this.resolvedUiParams}, resolvedFilterCore: ${_this.resolvedFilterCore}, resolvedFilterExtern: ${_this.resolvedFilterExtern})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $ComicListStateCopyWith<$Res>  {
   factory $ComicListStateCopyWith(ComicListState value, $Res Function(ComicListState) _then) = _$ComicListStateCopyWithImpl;
 @useResult
 $Res call({
- String currentFrom, ComicListScene? scene, bool sceneLoading, String? sceneError, bool filterLoading, String? filterError, ListFilterBundle? filterBundle, Map<String, String> filterSelections, Map<String, dynamic> resolvedUiParams, Map<String, dynamic> resolvedFilterCore, Map<String, dynamic> resolvedFilterExtern
+ String currentFrom, ComicListScene? scene, bool sceneLoading, String? sceneError, String sceneLoginPluginId, bool filterLoading, String? filterError, String filterLoginPluginId, ListFilterBundle? filterBundle, Map<String, String> filterSelections, Map<String, dynamic> resolvedUiParams, Map<String, dynamic> resolvedFilterCore, Map<String, dynamic> resolvedFilterExtern
 });
 
 
@@ -68,15 +68,17 @@ class _$ComicListStateCopyWithImpl<$Res>
 
 /// Create a copy of ComicListState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? currentFrom = null,Object? scene = freezed,Object? sceneLoading = null,Object? sceneError = freezed,Object? filterLoading = null,Object? filterError = freezed,Object? filterBundle = freezed,Object? filterSelections = null,Object? resolvedUiParams = null,Object? resolvedFilterCore = null,Object? resolvedFilterExtern = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? currentFrom = null,Object? scene = freezed,Object? sceneLoading = null,Object? sceneError = freezed,Object? sceneLoginPluginId = null,Object? filterLoading = null,Object? filterError = freezed,Object? filterLoginPluginId = null,Object? filterBundle = freezed,Object? filterSelections = null,Object? resolvedUiParams = null,Object? resolvedFilterCore = null,Object? resolvedFilterExtern = null,}) {
   return _then(ComicListState(
 currentFrom: null == currentFrom ? _self.currentFrom : currentFrom // ignore: cast_nullable_to_non_nullable
 as String,scene: freezed == scene ? _self.scene : scene // ignore: cast_nullable_to_non_nullable
 as ComicListScene?,sceneLoading: null == sceneLoading ? _self.sceneLoading : sceneLoading // ignore: cast_nullable_to_non_nullable
 as bool,sceneError: freezed == sceneError ? _self.sceneError : sceneError // ignore: cast_nullable_to_non_nullable
-as String?,filterLoading: null == filterLoading ? _self.filterLoading : filterLoading // ignore: cast_nullable_to_non_nullable
+as String?,sceneLoginPluginId: null == sceneLoginPluginId ? _self.sceneLoginPluginId : sceneLoginPluginId // ignore: cast_nullable_to_non_nullable
+as String,filterLoading: null == filterLoading ? _self.filterLoading : filterLoading // ignore: cast_nullable_to_non_nullable
 as bool,filterError: freezed == filterError ? _self.filterError : filterError // ignore: cast_nullable_to_non_nullable
-as String?,filterBundle: freezed == filterBundle ? _self.filterBundle : filterBundle // ignore: cast_nullable_to_non_nullable
+as String?,filterLoginPluginId: null == filterLoginPluginId ? _self.filterLoginPluginId : filterLoginPluginId // ignore: cast_nullable_to_non_nullable
+as String,filterBundle: freezed == filterBundle ? _self.filterBundle : filterBundle // ignore: cast_nullable_to_non_nullable
 as ListFilterBundle?,filterSelections: null == filterSelections ? _self.filterSelections : filterSelections // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,resolvedUiParams: null == resolvedUiParams ? _self.resolvedUiParams : resolvedUiParams // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,resolvedFilterCore: null == resolvedFilterCore ? _self.resolvedFilterCore : resolvedFilterCore // ignore: cast_nullable_to_non_nullable
@@ -166,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String currentFrom,  ComicListScene? scene,  bool sceneLoading,  String? sceneError,  bool filterLoading,  String? filterError,  ListFilterBundle? filterBundle,  Map<String, String> filterSelections,  Map<String, dynamic> resolvedUiParams,  Map<String, dynamic> resolvedFilterCore,  Map<String, dynamic> resolvedFilterExtern)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String currentFrom,  ComicListScene? scene,  bool sceneLoading,  String? sceneError,  String sceneLoginPluginId,  bool filterLoading,  String? filterError,  String filterLoginPluginId,  ListFilterBundle? filterBundle,  Map<String, String> filterSelections,  Map<String, dynamic> resolvedUiParams,  Map<String, dynamic> resolvedFilterCore,  Map<String, dynamic> resolvedFilterExtern)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ComicListState() when $default != null:
-return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneError,_that.filterLoading,_that.filterError,_that.filterBundle,_that.filterSelections,_that.resolvedUiParams,_that.resolvedFilterCore,_that.resolvedFilterExtern);case _:
+return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneError,_that.sceneLoginPluginId,_that.filterLoading,_that.filterError,_that.filterLoginPluginId,_that.filterBundle,_that.filterSelections,_that.resolvedUiParams,_that.resolvedFilterCore,_that.resolvedFilterExtern);case _:
   return orElse();
 
 }
@@ -187,10 +189,10 @@ return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneErro
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String currentFrom,  ComicListScene? scene,  bool sceneLoading,  String? sceneError,  bool filterLoading,  String? filterError,  ListFilterBundle? filterBundle,  Map<String, String> filterSelections,  Map<String, dynamic> resolvedUiParams,  Map<String, dynamic> resolvedFilterCore,  Map<String, dynamic> resolvedFilterExtern)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String currentFrom,  ComicListScene? scene,  bool sceneLoading,  String? sceneError,  String sceneLoginPluginId,  bool filterLoading,  String? filterError,  String filterLoginPluginId,  ListFilterBundle? filterBundle,  Map<String, String> filterSelections,  Map<String, dynamic> resolvedUiParams,  Map<String, dynamic> resolvedFilterCore,  Map<String, dynamic> resolvedFilterExtern)  $default,) {final _that = this;
 switch (_that) {
 case _ComicListState():
-return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneError,_that.filterLoading,_that.filterError,_that.filterBundle,_that.filterSelections,_that.resolvedUiParams,_that.resolvedFilterCore,_that.resolvedFilterExtern);case _:
+return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneError,_that.sceneLoginPluginId,_that.filterLoading,_that.filterError,_that.filterLoginPluginId,_that.filterBundle,_that.filterSelections,_that.resolvedUiParams,_that.resolvedFilterCore,_that.resolvedFilterExtern);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +209,10 @@ return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneErro
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String currentFrom,  ComicListScene? scene,  bool sceneLoading,  String? sceneError,  bool filterLoading,  String? filterError,  ListFilterBundle? filterBundle,  Map<String, String> filterSelections,  Map<String, dynamic> resolvedUiParams,  Map<String, dynamic> resolvedFilterCore,  Map<String, dynamic> resolvedFilterExtern)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String currentFrom,  ComicListScene? scene,  bool sceneLoading,  String? sceneError,  String sceneLoginPluginId,  bool filterLoading,  String? filterError,  String filterLoginPluginId,  ListFilterBundle? filterBundle,  Map<String, String> filterSelections,  Map<String, dynamic> resolvedUiParams,  Map<String, dynamic> resolvedFilterCore,  Map<String, dynamic> resolvedFilterExtern)?  $default,) {final _that = this;
 switch (_that) {
 case _ComicListState() when $default != null:
-return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneError,_that.filterLoading,_that.filterError,_that.filterBundle,_that.filterSelections,_that.resolvedUiParams,_that.resolvedFilterCore,_that.resolvedFilterExtern);case _:
+return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneError,_that.sceneLoginPluginId,_that.filterLoading,_that.filterError,_that.filterLoginPluginId,_that.filterBundle,_that.filterSelections,_that.resolvedUiParams,_that.resolvedFilterCore,_that.resolvedFilterExtern);case _:
   return null;
 
 }
@@ -222,15 +224,17 @@ return $default(_that.currentFrom,_that.scene,_that.sceneLoading,_that.sceneErro
 
 
 class _ComicListState extends ComicListState {
-  const _ComicListState({this.currentFrom = '', this.scene, this.sceneLoading = false, this.sceneError, this.filterLoading = false, this.filterError, this.filterBundle,  Map<String, String> filterSelections = const {},  Map<String, dynamic> resolvedUiParams = const {},  Map<String, dynamic> resolvedFilterCore = const {},  Map<String, dynamic> resolvedFilterExtern = const {}}): _filterSelections = filterSelections,_resolvedUiParams = resolvedUiParams,_resolvedFilterCore = resolvedFilterCore,_resolvedFilterExtern = resolvedFilterExtern,super._();
+  const _ComicListState({this.currentFrom = '', this.scene, this.sceneLoading = false, this.sceneError, this.sceneLoginPluginId = '', this.filterLoading = false, this.filterError, this.filterLoginPluginId = '', this.filterBundle,  Map<String, String> filterSelections = const {},  Map<String, dynamic> resolvedUiParams = const {},  Map<String, dynamic> resolvedFilterCore = const {},  Map<String, dynamic> resolvedFilterExtern = const {}}): _filterSelections = filterSelections,_resolvedUiParams = resolvedUiParams,_resolvedFilterCore = resolvedFilterCore,_resolvedFilterExtern = resolvedFilterExtern,super._();
   
 
 @override@JsonKey() final  String currentFrom;
 @override final  ComicListScene? scene;
 @override@JsonKey() final  bool sceneLoading;
 @override final  String? sceneError;
+@override@JsonKey() final  String sceneLoginPluginId;
 @override@JsonKey() final  bool filterLoading;
 @override final  String? filterError;
+@override@JsonKey() final  String filterLoginPluginId;
 @override final  ListFilterBundle? filterBundle;
  final  Map<String, String> _filterSelections;
 @override@JsonKey() Map<String, String> get filterSelections {
@@ -271,18 +275,18 @@ _$ComicListStateCopyWith<_ComicListState> get copyWith => __$ComicListStateCopyW
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicListState&&(identical(other.currentFrom, currentFrom) || other.currentFrom == currentFrom)&&(identical(other.scene, scene) || other.scene == scene)&&(identical(other.sceneLoading, sceneLoading) || other.sceneLoading == sceneLoading)&&(identical(other.sceneError, sceneError) || other.sceneError == sceneError)&&(identical(other.filterLoading, filterLoading) || other.filterLoading == filterLoading)&&(identical(other.filterError, filterError) || other.filterError == filterError)&&(identical(other.filterBundle, filterBundle) || other.filterBundle == filterBundle)&&const DeepCollectionEquality().equals(other.filterSelections, _filterSelections)&&const DeepCollectionEquality().equals(other.resolvedUiParams, _resolvedUiParams)&&const DeepCollectionEquality().equals(other.resolvedFilterCore, _resolvedFilterCore)&&const DeepCollectionEquality().equals(other.resolvedFilterExtern, _resolvedFilterExtern));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicListState&&(identical(other.currentFrom, currentFrom) || other.currentFrom == currentFrom)&&(identical(other.scene, scene) || other.scene == scene)&&(identical(other.sceneLoading, sceneLoading) || other.sceneLoading == sceneLoading)&&(identical(other.sceneError, sceneError) || other.sceneError == sceneError)&&(identical(other.sceneLoginPluginId, sceneLoginPluginId) || other.sceneLoginPluginId == sceneLoginPluginId)&&(identical(other.filterLoading, filterLoading) || other.filterLoading == filterLoading)&&(identical(other.filterError, filterError) || other.filterError == filterError)&&(identical(other.filterLoginPluginId, filterLoginPluginId) || other.filterLoginPluginId == filterLoginPluginId)&&(identical(other.filterBundle, filterBundle) || other.filterBundle == filterBundle)&&const DeepCollectionEquality().equals(other.filterSelections, _filterSelections)&&const DeepCollectionEquality().equals(other.resolvedUiParams, _resolvedUiParams)&&const DeepCollectionEquality().equals(other.resolvedFilterCore, _resolvedFilterCore)&&const DeepCollectionEquality().equals(other.resolvedFilterExtern, _resolvedFilterExtern));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,currentFrom,scene,sceneLoading,sceneError,filterLoading,filterError,filterBundle,const DeepCollectionEquality().hash(_filterSelections),const DeepCollectionEquality().hash(_resolvedUiParams),const DeepCollectionEquality().hash(_resolvedFilterCore),const DeepCollectionEquality().hash(_resolvedFilterExtern));
+    return Object.hash(runtimeType,currentFrom,scene,sceneLoading,sceneError,sceneLoginPluginId,filterLoading,filterError,filterLoginPluginId,filterBundle,const DeepCollectionEquality().hash(_filterSelections),const DeepCollectionEquality().hash(_resolvedUiParams),const DeepCollectionEquality().hash(_resolvedFilterCore),const DeepCollectionEquality().hash(_resolvedFilterExtern));
 }
 
 @override
 String toString() {
-    return 'ComicListState(currentFrom: $currentFrom, scene: $scene, sceneLoading: $sceneLoading, sceneError: $sceneError, filterLoading: $filterLoading, filterError: $filterError, filterBundle: $filterBundle, filterSelections: $filterSelections, resolvedUiParams: $resolvedUiParams, resolvedFilterCore: $resolvedFilterCore, resolvedFilterExtern: $resolvedFilterExtern)';
+    return 'ComicListState(currentFrom: $currentFrom, scene: $scene, sceneLoading: $sceneLoading, sceneError: $sceneError, sceneLoginPluginId: $sceneLoginPluginId, filterLoading: $filterLoading, filterError: $filterError, filterLoginPluginId: $filterLoginPluginId, filterBundle: $filterBundle, filterSelections: $filterSelections, resolvedUiParams: $resolvedUiParams, resolvedFilterCore: $resolvedFilterCore, resolvedFilterExtern: $resolvedFilterExtern)';
 }
 
 
@@ -293,7 +297,7 @@ abstract mixin class _$ComicListStateCopyWith<$Res> implements $ComicListStateCo
   factory _$ComicListStateCopyWith(_ComicListState value, $Res Function(_ComicListState) _then) = __$ComicListStateCopyWithImpl;
 @override @useResult
 $Res call({
- String currentFrom, ComicListScene? scene, bool sceneLoading, String? sceneError, bool filterLoading, String? filterError, ListFilterBundle? filterBundle, Map<String, String> filterSelections, Map<String, dynamic> resolvedUiParams, Map<String, dynamic> resolvedFilterCore, Map<String, dynamic> resolvedFilterExtern
+ String currentFrom, ComicListScene? scene, bool sceneLoading, String? sceneError, String sceneLoginPluginId, bool filterLoading, String? filterError, String filterLoginPluginId, ListFilterBundle? filterBundle, Map<String, String> filterSelections, Map<String, dynamic> resolvedUiParams, Map<String, dynamic> resolvedFilterCore, Map<String, dynamic> resolvedFilterExtern
 });
 
 
@@ -310,15 +314,17 @@ class __$ComicListStateCopyWithImpl<$Res>
 
 /// Create a copy of ComicListState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? currentFrom = null,Object? scene = freezed,Object? sceneLoading = null,Object? sceneError = freezed,Object? filterLoading = null,Object? filterError = freezed,Object? filterBundle = freezed,Object? filterSelections = null,Object? resolvedUiParams = null,Object? resolvedFilterCore = null,Object? resolvedFilterExtern = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? currentFrom = null,Object? scene = freezed,Object? sceneLoading = null,Object? sceneError = freezed,Object? sceneLoginPluginId = null,Object? filterLoading = null,Object? filterError = freezed,Object? filterLoginPluginId = null,Object? filterBundle = freezed,Object? filterSelections = null,Object? resolvedUiParams = null,Object? resolvedFilterCore = null,Object? resolvedFilterExtern = null,}) {
   return _then(_ComicListState(
 currentFrom: null == currentFrom ? _self.currentFrom : currentFrom // ignore: cast_nullable_to_non_nullable
 as String,scene: freezed == scene ? _self.scene : scene // ignore: cast_nullable_to_non_nullable
 as ComicListScene?,sceneLoading: null == sceneLoading ? _self.sceneLoading : sceneLoading // ignore: cast_nullable_to_non_nullable
 as bool,sceneError: freezed == sceneError ? _self.sceneError : sceneError // ignore: cast_nullable_to_non_nullable
-as String?,filterLoading: null == filterLoading ? _self.filterLoading : filterLoading // ignore: cast_nullable_to_non_nullable
+as String?,sceneLoginPluginId: null == sceneLoginPluginId ? _self.sceneLoginPluginId : sceneLoginPluginId // ignore: cast_nullable_to_non_nullable
+as String,filterLoading: null == filterLoading ? _self.filterLoading : filterLoading // ignore: cast_nullable_to_non_nullable
 as bool,filterError: freezed == filterError ? _self.filterError : filterError // ignore: cast_nullable_to_non_nullable
-as String?,filterBundle: freezed == filterBundle ? _self.filterBundle : filterBundle // ignore: cast_nullable_to_non_nullable
+as String?,filterLoginPluginId: null == filterLoginPluginId ? _self.filterLoginPluginId : filterLoginPluginId // ignore: cast_nullable_to_non_nullable
+as String,filterBundle: freezed == filterBundle ? _self.filterBundle : filterBundle // ignore: cast_nullable_to_non_nullable
 as ListFilterBundle?,filterSelections: null == filterSelections ? _self._filterSelections : filterSelections // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,resolvedUiParams: null == resolvedUiParams ? _self._resolvedUiParams : resolvedUiParams // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,resolvedFilterCore: null == resolvedFilterCore ? _self._resolvedFilterCore : resolvedFilterCore // ignore: cast_nullable_to_non_nullable

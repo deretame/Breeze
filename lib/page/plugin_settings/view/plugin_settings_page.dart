@@ -448,7 +448,8 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     final colorScheme = Theme.of(context).colorScheme;
     final pluginState = context
         .watch<PluginRegistryCubit>()
-        .state[widget.pluginUuid];
+        .state
+        .plugins[widget.pluginUuid];
     final debugEnabled = pluginState?.debug ?? false;
     final debugUrl = pluginState?.debugUrl ?? '';
     final deleted = pluginState?.isDeleted == true;

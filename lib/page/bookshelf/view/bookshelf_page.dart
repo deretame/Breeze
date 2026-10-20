@@ -86,7 +86,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       length: _labels.length,
       vsync: this,
     )..addListener(_handleTabControllerChanged);
-    _syncSourcesFromRegistry(context.read<PluginRegistryCubit>().state);
+    _syncSourcesFromRegistry(context.read<PluginRegistryCubit>().state.plugins);
   }
 
   @override
@@ -103,12 +103,12 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.sizeOf(context).width >= 600;
 
-    return BlocListener<PluginRegistryCubit, Map<String, PluginRuntimeState>>(
+    return BlocListener<PluginRegistryCubit, PluginRegistryState>(
       listenWhen: (previous, current) =>
-          _pluginAvailabilityRevision(previous) !=
-          _pluginAvailabilityRevision(current),
-      listener: (context, pluginStates) {
-        _syncSourcesFromRegistry(pluginStates);
+          _pluginAvailabilityRevision(previous.plugins) !=
+          _pluginAvailabilityRevision(current.plugins),
+      listener: (context, registry) {
+        _syncSourcesFromRegistry(registry.plugins);
         _triggerRefreshAll();
       },
       child: Scaffold(
@@ -458,9 +458,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
   }
 
   List<_FilterSourceOption> _buildFilterSourceOptions() {
-    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final registry = context.read<PluginRegistryCubit>().state;
     final sourceOptions = PluginRegistryService.I.sortPlugins(
-      pluginStates.values.where(
+      registry.plugins.values.where(
         (plugin) => plugin.isEnabled && !plugin.isDeleted,
       ),
     );
@@ -468,16 +468,10 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
         .map(
           (plugin) => _FilterSourceOption(
             pluginId: plugin.uuid,
-            title: _sourceTitle(plugin.uuid),
+            title: registry.pluginName(plugin.uuid),
           ),
         )
         .toList();
-  }
-
-  String _sourceTitle(String pluginId) {
-    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
-    final name = info?['name']?.toString().trim() ?? '';
-    return name.isNotEmpty ? name : pluginId;
   }
 
   void _syncSourcesFromRegistry(Map<String, PluginRuntimeState> pluginStates) {

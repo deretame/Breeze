@@ -145,7 +145,6 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool backPressExitEnabled,
     @Default(true) bool updateAccelerate,
     @Default(true) bool retryDownloadUntilSuccess,
-    @Default(false) bool oldPageRollbackEnabled,
     @Default(false) bool cloudFavoritePreferred,
     @Default(false) bool autoFollowOnCollect,
     @Default(false) bool leftHandModeEnabled,

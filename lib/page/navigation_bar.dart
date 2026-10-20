@@ -30,8 +30,7 @@ import 'package:zephyr/widgets/dialog.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/discover/view/discover_page.dart';
 import 'package:zephyr/page/more/view/more.dart';
-import 'package:zephyr/page/old_page/old_home/old_home_page.dart';
-import 'package:zephyr/page/old_page/old_ranking/old_ranking_page.dart';
+import 'package:zephyr/page/plugin_home/plugin_home.dart';
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {
@@ -76,7 +75,7 @@ class _NavigationBarState extends State<NavigationBar> {
     final configuredIndex = globalSetting.welcomePageNum;
     final initialIndex = _normalizeWelcomePageIndex(
       configuredIndex,
-      _buildPageList(globalSetting.oldPageRollbackEnabled).length,
+      _buildPageList().length,
     );
     _controller = PersistentTabController(initialIndex: initialIndex);
     _selectedIndex = initialIndex;
@@ -117,11 +116,9 @@ class _NavigationBarState extends State<NavigationBar> {
     // 开关仅在 Android 展示；同时限制实际行为，避免同步设置后影响其他平台。
     final backPressExitEnabled =
         Platform.isAndroid && globalSettingState.backPressExitEnabled;
-    final pageList = _buildPageList(globalSettingState.oldPageRollbackEnabled);
-    final navBarItems = _navBarItems(globalSettingState.oldPageRollbackEnabled);
-    final navRailDestinations = _navRailDestinations(
-      globalSettingState.oldPageRollbackEnabled,
-    );
+    final pageList = _buildPageList();
+    final navBarItems = _navBarItems();
+    final navRailDestinations = _navRailDestinations();
     final normalizedIndex = _normalizeWelcomePageIndex(
       _selectedIndex,
       pageList.length,
@@ -250,11 +247,23 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   // 底部导航栏的配置项
-  List<PersistentBottomNavBarItem> _navBarItems(bool oldPageRollbackEnabled) {
+  List<PersistentBottomNavBarItem> _navBarItems() {
     final activeColor = context.theme.colorScheme.primary;
     final inactiveColor = context.textColor;
 
-    final items = <PersistentBottomNavBarItem>[
+    return [
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.home_outlined),
+        title: t.navigation.home,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.leaderboard_outlined),
+        title: t.navigation.rank,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
+      ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.menu_book_sharp),
         title: t.navigation.bookshelf,
@@ -274,25 +283,6 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: inactiveColor,
       ),
     ];
-    if (!oldPageRollbackEnabled) {
-      return items;
-    }
-
-    return [
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.home_outlined),
-        title: t.navigation.home,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.leaderboard_outlined),
-        title: t.navigation.rank,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      ...items,
-    ];
   }
 
   int _normalizeWelcomePageIndex(int rawIndex, int pageCount) {
@@ -303,10 +293,18 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   // 为平板侧边导航栏生成 NavigationRailDestination
-  List<NavigationRailDestination> _navRailDestinations(
-    bool oldPageRollbackEnabled,
-  ) {
-    final destinations = <NavigationRailDestination>[
+  List<NavigationRailDestination> _navRailDestinations() {
+    return [
+      NavigationRailDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: Text(t.navigation.home),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.leaderboard_outlined),
+        selectedIcon: Icon(Icons.leaderboard),
+        label: Text(t.navigation.rank),
+      ),
       NavigationRailDestination(
         icon: Icon(Icons.menu_book_outlined),
         selectedIcon: Icon(Icons.menu_book_sharp),
@@ -323,34 +321,16 @@ class _NavigationBarState extends State<NavigationBar> {
         label: Text(t.navigation.more),
       ),
     ];
-    if (!oldPageRollbackEnabled) {
-      return destinations;
-    }
-    return [
-      NavigationRailDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: Text(t.navigation.home),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.leaderboard_outlined),
-        selectedIcon: Icon(Icons.leaderboard),
-        label: Text(t.navigation.rank),
-      ),
-      ...destinations,
-    ];
   }
 
-  List<Widget> _buildPageList(bool oldPageRollbackEnabled) {
-    final pages = <Widget>[
-      const BookshelfPage(),
-      const DiscoverPage(),
-      const MorePage(),
+  List<Widget> _buildPageList() {
+    return const [
+      PluginHomePage(),
+      PluginCloudFavoritePage(),
+      BookshelfPage(),
+      DiscoverPage(),
+      MorePage(),
     ];
-    if (!oldPageRollbackEnabled) {
-      return pages;
-    }
-    return [const OldHomePage(), const OldRankingPage(), ...pages];
   }
 
   Future<void> _autoSync({bool force = false}) async {

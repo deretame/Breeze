@@ -30,17 +30,16 @@ class _SearchBarState extends State<SearchBar> {
   final _keywordDebouncer = Debouncer(milliseconds: 100);
 
   List<({String pluginId, String title})> _sourceOptions(BuildContext context) {
-    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final registry = context.read<PluginRegistryCubit>().state;
     final states = PluginRegistryService.I.sortPlugins(
-      pluginStates.values.where((state) => !state.isDeleted),
+      registry.plugins.values.where((state) => !state.isDeleted),
     );
-    return states.map((state) {
-      final info = PluginRegistryService.I.getCachedPluginInfo(state.uuid);
-      final title = info?['name']?.toString().trim().isNotEmpty == true
-          ? info!['name'].toString().trim()
-          : state.uuid;
-      return (pluginId: state.uuid, title: title);
-    }).toList();
+    return states
+        .map(
+          (state) =>
+              (pluginId: state.uuid, title: registry.pluginName(state.uuid)),
+        )
+        .toList();
   }
 
   @override

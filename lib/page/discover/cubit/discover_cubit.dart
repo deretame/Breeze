@@ -43,20 +43,20 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     PluginRegistryService? service,
     required PluginRegistryCubit registry,
   }) : _service = service ?? PluginRegistryService.I,
-       super(
-         DiscoverState(
-           plugins: registry.state.plugins,
-           infos: registry.state.infos,
-           infoErrors: registry.state.infoErrors,
-         ),
-       ) {
+      super(
+        DiscoverState(
+          plugins: _visiblePlugins(registry.state.plugins),
+          infos: registry.state.infos,
+          infoErrors: registry.state.infoErrors,
+        ),
+      ) {
     _registrySubscription = registry.stream.listen((registryState) {
       if (isClosed) {
         return;
       }
       emit(
         state.copyWith(
-          plugins: registryState.plugins,
+          plugins: _visiblePlugins(registryState.plugins),
           infos: registryState.infos,
           infoErrors: registryState.infoErrors,
         ),
@@ -64,8 +64,19 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     });
   }
 
-  final PluginRegistryService _service;
+  /// 已删除的不显示（逻辑删除后立即消失）。以前在 _syncPluginsAndLoad 里过滤，
+  /// 改全局化时漏了，导致已删插件残留成无限加载。
+  static Map<String, PluginRuntimeState> _visiblePlugins(
+    Map<String, PluginRuntimeState> all,
+  ) {
+    return {
+      for (final entry in all.entries)
+        if (!entry.value.isDeleted) entry.key: entry.value,
+    };
+  }
   late final StreamSubscription<PluginRegistryState> _registrySubscription;
+
+  final PluginRegistryService _service;
 
   final Set<String> _togglingUuids = <String>{};
 

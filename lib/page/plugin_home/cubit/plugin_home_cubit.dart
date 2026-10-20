@@ -244,21 +244,24 @@ class PluginHomeCubit extends Cubit<PluginHomeState> {
     return _registry.state.capablePlugins(capabilityFlag);
   }
 
-  /// 等该插件 init 成功（登录走完）。无超时：一直 loading 转圈。
-  /// 已就绪直接返回；cubit 关了抛错让外层走 error 态。
+  /// 等该插件 init 成功（登录走完），最多等 30 秒。
+  /// 超时后不再等，直接调 bundle：失败走正常登录错误页（带登录/刷新按钮），
+  /// 而不是无限转圈。已就绪直接返回；cubit 关了抛错让外层走 error 态。
   Future<void> _waitForInitOk(String pluginId) async {
     if (_service.isPluginInitOk(pluginId)) {
       return;
     }
-    await for (final ok in _service.initOkStream) {
-      if (isClosed) {
-        throw StateError('已关闭');
-      }
-      if (ok.contains(pluginId)) {
-        return;
-      }
+    try {
+      await _service.initOkStream
+          .firstWhere((ok) => ok.contains(pluginId))
+          .timeout(const Duration(seconds: 30));
+    } on TimeoutException {
+      // 超时：init 还没跑完（选线慢/登录卡），不等了，直接调 bundle。
+      return;
     }
-    throw StateError('已关闭');
+    if (isClosed) {
+      throw StateError('已关闭');
+    }
   }
 
   Future<PluginHomeBundle> _loadBundle(String pluginId) async {

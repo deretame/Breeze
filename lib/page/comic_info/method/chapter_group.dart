@@ -48,6 +48,7 @@ List<ChapterGroup<T>> groupChaptersByTitle<T>(
   }
   return groups;
 }
+
 /// 下标分组：与 [groupChaptersByTitle] 同样的首次出现顺序，但直接按下标循环，
 /// 避免调用方 `List.generate(N)` 的中间分配。详情页章节列表用它（`displayEps`
 /// 已全局排序，组顺序即首次出现顺序）。

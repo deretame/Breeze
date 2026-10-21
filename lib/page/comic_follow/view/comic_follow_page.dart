@@ -213,8 +213,8 @@ class _SummaryBar extends StatelessWidget {
                   unread == 1
                       ? t.comicFollow.updatedComicsSingle
                       : unread > 1
-                          ? t.comicFollow.updatedComicsMultiple(count: unread)
-                          : t.comicFollow.noUnread,
+                      ? t.comicFollow.updatedComicsMultiple(count: unread)
+                      : t.comicFollow.noUnread,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

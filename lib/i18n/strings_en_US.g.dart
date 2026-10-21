@@ -537,6 +537,7 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get removingCloudCollection => 'Removing cloud collection...';
 	@override String get cloudCollectSuccess => 'Added to cloud collection';
 	@override String get cloudUncollectSuccess => 'Removed from cloud collection';
+	@override String get cloudCollectIncomplete => 'Cloud collection operation incomplete';
 	@override String get discontinued => 'This comic is discontinued';
 	@override String likes({required Object count}) => 'Likes ${count}';
 	@override String comments({required Object count}) => 'Comments ${count}';
@@ -2000,6 +2001,7 @@ extension on TranslationsEnUs {
 			'comicInfo.removingCloudCollection' => 'Removing cloud collection...',
 			'comicInfo.cloudCollectSuccess' => 'Added to cloud collection',
 			'comicInfo.cloudUncollectSuccess' => 'Removed from cloud collection',
+			'comicInfo.cloudCollectIncomplete' => 'Cloud collection operation incomplete',
 			'comicInfo.discontinued' => 'This comic is discontinued',
 			'comicInfo.likes' => ({required Object count}) => 'Likes ${count}',
 			'comicInfo.comments' => ({required Object count}) => 'Comments ${count}',
@@ -2101,9 +2103,9 @@ extension on TranslationsEnUs {
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
 			'reader.horizontalPositionCenter' => 'Center',
-			'reader.horizontalPositionRight' => 'Right',
 			_ => null,
 		} ?? switch (path) {
+			'reader.horizontalPositionRight' => 'Right',
 			'reader.readingDirectionLtr' => 'Left to right',
 			'reader.readingDirectionRtl' => 'Right to left',
 			'reader.readingDirectionVertical' => 'Top to bottom',
@@ -2615,9 +2617,9 @@ extension on TranslationsEnUs {
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
-			'searchResult.enterPageNumber' => 'Enter page number',
 			_ => null,
 		} ?? switch (path) {
+			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
 			'searchResult.returnToTop' => 'Return to top',
 			'searchResult.jumpToPage' => 'Jump to page',

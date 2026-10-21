@@ -26,7 +26,7 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
   List<String> _splashPageList() {
     return [
       t.navigation.home,
-      t.navigation.rank,
+      t.oldHome.cloudFavorite,
       t.navigation.bookshelf,
       t.navigation.discover,
       t.navigation.more,
@@ -36,7 +36,7 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
   Map<String, int> _splashPageMap() {
     return {
       t.navigation.home: 0,
-      t.navigation.rank: 1,
+      t.oldHome.cloudFavorite: 1,
       t.navigation.bookshelf: 2,
       t.navigation.discover: 3,
       t.navigation.more: 4,

@@ -421,6 +421,7 @@
     "removingCloudCollection": "Removing cloud collection...",
     "cloudCollectSuccess": "Added to cloud collection",
     "cloudUncollectSuccess": "Removed from cloud collection",
+    "cloudCollectIncomplete": "Cloud collection operation incomplete",
     "discontinued": "This comic is discontinued",
     "likes": "Likes $count",
     "comments": "Comments $count",

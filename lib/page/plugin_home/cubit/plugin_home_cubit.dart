@@ -93,55 +93,89 @@ class PluginHomeCubit extends Cubit<PluginHomeState> {
   }
 
   /// init 后直接调用，无延迟 hack。
+  /// infos 没就绪就在 load 里阻塞等（轮询 registry 快照，最多 10 秒），
+  /// 等到再读记忆匹配，不靠广播重入。
+  bool _loading = false;
+
   Future<void> load() async {
-    if (isClosed) {
+    if (isClosed || _loading) {
       return;
     }
-    emit(
-      state.copyWith(
-        loading: true,
-        error: '',
-        loginPluginId: '',
-        bundle: () => null,
-        reloadSignal: state.reloadSignal + 1,
-      ),
-    );
-    String pluginId = '';
+    _loading = true;
     try {
-      final candidates = _resolveCandidates();
-      emit(state.copyWith(candidates: candidates));
-      if (candidates.isEmpty) {
-        if (!isClosed) {
-          emit(state.copyWith(loading: false, pluginId: ''));
-        }
-        return;
-      }
-      final remembered = (await readMemory())?.trim() ?? '';
-      pluginId = candidates.contains(remembered)
-          ? remembered
-          : candidates.first;
-      // 未就绪（init 登录还没跑完）就一直 loading 等，不超时。
-      await _waitForInitOk(pluginId);
-      final bundle = await _loadBundle(pluginId);
-      if (isClosed) {
-        return;
-      }
       emit(
         state.copyWith(
-          loading: false,
+          loading: true,
           error: '',
           loginPluginId: '',
-          pluginId: pluginId,
-          bundle: () => bundle,
-          candidates: _resolveCandidates(),
+          bundle: () => null,
+          reloadSignal: state.reloadSignal + 1,
         ),
       );
-    } catch (e) {
-      if (isClosed) {
-        return;
+      String pluginId = '';
+      try {
+        var candidates = _resolveCandidates();
+        if (candidates.isEmpty) {
+          candidates = await _waitForCandidates();
+        }
+        emit(state.copyWith(candidates: candidates));
+        if (candidates.isEmpty) {
+          // 等了 10 秒还是空：真没插件，定死空态。
+          if (!isClosed) {
+            emit(state.copyWith(loading: false, pluginId: ''));
+          }
+          return;
+        }
+        final remembered = (await readMemory())?.trim() ?? '';
+        pluginId = candidates.contains(remembered)
+            ? remembered
+            : candidates.first;
+        // 选中后写回固化：记忆为空或失效时选了 candidates.first，
+        // 不写下次还是空。写失败不阻断加载。
+        try {
+          await writeMemory(pluginId);
+        } catch (_) {}
+        // 未就绪（init 登录还没跑完）就一直 loading 等，不超时。
+        await _waitForInitOk(pluginId);
+        final bundle = await _loadBundle(pluginId);
+        if (isClosed) {
+          return;
+        }
+        emit(
+          state.copyWith(
+            loading: false,
+            error: '',
+            loginPluginId: '',
+            pluginId: pluginId,
+            bundle: () => bundle,
+            candidates: _resolveCandidates(),
+          ),
+        );
+      } catch (e) {
+        if (isClosed) {
+          return;
+        }
+        _emitFailure(e, fallbackPluginId: pluginId);
       }
-      _emitFailure(e, fallbackPluginId: pluginId);
+    } finally {
+      _loading = false;
     }
+  }
+
+  /// 阻塞等 infos 就绪：每 200ms 看一次 registry 快照，最多 10 秒。
+  /// 中途关了抛错，外层走 error 态。
+  Future<List<String>> _waitForCandidates() async {
+    for (var i = 0; i < 50; i++) {
+      if (isClosed) {
+        throw StateError('已关闭');
+      }
+      final candidates = _resolveCandidates();
+      if (candidates.isNotEmpty) {
+        return candidates;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    return _resolveCandidates();
   }
 
   /// 失败分流：登录错误记 loginPluginId（错误页出登录/刷新按钮），
@@ -211,8 +245,10 @@ class PluginHomeCubit extends Cubit<PluginHomeState> {
   Future<void> retry() => load();
 
   /// 插件被删/禁用时静默选第一项：当前选中不在候选中则视为不存在。
+  /// 只管删/禁用切换，不管加载（加载由 load 内阻塞等）。
+  /// 更新时 info 短暂清空但插件本身还在：不切，等 info 回来（广播会再触发）。
   void onRegistryChanged() {
-    if (isClosed || state.loading) {
+    if (isClosed || state.loading || state.bundle == null) {
       return;
     }
     final candidates = _resolveCandidates();
@@ -228,11 +264,22 @@ class PluginHomeCubit extends Cubit<PluginHomeState> {
       }
       return;
     }
-    if (!candidates.contains(state.pluginId)) {
-      unawaitedSwitch(candidates.first);
-    } else if (!_sameList(candidates, state.candidates)) {
-      emit(state.copyWith(candidates: candidates));
+    if (candidates.contains(state.pluginId)) {
+      if (!_sameList(candidates, state.candidates)) {
+        emit(state.copyWith(candidates: candidates));
+      }
+      return;
     }
+    // 当前选中不在候选中：插件本身还在（更新中 info 短暂清空）就不切，
+    // 等下一次广播；真被删/禁用了才切 first。
+    final current = _service.snapshot[state.pluginId];
+    if (current != null && current.isActive) {
+      if (!_sameList(candidates, state.candidates)) {
+        emit(state.copyWith(candidates: candidates));
+      }
+      return;
+    }
+    unawaitedSwitch(candidates.first);
   }
 
   void unawaitedSwitch(String pluginId) {

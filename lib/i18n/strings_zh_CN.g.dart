@@ -650,11 +650,11 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后进入应用需要验证'
 	String get appLockSubtitle => '开启后进入应用需要验证';
 
-	/// zh-CN: '优先云端收藏'
-	String get cloudFavoritePreferred => '优先云端收藏';
+	/// zh-CN: '优先云收藏'
+	String get cloudFavoritePreferred => '优先云收藏';
 
-	/// zh-CN: '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏'
-	String get cloudFavoritePreferredSubtitle => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏';
+	/// zh-CN: '开启后漫画信息页的收藏按钮将执行云收藏，原云收藏菜单项切换为本地收藏'
+	String get cloudFavoritePreferredSubtitle => '开启后漫画信息页的收藏按钮将执行云收藏，原云收藏菜单项切换为本地收藏';
 
 	/// zh-CN: '收藏自动追更'
 	String get autoFollowOnCollect => '收藏自动追更';
@@ -1340,8 +1340,8 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '收藏到云端'
 	String get collectToCloud => '收藏到云端';
 
-	/// zh-CN: '取消云端收藏'
-	String get removeCloudCollection => '取消云端收藏';
+	/// zh-CN: '取消云收藏'
+	String get removeCloudCollection => '取消云收藏';
 
 	/// zh-CN: '收藏到本地'
 	String get collectToLocal => '收藏到本地';
@@ -1355,14 +1355,17 @@ class Translations$comicInfo$zh_CN {
 	/// zh-CN: '收藏到云端中...'
 	String get collectingToCloud => '收藏到云端中...';
 
-	/// zh-CN: '取消云端收藏中...'
-	String get removingCloudCollection => '取消云端收藏中...';
+	/// zh-CN: '取消云收藏中...'
+	String get removingCloudCollection => '取消云收藏中...';
 
-	/// zh-CN: '云端收藏成功'
-	String get cloudCollectSuccess => '云端收藏成功';
+	/// zh-CN: '云收藏成功'
+	String get cloudCollectSuccess => '云收藏成功';
 
-	/// zh-CN: '已取消云端收藏'
-	String get cloudUncollectSuccess => '已取消云端收藏';
+	/// zh-CN: '已取消云收藏'
+	String get cloudUncollectSuccess => '已取消云收藏';
+
+	/// zh-CN: '云收藏操作未完成'
+	String get cloudCollectIncomplete => '云收藏操作未完成';
 
 	/// zh-CN: '此漫画已下架'
 	String get discontinued => '此漫画已下架';
@@ -3095,8 +3098,8 @@ class Translations$oldHome$zh_CN {
 	/// zh-CN: '最新'
 	String get latest => '最新';
 
-	/// zh-CN: '云端收藏'
-	String get cloudFavorite => '云端收藏';
+	/// zh-CN: '云收藏'
+	String get cloudFavorite => '云收藏';
 
 	/// zh-CN: '列表'
 	String get list => '列表';
@@ -4180,8 +4183,8 @@ extension on Translations {
 			'settings.exitApp' => '退出',
 			'settings.appLock' => '应用锁',
 			'settings.appLockSubtitle' => '开启后进入应用需要验证',
-			'settings.cloudFavoritePreferred' => '优先云端收藏',
-			'settings.cloudFavoritePreferredSubtitle' => '开启后漫画信息页的收藏按钮将执行云端收藏，原云端收藏菜单项切换为本地收藏',
+			'settings.cloudFavoritePreferred' => '优先云收藏',
+			'settings.cloudFavoritePreferredSubtitle' => '开启后漫画信息页的收藏按钮将执行云收藏，原云收藏菜单项切换为本地收藏',
 			'settings.autoFollowOnCollect' => '收藏自动追更',
 			'settings.autoFollowOnCollectSubtitle' => '开启后收藏漫画时将自动加入追更列表',
 			'settings.leftHandMode' => '左手优化',
@@ -4404,14 +4407,15 @@ extension on Translations {
 			'comicInfo.unfollow' => '不再追更',
 			'comicInfo.exportComic' => '导出漫画',
 			'comicInfo.collectToCloud' => '收藏到云端',
-			'comicInfo.removeCloudCollection' => '取消云端收藏',
+			'comicInfo.removeCloudCollection' => '取消云收藏',
 			'comicInfo.collectToLocal' => '收藏到本地',
 			'comicInfo.removeLocalCollection' => '取消本地收藏',
 			'comicInfo.cloudCollectDisabled' => '该插件暂不支持此功能',
 			'comicInfo.collectingToCloud' => '收藏到云端中...',
-			'comicInfo.removingCloudCollection' => '取消云端收藏中...',
-			'comicInfo.cloudCollectSuccess' => '云端收藏成功',
-			'comicInfo.cloudUncollectSuccess' => '已取消云端收藏',
+			'comicInfo.removingCloudCollection' => '取消云收藏中...',
+			'comicInfo.cloudCollectSuccess' => '云收藏成功',
+			'comicInfo.cloudUncollectSuccess' => '已取消云收藏',
+			'comicInfo.cloudCollectIncomplete' => '云收藏操作未完成',
 			'comicInfo.discontinued' => '此漫画已下架',
 			'comicInfo.likes' => ({required Object count}) => '点赞 ${count}',
 			'comicInfo.comments' => ({required Object count}) => '评论 ${count}',
@@ -4512,9 +4516,9 @@ extension on Translations {
 			'reader.verticalPositionTop' => '顶部',
 			'reader.verticalPositionBottom' => '底部',
 			'reader.horizontalPositionLeft' => '左侧',
-			'reader.horizontalPositionCenter' => '居中',
 			_ => null,
 		} ?? switch (path) {
+			'reader.horizontalPositionCenter' => '居中',
 			'reader.horizontalPositionRight' => '右侧',
 			'reader.readingDirectionLtr' => '从左到右',
 			'reader.readingDirectionRtl' => '从右到左',
@@ -4958,7 +4962,7 @@ extension on Translations {
 			'oldHome.navigation' => '导航',
 			'oldHome.recommend' => '推荐',
 			'oldHome.latest' => '最新',
-			'oldHome.cloudFavorite' => '云端收藏',
+			'oldHome.cloudFavorite' => '云收藏',
 			'oldHome.list' => '列表',
 			'oldHome.function' => '功能',
 			'oldHome.close' => '关闭',
@@ -5026,9 +5030,9 @@ extension on Translations {
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
-			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			_ => null,
 		} ?? switch (path) {
+			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
 			'searchResult.enterPageNumber' => '输入页数',
 			'searchResult.pleaseEnterNumber' => '请输入数字',

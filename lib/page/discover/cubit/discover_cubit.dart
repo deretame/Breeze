@@ -43,13 +43,16 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     PluginRegistryService? service,
     required PluginRegistryCubit registry,
   }) : _service = service ?? PluginRegistryService.I,
-      super(
-        DiscoverState(
-          plugins: _visiblePlugins(registry.state.plugins),
-          infos: registry.state.infos,
-          infoErrors: registry.state.infoErrors,
-        ),
-      ) {
+       super(
+         DiscoverState(
+           plugins: _visiblePlugins(registry.state.plugins),
+           infos: _withDbFallback(
+             service ?? PluginRegistryService.I,
+             registry.state.infos,
+           ),
+           infoErrors: registry.state.infoErrors,
+         ),
+       ) {
     _registrySubscription = registry.stream.listen((registryState) {
       if (isClosed) {
         return;
@@ -57,11 +60,29 @@ class DiscoverCubit extends Cubit<DiscoverState> {
       emit(
         state.copyWith(
           plugins: _visiblePlugins(registryState.plugins),
-          infos: registryState.infos,
+          infos: _withDbFallback(_service, registryState.infos),
           infoErrors: registryState.infoErrors,
         ),
       );
     });
+  }
+
+  /// 内存 info 缺失时用 DB 持久化的 getInfoJson 兜底（旧 _syncPluginsAndLoad
+  /// 的 getCachedPluginInfo 逻辑）：禁用清内存缓存后卡片照样显示变灰，不转圈。
+  static Map<String, Map<String, dynamic>> _withDbFallback(
+    PluginRegistryService service,
+    Map<String, Map<String, dynamic>> infos,
+  ) {
+    final merged = Map<String, Map<String, dynamic>>.from(infos);
+    for (final uuid in _visiblePlugins(service.snapshot).keys) {
+      if (!merged.containsKey(uuid)) {
+        final cached = service.getCachedPluginInfo(uuid);
+        if (cached != null) {
+          merged[uuid] = cached;
+        }
+      }
+    }
+    return merged;
   }
 
   /// 已删除的不显示（逻辑删除后立即消失）。以前在 _syncPluginsAndLoad 里过滤，
@@ -74,6 +95,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
         if (!entry.value.isDeleted) entry.key: entry.value,
     };
   }
+
   late final StreamSubscription<PluginRegistryState> _registrySubscription;
 
   final PluginRegistryService _service;

@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -474,7 +473,6 @@ class PluginRegistryService {
     _pluginInitDone.remove(uuid);
     _clearInitOk(uuid);
     _emit();
-
     final runtimeName = resolveRuntimeName(uuid);
     if (enabled) {
       await ensurePluginRuntimeReady(_states[uuid]!, runtimeName: runtimeName);
@@ -760,10 +758,14 @@ class PluginRegistryService {
     // 失败不记，不阻塞、不抛。
     Future(() async {
       try {
-        await callUnifiedComicPlugin(
-          pluginId: runtimeName,
+        // init 只等跑完：直接拿原始字节丢弃，不解码不解析返回值，
+        // void/undefined/空对象都算成功只有抛错才算失败。
+        await qjsTaskCall(
+          runtimeName: runtimeName,
+          taskGroupKey: '',
+          isOnce: false,
           fnPath: 'init',
-          core: {},
+          argsJson: '{}',
         );
         _pluginInitDone.add(plugin.uuid);
         _markInitOk(plugin.uuid);

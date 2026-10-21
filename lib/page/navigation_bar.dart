@@ -259,8 +259,8 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.leaderboard_outlined),
-        title: t.navigation.rank,
+        icon: Icon(Icons.cloud_outlined),
+        title: t.oldHome.cloudFavorite,
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
@@ -301,9 +301,9 @@ class _NavigationBarState extends State<NavigationBar> {
         label: Text(t.navigation.home),
       ),
       NavigationRailDestination(
-        icon: Icon(Icons.leaderboard_outlined),
-        selectedIcon: Icon(Icons.leaderboard),
-        label: Text(t.navigation.rank),
+        icon: Icon(Icons.cloud_outlined),
+        selectedIcon: Icon(Icons.cloud),
+        label: Text(t.oldHome.cloudFavorite),
       ),
       NavigationRailDestination(
         icon: Icon(Icons.menu_book_outlined),

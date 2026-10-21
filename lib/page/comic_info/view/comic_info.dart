@@ -1074,7 +1074,9 @@ class _ComicInfoState extends State<_ComicInfo>
       }
     } on FavoriteWorkflowIncompleteException catch (error) {
       if (mounted) {
-        showInfoToast(error.result.message ?? '云端收藏操作未完成');
+        showInfoToast(
+          error.result.message ?? t.comicInfo.cloudCollectIncomplete,
+        );
       }
     } catch (e) {
       showErrorToast(
@@ -1247,10 +1249,9 @@ class _ComicInfoState extends State<_ComicInfo>
             countLabel: t.comicInfo.groupEpisodeCount(count: indices.length),
             // 下载列表点击时才按下标收集，不在每次 build 预分配 O(N) List。
             onDownloadGroup: showDownloadUi
-                ? () => _downloadGroup(
-                    context,
-                    [for (final i in indices) chapters[i]],
-                  )
+                ? () => _downloadGroup(context, [
+                    for (final i in indices) chapters[i],
+                  ])
                 : null,
             onToggle: () => _toggleGroup(groupKey),
             expanded: expanded,
@@ -1300,7 +1301,9 @@ class _ComicInfoState extends State<_ComicInfo>
     if (identical(displayEps, cachedRef)) return _indexGroups;
     final groups = groupIndicesByTitle(
       displayEps.length,
-      (i) => resolveChapterGroupTitle(groupTitle: (displayEps[i] as Ep).groupTitle),
+      (i) => resolveChapterGroupTitle(
+        groupTitle: (displayEps[i] as Ep).groupTitle,
+      ),
     );
     _groupedEpsRef = displayEps;
     _indexGroups = groups;

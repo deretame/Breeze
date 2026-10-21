@@ -33,10 +33,13 @@ UnauthorizedPayload? parseUnauthorizedPayload(
   Object error, {
   required String fallbackPluginId,
 }) {
-  // 其他错误只做文本匹配。这里只被 callUnifiedComicPlugin 调用一次，
-  // 传入的一定是 QJS 抛回的 AnyhowException，硬转即可。
+  // 其他错误只做文本匹配。QJS 抛回的是 AnyhowException，其他 Dart 异常
+  //（如 FormatException）直接返回 null 走普通失败，不强转。
+  if (error is! AnyhowException) {
+    return null;
+  }
   // cubit 侧只认 PluginUnauthorizedException，不再调本函数。
-  final text = (error as AnyhowException).message.trim().split('\n').first;
+  final text = error.message.trim().split('\n').first;
   final regExp = RegExp(
     r'(?:bundle:.*?cjs\]|source:.*?cjs\])\s*(\{.*\})',
     dotAll: true,

@@ -12,11 +12,10 @@ import 'package:zephyr/page/plugin_home/view/plugin_selector_dialog.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-/// 插件通用 TabView 骨架：AppBar 标题可点 + 右上随 tab 切换 + FAB 同入口。
+/// 插件通用 TabView 骨架：标题位即 TabBar（可横滑）+ 右上随 tab 切换 + 左侧图标切插件。
 ///
-/// [pageTitle] 为无插件选中时的标题；选中插件后标题显示插件名。
-/// scene tab 每个配独立 [ComicListCubit]，filter / 右上联动每个 tab 独立；
-/// page tab 右上渲染自身 header.actions。内容每次重进重载，不保活。
+/// [pageTitle] 为无 tab 时的标题；左侧图标为切换入口 + 当前插件定位。
+/// 内容每次重进重载，不保活。
 class PluginHomeScaffold extends StatefulWidget {
   const PluginHomeScaffold({
     super.key,
@@ -147,11 +146,13 @@ class _PluginHomeScaffoldState extends State<PluginHomeScaffold>
         builder: (context, state) {
           final bundle = state.bundle;
           final tabs = bundle?.tabs ?? const <PluginHomeTab>[];
-          final showTabBar = tabs.length > 1;
           final activeIndex = tabs.isEmpty
               ? 0
               : _tabIndex.clamp(0, tabs.length - 1);
           final activeTab = tabs.isEmpty ? null : tabs[activeIndex];
+          // 多 tab：标题位直接放 TabBar（isScrollable 横向可滚），右上 actions 常驻。
+          // 单 tab / 无 tab：显示插件名（可点切换），没插件显示页标题。
+          final hasTabBar = tabs.length > 1 && _tabController != null;
           final pluginName = state.pluginId.isEmpty
               ? ''
               : context.select<PluginRegistryCubit, String>(
@@ -159,32 +160,34 @@ class _PluginHomeScaffoldState extends State<PluginHomeScaffold>
                 );
           return Scaffold(
             appBar: AppBar(
-              title: InkWell(
-                onTap: () => _openSelector(context, state),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        pluginName.isNotEmpty ? pluginName : widget.pageTitle,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(Icons.arrow_drop_down),
-                  ],
-                ),
-              ),
-              actions: activeTab == null
-                  ? const []
-                  : _buildActions(context, state, activeTab, activeIndex),
-              bottom: showTabBar
+              titleSpacing: hasTabBar ? 0 : null,
+              title: hasTabBar
                   ? TabBar(
                       controller: _tabController,
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
                       tabs: [for (final tab in tabs) Tab(text: tab.title)],
                     )
-                  : null,
+                  : InkWell(
+                      onTap: () => _openSelector(context, state),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              pluginName.isNotEmpty
+                                  ? pluginName
+                                  : widget.pageTitle,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down),
+                        ],
+                      ),
+                    ),
+              actions: activeTab == null
+                  ? const []
+                  : _buildActions(context, state, activeTab, activeIndex),
             ),
             body: _buildBody(context, state),
             floatingActionButton: FloatingActionButton(
@@ -363,7 +366,6 @@ class _PluginHomeScaffoldState extends State<PluginHomeScaffold>
       context,
       candidates: state.candidates,
       selectedId: state.pluginId,
-      title: widget.selectorTitle,
     );
     if (picked == null || !mounted) {
       return;

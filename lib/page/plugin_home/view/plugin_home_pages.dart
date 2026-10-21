@@ -39,7 +39,7 @@ class PluginCloudFavoritePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final registry = context.read<PluginRegistryCubit>();
     return PluginHomeScaffold(
-      pageTitle: t.navigation.rank,
+      pageTitle: t.oldHome.cloudFavorite,
       selectorTitle: t.oldHome.cloudFavorite,
       createCubit: () => PluginHomeCubit(
         bundleFnPath: 'getPluginCloudFavoritePagesBundle',

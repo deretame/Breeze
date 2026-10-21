@@ -1084,7 +1084,7 @@ impl AsyncHostRuntime {
     }
 
     pub async fn bundle_load(&self, name: &str, source: &str) -> Result<(), String> {
-        let _ = crate::source_map::extract_and_register("__default__", source);
+        let _ = crate::source_map::extract_and_register(name, source);
         self.bundle_ensure_dispatcher().await?;
         let name_literal = serde_json::to_string(name)
             .map_err(|e| crate::tr!("failed-to-serialize-bundle-name", e = e))?;
@@ -1243,6 +1243,7 @@ impl AsyncHostRuntime {
         let data = parse_ok_json_payload(&raw)?;
         let removed = data.as_bool().unwrap_or(false);
         if removed {
+            crate::source_map::unregister(name);
             self.remember_bundle_unloaded(name);
         }
         Ok(removed)

@@ -3,15 +3,33 @@
 
   var _originalPrepareStackTrace = Error.prepareStackTrace;
 
-  function trySourceMapLookup(line, col) {
-    if (typeof __sourcemap_lookup !== "function") return null;
+  // scope 形如 "bundle:<name> fn:... ..."；按 bundle 名查各自的 source map，
+  // 解析失败回退 __default__（兼容旧注册）。
+  function bundleNameOf(err) {
     try {
-      var raw = __sourcemap_lookup("__default__", line, col);
-      if (!raw) return null;
-      return JSON.parse(raw);
+      var scope = err && err.__bundle_scope;
+      if (typeof scope !== "string") return null;
+      var m = scope.match(/bundle:([^\s]+)/);
+      return m ? m[1] : null;
     } catch (_e) {
       return null;
     }
+  }
+
+  function trySourceMapLookup(err, line, col) {
+    if (typeof __sourcemap_lookup !== "function") return null;
+    var names = [];
+    var bundleName = bundleNameOf(err);
+    if (bundleName) names.push(bundleName);
+    names.push("__default__");
+    for (var i = 0; i < names.length; i++) {
+      try {
+        var raw = __sourcemap_lookup(names[i], line, col);
+        if (!raw) continue;
+        return JSON.parse(raw);
+      } catch (_e) {}
+    }
+    return null;
   }
 
   Error.prepareStackTrace = function (err, frames) {
@@ -31,7 +49,7 @@
         continue;
       }
 
-      var smResult = trySourceMapLookup(line, col);
+      var smResult = trySourceMapLookup(err, line, col);
       if (smResult) {
         var displayFn = fn || smResult.name || "(anonymous)";
         lines.push(

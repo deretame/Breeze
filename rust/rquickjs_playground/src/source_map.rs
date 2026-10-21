@@ -14,6 +14,11 @@ pub fn register(name: &str, map_json: &str) -> Result<(), String> {
     Ok(())
 }
 
+pub fn unregister(name: &str) {
+    if let Ok(mut maps) = REGISTRY.lock() {
+        maps.remove(name);
+    }
+}
 pub fn extract_and_register(name: &str, bundle_source: &str) -> Result<(), String> {
     let marker = "//# sourceMappingURL=data:application/json;";
     let pos = bundle_source.rfind(marker).ok_or("no inline source map")?;
@@ -30,8 +35,11 @@ pub fn extract_and_register(name: &str, bundle_source: &str) -> Result<(), Strin
 
 pub fn look_up(bundle_name: &str, gen_line_1: u32, gen_col_0: u32) -> Option<LookUpResult> {
     let maps = REGISTRY.lock().ok()?;
-    let sm = maps.get(bundle_name)?;
-
+    // 只查指定 bundle；指定查不到且全局仅一个 map 时用它（单 bundle/测试场景），
+    // 多 bundle 下查不到就返回空，不乱指。
+    let sm = maps
+        .get(bundle_name)
+        .or_else(|| (maps.len() == 1).then(|| maps.values().next()).flatten())?;
     for offset in [3u32, 1u32] {
         let sm_line = gen_line_1.saturating_sub(offset);
         // QuickJS column may be off by a few; scan backwards

@@ -21,8 +21,8 @@ class PluginPagedComicListView extends StatelessWidget {
     this.physics,
     this.collectionTargetId,
     this.collectionTargetName,
-    // 新两页内的列表传 true：登录错误不出全局弹窗，由外层出登录/刷新。
     this.suppressNeedLoginEvent = false,
+    this.detailed = false,
   });
 
   final String pluginId;
@@ -34,6 +34,7 @@ class PluginPagedComicListView extends StatelessWidget {
   final String? collectionTargetId;
   final String? collectionTargetName;
   final bool suppressNeedLoginEvent;
+  final bool detailed;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +51,7 @@ class PluginPagedComicListView extends StatelessWidget {
         physics: physics,
         collectionTargetId: collectionTargetId,
         collectionTargetName: collectionTargetName,
+        detailed: detailed,
       ),
     );
   }
@@ -61,12 +63,14 @@ class _PluginPagedComicListBody extends StatefulWidget {
     required this.physics,
     this.collectionTargetId,
     this.collectionTargetName,
+    this.detailed = false,
   });
 
   final bool shrinkWrap;
   final ScrollPhysics? physics;
   final String? collectionTargetId;
   final String? collectionTargetName;
+  final bool detailed;
 
   @override
   State<_PluginPagedComicListBody> createState() =>
@@ -173,6 +177,7 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
       physics: widget.physics ?? const AlwaysScrollableScrollPhysics(),
       collectionTargetId: widget.collectionTargetId,
       collectionTargetName: widget.collectionTargetName,
+      detailed: widget.detailed,
     );
   }
 

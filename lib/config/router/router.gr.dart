@@ -15,6 +15,7 @@ import 'dart:async' as _i52;
 import 'package:auto_route/auto_route.dart' as _i44;
 import 'package:collection/collection.dart' as _i47;
 import 'package:flutter/foundation.dart' as _i49;
+import 'package:flutter/rendering.dart' as _i55;
 import 'package:material_ui/material_ui.dart' as _i45;
 import 'package:zephyr/cubit/string_select.dart' as _i51;
 import 'package:zephyr/debug/coreml_upscale_debug_page.dart' as _i15;
@@ -52,7 +53,7 @@ import 'package:zephyr/page/search/view/search_page.dart' as _i36;
 import 'package:zephyr/page/search_aggregate/view/search_aggregate_result_page.dart'
     as _i35;
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart' as _i53;
-import 'package:zephyr/page/search_result/search_result.dart' as _i55;
+import 'package:zephyr/page/search_result/search_result.dart' as _i56;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i37;
 import 'package:zephyr/page/setting/bookshelf/bookshelf_setting_page.dart'
     as _i6;
@@ -1433,8 +1434,8 @@ class SearchRouteArgs {
 /// [_i37.SearchResultPage]
 class SearchResultRoute extends _i44.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
-    _i45.Key? key,
-    required _i55.SearchEvent searchEvent,
+    _i55.Key? key,
+    required _i56.SearchEvent searchEvent,
     _i54.SearchCubit? searchCubit,
     List<_i44.PageRouteInfo>? children,
   }) : super(
@@ -1471,9 +1472,9 @@ class SearchResultRouteArgs {
     this.searchCubit,
   });
 
-  final _i45.Key? key;
+  final _i55.Key? key;
 
-  final _i55.SearchEvent searchEvent;
+  final _i56.SearchEvent searchEvent;
 
   final _i54.SearchCubit? searchCubit;
 

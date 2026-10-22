@@ -710,8 +710,17 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后，下载页会记住你最后一次选择的排序'
 	String get bookshelfRememberDownloadSortSubtitle => '开启后，下载页会记住你最后一次选择的排序';
 
-	/// zh-CN: '自定义导出路径'
-	String get customExportPath => '自定义导出路径';
+	/// zh-CN: '详情布局'
+	String get detailLayout => '详情布局';
+
+	/// zh-CN: '开启后漫画列表显示为横排详情样式，含作者与分类信息'
+	String get detailLayoutSubtitle => '开启后漫画列表显示为横排详情样式，含作者与分类信息';
+
+	/// zh-CN: '章节倒序'
+	String get reverseChapters => '章节倒序';
+
+	/// zh-CN: '开启后漫画详情页章节默认倒序显示'
+	String get reverseChaptersSubtitle => '开启后漫画详情页章节默认倒序显示';
 
 	/// zh-CN: '存储'
 	String get storage => '存储';
@@ -740,14 +749,14 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '包含下载的漫画'
 	String get includeDownloaded => '包含下载的漫画';
 
-	/// zh-CN: '导出时一并打包已下载的漫画文件'
-	String get includeDownloadedSubtitle => '导出时一并打包已下载的漫画文件';
-
 	/// zh-CN: '导出数据'
 	String get exportData => '导出数据';
 
 	/// zh-CN: '导入数据'
 	String get importData => '导入数据';
+
+	/// zh-CN: '自定义导出路径'
+	String get customExportPath => '自定义导出路径';
 
 	/// zh-CN: '图片处理'
 	String get imageProcessing => '图片处理';
@@ -4191,7 +4200,10 @@ extension on Translations {
 			'settings.bookshelfRememberHistorySortSubtitle' => '开启后，历史页会记住你最后一次选择的排序',
 			'settings.bookshelfRememberDownloadSort' => '下载记忆排序',
 			'settings.bookshelfRememberDownloadSortSubtitle' => '开启后，下载页会记住你最后一次选择的排序',
-			'settings.customExportPath' => '自定义导出路径',
+			'settings.detailLayout' => '详情布局',
+			'settings.detailLayoutSubtitle' => '开启后漫画列表显示为横排详情样式，含作者与分类信息',
+			'settings.reverseChapters' => '章节倒序',
+			'settings.reverseChaptersSubtitle' => '开启后漫画详情页章节默认倒序显示',
 			'settings.storage' => '存储',
 			'settings.cache' => '缓存',
 			'settings.clearCache' => '清理缓存',
@@ -4201,9 +4213,9 @@ extension on Translations {
 			'settings.dataBackup' => '数据导入/导出',
 			'settings.dataBackupSubtitle' => '备份或恢复应用数据与下载的漫画',
 			'settings.includeDownloaded' => '包含下载的漫画',
-			'settings.includeDownloadedSubtitle' => '导出时一并打包已下载的漫画文件',
 			'settings.exportData' => '导出数据',
 			'settings.importData' => '导入数据',
+			'settings.customExportPath' => '自定义导出路径',
 			'settings.imageProcessing' => '图片处理',
 			'settings.realSr' => '图片超分（实验性）',
 			'settings.realSrSubtitle' => '试验性功能，可能不稳定',
@@ -4501,11 +4513,11 @@ extension on Translations {
 			'reader.verticalPositionBottom' => '底部',
 			'reader.horizontalPositionLeft' => '左侧',
 			'reader.horizontalPositionCenter' => '居中',
+			_ => null,
+		} ?? switch (path) {
 			'reader.horizontalPositionRight' => '右侧',
 			'reader.readingDirectionLtr' => '从左到右',
 			'reader.readingDirectionRtl' => '从右到左',
-			_ => null,
-		} ?? switch (path) {
 			'reader.readingDirectionVertical' => '从上到下',
 			'reader.webtoon' => '条漫',
 			'reader.singlePageLtr' => '单页式（从左到右）',
@@ -5015,11 +5027,11 @@ extension on Translations {
 			'discover.unnamed' => '未命名',
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
+			_ => null,
+		} ?? switch (path) {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
 			'searchResult.enterPageNumber' => '输入页数',
 			'searchResult.pleaseEnterNumber' => '请输入数字',
-			_ => null,
-		} ?? switch (path) {
 			'searchResult.returnToTop' => '返回顶部',
 			'searchResult.jumpToPage' => '跳转页面',
 			'searchResult.jump' => '跳转',

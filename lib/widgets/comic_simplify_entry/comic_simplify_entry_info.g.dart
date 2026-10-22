@@ -16,6 +16,10 @@ _ComicSimplifyEntryInfo _$ComicSimplifyEntryInfoFromJson(
   pictureType: $enumDecode(_$PictureTypeEnumMap, json['pictureType']),
   source: json['source'] as String? ?? '',
   from: json['from'] as String,
+  author: json['author'] as String? ?? '',
+  metadata:
+      (json['metadata'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$ComicSimplifyEntryInfoToJson(
@@ -28,6 +32,8 @@ Map<String, dynamic> _$ComicSimplifyEntryInfoToJson(
   'pictureType': _$PictureTypeEnumMap[instance.pictureType]!,
   'source': instance.source,
   'from': instance.from,
+  'author': instance.author,
+  'metadata': instance.metadata,
 };
 
 const _$PictureTypeEnumMap = {

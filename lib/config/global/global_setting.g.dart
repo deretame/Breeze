@@ -458,6 +458,8 @@ _BookshelfSettingState _$BookshelfSettingStateFromJson(
   historySort: json['historySort'] as String? ?? 'dd',
   rememberDownloadSort: json['rememberDownloadSort'] as bool? ?? false,
   downloadSort: json['downloadSort'] as String? ?? 'dd',
+  detailLayout: json['detailLayout'] as bool? ?? false,
+  reverseChapters: json['reverseChapters'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$BookshelfSettingStateToJson(
@@ -470,4 +472,6 @@ Map<String, dynamic> _$BookshelfSettingStateToJson(
   'historySort': instance.historySort,
   'rememberDownloadSort': instance.rememberDownloadSort,
   'downloadSort': instance.downloadSort,
+  'detailLayout': instance.detailLayout,
+  'reverseChapters': instance.reverseChapters,
 };

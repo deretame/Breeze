@@ -163,6 +163,11 @@ class _ComicInfoState extends State<_ComicInfo>
     super.initState();
     _type = type;
     _comicId = widget.comicId;
+    _isReversed = context
+        .read<GlobalSettingCubit>()
+        .state
+        .bookshelfSetting
+        .reverseChapters;
   }
 
   @override
@@ -398,7 +403,11 @@ class _ComicInfoState extends State<_ComicInfo>
         final refreshable = RefreshIndicator(
           onRefresh: () async {
             _type = ComicEntryType.normal;
-            _isReversed = false;
+            _isReversed = context
+                .read<GlobalSettingCubit>()
+                .state
+                .bookshelfSetting
+                .reverseChapters;
 
             context.read<GetComicInfoBloc>().add(
               GetComicInfoEvent(

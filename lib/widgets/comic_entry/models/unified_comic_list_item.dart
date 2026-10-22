@@ -78,6 +78,13 @@ abstract class UnifiedComicListItem with _$UnifiedComicListItem {
   ComicSimplifyEntryInfo toSimplifyEntryInfo({
     PictureType pictureType = PictureType.cover,
   }) {
+    final detailLines = secondaryText.trim().isEmpty
+        ? <String>[]
+        : secondaryText
+              .split('  ')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList();
     return ComicSimplifyEntryInfo(
       title: title,
       id: id,
@@ -86,6 +93,8 @@ abstract class UnifiedComicListItem with _$UnifiedComicListItem {
       pictureType: pictureType,
       source: source.trim(),
       from: from,
+      author: primaryText.trim(),
+      metadata: detailLines,
     );
   }
 }

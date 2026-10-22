@@ -361,6 +361,8 @@ abstract class BookshelfSettingState with _$BookshelfSettingState {
     @Default('dd') String historySort,
     @Default(false) bool rememberDownloadSort,
     @Default('dd') String downloadSort,
+    @Default(false) bool detailLayout,
+    @Default(false) bool reverseChapters,
   }) = _BookshelfSettingState;
 
   factory BookshelfSettingState.fromJson(Map<String, dynamic> json) =>

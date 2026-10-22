@@ -67,7 +67,6 @@ class _BookshelfSettingPageState extends State<BookshelfSettingPage> {
               (current) => current.copyWith(rememberDownloadSort: value),
             ),
           ),
-          const SizedBox(height: 32),
         ],
       ),
     );

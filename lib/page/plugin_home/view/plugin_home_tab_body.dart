@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/cubit/comic_list_cubit.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
@@ -178,6 +179,11 @@ class _PluginHomeSceneBody extends StatelessWidget {
       coreBuilder: (page) => {'page': page, ...listCore},
       externBuilder: (_) => listExtern,
       suppressNeedLoginEvent: true,
+      detailed: context
+          .watch<GlobalSettingCubit>()
+          .state
+          .bookshelfSetting
+          .detailLayout,
     );
   }
 }

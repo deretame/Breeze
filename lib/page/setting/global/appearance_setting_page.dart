@@ -35,8 +35,9 @@ class AppearanceSettingPage extends StatelessWidget {
           if (!state.dynamicColor) changeThemeColor(context),
           _comicReadTopContainer(state, cubit),
           _isAMOLED(state, cubit),
+          _detailLayout(state, cubit),
+          _reverseChapters(state, cubit),
           _fontSettings(context),
-          const SizedBox(height: 32),
         ],
       ),
     );
@@ -158,6 +159,38 @@ class AppearanceSettingPage extends StatelessWidget {
         cubit.updateReadSetting(
           (current) => current.copyWith(comicReadTopContainer: value),
         );
+      },
+    );
+  }
+
+  Widget _detailLayout(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.view_list_outlined),
+      title: Text(t.settings.detailLayout),
+      subtitle: Text(t.settings.detailLayoutSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.bookshelfSetting.detailLayout,
+      onChanged: (bool value) {
+        cubit.updateBookshelfSetting(
+          (current) => current.copyWith(detailLayout: value),
+        );
+        showSuccessToast(t.common.settingSaved);
+      },
+    );
+  }
+
+  Widget _reverseChapters(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.swap_vert_outlined),
+      title: Text(t.settings.reverseChapters),
+      subtitle: Text(t.settings.reverseChaptersSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.bookshelfSetting.reverseChapters,
+      onChanged: (bool value) {
+        cubit.updateBookshelfSetting(
+          (current) => current.copyWith(reverseChapters: value),
+        );
+        showSuccessToast(t.common.settingSaved);
       },
     );
   }

@@ -182,6 +182,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   final bool roundedCorner;
   final String? collectionTargetId;
   final String? collectionTargetName;
+  final bool detailed;
 
   const ComicSimplifyEntry({
     super.key,
@@ -196,6 +197,7 @@ class ComicSimplifyEntry extends StatelessWidget {
     this.selectionMode = false,
     this.topPadding = true,
     this.roundedCorner = true,
+    this.detailed = false,
     this.collectionTargetId,
     this.collectionTargetName,
   });
@@ -208,9 +210,6 @@ class ComicSimplifyEntry extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final height = width / 0.75;
-
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
@@ -234,13 +233,37 @@ class ComicSimplifyEntry extends StatelessWidget {
           onSecondaryTapDown: (details) {
             onSecondaryTapDown?.call(info, details);
           },
-          child: SizedBox(
-            width: width,
-            height: height,
-            child: _buildCoverWithTitle(context, width, height),
-          ),
+          child: detailed
+              ? _buildDetailedRow(context, constraints.maxWidth)
+              : _buildCoverGrid(context, constraints.maxWidth),
         );
       },
+    );
+  }
+
+  Widget _buildCoverGrid(BuildContext context, double width) {
+    final height = width / 0.75;
+    return SizedBox(
+      width: width,
+      height: height,
+      child: _buildCoverWithTitle(context, width, height),
+    );
+  }
+
+  Widget _buildDetailedRow(BuildContext context, double width) {
+    // 底色常驻无 hover 变色；Tooltip 显示完整标题（桌面悬浮/移动端长按）。
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Tooltip(
+        message: info.title.let(convertChineseForDisplay),
+        waitDuration: const Duration(milliseconds: 500),
+        child: _DetailedRowBody(
+          info: info,
+          width: width,
+          isSelected: isSelected,
+          selectionMode: selectionMode,
+        ),
+      ),
     );
   }
 
@@ -485,5 +508,137 @@ class ComicSimplifyEntry extends StatelessWidget {
       logger.e('删除目录时发生错误: $e');
       throw Exception('删除目录失败');
     }
+  }
+}
+
+class _DetailedRowBody extends StatelessWidget {
+  const _DetailedRowBody({
+    required this.info,
+    required this.width,
+    required this.isSelected,
+    required this.selectionMode,
+  });
+
+  final ComicSimplifyEntryInfo info;
+  final double width;
+  final bool isSelected;
+  final bool selectionMode;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final primary = scheme.primary;
+    final titleStyle = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, height: 1.3);
+    final subtitleStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+      height: 1.4,
+    );
+    // Venera 式简洁风：透明底、无边框；hover 只给一层极淡底色。
+    final pills = info.metadata
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .take(3)
+        .toList();
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: width > kDetailRowMaxWidth ? kDetailRowMaxWidth : width,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerLow.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          foregroundDecoration: isSelected && selectionMode
+              ? BoxDecoration(
+                  border: Border.all(color: primary, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                )
+              : null,
+          padding: const EdgeInsets.all(6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: CoverWidget(
+                  fileServer: info.fileServer,
+                  path: info.path,
+                  id: info.id,
+                  pictureType: info.pictureType,
+                  from: info.from,
+                  roundedCorner: false,
+                  width: 114,
+                  height: 153,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      info.title.let(convertChineseForDisplay),
+                      style: titleStyle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (info.author.trim().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        info.author.let(convertChineseForDisplay),
+                        style: subtitleStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (pills.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final pill in pills) _DetailPill(label: pill),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 状态/分类小胶囊：淡底 + 主色文字，Venera 式。
+class _DetailPill extends StatelessWidget {
+  const _DetailPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label.let(convertChineseForDisplay),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: scheme.onSecondaryContainer,
+          height: 1.4,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
   }
 }

@@ -308,7 +308,10 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get bookshelfRememberHistorySortSubtitle => 'Remember the last sort choice for history';
 	@override String get bookshelfRememberDownloadSort => 'Remember download sort';
 	@override String get bookshelfRememberDownloadSortSubtitle => 'Remember the last sort choice for downloads';
-	@override String get customExportPath => 'Custom export path';
+	@override String get detailLayout => 'Detail layout';
+	@override String get detailLayoutSubtitle => 'Show comic lists as horizontal detail rows with author and category info';
+	@override String get reverseChapters => 'Reverse chapters';
+	@override String get reverseChaptersSubtitle => 'Show chapters in reverse order by default on the detail page';
 	@override String get storage => 'Storage';
 	@override String get cache => 'Cache';
 	@override String get clearCache => 'Clear cache';
@@ -321,6 +324,7 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get includeDownloadedSubtitle => 'Pack downloaded comic files when exporting';
 	@override String get exportData => 'Export data';
 	@override String get importData => 'Import data';
+	@override String get customExportPath => 'Custom export path';
 	@override String get imageProcessing => 'Image processing';
 	@override String get realSr => 'Image Super-Resolution (Experimental)';
 	@override String get realSrSubtitle => 'Experimental feature, may be unstable';
@@ -1786,7 +1790,10 @@ extension on TranslationsEnUs {
 			'settings.bookshelfRememberHistorySortSubtitle' => 'Remember the last sort choice for history',
 			'settings.bookshelfRememberDownloadSort' => 'Remember download sort',
 			'settings.bookshelfRememberDownloadSortSubtitle' => 'Remember the last sort choice for downloads',
-			'settings.customExportPath' => 'Custom export path',
+			'settings.detailLayout' => 'Detail layout',
+			'settings.detailLayoutSubtitle' => 'Show comic lists as horizontal detail rows with author and category info',
+			'settings.reverseChapters' => 'Reverse chapters',
+			'settings.reverseChaptersSubtitle' => 'Show chapters in reverse order by default on the detail page',
 			'settings.storage' => 'Storage',
 			'settings.cache' => 'Cache',
 			'settings.clearCache' => 'Clear cache',
@@ -1799,6 +1806,7 @@ extension on TranslationsEnUs {
 			'settings.includeDownloadedSubtitle' => 'Pack downloaded comic files when exporting',
 			'settings.exportData' => 'Export data',
 			'settings.importData' => 'Import data',
+			'settings.customExportPath' => 'Custom export path',
 			'settings.imageProcessing' => 'Image processing',
 			'settings.realSr' => 'Image Super-Resolution (Experimental)',
 			'settings.realSrSubtitle' => 'Experimental feature, may be unstable',
@@ -2095,12 +2103,12 @@ extension on TranslationsEnUs {
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
 			'reader.horizontalPositionCenter' => 'Center',
+			_ => null,
+		} ?? switch (path) {
 			'reader.horizontalPositionRight' => 'Right',
 			'reader.readingDirectionLtr' => 'Left to right',
 			'reader.readingDirectionRtl' => 'Right to left',
 			'reader.readingDirectionVertical' => 'Top to bottom',
-			_ => null,
-		} ?? switch (path) {
 			'reader.webtoon' => 'Webtoon',
 			'reader.singlePageLtr' => 'Single page (LTR)',
 			'reader.singlePageRtl' => 'Single page (RTL)',
@@ -2609,12 +2617,12 @@ extension on TranslationsEnUs {
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
+			_ => null,
+		} ?? switch (path) {
 			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
 			'searchResult.returnToTop' => 'Return to top',
 			'searchResult.jumpToPage' => 'Jump to page',
-			_ => null,
-		} ?? switch (path) {
 			'searchResult.jump' => 'Jump',
 			'searchResult.retry' => 'Tap to retry',
 			'comicList.defaultTitle' => 'Comic List',

@@ -1,14 +1,14 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:material_ui/material_ui.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:material_ui/material_ui.dart' hide Thumb;
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
-import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 @RoutePage()
@@ -249,6 +249,11 @@ class _SearchResultPageState extends State<_SearchResultPage>
       loadMoreFailed: state.status == SearchStatus.getMoreFailure,
       onRetryLoadMore: () => _refresh(SearchStatus.loadingMore),
       onLoadMore: _fetchSearchResult,
+      detailed: context
+          .watch<GlobalSettingCubit>()
+          .state
+          .bookshelfSetting
+          .detailLayout,
     );
   }
 

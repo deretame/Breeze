@@ -30,7 +30,7 @@ import 'package:zephyr/widgets/error_view.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-enum MenuOption { export, cloudCollect, follow }
+enum MenuOption { export, follow }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
@@ -121,10 +121,6 @@ class _ComicInfoState extends State<_ComicInfo>
   final Set<String> _collapsedGroups = {};
   String _collapsedForComic = '';
   NormalComicAllInfo? _currentInfo;
-  bool _isCloudCollected = false;
-  bool _cloudFavoriteStateOverridden = false;
-  bool _isLocalCollected = false;
-  String _localCollectSyncedFor = '';
   // 追更线上总数同步护栏：记住已同步到的章节数。数字变大才再同步一次，
   // 下拉刷新后长出的新话不会被吞；下载入口的 comicInfoDyn 是本地快照
   // （已下载数），不能当线上总数写——只在 PluginComicDetailSource 时同步。
@@ -178,11 +174,6 @@ class _ComicInfoState extends State<_ComicInfo>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // 开启「优先云端收藏」后，页面收藏按钮与菜单项的本地/云端收藏行为互换
-    final cloudFavoritePreferred = context
-        .watch<GlobalSettingCubit>()
-        .state
-        .cloudFavoritePreferred;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -219,15 +210,13 @@ class _ComicInfoState extends State<_ComicInfo>
                 case MenuOption.export:
                   _handleExport();
                   break;
-                case MenuOption.cloudCollect:
-                  if (cloudFavoritePreferred) {
-                    _toggleLocalCollectFromMenu();
-                  } else {
-                    _toggleCloudCollectFromMenu();
-                  }
-                  break;
                 case MenuOption.follow:
-                  _toggleFollowFromMenu();
+                  _toggleFollow(
+                    context.read<ComicFollowCubit>().isFollowing(
+                      widget.from,
+                      _comicId,
+                    ),
+                  );
                   break;
               }
             },
@@ -260,26 +249,6 @@ class _ComicInfoState extends State<_ComicInfo>
                 );
               }
 
-              menuItems.add(
-                FluentPopupMenuItem<MenuOption>(
-                  value: MenuOption.cloudCollect,
-                  leading: Icon(
-                    cloudFavoritePreferred
-                        ? (_isLocalCollected ? Icons.star : Icons.star_border)
-                        : (_isCloudCollected ? Icons.star : Icons.star_border),
-                  ),
-                  title: Text(
-                    cloudFavoritePreferred
-                        ? (_isLocalCollected
-                              ? t.comicInfo.removeLocalCollection
-                              : t.comicInfo.collectToLocal)
-                        : (_isCloudCollected
-                              ? t.comicInfo.removeCloudCollection
-                              : t.comicInfo.collectToCloud),
-                  ),
-                ),
-              );
-
               return menuItems;
             },
           ),
@@ -291,7 +260,6 @@ class _ComicInfoState extends State<_ComicInfo>
             builder: (context, state) {
               switch (state.status) {
                 case GetComicInfoStatus.initial:
-                  _cloudFavoriteStateOverridden = false;
                   return Center(child: CircularProgressIndicator());
                 case GetComicInfoStatus.failure:
                   if (state.result.contains("under review") &&
@@ -332,10 +300,6 @@ class _ComicInfoState extends State<_ComicInfo>
                   comicInfoDyn = state.comicInfo;
                   _currentInfo = state.allInfo;
                   _comicId = state.comicId ?? _comicId;
-                  if (!_cloudFavoriteStateOverridden) {
-                    _isCloudCollected = state.allInfo?.isFavourite ?? false;
-                  }
-                  _syncLocalCollectStatus(state.allInfo!);
                   _syncFollowFromOnlineDetail(state.comicInfo, state.allInfo!);
                   initHistory(
                     context,
@@ -841,39 +805,6 @@ class _ComicInfoState extends State<_ComicInfo>
     }
   }
 
-  Future<void> _toggleFollowFromMenu() async {
-    final info = _currentInfo;
-    if (info == null) {
-      showErrorToast(t.comicInfo.detailsNotLoaded);
-      return;
-    }
-    final isFollowing = context.read<ComicFollowCubit>().isFollowing(
-      widget.from,
-      _comicId,
-    );
-    await _toggleFollow(isFollowing);
-  }
-
-  Future<void> _autoFollowIfEnabled() async {
-    if (!context.read<GlobalSettingCubit>().state.autoFollowOnCollect) {
-      return;
-    }
-    final info = _currentInfo;
-    if (info == null) {
-      return;
-    }
-    final followCubit = context.read<ComicFollowCubit>();
-    if (followCubit.isFollowing(widget.from, _comicId)) {
-      return;
-    }
-    await followCubit.addOrUpdateFollow(
-      source: widget.from,
-      comicId: _comicId,
-      info: info,
-      lastChapterCount: info.eps.length,
-    );
-  }
-
   Future<void> _confirmAndRemoveFollow(String title) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -919,25 +850,6 @@ class _ComicInfoState extends State<_ComicInfo>
         .toList();
   }
 
-  Future<void> _syncLocalCollectStatus(NormalComicAllInfo info) async {
-    // 同一部漫画只同步一次本地收藏状态，避免每次重建都查询数据库
-    final comicId = info.comicInfo.id;
-    if (_localCollectSyncedFor == comicId) {
-      return;
-    }
-    _localCollectSyncedFor = comicId;
-    final collected = await isLocalComicCollected(
-      from: widget.from,
-      comicId: comicId,
-    );
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _isLocalCollected = collected;
-    });
-  }
-
   /// 进在线详情即确认：把当前线上总数记为已确认基线并清掉红点。
   ///
   /// 只有 `comicInfo` 是 [PluginComicDetailSource]（在线详情）时才同步：
@@ -959,131 +871,6 @@ class _ComicInfoState extends State<_ComicInfo>
       onlineChapterCount: eps.length,
       onlineLatestTitle: latest.name,
     );
-  }
-
-  Future<void> _toggleLocalCollectFromMenu() async {
-    final info = _currentInfo;
-    if (info == null) {
-      showErrorToast(t.comicInfo.detailsNotLoaded);
-      return;
-    }
-    try {
-      // 取消收藏需要确认，因为会删除所有文件夹中的记录
-      if (_isLocalCollected) {
-        final confirmed = await _showLocalUncollectConfirmDialog();
-        if (!confirmed) {
-          return;
-        }
-      }
-
-      final next = await toggleLocalComicFavorite(
-        from: widget.from,
-        normalInfo: info,
-      );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLocalCollected = next;
-      });
-      if (next) {
-        await _autoFollowIfEnabled();
-      }
-      showSuccessToast(
-        next
-            ? t.comicInfo.addedToCollection
-            : t.comicInfo.removedFromCollection,
-      );
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      showErrorToast(
-        t.comicInfo.localCollectFailed(error: normalizeSearchErrorMessage(e)),
-        duration: const Duration(seconds: 5),
-      );
-    }
-  }
-
-  Future<bool> _showLocalUncollectConfirmDialog() async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(t.comicInfo.confirmUncollectTitle),
-          content: Text(t.comicInfo.confirmUncollectContent),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(t.common.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(t.common.confirm),
-            ),
-          ],
-        );
-      },
-    );
-    return result == true;
-  }
-
-  Future<void> _toggleCloudCollectFromMenu() async {
-    final info = _currentInfo;
-    if (info == null) {
-      showErrorToast(t.comicInfo.detailsNotLoaded);
-      return;
-    }
-    try {
-      showInfoToast(
-        _isCloudCollected
-            ? t.comicInfo.removingCloudCollection
-            : t.comicInfo.collectingToCloud,
-      );
-      final next = await toggleCloudComicFavorite(
-        context: context,
-        from: widget.from,
-        comicId: info.comicInfo.id,
-        currentStatus: _isCloudCollected,
-        legacyAllowCollected: info.allowCollected,
-        legacyAllowCollectedReason: info.allowCollectedReason,
-        collectionTargetId: widget.collectionTargetId,
-        collectionTargetName: widget.collectionTargetName,
-      );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isCloudCollected = next;
-        _cloudFavoriteStateOverridden = true;
-      });
-      if (next) {
-        await _autoFollowIfEnabled();
-      }
-      showSuccessToast(
-        next
-            ? t.comicInfo.cloudCollectSuccess
-            : t.comicInfo.cloudUncollectSuccess,
-      );
-    } on FavoriteWorkflowUnsupportedException catch (error) {
-      if (mounted) {
-        final reason = error.reason.trim();
-        showInfoToast(
-          reason.isNotEmpty ? reason : t.comicInfo.cloudCollectDisabled,
-        );
-      }
-    } on FavoriteWorkflowIncompleteException catch (error) {
-      if (mounted) {
-        showInfoToast(
-          error.result.message ?? t.comicInfo.cloudCollectIncomplete,
-        );
-      }
-    } catch (e) {
-      showErrorToast(
-        normalizeSearchErrorMessage(e),
-        duration: const Duration(seconds: 5),
-      );
-    }
   }
 
   void _toggleGroup(String groupKey) {
@@ -1596,6 +1383,7 @@ class _DescriptionCardState extends State<_DescriptionCard> {
             widget.description,
             style: descriptionStyle,
             maxLines: _expanded ? null : 5,
+            scrollPhysics: const NeverScrollableScrollPhysics(),
           ),
           if (widget.description.length > 90) ...[
             const SizedBox(height: 10),

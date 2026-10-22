@@ -288,8 +288,6 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get exitApp => 'Exit';
 	@override String get appLock => 'App lock';
 	@override String get appLockSubtitle => 'Require verification when entering the app';
-	@override String get cloudFavoritePreferred => 'Prefer cloud favorites';
-	@override String get cloudFavoritePreferredSubtitle => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection';
 	@override String get autoFollowOnCollect => 'Auto-follow on collect';
 	@override String get autoFollowOnCollectSubtitle => 'Automatically add comics to the follow list when favorited';
 	@override String get leftHandMode => 'Left-hand mode';
@@ -528,10 +526,8 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get follow => 'Follow updates';
 	@override String get unfollow => 'Unfollow';
 	@override String get exportComic => 'Export comic';
-	@override String get collectToCloud => 'Collect to cloud';
-	@override String get removeCloudCollection => 'Remove cloud collection';
-	@override String get collectToLocal => 'Collect locally';
-	@override String get removeLocalCollection => 'Remove local collection';
+	@override String get cloudCollect => 'Cloud collect';
+	@override String get cloudCollected => 'Cloud collected';
 	@override String get cloudCollectDisabled => 'This plugin does not support this feature';
 	@override String get collectingToCloud => 'Adding to cloud collection...';
 	@override String get removingCloudCollection => 'Removing cloud collection...';
@@ -1770,8 +1766,6 @@ extension on TranslationsEnUs {
 			'settings.exitApp' => 'Exit',
 			'settings.appLock' => 'App lock',
 			'settings.appLockSubtitle' => 'Require verification when entering the app',
-			'settings.cloudFavoritePreferred' => 'Prefer cloud favorites',
-			'settings.cloudFavoritePreferredSubtitle' => 'When enabled, the favorite button on the comic info page performs cloud collection, and the original cloud collection menu item switches to local collection',
 			'settings.autoFollowOnCollect' => 'Auto-follow on collect',
 			'settings.autoFollowOnCollectSubtitle' => 'Automatically add comics to the follow list when favorited',
 			'settings.leftHandMode' => 'Left-hand mode',
@@ -1992,10 +1986,8 @@ extension on TranslationsEnUs {
 			'comicInfo.follow' => 'Follow updates',
 			'comicInfo.unfollow' => 'Unfollow',
 			'comicInfo.exportComic' => 'Export comic',
-			'comicInfo.collectToCloud' => 'Collect to cloud',
-			'comicInfo.removeCloudCollection' => 'Remove cloud collection',
-			'comicInfo.collectToLocal' => 'Collect locally',
-			'comicInfo.removeLocalCollection' => 'Remove local collection',
+			'comicInfo.cloudCollect' => 'Cloud collect',
+			'comicInfo.cloudCollected' => 'Cloud collected',
 			'comicInfo.cloudCollectDisabled' => 'This plugin does not support this feature',
 			'comicInfo.collectingToCloud' => 'Adding to cloud collection...',
 			'comicInfo.removingCloudCollection' => 'Removing cloud collection...',
@@ -2103,12 +2095,12 @@ extension on TranslationsEnUs {
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
 			'reader.horizontalPositionCenter' => 'Center',
-			_ => null,
-		} ?? switch (path) {
 			'reader.horizontalPositionRight' => 'Right',
 			'reader.readingDirectionLtr' => 'Left to right',
 			'reader.readingDirectionRtl' => 'Right to left',
 			'reader.readingDirectionVertical' => 'Top to bottom',
+			_ => null,
+		} ?? switch (path) {
 			'reader.webtoon' => 'Webtoon',
 			'reader.singlePageLtr' => 'Single page (LTR)',
 			'reader.singlePageRtl' => 'Single page (RTL)',
@@ -2617,12 +2609,12 @@ extension on TranslationsEnUs {
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
 			'searchResult.returnToTop' => 'Return to top',
 			'searchResult.jumpToPage' => 'Jump to page',
+			_ => null,
+		} ?? switch (path) {
 			'searchResult.jump' => 'Jump',
 			'searchResult.retry' => 'Tap to retry',
 			'comicList.defaultTitle' => 'Comic List',

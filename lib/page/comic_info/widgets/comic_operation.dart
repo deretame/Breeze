@@ -82,32 +82,24 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // 开启「优先云端收藏」后，收藏按钮执行云端收藏，原逻辑与菜单项互换
-    final cloudFavoritePreferred = context
-        .watch<GlobalSettingCubit>()
-        .state
-        .cloudFavoritePreferred;
-    final collectItem = cloudFavoritePreferred
-        ? _OperationItemData(
-            icon: isCloudCollected
-                ? Icons.cloud_done_outlined
-                : Icons.cloud_outlined,
-            text: isCloudCollected
-                ? t.comicInfo.collected
-                : t.comicInfo.collectToCloud,
-            highlighted: isCloudCollected,
-            accentColor: const Color(0xFFE6A700),
-            enabled: true,
-            onTap: _toggleCloudFavorite,
-          )
-        : _OperationItemData(
-            icon: isCollected ? Icons.star : Icons.star_border,
-            text: isCollected ? t.comicInfo.collected : t.comicInfo.collect,
-            highlighted: isCollected,
-            accentColor: const Color(0xFFE6A700),
-            enabled: true,
-            onTap: _toggleLocalFavorite,
-          );
+    final localCollectItem = _OperationItemData(
+      icon: isCollected ? Icons.star : Icons.star_border,
+      text: isCollected ? t.comicInfo.collected : t.comicInfo.collect,
+      highlighted: isCollected,
+      accentColor: const Color(0xFFE6A700),
+      enabled: true,
+      onTap: _toggleLocalFavorite,
+    );
+    final cloudCollectItem = _OperationItemData(
+      icon: isCloudCollected ? Icons.cloud_done_outlined : Icons.cloud_outlined,
+      text: isCloudCollected
+          ? t.comicInfo.cloudCollected
+          : t.comicInfo.cloudCollect,
+      highlighted: isCloudCollected,
+      accentColor: Colors.pink,
+      enabled: true,
+      onTap: _toggleCloudFavorite,
+    );
     final actions = [
       _OperationItemData(
         icon: isLiked ? Icons.favorite : Icons.favorite_border,
@@ -123,7 +115,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         enabled: normalInfo.allowComments,
         onTap: _openComments,
       ),
-      collectItem,
+      localCollectItem,
+      cloudCollectItem,
     ];
 
     return SizedBox(
@@ -133,7 +126,6 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
           final isDesktop = constraints.maxWidth >= 900;
           final itemWidth = switch (constraints.maxWidth) {
             < 420 => (constraints.maxWidth - 10) / 2,
-            < 720 => (constraints.maxWidth - 20) / 3,
             < 900 => (constraints.maxWidth - 30) / 4,
             _ => 136.0,
           };

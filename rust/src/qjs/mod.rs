@@ -16,7 +16,7 @@ use rquickjs_playground::{
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, LazyLock, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 use tokio::sync::{Mutex as AsyncMutex, Notify, RwLock, Semaphore};
 use tokio::time;
@@ -88,6 +88,8 @@ const CANCELLED_GROUP_TTL: Duration = Duration::from_secs(120);
 const REGISTERED_DART_CALLBACK_TIMEOUT: Duration = Duration::from_secs(15);
 const MAX_IMAGE_CROP_CONCURRENCY: usize = 4;
 
+static OPENCC_CONVERTERS: LazyLock<DashMap<String, OpenCC>> = LazyLock::new(DashMap::new);
+
 static HOST_CACHE_STORE: OnceLock<DashMap<String, HostCacheEntry>> = OnceLock::new();
 static HOST_CACHE_GC_STARTED: OnceLock<()> = OnceLock::new();
 static HOST_CACHE_GC_ENABLED: std::sync::atomic::AtomicBool =
@@ -108,6 +110,11 @@ fn opencc_convert_by_config(text: &str, config_name: &str) -> Result<String> {
         )));
     }
 
+    // 命中缓存：转换器只读多线程共享，DashMap 读不阻塞。
+    if let Some(converter) = OPENCC_CONVERTERS.get(config_name) {
+        return Ok(converter.convert(text));
+    }
+
     let builtin = BuiltinConfig::from_filename(config_name).map_err(|err| {
         anyhow!(rquickjs_playground::tr!(
             "unsupported-opencc-conversion-config",
@@ -123,7 +130,9 @@ fn opencc_convert_by_config(text: &str, config_name: &str) -> Result<String> {
         ))
     })?;
 
-    Ok(converter.convert(text))
+    let output = converter.convert(text);
+    OPENCC_CONVERTERS.insert(config_name.to_owned(), converter);
+    Ok(output)
 }
 
 fn opencc_convert_with_json_arg(arg: &Value) -> Result<String> {
@@ -1819,6 +1828,20 @@ mod tests {
         qjs_fetch_image, qjs_task_call,
     };
     use rquickjs_playground::HttpClientConfig;
+
+    #[test]
+    fn opencc_convert_caches_converters_and_rejects_bad_config() {
+        // 非法配置名直接报错，不污染缓存。
+        assert!(super::opencc_convert_by_config("test", "bad-config").is_err());
+        // 同一配置两次调用结果一致；第二次走缓存。
+        let first = super::opencc_convert_by_config("开放中文转换", "tw2sp.json")
+            .expect("convert with tw2sp");
+        assert!(!first.is_empty());
+        let second = super::opencc_convert_by_config("开放中文转换", "tw2sp.json")
+            .expect("convert with tw2sp again");
+        assert_eq!(first, second);
+        assert!(super::OPENCC_CONVERTERS.contains_key("tw2sp.json"));
+    }
 
     #[test]
     fn cancelled_detection_should_not_match_timeout_diagnostics() {

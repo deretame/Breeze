@@ -3,6 +3,7 @@ import 'package:zephyr/util/debouncer.dart';
 
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/detail_columns.dart';
 import 'package:zephyr/type/enum.dart';
 
 SliverGridDelegate buildComicSimplifyEntryGridDelegate({
@@ -59,41 +60,25 @@ class BaseComicGridSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (detailed) {
-      return SliverPadding(
-        padding: padding,
-        sliver: SliverLayoutBuilder(
-          builder: (context, constraints) {
-            // 列数按可用宽度动态算：每列最小 340，间距 10。
-            // 窄屏 1 列，宽屏 2/3/4 列，窗口拖动自动切换。
-            final columns = ((constraints.crossAxisExtent + 10) / 350)
-                .floor()
-                .clamp(1, 4);
-            if (columns <= 1) {
-              return SliverList.separated(
-                itemCount: entries.length,
-                itemBuilder: (context, index) => _buildEntry(context, index),
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
-              );
-            }
-            return _DetailColumnsSliver(
-              columns: columns,
-              entries: entries,
-              itemBuilder: _buildEntry,
-            );
-          },
-        ),
-      );
-    }
+    // 列数只与视口宽有关，MediaQuery 在 build 期快照一次。
+    // SliverConstraints 含 scrollOffset，进 SliverLayoutBuilder 会滚动每帧重跑。
+    final contentWidth = MediaQuery.sizeOf(context).width - padding.horizontal;
+    final columns = detailed ? detailColumnCount(contentWidth) : 1;
     return SliverPadding(
       padding: padding,
-      sliver: SliverGrid(
-        gridDelegate: buildComicSimplifyEntryGridDelegate(),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _buildEntry(context, index),
-          childCount: entries.length,
-        ),
-      ),
+      sliver: detailed
+          ? DetailColumnsSliver(
+              columns: columns,
+              itemCount: entries.length,
+              itemBuilder: _buildEntry,
+            )
+          : SliverGrid(
+              gridDelegate: buildComicSimplifyEntryGridDelegate(),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildEntry(context, index),
+                childCount: entries.length,
+              ),
+            ),
     );
   }
 
@@ -177,10 +162,8 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
     if (detailed) {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final columns = ((constraints.maxWidth + 10) / 350).floor().clamp(
-            1,
-            4,
-          );
+          // Box 约束无 scrollOffset，进 LayoutBuilder 安全（sliver 版不行）。
+          final columns = detailColumnCount(constraints.maxWidth);
           if (columns <= 1) {
             return ListView.separated(
               padding: padding,
@@ -188,7 +171,8 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
               physics: physics,
               itemCount: entries.length,
               itemBuilder: itemBuilder,
-              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: kDetailRowSpacing),
             );
           }
           // 不自己滚：多列拼好交给外层滚动。
@@ -200,10 +184,10 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
                 for (var c = 0; c < columns; c++) ...[
                   if (c > 0) const SizedBox(width: 10),
                   Expanded(
-                    child: _DetailColumn(
-                      start: c,
-                      step: columns,
-                      entries: entries,
+                    child: DetailBoxColumn(
+                      column: c,
+                      columns: columns,
+                      itemCount: entries.length,
                       itemBuilder: itemBuilder,
                     ),
                   ),
@@ -225,65 +209,100 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
   }
 }
 
-/// 详情多列：N 列各一个 Column，卡片按内容自然高度排列。
+/// 详情多列行间距：行/列统一视觉节奏。
+const double kDetailRowSpacing = 8.0;
+
+/// 详情多列：N 列各一个懒加载 SliverList，卡片按内容自然高度排列。
 ///
 /// 不用 SliverGrid：childAspectRatio 会把矮卡片拉高，底部留白。
-class _DetailColumnsSliver extends StatelessWidget {
-  const _DetailColumnsSliver({
+/// 不用 SliverToBoxAdapter 包 Row+Column：整表全量构建，
+/// 首屏只显示十几张却要建几百个行 widget + 封面 Bloc + FFI 转换。
+///
+/// 书架混排（文件夹+漫画）复用本组件，只需传自己的 itemBuilder。
+class DetailColumnsSliver extends StatelessWidget {
+  const DetailColumnsSliver({
+    super.key,
     required this.columns,
-    required this.entries,
+    required this.itemCount,
     required this.itemBuilder,
   });
 
   final int columns;
-  final List<ComicSimplifyEntryInfo> entries;
+  final int itemCount;
   final Widget Function(BuildContext context, int index) itemBuilder;
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var c = 0; c < columns; c++) ...[
-            if (c > 0) const SizedBox(width: 10),
-            Expanded(
-              child: _DetailColumn(
-                start: c,
-                step: columns,
-                entries: entries,
-                itemBuilder: itemBuilder,
-              ),
+    if (columns <= 1) {
+      return SliverList.separated(
+        itemCount: itemCount,
+        itemBuilder: itemBuilder,
+        separatorBuilder: (context, index) =>
+            const SizedBox(height: kDetailRowSpacing),
+      );
+    }
+    return SliverCrossAxisGroup(
+      slivers: [
+        for (var c = 0; c < columns; c++) ...[
+          if (c > 0) const _DetailColumnGutter(),
+          SliverCrossAxisExpanded(
+            flex: 1,
+            sliver: SliverList.separated(
+              itemCount: detailColumnItemCount(itemCount, columns, c),
+              itemBuilder: (context, row) =>
+                  itemBuilder(context, row * columns + c),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: kDetailRowSpacing),
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 }
 
-class _DetailColumn extends StatelessWidget {
-  const _DetailColumn({
-    required this.start,
-    required this.step,
-    required this.entries,
+/// 列间 gutter：flex 0 只占 10 宽，主轴高度 0 不影响组高度。
+class _DetailColumnGutter extends StatelessWidget {
+  const _DetailColumnGutter();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SliverConstrainedCrossAxis(
+      maxExtent: 10,
+      sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+    );
+  }
+}
+
+/// Box 版分列：只建自己列的行，不再整列全量 for 循环。
+///
+/// 注意：shrinkWrap 场景（discover 嵌套滚动）仍会全量布局，
+/// 与原来的 Column 语义一致；真懒加载只在 sliver 路径。
+class DetailBoxColumn extends StatelessWidget {
+  const DetailBoxColumn({
+    super.key,
+    required this.column,
+    required this.columns,
+    required this.itemCount,
     required this.itemBuilder,
   });
 
-  final int start;
-  final int step;
-  final List<ComicSimplifyEntryInfo> entries;
+  final int column;
+  final int columns;
+  final int itemCount;
   final Widget Function(BuildContext context, int index) itemBuilder;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = start; i < entries.length; i += step) ...[
-          if (i >= step) const SizedBox(height: 8),
-          itemBuilder(context, i),
-        ],
-      ],
+    final count = detailColumnItemCount(itemCount, columns, column);
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: count,
+      itemBuilder: (context, row) =>
+          itemBuilder(context, row * columns + column),
+      separatorBuilder: (context, index) =>
+          const SizedBox(height: kDetailRowSpacing),
     );
   }
 }

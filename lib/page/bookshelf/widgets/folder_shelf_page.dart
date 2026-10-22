@@ -29,6 +29,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/text/chinese_convert.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/detail_columns.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -527,53 +528,25 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
               );
             }
 
-            // 文件夹与漫画混排：详情模式列数按可用宽度动态算。
+            // 文件夹与漫画混排：详情模式多列懒加载（见 DetailColumnsSliver）。
+            // 列数只与视口宽有关，build 期快照一次，不进 SliverLayoutBuilder。
+            final columns = detailed
+                ? detailColumnCount(
+                    MediaQuery.sizeOf(context).width - listPadding.horizontal,
+                  )
+                : 1;
             final shelfList = detailed
-                ? LayoutBuilder(
-                    builder: (context, constraints) {
-                      final columns = ((constraints.maxWidth + 10) / 350)
-                          .floor()
-                          .clamp(1, 4);
-                      if (columns <= 1) {
-                        return ListView.separated(
-                          padding: listPadding,
+                ? CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: listPadding,
+                        sliver: DetailColumnsSliver(
+                          columns: columns,
                           itemCount: totalCount,
                           itemBuilder: shelfItemBuilder,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 8),
-                        );
-                      }
-                      // 多列不用 Grid：childAspectRatio 会把卡片拉高留白，
-                      // 文件夹和漫画都按内容自然高度手排多列。
-                      return ListView(
-                        padding: listPadding,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (var c = 0; c < columns; c++) ...[
-                                if (c > 0) const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    children: [
-                                      for (
-                                        var i = c;
-                                        i < totalCount;
-                                        i += columns
-                                      ) ...[
-                                        if (i >= columns)
-                                          const SizedBox(height: 8),
-                                        shelfItemBuilder(context, i),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      );
-                    },
+                        ),
+                      ),
+                    ],
                   )
                 : GridView.builder(
                     // 悬浮物盖在列表上层：子文件夹有面包屑浮栏，留 64px 顶部滚动边距；

@@ -82,6 +82,9 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       emit(
         state.copyWith(
           folders: result['folders'] as List<ComicFolder>,
+          folderComicCounts:
+              (result['folderComicCounts'] as Map?)?.cast<String, int>() ??
+              const <String, int>{},
           comics: result['comics'] as List<ComicSimplifyEntryInfo>,
           comicSearchTexts:
               (result['comicSearchTexts'] as Map?)?.cast<String, String>() ??
@@ -466,7 +469,6 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
             folderType,
             sortAscending: sortAscending,
           );
-
     final comics = <ComicSimplifyEntryInfo>[];
     final comicSearchTexts = <String, String>{};
     final seenKeys = <String>{};
@@ -485,6 +487,37 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
       comics.add(resolved.info);
       comicSearchTexts[key] = resolved.searchText;
     }
+    // 文件夹直属漫画数：详情行副标题用。key 是显示路径（与 page 侧 folderPathOf 一致）。
+    final folderComicCounts = <String, int>{};
+    if (!isSearching) {
+      final bySyncId = <String, ComicFolder>{
+        for (final folder in folders) folder.syncId: folder,
+      };
+      String folderPathOf(ComicFolder folder) {
+        final parts = <String>[];
+        final visited = <String>{};
+        ComicFolder? current = folder;
+        while (current != null) {
+          if (current.syncId.isNotEmpty && !visited.add(current.syncId)) break;
+          parts.add(current.name);
+          final parentId = current.parentSyncId;
+          if (parentId == null || parentId.isEmpty) break;
+          current = bySyncId[parentId];
+        }
+        return '/${parts.reversed.join('/')}';
+      }
+
+      final pathBySyncId = <String, String>{
+        for (final folder in folders) folder.syncId: folderPathOf(folder),
+      };
+      for (final link in links) {
+        final folderSyncId = link.folderSyncId;
+        if (folderSyncId == null || folderSyncId.isEmpty) continue;
+        final path = pathBySyncId[folderSyncId];
+        if (path == null) continue;
+        folderComicCounts[path] = (folderComicCounts[path] ?? 0) + 1;
+      }
+    }
     if (sortByViewTime) {
       _sortShelfItemsByViewTime(
         comics,
@@ -498,6 +531,7 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
       'folders': folders,
       'comics': comics,
       'comicSearchTexts': comicSearchTexts,
+      'folderComicCounts': folderComicCounts,
     };
   } catch (e) {
     return {
@@ -505,6 +539,7 @@ Future<Map<String, dynamic>> _runFolderShelfLoadTask(
       'folders': <ComicFolder>[],
       'comics': <ComicSimplifyEntryInfo>[],
       'comicSearchTexts': <String, String>{},
+      'folderComicCounts': <String, int>{},
     };
   }
 }

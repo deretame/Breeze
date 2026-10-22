@@ -15,6 +15,7 @@ abstract class FolderShelfState with _$FolderShelfState {
     required ShelfPageMode mode,
     @Default(kFolderShelfRootPath) String currentPath,
     @Default(<ComicFolder>[]) List<ComicFolder> folders,
+    @Default(<String, int>{}) Map<String, int> folderComicCounts,
     @Default(<ComicSimplifyEntryInfo>[]) List<ComicSimplifyEntryInfo> comics,
     @Default(<String, String>{}) Map<String, String> comicSearchTexts,
     SearchStatusState? search,

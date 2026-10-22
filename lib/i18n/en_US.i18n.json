@@ -356,6 +356,7 @@
     "deleteSelected": "Delete selected",
     "cancel": "Cancel selection",
     "selectedCount": "Selected $count items",
+    "folderComicCount": "$count items",
     "selectTargetFolder": "Select target folders (multiple)",
     "confirmDeleteFolderTitle": "Confirm delete",
     "confirmDeleteFolderContent": "Delete this folder? Contents will be deleted recursively.",

@@ -465,6 +465,7 @@ class _Translations$bookshelf$en_US extends Translations$bookshelf$zh_CN {
 	@override String get deleteSelected => 'Delete selected';
 	@override String get cancel => 'Cancel selection';
 	@override String selectedCount({required Object count}) => 'Selected ${count} items';
+	@override String folderComicCount({required Object count}) => '${count} items';
 	@override String get selectTargetFolder => 'Select target folders (multiple)';
 	@override String get confirmDeleteFolderTitle => 'Confirm delete';
 	@override String get confirmDeleteFolderContent => 'Delete this folder? Contents will be deleted recursively.';
@@ -1938,6 +1939,7 @@ extension on TranslationsEnUs {
 			'bookshelf.deleteSelected' => 'Delete selected',
 			'bookshelf.cancel' => 'Cancel selection',
 			'bookshelf.selectedCount' => ({required Object count}) => 'Selected ${count} items',
+			'bookshelf.folderComicCount' => ({required Object count}) => '${count} items',
 			'bookshelf.selectTargetFolder' => 'Select target folders (multiple)',
 			'bookshelf.confirmDeleteFolderTitle' => 'Confirm delete',
 			'bookshelf.confirmDeleteFolderContent' => 'Delete this folder? Contents will be deleted recursively.',
@@ -2102,9 +2104,9 @@ extension on TranslationsEnUs {
 			'reader.verticalPositionTop' => 'Top',
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
-			'reader.horizontalPositionCenter' => 'Center',
 			_ => null,
 		} ?? switch (path) {
+			'reader.horizontalPositionCenter' => 'Center',
 			'reader.horizontalPositionRight' => 'Right',
 			'reader.readingDirectionLtr' => 'Left to right',
 			'reader.readingDirectionRtl' => 'Right to left',
@@ -2616,9 +2618,9 @@ extension on TranslationsEnUs {
 			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
-			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
 			_ => null,
 		} ?? switch (path) {
+			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
 			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',
 			'searchResult.returnToTop' => 'Return to top',

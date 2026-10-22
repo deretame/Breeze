@@ -1160,6 +1160,9 @@ class Translations$bookshelf$zh_CN {
 	/// zh-CN: '已选择 $count 项'
 	String selectedCount({required Object count}) => '已选择 ${count} 项';
 
+	/// zh-CN: '$count 本'
+	String folderComicCount({required Object count}) => '${count} 本';
+
 	/// zh-CN: '选择目标文件夹（可多选）'
 	String get selectTargetFolder => '选择目标文件夹（可多选）';
 
@@ -4347,6 +4350,7 @@ extension on Translations {
 			'bookshelf.deleteSelected' => '删除选中',
 			'bookshelf.cancel' => '取消选择',
 			'bookshelf.selectedCount' => ({required Object count}) => '已选择 ${count} 项',
+			'bookshelf.folderComicCount' => ({required Object count}) => '${count} 本',
 			'bookshelf.selectTargetFolder' => '选择目标文件夹（可多选）',
 			'bookshelf.confirmDeleteFolderTitle' => '确认删除',
 			'bookshelf.confirmDeleteFolderContent' => '确定要删除该文件夹吗？文件夹内的内容会被递归删除。',
@@ -4512,9 +4516,9 @@ extension on Translations {
 			'reader.verticalPositionTop' => '顶部',
 			'reader.verticalPositionBottom' => '底部',
 			'reader.horizontalPositionLeft' => '左侧',
-			'reader.horizontalPositionCenter' => '居中',
 			_ => null,
 		} ?? switch (path) {
+			'reader.horizontalPositionCenter' => '居中',
 			'reader.horizontalPositionRight' => '右侧',
 			'reader.readingDirectionLtr' => '从左到右',
 			'reader.readingDirectionRtl' => '从右到左',
@@ -5026,9 +5030,9 @@ extension on Translations {
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
-			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			_ => null,
 		} ?? switch (path) {
+			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
 			'searchResult.enterPageNumber' => '输入页数',
 			'searchResult.pleaseEnterNumber' => '请输入数字',

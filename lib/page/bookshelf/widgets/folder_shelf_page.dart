@@ -393,6 +393,18 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     return BlocBuilder<BookshelfSearchCubit, BookshelfSearchState>(
       builder: (context, searchState) {
         return BlocBuilder<FolderShelfBloc, FolderShelfState>(
+          // 纯选中变化不重建整表：每行各自订阅自己的选中态（见 _ShelfComicEntry /
+          // _ShelfFolderEntry）。否则每次点选都重建几百行，封面重新 resolve 会闪。
+          buildWhen: (prev, curr) =>
+              prev.folders != curr.folders ||
+              prev.comics != curr.comics ||
+              prev.comicSearchTexts != curr.comicSearchTexts ||
+              prev.folderComicCounts != curr.folderComicCounts ||
+              prev.search != curr.search ||
+              prev.isLoading != curr.isLoading ||
+              prev.error != curr.error ||
+              prev.sortAscending != curr.sortAscending ||
+              prev.selectionMode != curr.selectionMode,
           builder: (context, state) {
             final detailed = context
                 .watch<GlobalSettingCubit>()
@@ -449,82 +461,25 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
               if (index < filteredFolders.length) {
                 final folder = filteredFolders[index];
                 final folderPath = folderPathOf(folder);
-                final isSelected = state.selectedFolderPaths.contains(
-                  folderPath,
-                );
-                return FolderShelfItem(
+                return _ShelfFolderEntry(
                   key: ValueKey('folder-${folder.uniqueKey}'),
                   folder: folder,
-                  selectionMode: state.selectionMode,
-                  isSelected: isSelected,
-                  onTap: state.selectionMode
-                      ? () => context.read<FolderShelfBloc>().add(
-                          FolderShelfToggleFolderSelection(folderPath),
-                        )
-                      : () => context.read<FolderShelfBloc>().add(
-                          FolderShelfEnterFolder(folderPath),
-                        ),
-                  onLongPress: state.selectionMode
-                      ? (details) => context.read<FolderShelfBloc>().add(
-                          FolderShelfToggleFolderSelection(folderPath),
-                        )
-                      : (details) => _showFolderActions(
-                          context,
-                          folder,
-                          folderPath,
-                          details.globalPosition,
-                        ),
-                  onSecondaryTapDown: state.selectionMode
-                      ? null
-                      : (details) => _showFolderActions(
-                          context,
-                          folder,
-                          folderPath,
-                          details.globalPosition,
-                        ),
+                  folderPath: folderPath,
+                  detailed: detailed,
+                  comicCount: state.folderComicCounts[folderPath],
+                  onFolderAction: (position) =>
+                      _showFolderActions(context, folder, folderPath, position),
                 );
               }
               final comicIndex = index - filteredFolders.length;
               final comic = filteredComics[comicIndex];
-              final comicUniqueKey = '${comic.from.trim()}:${comic.id}';
-              final isComicSelected = state.selectedComicKeys.contains(
-                comicUniqueKey,
-              );
-              return ComicSimplifyEntry(
+              return _ShelfComicEntry(
                 key: ValueKey('comic-${comic.from}:${comic.id}'),
                 info: comic,
                 type: comicType,
-                selectionMode: state.selectionMode,
-                isSelected: isComicSelected,
                 detailed: detailed,
-                refresh: () => context.read<FolderShelfBloc>().add(
-                  const FolderShelfLoadRequested(),
-                ),
-                onTapOverride: state.selectionMode
-                    ? (info) => context.read<FolderShelfBloc>().add(
-                        FolderShelfToggleComicSelection(
-                          '${info.from.trim()}:${info.id}',
-                        ),
-                      )
-                    : null,
-                onLongPressOverride: state.selectionMode
-                    ? (info, details) => context.read<FolderShelfBloc>().add(
-                        FolderShelfToggleComicSelection(
-                          '${info.from.trim()}:${info.id}',
-                        ),
-                      )
-                    : (info, details) => _showComicActions(
-                        context,
-                        info,
-                        details.globalPosition,
-                      ),
-                onSecondaryTapDown: state.selectionMode
-                    ? null
-                    : (info, details) => _showComicActions(
-                        context,
-                        info,
-                        details.globalPosition,
-                      ),
+                onComicAction: (info, position) =>
+                    _showComicActions(context, info, position),
               );
             }
 
@@ -573,7 +528,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                       right: 0,
                       child: LinearProgressIndicator(minHeight: 2),
                     ),
-                  _buildSelectionBar(context, state),
+                  _buildSelectionBar(context),
                 ],
               ),
             );
@@ -583,20 +538,32 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     );
   }
 
-  Widget _buildSelectionBar(BuildContext context, FolderShelfState state) {
+  Widget _buildSelectionBar(BuildContext context) {
+    // 计数/按钮可用态自己订阅：顶层 buildWhen 已跳过纯选中变化，
+    // 这里不订阅就会一直显示旧值。
+    final selectionMode = context.select(
+      (FolderShelfBloc bloc) => bloc.state.selectionMode,
+    );
+    final selectedCount = context.select(
+      (FolderShelfBloc bloc) => bloc.state.selectedCount,
+    );
+    final hasSelection = context.select(
+      (FolderShelfBloc bloc) => bloc.state.hasSelection,
+    );
+    final mode = context.select((FolderShelfBloc bloc) => bloc.state.mode);
     return Positioned(
       bottom: 8,
       left: 8,
       right: 8,
       child: IgnorePointer(
-        ignoring: !state.selectionMode,
+        ignoring: !selectionMode,
         child: AnimatedSlide(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
-          offset: state.selectionMode ? Offset.zero : const Offset(0, 1.0),
+          offset: selectionMode ? Offset.zero : const Offset(0, 1.0),
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 160),
-            opacity: state.selectionMode ? 1 : 0,
+            opacity: selectionMode ? 1 : 0,
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 520),
@@ -623,11 +590,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                                 .add(const FolderShelfExitSelectionMode()),
                             icon: const Icon(Icons.close),
                           ),
-                          Text(
-                            t.bookshelf.selectedCount(
-                              count: state.selectedCount,
-                            ),
-                          ),
+                          Text(t.bookshelf.selectedCount(count: selectedCount)),
                           const SizedBox(width: 8),
                           TextButton(
                             onPressed: () => context
@@ -635,11 +598,11 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                                 .add(const FolderShelfSelectAll()),
                             child: Text(t.common.selectAll),
                           ),
-                          if (state.mode != ShelfPageMode.history)
+                          if (mode != ShelfPageMode.history)
                             IconButton(
                               visualDensity: VisualDensity.compact,
                               tooltip: t.bookshelf.moveTo,
-                              onPressed: state.hasSelection
+                              onPressed: hasSelection
                                   ? () => _showTargetFolderDialog(
                                       context,
                                       onConfirmed: (targets) {
@@ -651,11 +614,11 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                                   : null,
                               icon: const Icon(Icons.drive_file_move_outline),
                             ),
-                          if (state.mode != ShelfPageMode.history)
+                          if (mode != ShelfPageMode.history)
                             IconButton(
                               visualDensity: VisualDensity.compact,
                               tooltip: t.bookshelf.copyTo,
-                              onPressed: state.hasSelection
+                              onPressed: hasSelection
                                   ? () => _showTargetFolderDialog(
                                       context,
                                       onConfirmed: (targets) {
@@ -667,19 +630,22 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                                   : null,
                               icon: const Icon(Icons.folder_copy_outlined),
                             ),
-                          if (state.mode == ShelfPageMode.download)
+                          if (mode == ShelfPageMode.download)
                             IconButton(
                               visualDensity: VisualDensity.compact,
                               tooltip: t.bookshelf.batchExport,
-                              onPressed: state.hasSelection
-                                  ? () => _batchExportSelected(context, state)
+                              onPressed: hasSelection
+                                  ? () => _batchExportSelected(
+                                      context,
+                                      context.read<FolderShelfBloc>().state,
+                                    )
                                   : null,
                               icon: const Icon(Icons.file_upload_outlined),
                             ),
                           IconButton(
                             visualDensity: VisualDensity.compact,
                             tooltip: t.common.delete,
-                            onPressed: state.hasSelection
+                            onPressed: hasSelection
                                 ? () => _confirmDeleteSelected(context)
                                 : null,
                             icon: const Icon(Icons.delete_outline),
@@ -1343,5 +1309,111 @@ Future<void> _confirmDeleteSelected(BuildContext context) async {
   );
   if (confirmed == true && context.mounted) {
     context.read<FolderShelfBloc>().add(const FolderShelfDeleteSelected());
+  }
+}
+
+/// 文件夹行：只订阅自己的选中态 + 选择模式。
+///
+/// 顶层 buildWhen 已跳过纯选中变化，这里的 select 让点选时只有相关行重建，
+/// 封面/整表不动（见 _buildBody 注释）。
+/// 注意：select 只能出现在行 widget 内部，不能直接写在 sliver 的 itemBuilder 里
+///（会触发 widget is! SliverWithKeepAliveWidget 断言）。
+class _ShelfFolderEntry extends StatelessWidget {
+  const _ShelfFolderEntry({
+    super.key,
+    required this.folder,
+    required this.folderPath,
+    required this.detailed,
+    this.comicCount,
+    required this.onFolderAction,
+  });
+
+  final ComicFolder folder;
+  final String folderPath;
+  final bool detailed;
+  final int? comicCount;
+  final void Function(Offset position) onFolderAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectionMode = context.select(
+      (FolderShelfBloc bloc) => bloc.state.selectionMode,
+    );
+    final isSelected = context.select(
+      (FolderShelfBloc bloc) =>
+          bloc.state.selectedFolderPaths.contains(folderPath),
+    );
+    return FolderShelfItem(
+      folder: folder,
+      selectionMode: selectionMode,
+      isSelected: isSelected,
+      detailed: detailed,
+      comicCount: comicCount,
+      onTap: selectionMode
+          ? () => context.read<FolderShelfBloc>().add(
+              FolderShelfToggleFolderSelection(folderPath),
+            )
+          : () => context.read<FolderShelfBloc>().add(
+              FolderShelfEnterFolder(folderPath),
+            ),
+      onLongPress: selectionMode
+          ? (details) => context.read<FolderShelfBloc>().add(
+              FolderShelfToggleFolderSelection(folderPath),
+            )
+          : (details) => onFolderAction(details.globalPosition),
+      onSecondaryTapDown: selectionMode
+          ? null
+          : (details) => onFolderAction(details.globalPosition),
+    );
+  }
+}
+
+/// 漫画行：只订阅自己的选中态 + 选择模式，同上。
+class _ShelfComicEntry extends StatelessWidget {
+  const _ShelfComicEntry({
+    super.key,
+    required this.info,
+    required this.type,
+    required this.detailed,
+    required this.onComicAction,
+  });
+
+  final ComicSimplifyEntryInfo info;
+  final ComicEntryType type;
+  final bool detailed;
+  final void Function(ComicSimplifyEntryInfo info, Offset position)
+  onComicAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectionMode = context.select(
+      (FolderShelfBloc bloc) => bloc.state.selectionMode,
+    );
+    final comicKey = '${info.from.trim()}:${info.id}';
+    final isSelected = context.select(
+      (FolderShelfBloc bloc) => bloc.state.selectedComicKeys.contains(comicKey),
+    );
+    return ComicSimplifyEntry(
+      info: info,
+      type: type,
+      selectionMode: selectionMode,
+      isSelected: isSelected,
+      detailed: detailed,
+      refresh: () =>
+          context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested()),
+      onTapOverride: selectionMode
+          ? (info) => context.read<FolderShelfBloc>().add(
+              FolderShelfToggleComicSelection(comicKey),
+            )
+          : null,
+      onLongPressOverride: selectionMode
+          ? (info, details) => context.read<FolderShelfBloc>().add(
+              FolderShelfToggleComicSelection(comicKey),
+            )
+          : (info, details) => onComicAction(info, details.globalPosition),
+      onSecondaryTapDown: selectionMode
+          ? null
+          : (info, details) => onComicAction(info, details.globalPosition),
+    );
   }
 }

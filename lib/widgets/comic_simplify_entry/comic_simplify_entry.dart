@@ -251,18 +251,15 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Widget _buildDetailedRow(BuildContext context, double width) {
-    // 底色常驻无 hover 变色；Tooltip 显示完整标题（桌面悬浮/移动端长按）。
+    // 无 Tooltip：移动端长按会先弹 Tooltip 再弹菜单，跟网格模式行为对不齐；
+    // 标题本来就是 1 行省略，桌面端不需要悬浮提示。
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      child: Tooltip(
-        message: info.title.let(convertChineseForDisplay),
-        waitDuration: const Duration(milliseconds: 500),
-        child: _DetailedRowBody(
-          info: info,
-          width: width,
-          isSelected: isSelected,
-          selectionMode: selectionMode,
-        ),
+      child: _DetailedRowBody(
+        info: info,
+        width: width,
+        isSelected: isSelected,
+        selectionMode: selectionMode,
       ),
     );
   }
@@ -276,13 +273,18 @@ class ComicSimplifyEntry extends StatelessWidget {
     final primary = Theme.of(context).colorScheme.primary;
     return ClipRRect(
       borderRadius: BorderRadius.circular(circular),
-      child: Container(
-        foregroundDecoration: isSelected && selectionMode
-            ? BoxDecoration(
-                border: Border.all(color: primary, width: 4),
-                borderRadius: BorderRadius.circular(circular),
-              )
-            : null,
+      // 选中边框常驻（透明/主色切换）+ 隐式动画：进入多选模式时边框层
+      // 本来就存在，只是颜色从透明变过来，不会出现整表同时弹边框的闪。
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
+        foregroundDecoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected && selectionMode ? primary : Colors.transparent,
+            width: 4,
+          ),
+          borderRadius: BorderRadius.circular(circular),
+        ),
         child: Stack(
           children: [
             CoverWidget(
@@ -291,7 +293,6 @@ class ComicSimplifyEntry extends StatelessWidget {
               id: info.id,
               pictureType: info.pictureType,
               from: info.from,
-              roundedCorner: roundedCorner,
               width: width,
               height: height,
             ),
@@ -337,32 +338,49 @@ class ComicSimplifyEntry extends StatelessWidget {
                 ),
               ),
             ),
-            if (selectionMode)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: isSelected ? primary : Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.5),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black87,
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
+            // 徽章常驻，用缩放+淡出控制显隐：进入多选模式时所有徽章
+            // 同时淡入，比凭空 if 出来少一次整表闪。
+            Positioned(
+              top: 8,
+              right: 8,
+              child: AnimatedScale(
+                scale: selectionMode ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutCubic,
+                child: AnimatedOpacity(
+                  opacity: selectionMode ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 160),
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    curve: Curves.easeOutCubic,
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: isSelected ? primary : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2.5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black87,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 160),
+                      child: Icon(
+                        isSelected ? Icons.check : Icons.radio_button_unchecked,
+                        key: ValueKey(isSelected),
+                        color: isSelected ? Colors.white : Colors.black54,
+                        size: 20,
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    isSelected ? Icons.check : Icons.radio_button_unchecked,
-                    color: isSelected ? Colors.white : Colors.black54,
-                    size: 20,
+                    ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -546,17 +564,22 @@ class _DetailedRowBody extends StatelessWidget {
         constraints: BoxConstraints(
           maxWidth: width > kDetailRowMaxWidth ? kDetailRowMaxWidth : width,
         ),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             color: scheme.surfaceContainerLow.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(8),
           ),
-          foregroundDecoration: isSelected && selectionMode
-              ? BoxDecoration(
-                  border: Border.all(color: primary, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                )
-              : null,
+          // 选中边框常驻（透明/主色切换）+ 隐式动画：进入多选模式时
+          // 边框层本来就存在，只是颜色从透明变过来，不闪。
+          foregroundDecoration: BoxDecoration(
+            border: Border.all(
+              color: isSelected && selectionMode ? primary : Colors.transparent,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
           padding: const EdgeInsets.all(6),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

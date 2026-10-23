@@ -94,7 +94,9 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   /// 此时必须跳过 _handleShelfBack，否则切 tab/回根/dispose 都会误回退一级。
   /// 系统返回消费 entry 时为 false，才真正消费一次返回。
   bool _removingBackEntry = false;
-
+  /// 上次的路径：listener 里与新 state 比较，只在路径变化时回顶+置显 bar。
+  /// error/选择模式变化走同一 listener，不能顺手把用户藏起来的 bar 弹出来。
+  String? _lastPath;
   @override
   void initState() {
     super.initState();
@@ -225,6 +227,13 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(error)));
+        }
+        if (state.currentPath != _lastPath) {
+          _lastPath = state.currentPath;
+          // 换路径=全新列表：悬浮导航直接置显，不依赖滚动通知。
+          // 靠 jumpTo 间接触发通知的链路不可靠（新列表替换/高度修正会吞掉
+          // 那次通知），内容不够滑时 bar 会永远出不来。
+          _setNavVisible(true);
         }
         _syncBackEntry(state);
       },
@@ -570,8 +579,12 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                     MediaQuery.sizeOf(context).width - listPadding.horizontal,
                   )
                 : 1;
+            // 路径 key：换路径时列表 element 销毁重建，原生 offset 就是 0，
+            // 没有 jumpTo 的中间动效（旧列表先闪回顶再换内容，看着像里面滚了一段）。
+            // 同路径刷新（如下拉）key 不变，offset 保留。
             final shelfList = detailed
                 ? CustomScrollView(
+                    key: ValueKey('shelf-${state.currentPath}'),
                     slivers: [
                       SliverPadding(
                         padding: listPadding,
@@ -584,6 +597,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
                     ],
                   )
                 : GridView.builder(
+                    key: ValueKey('shelf-${state.currentPath}'),
                     // 悬浮物盖在列表上层：子文件夹有面包屑浮栏，留 64px 顶部滚动边距；
                     // 根目录无顶部悬浮物，选择模式无悬浮物，均保持 10。
                     // 右下角按钮 56px + bottom 16：底部留 88，避免挡住最后一行漫画。

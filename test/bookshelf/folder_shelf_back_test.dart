@@ -149,4 +149,57 @@ void main() {
     // 放行测试体结束时的 FakeAsync 检查：把一次性 Timer 跑完。
     await tester.pump(const Duration(seconds: 5));
   });
+
+  testWidgets('进文件夹时列表先回顶再渲染', (tester) async {
+    await tester.runAsync(() async {
+      for (var i = 0; i < 40; i++) {
+        ComicFolderService.createFolder(
+          '',
+          'f${i.toString().padLeft(2, '0')}',
+          ComicFolderType.favorite,
+        );
+      }
+    });
+
+    await pumpShelf(tester);
+    // 默认倒序，最晚建的 f39 在最前（懒加载只渲染可见行，等 f00 必超时）。
+    await waitForText(tester, 'f39');
+
+    double offset() =>
+        tester.state<ScrollableState>(find.byType(Scrollable).first).position.pixels;
+
+    // 向下滚一段：offset > 0。fling 有惯性，多推几帧等它停稳再点，
+    // 否则 tap 会打偏（hitTestWarning）根本没进文件夹。
+    await tester.fling(find.byType(GridView), const Offset(0, -2000), 2000);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(offset(), greaterThan(0));
+
+    // 点当前可见的任一文件夹：路径变化 → 回顶。
+    final visibleName = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((w) => w.data ?? '')
+        .firstWhere((s) => RegExp(r'^f\d\d$').hasMatch(s));
+    await tester.tap(find.text(visibleName));
+    // 进子文件夹后面包屑仍显示文件夹名，不能用文本消失断言；
+    // 等 bloc 路径切过去，再断言已回顶。
+    String currentPath() => tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .context
+        .read<FolderShelfBloc>()
+        .state
+        .currentPath;
+    for (var i = 0; i < 150; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pump();
+      if (currentPath().isNotEmpty) break;
+    }
+    expect(currentPath(), isNotEmpty);
+    await tester.pump();
+    expect(offset(), 0);
+    await tester.pump(const Duration(seconds: 5));
+  });
 }

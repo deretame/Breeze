@@ -1,0 +1,58 @@
+name: Update Plugin List in README
+
+on:
+  schedule:
+    # 每天北京时间 00:00 运行（UTC 16:00）
+    - cron: "0 16 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-plugin-list:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch plugin names and update README
+        run: |
+          NAMES=$(curl -sL https://raw.githubusercontent.com/deretame/Breeze-plugin-list/main/plugins_data.json | jq -r '[.[].manifest.name] | join(" ")')
+          if [ -z "$NAMES" ]; then
+            echo "Failed to fetch plugin names"
+            exit 1
+          fi
+          echo "Plugin names: $NAMES"
+          python3 - "$NAMES" <<'EOF'
+          import re
+          import sys
+
+          names = sys.argv[1]
+          with open("README.md", encoding="utf-8") as f:
+              content = f.read()
+
+          pattern = r"(<!-- PLUGIN-LIST-START -->).*?(<!-- PLUGIN-LIST-END -->)"
+          replacement = r"\1\n" + names + r"\n\2"
+          new_content, count = re.subn(pattern, replacement, content, flags=re.DOTALL)
+          if count == 0:
+              print("Plugin list markers not found in README.md")
+              sys.exit(1)
+          if new_content == content:
+              print("No changes to README.md")
+          else:
+              with open("README.md", "w", encoding="utf-8") as f:
+                  f.write(new_content)
+              print("README.md updated")
+          EOF
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: update plugin list in README"
+          git push

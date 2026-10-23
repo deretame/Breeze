@@ -15,6 +15,15 @@
 
 插件列表：<https://github.com/deretame/Breeze-plugin-list>
 
+<details>
+<summary>当前已收录插件（点击展开）</summary>
+
+<!-- PLUGIN-LIST-START -->
+包子漫画 Plus 禁漫天堂 漫画柜 NoyAcg 如漫画 蛙漫3 包子漫画 哔咔漫画 拷贝漫画 e-hentai hitomi JJ漫画 Komiic nhentai 绅士漫画 WEBTOON 再漫画 禁漫天堂(mumushu0501-boop) Toomics
+<!-- PLUGIN-LIST-END -->
+
+</details>
+
 > **注：** 插件功能仍在beta阶段，可能会有较大改动，不建议基于此开发插件，仅适合学习用途。
 
 ### 1. 核心工具链安装

@@ -18,7 +18,7 @@ import 'package:zephyr/page/bookshelf/bloc/folder_shelf_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/bookshelf_search_cubit.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/method/method.dart';
-import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
+import 'package:zephyr/page/bookshelf/models/models.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_empty_view.dart';
@@ -83,6 +83,18 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   @override
   bool get wantKeepAlive => true;
 
+  /// 书架 tab 内部路由上的返回拦截点：有待处理返回（退选择/退文件夹）时持有，
+  /// 到根时清掉放行。见 shelf_back_action.dart 头部注释。
+  ///
+  /// 用 entry 而不是 PopScope：PersistentTabView 在非首页 tab 上按返回时，
+  /// 内部 Navigator `canPop == false` 就直接切回首页，事件到不了 PopScope。
+  LocalHistoryEntry? _backEntry;
+
+  /// 程序化释放 entry 时置 true：entry.remove() 会同步触发 onRemove，
+  /// 此时必须跳过 _handleShelfBack，否则切 tab/回根/dispose 都会误回退一级。
+  /// 系统返回消费 entry 时为 false，才真正消费一次返回。
+  bool _removingBackEntry = false;
+
   @override
   void initState() {
     super.initState();
@@ -96,12 +108,12 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     if (_isDesktop) {
       HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     }
+    _removeBackEntry();
     super.dispose();
   }
 
   static bool get _isDesktop =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-
   bool _handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent) return false;
     if (event.logicalKey != LogicalKeyboardKey.escape) return false;
@@ -109,11 +121,74 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
     final route = ModalRoute.of(context);
     if (route == null || !route.isCurrent) return false;
 
-    final bloc = context.read<FolderShelfBloc>();
-    if (bloc.state.isRoot) return false;
+    return _handleShelfBack(context.read<FolderShelfBloc>().state);
+  }
 
-    bloc.add(const FolderShelfGoBack());
-    return true;
+  /// 书架内返回：选择模式先退选，否则文件夹回退一级；根目录返回 false。
+  /// 返回键（经 LocalHistoryEntry）与桌面 Escape 共用，保证行为一致。
+  bool _handleShelfBack(FolderShelfState state) {
+    switch (shelfBackActionFor(
+      selectionMode: state.selectionMode,
+      isRoot: state.isRoot,
+    )) {
+      case ShelfBackAction.exitSelection:
+        context.read<FolderShelfBloc>().add(
+          const FolderShelfExitSelectionMode(),
+        );
+        return true;
+      case ShelfBackAction.goBack:
+        context.read<FolderShelfBloc>().add(const FolderShelfGoBack());
+        return true;
+      case ShelfBackAction.none:
+        return false;
+    }
+  }
+
+  /// 与 bloc 状态同步 entry 的持有/释放。entry 的 onRemove 即一次返回事件，
+  /// 直接消费状态机；entry 被消费后 onRemove 内按新状态重新同步（无残留时放行）。
+  void _syncBackEntry(FolderShelfState state) {
+    final want = wantShelfBackEntry(
+      isActive: widget.isActive,
+      selectionMode: state.selectionMode,
+      isRoot: state.isRoot,
+    );
+    final has = _backEntry != null;
+    if (want == has) return;
+    if (!want) {
+      _removeBackEntry();
+      return;
+    }
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent) return;
+    final entry = LocalHistoryEntry(
+      // 书架 AppBar 自绘返回/关闭按钮，不需要框架按 entry 补 leading。
+      impliesAppBarDismissal: false,
+      onRemove: () {
+        _backEntry = null;
+        if (!mounted) return;
+        // 程序化释放（切 tab/回根/dispose）：只清标记，不消费返回。
+        if (_removingBackEntry) return;
+        _handleShelfBack(context.read<FolderShelfBloc>().state);
+        // 状态更新后按新状态重新同步：仍有可退层级则补回 entry，
+        // 到根则保持放行。
+        _syncBackEntry(context.read<FolderShelfBloc>().state);
+      },
+    );
+    _backEntry = entry;
+    route.addLocalHistoryEntry(entry);
+  }
+
+  void _removeBackEntry() {
+    final entry = _backEntry;
+    _backEntry = null;
+    if (entry == null) return;
+    // 同步触发 onRemove：置旗跳过其中的 _handleShelfBack。
+    _removingBackEntry = true;
+    try {
+      entry.remove();
+    } finally {
+      _removingBackEntry = false;
+    }
   }
 
   @override
@@ -124,14 +199,26 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
         FolderShelfLoadRequested(search: widget.search),
       );
     }
+    if (oldWidget.isActive != widget.isActive && mounted) {
+      // 切 tab 时按新可见性同步：后台 tab 释放 entry，避免抢返回；
+      // 前台 tab 按当前 bloc 状态补回 entry。
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _syncBackEntry(context.read<FolderShelfBloc>().state);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return BlocConsumer<FolderShelfBloc, FolderShelfState>(
+      // 返回拦截 entry 与 error 提示共用 listener：error、选择模式、
+      // 路径变化都要同步 entry 的持有/释放。
       listenWhen: (previous, current) =>
-          current.error != null && current.error != previous.error,
+          (current.error != null && current.error != previous.error) ||
+          current.selectionMode != previous.selectionMode ||
+          current.currentPath != previous.currentPath,
       listener: (context, state) {
         final error = state.error;
         if (error != null && error.isNotEmpty) {
@@ -139,24 +226,17 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             context,
           ).showSnackBar(SnackBar(content: Text(error)));
         }
+        _syncBackEntry(state);
       },
       builder: (context, state) {
-        return PopScope(
-          canPop: state.isRoot,
-          onPopInvokedWithResult: (didPop, result) {
-            if (!didPop && !state.isRoot) {
-              context.read<FolderShelfBloc>().add(const FolderShelfGoBack());
-            }
-          },
-          child: NotificationListener<ScrollNotification>(
-            onNotification: _onGridScroll,
-            child: Stack(
-              children: [
-                Positioned.fill(child: _buildBody(context)),
-                // 顶部悬浮导航：选择模式下隐藏，由底部悬浮操作条接管。
-                if (!state.selectionMode) ..._buildFloatingNav(context, state),
-              ],
-            ),
+        return NotificationListener<ScrollNotification>(
+          onNotification: _onGridScroll,
+          child: Stack(
+            children: [
+              Positioned.fill(child: _buildBody(context)),
+              // 顶部悬浮导航：选择模式下隐藏，由底部悬浮操作条接管。
+              if (!state.selectionMode) ..._buildFloatingNav(context, state),
+            ],
           ),
         );
       },

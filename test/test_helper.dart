@@ -15,11 +15,17 @@ class TestObjectBoxHelper {
   static Directory? _tempDir;
   static ObjectBox? _objectBox;
 
+  /// 测试临时目录：供需要把 worker isolate 指向同一份库的测试使用。
+  static String get tempPath => _tempDir!.path;
   static Future<void> setUpTestObjectBox() async {
     _tempDir = await Directory.systemTemp.createTemp('breeze_test_');
     ObjectBox.resetForTests();
     _objectBox = await ObjectBox.create(dbRootPath: _tempDir!.path);
     objectbox = _objectBox!;
+    // 生产 main.dart 同款：首条 UserSetting 自增 id=1，供 globalSetting
+    // getter（userSettingBox.get(1)!）使用；UI 层 convertChineseForDisplay
+    // 等都依赖它，缺了渲染文件夹行时直接 Null check 崩。
+    objectbox.userSettingBox.put(UserSetting());
     syncDeviceId = 'test_device';
   }
 

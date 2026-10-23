@@ -108,3 +108,6 @@ third_party/ncnn-src/
 # Native bridge generated files
 compile_commands.json
 native/generated/ir.json
+
+# Windows 本地跑 flutter test 需要，见 test/bookshelf 相关测试
+/objectbox.dll

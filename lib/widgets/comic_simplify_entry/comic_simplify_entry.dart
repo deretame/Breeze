@@ -605,7 +605,7 @@ class _DetailedRowBody extends StatelessWidget {
                     Text(
                       info.title.let(convertChineseForDisplay),
                       style: titleStyle,
-                      maxLines: 1,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (info.author.trim().isNotEmpty) ...[
@@ -613,7 +613,7 @@ class _DetailedRowBody extends StatelessWidget {
                       Text(
                         info.author.let(convertChineseForDisplay),
                         style: subtitleStyle,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],

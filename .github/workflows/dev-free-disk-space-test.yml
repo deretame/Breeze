@@ -15,10 +15,6 @@ on:
 permissions:
   contents: read
 
-env:
-  BREEZE_PLUGIN_GITHUB_TOKEN: ${{ secrets.BREEZE_PLUGIN_GITHUB_TOKEN != '' &&
-    secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
-
 jobs:
   freespace-android-full:
     runs-on: ubuntu-latest

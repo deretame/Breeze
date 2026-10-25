@@ -22,3 +22,6 @@ analyzer:
     - linux/**
   errors:
     invalid_annotation_target: ignore
+
+formatter:
+  page_width: 80

@@ -21,6 +21,7 @@ import 'package:zephyr/page/bookshelf/bloc/folder_shelf_state.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 export 'package:zephyr/page/bookshelf/bloc/folder_shelf_event.dart';
 export 'package:zephyr/page/bookshelf/bloc/folder_shelf_state.dart';
+
 /// 测试钩：widget/集成测试里把 worker isolate 的 ObjectBox 指向测试临时目录，
 /// 使其 attach 到主 isolate 已打开的测试库。默认 null，走正常应用目录。
 /// 仅测试赋值，生产代码保持 null。

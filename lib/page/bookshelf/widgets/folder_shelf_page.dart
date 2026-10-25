@@ -94,6 +94,7 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
   /// 此时必须跳过 _handleShelfBack，否则切 tab/回根/dispose 都会误回退一级。
   /// 系统返回消费 entry 时为 false，才真正消费一次返回。
   bool _removingBackEntry = false;
+
   /// 上次的路径：listener 里与新 state 比较，只在路径变化时回顶+置显 bar。
   /// error/选择模式变化走同一 listener，不能顺手把用户藏起来的 bar 弹出来。
   String? _lastPath;

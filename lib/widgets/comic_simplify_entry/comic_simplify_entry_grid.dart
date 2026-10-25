@@ -34,6 +34,7 @@ class BaseComicGridSliver extends StatelessWidget {
   onEntrySecondaryTapDown;
   final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
   final bool selectionMode;
+  final String? highlightEntryId;
   final bool roundedCorner;
   final EdgeInsetsGeometry padding;
   final bool detailed;
@@ -51,6 +52,7 @@ class BaseComicGridSliver extends StatelessWidget {
     this.onEntrySecondaryTapDown,
     this.isEntrySelected,
     this.selectionMode = false,
+    this.highlightEntryId,
     this.roundedCorner = true,
     this.padding = const EdgeInsets.all(10),
     this.detailed = false,
@@ -94,6 +96,8 @@ class BaseComicGridSliver extends StatelessWidget {
       onSecondaryTapDown: onEntrySecondaryTapDown,
       isSelected: isEntrySelected?.call(entries[index]) ?? false,
       selectionMode: selectionMode,
+      isHighlighted: entries[index].id == highlightEntryId,
+      dimmed: highlightEntryId != null && entries[index].id != highlightEntryId,
       roundedCorner: roundedCorner,
       detailed: detailed,
       collectionTargetId: collectionTargetId,

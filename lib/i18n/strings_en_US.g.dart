@@ -1295,7 +1295,7 @@ class _Translations$searchResult$en_US extends Translations$searchResult$zh_CN {
 	@override String get retry => 'Tap to retry';
 	@override String get cursorSectionTitle => 'Search cursors (experimental)';
 	@override String get cursorAdd => 'Add cursor';
-	@override String get cursorPickBanner => 'Cursor pick: tap a cover to mark the cursor position (scrolling paused)';
+	@override String get cursorPickBanner => 'Tap a cover to mark the cursor position (scrolling paused)';
 	@override String get cursorAdded => 'Cursor added';
 	@override String get cursorEmpty => 'No cursors yet';
 	@override String get cursorOnlyNewestSort => 'Cursors only support the \'Newest first\' sort';
@@ -2644,7 +2644,7 @@ extension on TranslationsEnUs {
 			'searchResult.retry' => 'Tap to retry',
 			'searchResult.cursorSectionTitle' => 'Search cursors (experimental)',
 			'searchResult.cursorAdd' => 'Add cursor',
-			'searchResult.cursorPickBanner' => 'Cursor pick: tap a cover to mark the cursor position (scrolling paused)',
+			'searchResult.cursorPickBanner' => 'Tap a cover to mark the cursor position (scrolling paused)',
 			'searchResult.cursorAdded' => 'Cursor added',
 			'searchResult.cursorEmpty' => 'No cursors yet',
 			'searchResult.cursorOnlyNewestSort' => 'Cursors only support the \'Newest first\' sort',

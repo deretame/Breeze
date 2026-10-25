@@ -1075,7 +1075,7 @@
     "retry": "点击重试",
     "cursorSectionTitle": "搜索游标（实验性）",
     "cursorAdd": "添加游标",
-    "cursorPickBanner": "游标选择：点击一个封面作为游标位置（滑动已暂停）",
+    "cursorPickBanner": "点击一个封面作为游标位置（滑动已暂停）",
     "cursorAdded": "游标已添加",
     "cursorEmpty": "暂无游标",
     "cursorOnlyNewestSort": "游标仅支持“从新到旧”排序",

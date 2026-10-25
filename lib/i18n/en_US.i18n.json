@@ -1074,7 +1074,7 @@
     "retry": "Tap to retry",
     "cursorSectionTitle": "Search cursors (experimental)",
     "cursorAdd": "Add cursor",
-    "cursorPickBanner": "Cursor pick: tap a cover to mark the cursor position (scrolling paused)",
+    "cursorPickBanner": "Tap a cover to mark the cursor position (scrolling paused)",
     "cursorAdded": "Cursor added",
     "cursorEmpty": "No cursors yet",
     "cursorOnlyNewestSort": "Cursors only support the 'Newest first' sort",

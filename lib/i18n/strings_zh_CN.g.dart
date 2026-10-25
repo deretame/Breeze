@@ -3368,8 +3368,8 @@ class Translations$searchResult$zh_CN {
 	/// zh-CN: '添加游标'
 	String get cursorAdd => '添加游标';
 
-	/// zh-CN: '游标选择：点击一个封面作为游标位置（滑动已暂停）'
-	String get cursorPickBanner => '游标选择：点击一个封面作为游标位置（滑动已暂停）';
+	/// zh-CN: '点击一个封面作为游标位置（滑动已暂停）'
+	String get cursorPickBanner => '点击一个封面作为游标位置（滑动已暂停）';
 
 	/// zh-CN: '游标已添加'
 	String get cursorAdded => '游标已添加';
@@ -5087,7 +5087,7 @@ extension on Translations {
 			'searchResult.retry' => '点击重试',
 			'searchResult.cursorSectionTitle' => '搜索游标（实验性）',
 			'searchResult.cursorAdd' => '添加游标',
-			'searchResult.cursorPickBanner' => '游标选择：点击一个封面作为游标位置（滑动已暂停）',
+			'searchResult.cursorPickBanner' => '点击一个封面作为游标位置（滑动已暂停）',
 			'searchResult.cursorAdded' => '游标已添加',
 			'searchResult.cursorEmpty' => '暂无游标',
 			'searchResult.cursorOnlyNewestSort' => '游标仅支持“从新到旧”排序',

@@ -178,6 +178,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   onSecondaryTapDown;
   final bool isSelected;
   final bool selectionMode;
+  final bool isHighlighted;
+
+  /// 游标揭示模式：其他条目被压暗（锚点高亮、其余盖半透明黑）。
+  final bool dimmed;
   final bool topPadding;
   final bool roundedCorner;
   final String? collectionTargetId;
@@ -195,6 +199,8 @@ class ComicSimplifyEntry extends StatelessWidget {
     this.onSecondaryTapDown,
     this.isSelected = false,
     this.selectionMode = false,
+    this.isHighlighted = false,
+    this.dimmed = false,
     this.topPadding = true,
     this.roundedCorner = true,
     this.detailed = false,
@@ -280,7 +286,9 @@ class ComicSimplifyEntry extends StatelessWidget {
         curve: Curves.easeOutCubic,
         foregroundDecoration: BoxDecoration(
           border: Border.all(
-            color: isSelected && selectionMode ? primary : Colors.transparent,
+            color: (isSelected && selectionMode) || isHighlighted
+                ? primary
+                : Colors.transparent,
             width: 4,
           ),
           borderRadius: BorderRadius.circular(circular),
@@ -296,6 +304,16 @@ class ComicSimplifyEntry extends StatelessWidget {
               width: width,
               height: height,
             ),
+            // 游标揭示时压暗非锚点封面，让锚点一眼可见。
+            if (dimmed)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    color: Colors.black.withValues(alpha: 0.45),
+                  ),
+                ),
+              ),
             Positioned(
               left: 0,
               right: 0,
@@ -344,11 +362,11 @@ class ComicSimplifyEntry extends StatelessWidget {
               top: 8,
               right: 8,
               child: AnimatedScale(
-                scale: selectionMode ? 1.0 : 0.0,
+                scale: selectionMode || isHighlighted ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 160),
                 curve: Curves.easeOutCubic,
                 child: AnimatedOpacity(
-                  opacity: selectionMode ? 1.0 : 0.0,
+                  opacity: selectionMode || isHighlighted ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 160),
                   curve: Curves.easeOutCubic,
                   child: AnimatedContainer(
@@ -357,7 +375,9 @@ class ComicSimplifyEntry extends StatelessWidget {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: isSelected ? primary : Colors.white,
+                      color: isSelected || isHighlighted
+                          ? primary
+                          : Colors.white,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5),
                       boxShadow: const [
@@ -371,9 +391,13 @@ class ComicSimplifyEntry extends StatelessWidget {
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 160),
                       child: Icon(
-                        isSelected ? Icons.check : Icons.radio_button_unchecked,
+                        isSelected || isHighlighted
+                            ? Icons.check
+                            : Icons.radio_button_unchecked,
                         key: ValueKey(isSelected),
-                        color: isSelected ? Colors.white : Colors.black54,
+                        color: isSelected || isHighlighted
+                            ? Colors.white
+                            : Colors.black54,
                         size: 20,
                       ),
                     ),

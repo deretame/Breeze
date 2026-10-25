@@ -25,6 +25,7 @@ class PluginComicGridSliver extends StatelessWidget {
     this.onEntrySecondaryTapDown,
     this.isEntrySelected,
     this.selectionMode = false,
+    this.highlightEntryId,
     this.collectionTargetId,
     this.collectionTargetName,
     this.detailed = false,
@@ -52,6 +53,7 @@ class PluginComicGridSliver extends StatelessWidget {
   onEntrySecondaryTapDown;
   final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
   final bool selectionMode;
+  final String? highlightEntryId;
   final String? collectionTargetId;
   final String? collectionTargetName;
   final bool detailed;
@@ -73,6 +75,7 @@ class PluginComicGridSliver extends StatelessWidget {
           onEntrySecondaryTapDown: onEntrySecondaryTapDown,
           isEntrySelected: isEntrySelected,
           selectionMode: selectionMode,
+          highlightEntryId: highlightEntryId,
           detailed: detailed,
           collectionTargetId: collectionTargetId,
           collectionTargetName: collectionTargetName,

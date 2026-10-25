@@ -1,23 +1,31 @@
-name: Breeze Dev free-disk-space 清理效果测试
+name: Breeze Dev free-disk-space 清理效果测试（完整 Android 管线）
 
 # 仅手动触发：验证 jlumbroso/free-disk-space 能否替代手动 Nuclear 清理。
-# 复制自 dev-android-v8a-debug-build.yml，仅替换清理部分、移除产物上传：
-# - 手动 rm（hostedtoolcache/android/dotnet/codeql + docker prune + apt clean）
-#   → jlumbroso/free-disk-space（android/dotnet/docker-images/
-#   preinstalled-runtimes 开启；codeql 不在其清理范围，补一行 rm）
-# - 前后 df -h 对比磁盘释放量，构建完成即视为空间充足，不上传工件
-# 不使用任何仓库 Secret：跳过 git-crypt，debug 构建用默认 keystore。
+# 底本为上游 push-build.yml 的完整 Android job（全 ABI + waifu2x CLI 编译链），
+# 仅做以下改动：
+# 1. 手动 rm 清理 → jlumbroso/free-disk-space（codeql 不在其清理范围，
+#    补充步骤处理）
+# 2. 无 GIT_CRYPT_KEY：移除 git-crypt 解密步骤，改为删除加密签名文件，
+#    release 构建产出未签名 APK（构建本身成功）
+# 3. 移除产物上传与 Release 发布；构建完成即结束
+# 4. 增加 清理前/清理后/构建后 三处 df -h 对比
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  BREEZE_PLUGIN_GITHUB_TOKEN: ${{ secrets.BREEZE_PLUGIN_GITHUB_TOKEN != '' &&
+    secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
+
 jobs:
-  freespace-android-debug:
+  freespace-android-full:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: 清理前磁盘状态
         run: df -h /
@@ -50,6 +58,18 @@ jobs:
       - name: 清理后磁盘状态
         run: df -h /
 
+      - name: 安装编译依赖 (LLVM/Clang)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-dev libclang-dev clang
+
+      # 无 GIT_CRYPT_KEY（Fork 仓库）。锁定状态下这两个文件是二进制密文，
+      # 而 build.gradle.kts 在配置阶段会无条件 Properties.load
+      # key.properties（随机字节可能导致解析异常）。直接删除使 gradle 走
+      # "无 key.properties" 分支，release 产出未签名 APK，构建本身成功。
+      - name: 移除 git-crypt 加密的签名文件
+        run: rm -f android/key.properties android/Breeze-key.keystore
+
       - name: 设置 Java 21 & SDK
         uses: actions/setup-java@v5
         with:
@@ -71,10 +91,10 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
-      - name: 安装 Rust 工具链 (aarch64-linux-android)
+      - name: 安装 Rust (Android 目标)
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android
+          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
 
       - name: 缓存 Rust 构建产物
         uses: Swatinem/rust-cache@v2
@@ -97,6 +117,9 @@ jobs:
       - name: 安装 Android NDK
         run: yes | sdkmanager "ndk;${{ steps.ndk-config.outputs.ndk_version }}"
 
+      - name: 安装 Android CMake
+        run: yes | sdkmanager "cmake;3.22.1"
+
       - name: 设置 NDK 环境变量
         run: |
           NDK_VER=${{ steps.ndk-config.outputs.ndk_version }}
@@ -106,25 +129,48 @@ jobs:
           echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
           echo "$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
 
-      # 没有上游签名密钥，无法执行 git-crypt unlock。锁定状态下这两个文件是
-      # 二进制密文，而 build.gradle.kts 在配置阶段会无条件 Properties.load
-      # key.properties（随机字节可能导致解析异常）。直接删除使 gradle 走
-      # "无 key.properties" 分支；debug buildType 不引用 release 签名配置。
-      - name: 移除 git-crypt 加密的签名文件
-        run: rm -f android/key.properties android/Breeze-key.keystore
-
       - name: 接受 Android Licenses
         run: yes | fvm flutter doctor --android-licenses || true
 
       - name: 拉取 Flutter 依赖
         run: fvm flutter pub get
 
-      # 不经 build_apk.dart（其 debug 模式硬编码 arm64+x64 双架构），
-      # 直接指定仅 arm64；NDK/bindgen 环境由 hook/build.dart 按目标架构注入。
-      - name: 构建 arm64-v8a Debug APK
-        run: fvm flutter build apk --debug --target-platform=android-arm64
+      - name: 缓存 Android waifu2x CLI 依赖
+        uses: actions/cache@v5
+        with:
+          path: third_party/android_ncnn_deps
+          key: ${{ runner.os }}-android-waifu2x-deps-${{ hashFiles('script/android/prepare_android_waifu2x_deps.py', 'script/android/build_ncnn_static_android.py', 'script/android/build_waifu2x_cli_android.py', 'android/app/src/main/cpp/waifu2x_cli/CMakeLists.txt') }}
+
+      - name: 缓存 ncnn 源码
+        uses: actions/cache@v5
+        with:
+          path: third_party/ncnn-src
+          key: ${{ runner.os }}-android-ncnn-src-${{ hashFiles('script/android/build_ncnn_static_android.py') }}
+
+      - name: 缓存 RealSR-NCNN-Android 源码
+        uses: actions/cache@v5
+        with:
+          path: third_party/RealSR-NCNN-Android
+          key: ${{ runner.os }}-android-realsr-src-${{ hashFiles('script/android/build_waifu2x_cli_android.py') }}
+
+      - name: 准备 Android waifu2x CLI 依赖
+        run: |
+          python3 script/android/prepare_android_waifu2x_deps.py
+
+      - name: 编译 Android 静态 ncnn
+        run: |
+          python3 script/android/build_ncnn_static_android.py
+
+      - name: 编译 Android waifu2x CLI
+        run: |
+          python3 script/android/build_waifu2x_cli_android.py
+
+      - name: 运行 Android 构建脚本
+        run: |
+          fvm dart ./script/build/build_apk.dart
 
       - name: 构建后磁盘状态
         run: |
-          ls -lh build/app/outputs/flutter-apk/*.apk
+          ls -lh build/app/outputs/flutter-apk/*.apk || true
+          ls -lh build/app/outputs/apk/skia/*.apk || true
           df -h /

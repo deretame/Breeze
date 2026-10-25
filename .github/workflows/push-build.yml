@@ -62,13 +62,21 @@ jobs:
       # - name: 克隆 rquickjs_playground
       #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
-      - name: 释放空间 (Nuclear Mode)
+      - name: 释放空间 (free-disk-space)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: true
+          haskell: false
+          large-packages: false
+          docker-images: true
+          preinstalled-runtimes: true
+          swap-storage: false
+
+      - name: 重建 Android SDK 目录
         run: |
-          sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet /opt/codeql
           sudo mkdir -p /usr/local/lib/android/sdk
           sudo chown -R $USER:$USER /usr/local/lib/android
-          docker system prune -a -f
-          sudo apt-get clean
 
       - name: 安装编译依赖 (LLVM/Clang)
         run: |

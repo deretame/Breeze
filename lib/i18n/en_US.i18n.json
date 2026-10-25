@@ -1071,7 +1071,22 @@
     "returnToTop": "Return to top",
     "jumpToPage": "Jump to page",
     "jump": "Jump",
-    "retry": "Tap to retry"
+    "retry": "Tap to retry",
+    "cursorSectionTitle": "Search cursors (experimental)",
+    "cursorAdd": "Add cursor",
+    "cursorPickBanner": "Tap a cover to mark the cursor position (scrolling paused)",
+    "cursorAdded": "Cursor added",
+    "cursorEmpty": "No cursors yet",
+    "cursorOnlyNewestSort": "Cursors only support the 'Newest first' sort",
+    "cursorLocating": "Locating cursor…",
+    "cursorJumpedSuccess": "Cursor located, jumped to page $page",
+    "cursorJumpApproximate": "Cursor not matched exactly, jumped near page $page",
+    "cursorJumpFailed": "Failed to locate the cursor, try again later",
+    "cursorProbeBudget": "Locate probe budget",
+    "cursorPickNone": "Tap a cover first",
+    "cursorPickNoResult": "No search results to anchor a cursor",
+    "cursorAnchorSubtitle": "$title",
+    "cursorPlainKeywordOnly": "Cursors only support plain keyword searches"
   },
   "comicList": {
     "defaultTitle": "Comic List",

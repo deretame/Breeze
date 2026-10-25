@@ -7,14 +7,22 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/page/search_result/search_cursor/search_cursor.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
+  final VoidCallback? onStartCursorPick;
+  final ValueChanged<SearchCursorRecord>? onJumpToCursor;
 
-  const SearchResultBar({super.key, required this.searchEvent});
+  const SearchResultBar({
+    super.key,
+    required this.searchEvent,
+    this.onStartCursorPick,
+    this.onJumpToCursor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +120,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
       showWarningToast(t.search.advancedSearchNotSupported);
       return;
     }
-    final newStates = await showDialog<SearchStates>(
+    final result = await showDialog<_AdvancedSearchDialogResult>(
       context: context,
       builder: (context) => _PluginAdvancedSearchDialog(
         initialState: searchCubit.state,
@@ -120,8 +128,17 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
 
-    if (newStates == null) return;
-    searchCubit.update(newStates);
+    if (result == null) return;
+    if (result.requestCursorPick) {
+      onStartCursorPick?.call();
+      return;
+    }
+    final jumpRecord = result.cursorToJump;
+    if (jumpRecord != null) {
+      onJumpToCursor?.call(jumpRecord);
+      return;
+    }
+    searchCubit.update(result.states);
     if (!context.mounted) return;
 
     final searchBloc = context.read<SearchBloc>();
@@ -206,6 +223,19 @@ class _AdvancedSearchScheme {
   final Map<String, dynamic> values;
 }
 
+/// 高级搜索对话框的返回：应用筛选、请求进入游标点选、或跳转某个游标。
+class _AdvancedSearchDialogResult {
+  const _AdvancedSearchDialogResult({
+    required this.states,
+    this.cursorToJump,
+    this.requestCursorPick = false,
+  });
+
+  final SearchStates states;
+  final SearchCursorRecord? cursorToJump;
+  final bool requestCursorPick;
+}
+
 class _PluginAdvancedSearchDialog extends StatefulWidget {
   const _PluginAdvancedSearchDialog({
     required this.initialState,
@@ -224,6 +254,11 @@ class _PluginAdvancedSearchDialogState
     extends State<_PluginAdvancedSearchDialog> {
   late final Map<String, dynamic> _values;
 
+  bool get _cursorSupported {
+    final from = widget.initialState.from.trim();
+    return from.isEmpty || searchCursorPlugins.containsKey(from);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -239,9 +274,27 @@ class _PluginAdvancedSearchDialogState
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: widget.scheme.fields
-            .map((field) => _buildField(context, field))
-            .toList(),
+        children: [
+          ...widget.scheme.fields.map((field) => _buildField(context, field)),
+          if (_cursorSupported)
+            SearchCursorSection(
+              pluginId: widget.initialState.from.trim(),
+              currentSortBy: widget.initialState.sortBy,
+              currentExtern: widget.initialState.pluginExtern,
+              onAdd: () => Navigator.of(context).pop(
+                const _AdvancedSearchDialogResult(
+                  states: SearchStates(),
+                  requestCursorPick: true,
+                ),
+              ),
+              onJump: (record) => Navigator.of(context).pop(
+                _AdvancedSearchDialogResult(
+                  states: widget.initialState,
+                  cursorToJump: record,
+                ),
+              ),
+            ),
+        ],
       ),
       actions: [
         TextButton(
@@ -271,9 +324,11 @@ class _PluginAdvancedSearchDialogState
               }
             }
             Navigator.of(context).pop(
-              widget.initialState.copyWith(
-                sortBy: sortBy,
-                pluginExtern: nextExtern,
+              _AdvancedSearchDialogResult(
+                states: widget.initialState.copyWith(
+                  sortBy: sortBy,
+                  pluginExtern: nextExtern,
+                ),
               ),
             );
           },

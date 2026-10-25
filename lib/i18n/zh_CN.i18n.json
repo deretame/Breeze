@@ -1072,7 +1072,22 @@
     "returnToTop": "返回顶部",
     "jumpToPage": "跳转页面",
     "jump": "跳转",
-    "retry": "点击重试"
+    "retry": "点击重试",
+    "cursorSectionTitle": "搜索游标（实验性）",
+    "cursorAdd": "添加游标",
+    "cursorPickBanner": "点击一个封面作为游标位置（滑动已暂停）",
+    "cursorAdded": "游标已添加",
+    "cursorEmpty": "暂无游标",
+    "cursorOnlyNewestSort": "游标仅支持“从新到旧”排序",
+    "cursorLocating": "正在定位游标…",
+    "cursorJumpedSuccess": "已定位游标，跳转到第 $page 页",
+    "cursorJumpApproximate": "未能精确命中游标，已就近定位到第 $page 页",
+    "cursorJumpFailed": "游标定位失败，请稍后重试",
+    "cursorProbeBudget": "定位探测预算",
+    "cursorPickNone": "请先点击一个封面",
+    "cursorPickNoResult": "当前没有搜索结果，无法添加游标",
+    "cursorAnchorSubtitle": "$title",
+    "cursorPlainKeywordOnly": "游标仅支持普通关键词搜索"
   },
   "comicList": {
     "defaultTitle": "漫画列表",

@@ -1,0 +1,130 @@
+name: Breeze Dev free-disk-space 清理效果测试
+
+# 仅手动触发：验证 jlumbroso/free-disk-space 能否替代手动 Nuclear 清理。
+# 复制自 dev-android-v8a-debug-build.yml，仅替换清理部分、移除产物上传：
+# - 手动 rm（hostedtoolcache/android/dotnet/codeql + docker prune + apt clean）
+#   → jlumbroso/free-disk-space（android/dotnet/docker-images/
+#   preinstalled-runtimes 开启；codeql 不在其清理范围，补一行 rm）
+# - 前后 df -h 对比磁盘释放量，构建完成即视为空间充足，不上传工件
+# 不使用任何仓库 Secret：跳过 git-crypt，debug 构建用默认 keystore。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freespace-android-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 清理前磁盘状态
+        run: df -h /
+
+      # 替代原 "释放空间 (Nuclear Mode)" 的手动 rm 清单：
+      #   /opt/hostedtoolcache → preinstalled-runtimes
+      #   /usr/local/lib/android → android
+      #   /usr/share/dotnet → dotnet
+      #   docker system prune → docker-images
+      #   /opt/codeql → 不在 action 清理范围，下方补充步骤处理
+      # haskell/large-packages/swap-storage 保持关闭：原手动清理未涉及，
+      # 关闭可省时间；如后续仍缺空间可再开启。
+      - name: 释放磁盘空间 (free-disk-space)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: true
+          dotnet: true
+          haskell: false
+          large-packages: false
+          docker-images: true
+          preinstalled-runtimes: true
+          swap-storage: false
+
+      - name: 补充清理 (codeql) 并重建空 SDK 目录
+        run: |
+          sudo rm -rf /opt/codeql
+          sudo mkdir -p /usr/local/lib/android/sdk
+          sudo chown -R $USER:$USER /usr/local/lib/android
+
+      - name: 清理后磁盘状态
+        run: df -h /
+
+      - name: 设置 Java 21 & SDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+
+      - name: 设置 Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链 (aarch64-linux-android)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: 缓存 Rust 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
+
+      - name: 读取 NDK 版本配置
+        id: ndk-config
+        run: |
+          NDK_VER=$(grep "ndkVersion" android/app/build.gradle.kts | awk -F'"' '{print $2}')
+          echo "ndk_version=$NDK_VER" >> $GITHUB_OUTPUT
+
+      - name: 缓存 Android NDK
+        uses: actions/cache@v5
+        with:
+          path: /usr/local/lib/android/sdk/ndk/${{ steps.ndk-config.outputs.ndk_version }}
+          key: ${{ runner.os }}-android-ndk-${{ steps.ndk-config.outputs.ndk_version }}
+
+      - name: 安装 Android NDK
+        run: yes | sdkmanager "ndk;${{ steps.ndk-config.outputs.ndk_version }}"
+
+      - name: 设置 NDK 环境变量
+        run: |
+          NDK_VER=${{ steps.ndk-config.outputs.ndk_version }}
+          ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
+          NDK_PATH="$ANDROID_HOME/ndk/$NDK_VER"
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
+          echo "$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+
+      # 没有上游签名密钥，无法执行 git-crypt unlock。锁定状态下这两个文件是
+      # 二进制密文，而 build.gradle.kts 在配置阶段会无条件 Properties.load
+      # key.properties（随机字节可能导致解析异常）。直接删除使 gradle 走
+      # "无 key.properties" 分支；debug buildType 不引用 release 签名配置。
+      - name: 移除 git-crypt 加密的签名文件
+        run: rm -f android/key.properties android/Breeze-key.keystore
+
+      - name: 接受 Android Licenses
+        run: yes | fvm flutter doctor --android-licenses || true
+
+      - name: 拉取 Flutter 依赖
+        run: fvm flutter pub get
+
+      # 不经 build_apk.dart（其 debug 模式硬编码 arm64+x64 双架构），
+      # 直接指定仅 arm64；NDK/bindgen 环境由 hook/build.dart 按目标架构注入。
+      - name: 构建 arm64-v8a Debug APK
+        run: fvm flutter build apk --debug --target-platform=android-arm64
+
+      - name: 构建后磁盘状态
+        run: |
+          ls -lh build/app/outputs/flutter-apk/*.apk
+          df -h /

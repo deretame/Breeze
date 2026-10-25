@@ -19,7 +19,7 @@
 <summary>当前已收录插件（点击展开）</summary>
 
 <!-- PLUGIN-LIST-START -->
-包子漫画 Plus 禁漫天堂 漫画柜 NoyAcg 如漫画 蛙漫3 包子漫画 哔咔漫画 拷贝漫画 e-hentai hitomi JJ漫画 Komiic nhentai 绅士漫画 WEBTOON 再漫画 코사이트 MangaDex WeebCentral zero搬运网 禁漫天堂(mumushu0501-boop) Toomics
+包子漫画 Plus 禁漫天堂 漫画柜 NoyAcg 如漫画 蛙漫3 包子漫画 哔咔漫画 拷贝漫画 e-hentai hitomi JJ漫画 Komiic nhentai 绅士漫画 WEBTOON 再漫画 拷贝漫画 Copy4000 코사이트 MangaDex WeebCentral zero搬运网 Hanime1 禁漫天堂(mumushu0501-boop) Toomics
 <!-- PLUGIN-LIST-END -->
 
 </details>

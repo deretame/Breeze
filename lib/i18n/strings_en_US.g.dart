@@ -1293,6 +1293,21 @@ class _Translations$searchResult$en_US extends Translations$searchResult$zh_CN {
 	@override String get jumpToPage => 'Jump to page';
 	@override String get jump => 'Jump';
 	@override String get retry => 'Tap to retry';
+	@override String get cursorSectionTitle => 'Search cursors (experimental)';
+	@override String get cursorAdd => 'Add cursor';
+	@override String get cursorPickBanner => 'Cursor pick: tap a cover to mark the cursor position (scrolling paused)';
+	@override String get cursorAdded => 'Cursor added';
+	@override String get cursorEmpty => 'No cursors yet';
+	@override String get cursorOnlyNewestSort => 'Cursors only support the \'Newest first\' sort';
+	@override String get cursorLocating => 'Locating cursor…';
+	@override String cursorJumpedSuccess({required Object page}) => 'Cursor located, jumped to page ${page}';
+	@override String cursorJumpApproximate({required Object page}) => 'Cursor not matched exactly, jumped near page ${page}';
+	@override String get cursorJumpFailed => 'Failed to locate the cursor, try again later';
+	@override String get cursorProbeBudget => 'Locate probe budget';
+	@override String get cursorPickNone => 'Tap a cover first';
+	@override String get cursorPickNoResult => 'No search results to anchor a cursor';
+	@override String cursorAnchorSubtitle({required Object title}) => '${title}';
+	@override String get cursorPlainKeywordOnly => 'Cursors only support plain keyword searches';
 }
 
 // Path: comicList
@@ -2627,6 +2642,21 @@ extension on TranslationsEnUs {
 			'searchResult.jumpToPage' => 'Jump to page',
 			'searchResult.jump' => 'Jump',
 			'searchResult.retry' => 'Tap to retry',
+			'searchResult.cursorSectionTitle' => 'Search cursors (experimental)',
+			'searchResult.cursorAdd' => 'Add cursor',
+			'searchResult.cursorPickBanner' => 'Cursor pick: tap a cover to mark the cursor position (scrolling paused)',
+			'searchResult.cursorAdded' => 'Cursor added',
+			'searchResult.cursorEmpty' => 'No cursors yet',
+			'searchResult.cursorOnlyNewestSort' => 'Cursors only support the \'Newest first\' sort',
+			'searchResult.cursorLocating' => 'Locating cursor…',
+			'searchResult.cursorJumpedSuccess' => ({required Object page}) => 'Cursor located, jumped to page ${page}',
+			'searchResult.cursorJumpApproximate' => ({required Object page}) => 'Cursor not matched exactly, jumped near page ${page}',
+			'searchResult.cursorJumpFailed' => 'Failed to locate the cursor, try again later',
+			'searchResult.cursorProbeBudget' => 'Locate probe budget',
+			'searchResult.cursorPickNone' => 'Tap a cover first',
+			'searchResult.cursorPickNoResult' => 'No search results to anchor a cursor',
+			'searchResult.cursorAnchorSubtitle' => ({required Object title}) => '${title}',
+			'searchResult.cursorPlainKeywordOnly' => 'Cursors only support plain keyword searches',
 			'comicList.defaultTitle' => 'Comic List',
 			'comicList.missingSource' => 'Missing plugin source, cannot load list',
 			'comicList.reload' => 'Reload',

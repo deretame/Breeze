@@ -3361,6 +3361,51 @@ class Translations$searchResult$zh_CN {
 
 	/// zh-CN: '点击重试'
 	String get retry => '点击重试';
+
+	/// zh-CN: '搜索游标（实验性）'
+	String get cursorSectionTitle => '搜索游标（实验性）';
+
+	/// zh-CN: '添加游标'
+	String get cursorAdd => '添加游标';
+
+	/// zh-CN: '游标选择：点击一个封面作为游标位置（滑动已暂停）'
+	String get cursorPickBanner => '游标选择：点击一个封面作为游标位置（滑动已暂停）';
+
+	/// zh-CN: '游标已添加'
+	String get cursorAdded => '游标已添加';
+
+	/// zh-CN: '暂无游标'
+	String get cursorEmpty => '暂无游标';
+
+	/// zh-CN: '游标仅支持“从新到旧”排序'
+	String get cursorOnlyNewestSort => '游标仅支持“从新到旧”排序';
+
+	/// zh-CN: '正在定位游标…'
+	String get cursorLocating => '正在定位游标…';
+
+	/// zh-CN: '已定位游标，跳转到第 $page 页'
+	String cursorJumpedSuccess({required Object page}) => '已定位游标，跳转到第 ${page} 页';
+
+	/// zh-CN: '未能精确命中游标，已就近定位到第 $page 页'
+	String cursorJumpApproximate({required Object page}) => '未能精确命中游标，已就近定位到第 ${page} 页';
+
+	/// zh-CN: '游标定位失败，请稍后重试'
+	String get cursorJumpFailed => '游标定位失败，请稍后重试';
+
+	/// zh-CN: '定位探测预算'
+	String get cursorProbeBudget => '定位探测预算';
+
+	/// zh-CN: '请先点击一个封面'
+	String get cursorPickNone => '请先点击一个封面';
+
+	/// zh-CN: '当前没有搜索结果，无法添加游标'
+	String get cursorPickNoResult => '当前没有搜索结果，无法添加游标';
+
+	/// zh-CN: '$title'
+	String cursorAnchorSubtitle({required Object title}) => '${title}';
+
+	/// zh-CN: '游标仅支持普通关键词搜索'
+	String get cursorPlainKeywordOnly => '游标仅支持普通关键词搜索';
 }
 
 // Path: comicList
@@ -5040,6 +5085,21 @@ extension on Translations {
 			'searchResult.jumpToPage' => '跳转页面',
 			'searchResult.jump' => '跳转',
 			'searchResult.retry' => '点击重试',
+			'searchResult.cursorSectionTitle' => '搜索游标（实验性）',
+			'searchResult.cursorAdd' => '添加游标',
+			'searchResult.cursorPickBanner' => '游标选择：点击一个封面作为游标位置（滑动已暂停）',
+			'searchResult.cursorAdded' => '游标已添加',
+			'searchResult.cursorEmpty' => '暂无游标',
+			'searchResult.cursorOnlyNewestSort' => '游标仅支持“从新到旧”排序',
+			'searchResult.cursorLocating' => '正在定位游标…',
+			'searchResult.cursorJumpedSuccess' => ({required Object page}) => '已定位游标，跳转到第 ${page} 页',
+			'searchResult.cursorJumpApproximate' => ({required Object page}) => '未能精确命中游标，已就近定位到第 ${page} 页',
+			'searchResult.cursorJumpFailed' => '游标定位失败，请稍后重试',
+			'searchResult.cursorProbeBudget' => '定位探测预算',
+			'searchResult.cursorPickNone' => '请先点击一个封面',
+			'searchResult.cursorPickNoResult' => '当前没有搜索结果，无法添加游标',
+			'searchResult.cursorAnchorSubtitle' => ({required Object title}) => '${title}',
+			'searchResult.cursorPlainKeywordOnly' => '游标仅支持普通关键词搜索',
 			'comicList.defaultTitle' => '漫画列表',
 			'comicList.missingSource' => '缺少插件来源，无法加载列表',
 			'comicList.reload' => '重新加载',

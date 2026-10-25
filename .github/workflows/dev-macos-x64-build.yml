@@ -1,0 +1,106 @@
+name: Breeze Dev macOS x86_64 Build
+
+# 仅手动触发的开发用构建：只产出 macOS x86_64 (Intel) 工件，不创建 Release。
+# 不使用任何仓库 Secret（无 Sentry 上报、无签名、无通知）。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 透传 ARCHS=x86_64 给 xcodebuild，把 Release 构建从默认的 universal (arm64 + x86_64)
+# 限制为 x86_64-only。Flutter 工具对 Release 构建默认不显式传 ARCHS，
+# 因此该环境变量（FLUTTER_XCODE_ 前缀透传机制）不会被覆盖。
+env:
+  FLUTTER_XCODE_ARCHS: x86_64
+
+jobs:
+  build-macos-x64:
+    runs-on: macos-latest
+    env:
+      CARGO_HOME: ${{ github.workspace }}/.cargo
+      RUSTUP_HOME: ${{ github.workspace }}/.rustup
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin, aarch64-apple-darwin
+
+      - name: 校验并修复 rustup
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$CARGO_HOME" "$RUSTUP_HOME"
+          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+          export PATH="$CARGO_HOME/bin:$PATH"
+
+          if ! rustup --version || ! rustup toolchain list; then
+            echo "Detected invalid rustup binary, reinstalling..."
+            rm -f "$CARGO_HOME/bin/rustup" "$CARGO_HOME/bin/rustup-init"
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
+            export PATH="$CARGO_HOME/bin:$PATH"
+            rustup --version
+            rustup toolchain list
+          fi
+
+      - name: 缓存 Rust 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
+
+      - name: 拉取依赖 & 修复 Podfile
+        run: |
+          fvm flutter pub get
+          if [ -f "macos/Podfile" ]; then
+            sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" macos/Podfile
+            ruby -i -pe '
+              if /flutter_additional_macos_build_settings\(target\)/
+                $_ += "      target.build_configurations.each do |config|\n        config.build_settings[\"MACOSX_DEPLOYMENT_TARGET\"] = \"11.0\"\n      end\n"
+              end
+            ' macos/Podfile
+          fi
+
+      - name: 构建 macOS (x86_64)
+        run: |
+          export PATH="$CARGO_HOME/bin:$PATH"
+          rustup toolchain list
+          fvm flutter build macos --release
+
+      - name: 校验产物架构
+        run: |
+          APP_PATH=$(find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 | head -n 1)
+          echo "APP: $APP_PATH"
+          for bin in "$APP_PATH/Contents/MacOS/"*; do
+            echo "$bin:"
+            lipo -archs "$bin"
+          done
+
+      - name: 打包 .app
+        run: |
+          APP_PATH=$(find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 | head -n 1)
+          rm -f Breeze-macOS-x64.zip
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" Breeze-macOS-x64.zip
+
+      - name: 上传工件
+        uses: actions/upload-artifact@v6
+        with:
+          name: macos-x64-dev
+          path: Breeze-macOS-x64.zip
+          retention-days: 7
+          if-no-files-found: error

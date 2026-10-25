@@ -49,12 +49,6 @@ jobs:
           preinstalled-runtimes: true
           swap-storage: false
 
-      - name: 补充清理 (codeql) 并重建空 SDK 目录
-        run: |
-          sudo rm -rf /opt/codeql
-          sudo mkdir -p /usr/local/lib/android/sdk
-          sudo chown -R $USER:$USER /usr/local/lib/android
-
       - name: 清理后磁盘状态
         run: df -h /
 

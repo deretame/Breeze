@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_plugin_envelope.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/page/login/slider_captcha_dialog.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -33,6 +34,9 @@ class _LoginFieldSpec {
     this.help = '',
     this.captchaFetchFnPath = '',
     this.captchaRefreshText = '',
+    this.sliderCreateFnPath = '',
+    this.sliderVerifyFnPath = '',
+    this.sliderRefreshText = '',
   });
 
   final String key;
@@ -48,11 +52,23 @@ class _LoginFieldSpec {
   /// 验证码图下方刷新提示文案，空时用默认文案。
   final String captchaRefreshText;
 
+  /// slider-captcha 字段取题/验题函数（插件 fnPath），空表示非滑块字段。
+  final String sliderCreateFnPath;
+  final String sliderVerifyFnPath;
+
+  /// 滑块字段刷新提示文案，空时用默认文案。
+  final String sliderRefreshText;
+
   bool get obscure => kind == 'password';
 
   bool get multiline => kind == 'multiline';
 
   bool get isCaptchaImage => kind == 'captcha-image';
+
+  bool get isSliderCaptcha =>
+      kind == 'slider-captcha' &&
+      sliderCreateFnPath.isNotEmpty &&
+      sliderVerifyFnPath.isNotEmpty;
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -142,6 +158,7 @@ class _LoginPageState extends State<LoginPage> {
         continue;
       }
       final captcha = asJsonMap(field['captcha']);
+      final slider = asJsonMap(field['slider']);
       specs.add(
         _LoginFieldSpec(
           key: key,
@@ -156,6 +173,9 @@ class _LoginPageState extends State<LoginPage> {
           help: field['help']?.toString() ?? '',
           captchaFetchFnPath: captcha['fetchFnPath']?.toString().trim() ?? '',
           captchaRefreshText: captcha['refreshText']?.toString() ?? '',
+          sliderCreateFnPath: slider['createFnPath']?.toString().trim() ?? '',
+          sliderVerifyFnPath: slider['verifyFnPath']?.toString().trim() ?? '',
+          sliderRefreshText: slider['refreshText']?.toString() ?? '',
         ),
       );
     }
@@ -178,6 +198,8 @@ class _LoginPageState extends State<LoginPage> {
       ...asJsonMap(data?['values']),
     };
     for (final spec in specs) {
+      // 滑块字段无文本输入：提交时弹拼图现验现用。
+      if (spec.isSliderCaptcha) continue;
       _controllers[spec.key] = TextEditingController(
         text: values[spec.key]?.toString() ?? '',
       );
@@ -264,6 +286,23 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  /// 打开拼图弹窗完成验证：通过返回一次性 pass，用户取消返回 null。
+  /// 取题时透传当前表单值（账号绑定的站用它取题；不绑定的站忽略）。
+  Future<String?> _solveSlider(
+    _LoginFieldSpec spec,
+    Map<String, dynamic> values,
+  ) {
+    if (!mounted) return Future.value();
+    return SliderCaptchaDialog.show(
+      context,
+      from: from,
+      createFnPath: spec.sliderCreateFnPath,
+      verifyFnPath: spec.sliderVerifyFnPath,
+      refreshText: spec.sliderRefreshText,
+      values: values,
+    );
+  }
+
   @override
   void dispose() {
     for (final entry in _controllers.values) {
@@ -316,8 +355,10 @@ class _LoginPageState extends State<LoginPage> {
       }
       return;
     }
+    // 文本字段先收齐（滑块字段无输入，提交时现验现用）。
     final values = <String, dynamic>{};
     for (final spec in _fields) {
+      if (spec.isSliderCaptcha) continue;
       final text = _controllers[spec.key]?.text ?? '';
       if (spec.required && text.trim().isEmpty) {
         showErrorToast(t.login.requiredFieldEmpty(label: spec.label));
@@ -325,9 +366,26 @@ class _LoginPageState extends State<LoginPage> {
       }
       values[spec.key] = text;
     }
+    // 有滑块字段时逐个弹拼图：通过得一次性 pass 并入 values，
+    // 用户取消则中止提交；取题时透传已填表单值（账号绑定的站用它取题）。
+    // 先占 _submitting 防重复点击；取消/失败走 finally 恢复。
     setState(() {
       _submitting = true;
     });
+    for (final spec in _fields) {
+      if (!spec.isSliderCaptcha) continue;
+      final pass = await _solveSlider(spec, values);
+      if (!mounted) return;
+      if (pass == null || pass.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _submitting = false;
+          });
+        }
+        return;
+      }
+      values[spec.key] = pass;
+    }
     showInfoToast(t.login.loggingIn);
 
     try {
@@ -348,6 +406,7 @@ class _LoginPageState extends State<LoginPage> {
       _showDialog(t.login.loginFailed, message);
       // 失败自动刷新：验证码一次一码，旧码提交后即作废；
       // 无论失败原因是码错还是账密错，都换一张新图 + 清空输入。
+      // 滑块 pass 现验现用：失败下次提交重新弹拼图，无需清理。
       if (_hasCaptchaField) _refreshAllCaptchas();
     } finally {
       if (mounted) {
@@ -389,6 +448,8 @@ class _LoginPageState extends State<LoginPage> {
     final submitLabel = _submitLabel.isEmpty
         ? t.login.loginButton
         : _submitLabel;
+    // 滑块字段不占位：提交时自动弹拼图，登录页外观与无滑块时一致。
+    final visibleFields = _fields.where((e) => !e.isSliderCaptcha).toList();
     return Scaffold(
       appBar: AppBar(
         title: Text(title.isEmpty ? t.login.title : title),
@@ -408,9 +469,9 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                for (var i = 0; i < _fields.length; i++) ...[
+                for (var i = 0; i < visibleFields.length; i++) ...[
                   if (i > 0) const SizedBox(height: 20),
-                  _buildField(_fields[i]),
+                  _buildField(visibleFields[i]),
                 ],
                 const SizedBox(height: 10),
                 Row(
@@ -438,6 +499,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildField(_LoginFieldSpec spec) {
     if (spec.isCaptchaImage) return _buildCaptchaField(spec);
+    // 滑块字段不渲染：提交时自动弹拼图，登录页外观与无滑块时一致。
+    if (spec.isSliderCaptcha) return const SizedBox.shrink();
 
     final controller = _controllers[spec.key];
     final revealed = _revealedSecrets.contains(spec.key);

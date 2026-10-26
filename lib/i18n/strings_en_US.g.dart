@@ -1480,6 +1480,12 @@ class _Translations$login$en_US extends Translations$login$zh_CN {
 	@override String get captchaTapToRefresh => 'Can\'t see? Tap to refresh';
 	@override String get captchaLoading => 'Loading captcha...';
 	@override String get captchaLoadFailed => 'Failed to load captcha, tap to retry';
+	@override String get sliderTitle => 'Complete the puzzle';
+	@override String get sliderHint => 'Hold and drag the slider';
+	@override String get sliderLoading => 'Loading challenge...';
+	@override String get sliderLoadFailed => 'Failed to load, tap to retry';
+	@override String get sliderVerifying => 'Verifying...';
+	@override String get sliderFailed => 'Verification failed, try again';
 }
 
 // Path: fontSetting
@@ -2766,6 +2772,12 @@ extension on TranslationsEnUs {
 			'login.captchaTapToRefresh' => 'Can\'t see? Tap to refresh',
 			'login.captchaLoading' => 'Loading captcha...',
 			'login.captchaLoadFailed' => 'Failed to load captcha, tap to retry',
+			'login.sliderTitle' => 'Complete the puzzle',
+			'login.sliderHint' => 'Hold and drag the slider',
+			'login.sliderLoading' => 'Loading challenge...',
+			'login.sliderLoadFailed' => 'Failed to load, tap to retry',
+			'login.sliderVerifying' => 'Verifying...',
+			'login.sliderFailed' => 'Verification failed, try again',
 			'fontSetting.title' => 'Font Settings',
 			'fontSetting.clear' => 'Clear',
 			'fontSetting.hint' => 'Select font files for each weight.',

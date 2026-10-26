@@ -1209,7 +1209,13 @@
     "loginNotSupported": "This plugin doesn't support the new login page yet. Please fill in your account in plugin settings.",
     "captchaTapToRefresh": "Can't see? Tap to refresh",
     "captchaLoading": "Loading captcha...",
-    "captchaLoadFailed": "Failed to load captcha, tap to retry"
+    "captchaLoadFailed": "Failed to load captcha, tap to retry",
+    "sliderTitle": "Complete the puzzle",
+    "sliderHint": "Hold and drag the slider",
+    "sliderLoading": "Loading challenge...",
+    "sliderLoadFailed": "Failed to load, tap to retry",
+    "sliderVerifying": "Verifying...",
+    "sliderFailed": "Verification failed, try again"
   },
   "fontSetting": {
     "title": "Font Settings",

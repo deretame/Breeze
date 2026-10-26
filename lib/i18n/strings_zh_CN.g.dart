@@ -3796,6 +3796,24 @@ class Translations$login$zh_CN {
 
 	/// zh-CN: '验证码加载失败，点击重试'
 	String get captchaLoadFailed => '验证码加载失败，点击重试';
+
+	/// zh-CN: '请完成拼图验证'
+	String get sliderTitle => '请完成拼图验证';
+
+	/// zh-CN: '按住滑块，拖动完成拼图'
+	String get sliderHint => '按住滑块，拖动完成拼图';
+
+	/// zh-CN: '题目加载中...'
+	String get sliderLoading => '题目加载中...';
+
+	/// zh-CN: '题目加载失败，点击重试'
+	String get sliderLoadFailed => '题目加载失败，点击重试';
+
+	/// zh-CN: '验证中...'
+	String get sliderVerifying => '验证中...';
+
+	/// zh-CN: '验证失败，请重试'
+	String get sliderFailed => '验证失败，请重试';
 }
 
 // Path: fontSetting
@@ -5209,6 +5227,12 @@ extension on Translations {
 			'login.captchaTapToRefresh' => '看不清？点击刷新',
 			'login.captchaLoading' => '验证码加载中...',
 			'login.captchaLoadFailed' => '验证码加载失败，点击重试',
+			'login.sliderTitle' => '请完成拼图验证',
+			'login.sliderHint' => '按住滑块，拖动完成拼图',
+			'login.sliderLoading' => '题目加载中...',
+			'login.sliderLoadFailed' => '题目加载失败，点击重试',
+			'login.sliderVerifying' => '验证中...',
+			'login.sliderFailed' => '验证失败，请重试',
 			'fontSetting.title' => '字体设置',
 			'fontSetting.clear' => '清空',
 			'fontSetting.hint' => '按字重分别选择字体文件。',

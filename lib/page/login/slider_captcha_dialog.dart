@@ -229,18 +229,41 @@ class _SliderCaptchaDialogState extends State<SliderCaptchaDialog> {
     _loadChallenge();
   }
 
+  /// 内容区实际渲染宽度（bg 图实测，替代屏宽公式预估）。
+  /// AlertDialog content 有 24px 内边距，直接按屏宽算会在窄屏下偏大，
+  /// 导致拼块显示位置与上报 x 系统性偏大约 8%。
+  /// 注意：content 包在 IntrinsicWidth 里，LayoutBuilder 会直接抛异常，
+  /// 这里用 GlobalKey 在 build 后测 bg 图实际尺寸。
+  final GlobalKey _imageKey = GlobalKey();
+  double? _renderWidth;
+
+  void _scheduleMeasure() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final box = _imageKey.currentContext?.findRenderObject() as RenderBox?;
+      final w = box?.hasSize == true ? box!.size.width : 0.0;
+      if (w > 0 && (_renderWidth == null || (_renderWidth! - w).abs() > 0.5)) {
+        setState(() {
+          _renderWidth = w;
+        });
+      }
+    });
+  }
+
+  double get _displayWidth {
+    final measured = _renderWidth;
+    if (measured != null && measured > 0) return measured;
+    final query = MediaQuery.maybeOf(context);
+    final screenWidth = query?.size.width ?? 360;
+    // 实测值就绪前回退屏宽公式（与网页端一致：min(320, max(240, 屏宽-60))）。
+    final target = (screenWidth - 60 - 48).clamp(240.0, 320.0);
+    return target;
+  }
+
   double get _scale {
     final challenge = _challenge;
     if (challenge == null) return 1;
     return _displayWidth / challenge.imageW;
-  }
-
-  double get _displayWidth {
-    final query = MediaQuery.maybeOf(context);
-    final screenWidth = query?.size.width ?? 360;
-    // 与网页端一致：min(320, max(240, 屏宽-60))，弹窗再留内边距。
-    final target = (screenWidth - 60 - 48).clamp(240.0, 320.0);
-    return target;
   }
 
   double get _maxMove {
@@ -345,27 +368,27 @@ class _SliderCaptchaDialogState extends State<SliderCaptchaDialog> {
     final height = challenge == null
         ? width * 180 / 320
         : width * challenge.imageH / challenge.imageW;
+    // content 不定宽：占满 dialog 可用宽；bg 图挂 key 实测回写 _renderWidth，
+    // 下一帧起拼图/滑杆/上报 x 全按实测缩放算。首帧 width 用屏宽公式回退。
+    _scheduleMeasure();
     return AlertDialog(
       title: Text(t.login.sliderTitle),
-      content: SizedBox(
-        width: width,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildImage(width, height),
-            const SizedBox(height: 10),
-            _buildBar(),
-            if (_error.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                _error,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildImage(width, height),
+          const SizedBox(height: 10),
+          _buildBar(),
+          if (_error.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              _error,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.error,
               ),
-            ],
+            ),
           ],
-        ),
+        ],
       ),
       actions: [
         TextButton(
@@ -392,23 +415,25 @@ class _SliderCaptchaDialogState extends State<SliderCaptchaDialog> {
 
   Widget _buildImage(double width, double height) {
     final challenge = _challenge;
+    // 宽不定死：跟 content 可用宽走（实测值），窄屏 dialog 内边距压缩时不错位。
     if (_phase == _SliderPhase.loading || challenge == null) {
       return SizedBox(
-        width: width,
+        width: double.infinity,
         height: height,
         child: Center(child: Text(t.login.sliderLoading)),
       );
     }
     if (_phase == _SliderPhase.failed && _error.isNotEmpty) {
       return SizedBox(
-        width: width,
+        width: double.infinity,
         height: height,
         child: Center(child: Text(t.login.sliderLoadFailed)),
       );
     }
     final pieceDisplay = challenge.pieceSize * _scale;
     return Container(
-      width: width,
+      key: _imageKey,
+      width: double.infinity,
       height: height,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLowest,

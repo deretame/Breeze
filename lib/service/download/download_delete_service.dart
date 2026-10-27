@@ -86,7 +86,8 @@ Future<DeleteDownloadedChapterResult> deleteDownloadedChapter({
       final found = await store.findCanonicalDownload();
       if (found == null) continue;
       await File(found.path).delete();
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // 单个文件删除失败不影响元数据提交。
     }
   }
@@ -135,7 +136,8 @@ Future<void> deleteWholeComicDownload({
       if (payload != null && payload.from.trim() == from.trim()) {
         chapterKey = payload.chapterKey;
       }
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       chapterKey = null;
     }
     if (chapterKey == null || chapterKey.isEmpty) {

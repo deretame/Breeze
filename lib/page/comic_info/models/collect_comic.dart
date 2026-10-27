@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_info/models/favorite_workflow.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -12,6 +11,7 @@ import 'package:zephyr/util/path_util.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/widgets/toast.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/main.dart';
 
 Future<bool> isLocalComicCollected({
   required String from,

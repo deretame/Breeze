@@ -1313,10 +1313,12 @@ Future<void> _importComic(BuildContext context) async {
     if (!context.mounted) return;
     showSuccessToast(t.bookshelf.importCompleted(title: result.title));
     context.read<FolderShelfBloc>().add(const FolderShelfLoadRequested());
-  } on ComicImportCancelledException catch (_) {
+  } on ComicImportCancelledException catch (e, st) {
+    logger.e(e, stackTrace: st);
     if (!context.mounted) return;
     showErrorToast(t.common.cancelled);
   } catch (e) {
+    logger.e(e);
     if (!context.mounted) return;
     showErrorToast(t.error.importFailed(error: e.toString()));
   }
@@ -1377,6 +1379,7 @@ Future<void> _batchExportSelected(
     );
     context.read<FolderShelfBloc>().add(const FolderShelfExitSelectionMode());
   } catch (e) {
+    logger.e(e);
     if (!context.mounted) return;
     showErrorToast(t.bookshelf.batchExportFailed(error: e.toString()));
   }

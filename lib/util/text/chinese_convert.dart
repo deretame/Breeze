@@ -1,5 +1,4 @@
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 
 /// 用来简化调用，将繁体中文转换为简体中文/包括日本汉字
@@ -10,7 +9,6 @@ String t2s(String text) {
     // 第二步：繁体中文 → 简体中文
     return openccConvert(text: step1, config: 'tw2sp.json');
   } catch (e) {
-    logger.e(e);
     return text;
   }
 }

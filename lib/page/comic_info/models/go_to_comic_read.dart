@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
@@ -16,6 +15,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/config/router/router.gr.dart' show ComicReadRoute;
 
 import 'package:zephyr/page/comic_info/models/read_launch_adapter.dart';
+import 'package:zephyr/main.dart';
 
 void goToComicRead(
   BuildContext context,

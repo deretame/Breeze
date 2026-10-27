@@ -247,7 +247,8 @@ String downloadTaskKeyOf(DownloadTask task) {
   try {
     final payload = task.taskInfo;
     if (payload != null) return payload.taskKey;
-  } catch (_) {
+  } catch (e, st) {
+    logger.e(e, stackTrace: st);
     // 旧任务 payload 损坏时仍使用实体中的 comicId 作为最后回退。
   }
   return task.comicId.trim();

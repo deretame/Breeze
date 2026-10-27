@@ -10,6 +10,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/main.dart';
 
 @RoutePage()
 class StorageSettingPage extends StatefulWidget {
@@ -65,7 +66,8 @@ class _StorageSettingPageState extends State<StorageSettingPage> {
         _cacheSizeBytes = totalSize;
         _cacheCalculating = false;
       });
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       if (!mounted) return;
       setState(() {
         _cacheSizeBytes = null;

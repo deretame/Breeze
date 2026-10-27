@@ -147,7 +147,8 @@ String? _extractGithubApiMessage(String body) {
       final message = decoded['message']?.toString().trim() ?? '';
       return message.isEmpty ? null : message;
     }
-  } catch (_) {
+  } catch (e, st) {
+    logger.e(e, stackTrace: st);
     // 非 JSON（代理的 HTML 错误页等）：无 message 可提取。
   }
   return null;

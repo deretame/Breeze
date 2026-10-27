@@ -5,6 +5,7 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:zephyr/main.dart';
 
 // These functions are ignored because they are not marked as `pub`: `add_directory_to_zip`, `add_file_to_zip`
 

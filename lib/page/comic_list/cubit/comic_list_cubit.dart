@@ -9,6 +9,7 @@ import 'package:zephyr/page/comic_list/models/list_filter_bundle.dart';
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_schema.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/main.dart';
 
 export 'package:zephyr/page/comic_list/cubit/comic_list_state.dart';
 
@@ -124,6 +125,7 @@ class ComicListCubit extends Cubit<ComicListState> {
         ),
       );
     } catch (e) {
+      logger.e(e);
       if (isClosed) {
         return;
       }
@@ -200,6 +202,7 @@ class ComicListCubit extends Cubit<ComicListState> {
 
       _applyFilterBundle(bundle, state.filterSelections);
     } catch (e) {
+      logger.e(e);
       if (isClosed) {
         return;
       }

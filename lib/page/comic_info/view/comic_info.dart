@@ -773,6 +773,7 @@ class _ComicInfoState extends State<_ComicInfo>
       _showExportDirectory(exportedPath, exportType);
       _logExportPath(exportedPath);
     } catch (e) {
+      logger.e(e);
       final errorMessage = e is StateError
           ? e.message.toString()
           : t.comicInfo.exportFailedWithError(

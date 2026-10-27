@@ -87,6 +87,7 @@ class ObjectBox {
         final store = Store.attach(getObjectBoxModel(), dbPath);
         return ObjectBox._create(store);
       } catch (e) {
+        logger.e(e);
         // 2. 如果 Attach 失败，尝试 Open
         try {
           final store = await openStore(directory: dbPath);

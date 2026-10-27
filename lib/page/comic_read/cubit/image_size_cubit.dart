@@ -212,7 +212,8 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
         resolvedIndices: localResolved,
         count: count,
       );
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       _hasPendingSave = true;
     } finally {
       _isFlushing = false;

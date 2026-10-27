@@ -235,6 +235,7 @@ class PluginRegistryService {
         try {
           await fetchPluginInfo(uuid: plugin.uuid, runtimeName: runtimeName);
         } catch (e) {
+          logger.e(e);
           await updateLoadResult(
             plugin.uuid,
             success: false,
@@ -573,7 +574,8 @@ class PluginRegistryService {
       if (runtimeReady) {
         await qjsDropRuntime(runtimeName: runtimeName);
       }
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // runtime 失败不阻断删除主流程
     }
 

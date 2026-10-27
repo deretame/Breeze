@@ -65,7 +65,6 @@ Future<String> fetchCloudPluginListWithCdnFallback() async {
     final data = temp.json;
     version = (data is Map ? data['version'] : null) ?? 'latest';
   } catch (e) {
-    logger.e(e);
     return fetchCloudPluginListPayload(_cloudPluginListDirectUrl);
   }
 

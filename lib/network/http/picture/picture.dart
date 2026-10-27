@@ -864,11 +864,11 @@ Future<void> decodeAndSaveImage(
     await antiObfuscationPicture(imageInfo: imageInfo);
     await DownloadAssetStore.commitTemporaryFile(temporaryPath, fileName);
   } catch (e, s) {
+    logger.e(e, stackTrace: s);
     try {
       final temporaryFile = File(temporaryPath);
       if (await temporaryFile.exists()) await temporaryFile.delete();
     } catch (_) {}
-    logger.e(e, stackTrace: s);
     rethrow;
   }
 }

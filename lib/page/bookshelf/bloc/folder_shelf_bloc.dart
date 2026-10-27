@@ -102,6 +102,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
         ),
       );
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(isLoading: false, error: e.toString()));
     }
   }
@@ -161,6 +162,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       );
       add(const FolderShelfLoadRequested());
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(error: e.toString()));
     }
   }
@@ -175,6 +177,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       ComicLinkService.removeLinksInFolderTree(event.path, _folderType);
       add(const FolderShelfLoadRequested());
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(error: e.toString()));
     }
   }
@@ -188,6 +191,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       ComicFolderService.renameFolder(event.path, event.newName, _folderType);
       add(const FolderShelfLoadRequested());
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(error: e.toString()));
     }
   }
@@ -314,6 +318,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       }
       _exitSelectionAndRefresh();
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(error: e.toString()));
     }
   }
@@ -338,6 +343,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       }
       _exitSelectionAndRefresh();
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(error: e.toString()));
     }
   }
@@ -367,6 +373,7 @@ class FolderShelfBloc extends Bloc<FolderShelfEvent, FolderShelfState> {
       );
       _exitSelectionAndRefresh();
     } catch (e) {
+      logger.e(e);
       emit(state.copyWith(error: e.toString()));
     }
   }

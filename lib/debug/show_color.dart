@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/main.dart';
 
 const _defaultFontPath =
     r'C:\Users\windy\Downloads\zip\03_NotoSerifCJK-TTF-VF\Variable\TTF\Subset\NotoSerifSC-VF.ttf';
@@ -287,6 +288,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
         _status = t.settings.colorPreviewLoadSuccess;
       });
     } catch (e) {
+      logger.e(e);
       if (!mounted) return;
       setState(() {
         _status = t.settings.colorPreviewLoadFailed(error: e);

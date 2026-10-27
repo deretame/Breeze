@@ -1,6 +1,7 @@
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_read/widgets/modes/read_mode_utils.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/main.dart';
 
 /// 负责把当前阅读位置之后的图片提前写入图片缓存。
 ///
@@ -55,7 +56,8 @@ class ReaderImagePrefetchController {
         if (cachedPath == '404') {
           _requestedKeys.remove(key);
         }
-      } catch (_) {
+      } catch (e, st) {
+        logger.e(e, stackTrace: st);
         _requestedKeys.remove(key);
       }
     }

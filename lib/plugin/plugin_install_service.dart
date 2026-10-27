@@ -226,7 +226,8 @@ Future<String> _installFromUnknownLocalBytes(
       bytes: bytes,
       shouldUseBrotli: true,
     );
-  } catch (_) {
+  } catch (e, st) {
+    logger.e(e, stackTrace: st);
     script = null;
   }
   script ??= utf8.decode(bytes, allowMalformed: true);

@@ -122,6 +122,7 @@ class _LoginPageState extends State<LoginPage> {
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       _applyLoginBundle(envelope.scheme, envelope.data);
     } catch (e) {
+      logger.e(e);
       if (mounted) {
         final raw = e.toString();
         final missingBundle =

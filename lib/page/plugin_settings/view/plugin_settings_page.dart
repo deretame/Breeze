@@ -526,6 +526,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       }
       showSuccessToast(updated ? t.plugin.syncSuccess : t.plugin.alreadyLatest);
     } catch (e) {
+      logger.e(e);
       showErrorToast(
         t.plugin.syncFailed(error: normalizePluginInstallErrorMessage(e)),
       );
@@ -591,6 +592,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       }
       showSuccessToast(message.isNotEmpty ? message : t.plugin.updateSuccess);
     } catch (e) {
+      logger.e(e);
       showErrorToast(
         t.plugin.updateFailed(error: normalizePluginInstallErrorMessage(e)),
       );
@@ -644,6 +646,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
       }
       showSuccessToast(message.isNotEmpty ? message : t.plugin.updateSuccess);
     } catch (e) {
+      logger.e(e);
       showErrorToast(
         t.plugin.updateFailed(error: normalizePluginInstallErrorMessage(e)),
       );
@@ -687,6 +690,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
     try {
       await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
     } catch (e) {
+      logger.e(e);
       if (!mounted) {
         return;
       }
@@ -726,6 +730,7 @@ class _PluginSettingsPageViewState extends State<_PluginSettingsPageView> {
         this.context.router.push(LoginRoute(from: widget.from));
       }
     } catch (e) {
+      logger.e(e);
       showErrorToast(t.plugin.executeFailed(error: e.toString()));
     }
   }

@@ -7,6 +7,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/service/download/download_queue_manager.dart';
 import 'package:zephyr/service/download/download_task_progress.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/main.dart';
 
 @RoutePage()
 class DownloadTaskPage extends StatelessWidget {
@@ -319,7 +320,8 @@ String _chapterTaskTitle(DownloadTask task) {
   String? chapterTitle;
   try {
     chapterTitle = task.taskInfo?.chapterRef.title.trim();
-  } catch (_) {
+  } catch (e, st) {
+    logger.e(e, stackTrace: st);
     chapterTitle = null;
   }
   if (chapterTitle == null || chapterTitle.isEmpty) return task.comicName;

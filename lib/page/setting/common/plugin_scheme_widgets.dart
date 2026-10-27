@@ -8,6 +8,7 @@ import 'package:zephyr/plugin/bridge/plugin_config_bridge.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/toast.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/main.dart';
 
 class PluginSettingSchemeSection extends StatefulWidget {
   const PluginSettingSchemeSection({
@@ -255,6 +256,7 @@ class _PluginAdvancedActionSectionState
                     ),
                   );
                 } catch (e) {
+                  logger.e(e);
                   showInfoToast(t.plugin.executeFailed(error: e));
                 }
               },

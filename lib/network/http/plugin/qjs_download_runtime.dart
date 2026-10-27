@@ -85,7 +85,8 @@ Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
           runtimeName: runtimeName,
         );
         currentBundle = jsonDecode(currentBundleRaw) as String?;
-      } catch (_) {
+      } catch (e, st) {
+        logger.e(e, stackTrace: st);
         currentBundle = null;
       }
       if (currentBundle == null || currentBundle.trim().isEmpty) {

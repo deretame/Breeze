@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/util/debouncer.dart';
+import 'package:zephyr/main.dart';
 
 /// 管理阅读页临时使用的屏幕方向。
 ///
@@ -59,7 +60,8 @@ class ReaderOrientationController {
   ) async {
     try {
       await previousRequest;
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // 一个方向请求失败时，后续请求仍然应该继续执行。
     }
     await SystemChrome.setPreferredOrientations(orientations);

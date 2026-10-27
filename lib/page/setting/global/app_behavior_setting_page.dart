@@ -11,6 +11,7 @@ import 'package:zephyr/service/lifecycle/foreground_task/foreground_task_service
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 import 'package:zephyr/widgets/gesture_lock.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/main.dart';
 
 @RoutePage()
 class AppBehaviorSettingPage extends StatefulWidget {
@@ -185,6 +186,7 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           }
           showSuccessToast(t.common.settingSaved);
         } catch (e) {
+          logger.e(e);
           cubit.updateState(
             (current) => current.copyWith(androidKeepAliveEnabled: !value),
           );

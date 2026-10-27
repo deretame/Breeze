@@ -247,6 +247,7 @@ class _RealSrSettingPageState extends State<RealSrSettingPage> {
     try {
       file = await openFile(acceptedTypeGroups: [typeGroup]);
     } catch (e) {
+      logger.e(e);
       showErrorToast('${t.realSr.modelImportFailed}: $e');
       return;
     }

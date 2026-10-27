@@ -10,6 +10,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/main.dart';
 
 /// 批量导出选中的已下载漫画。
 ///
@@ -44,7 +45,8 @@ Future<int> batchExportComics({
     try {
       await exportComic(comic.id, exportType, from, path: exportPath);
       success++;
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // 继续导出下一本，避免单本失败导致整批中断。
     }
   }

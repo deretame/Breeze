@@ -8,6 +8,7 @@ import 'package:zephyr/page/plugin_store/cubit/plugin_store_cubit.dart';
 import 'package:zephyr/page/plugin_store/widgets/cloud_plugin_card.dart';
 import 'package:zephyr/page/plugin_store/widgets/plugin_store_status_banner.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/main.dart';
 
 @RoutePage()
 class PluginStorePage extends StatelessWidget {
@@ -273,6 +274,7 @@ class _PluginStorePageContentState extends State<_PluginStorePageContent> {
         fileName: file.name,
       );
     } catch (e) {
+      logger.e(e);
       showErrorToast(t.plugin.readLocalPluginFailed(error: e.toString()));
     }
   }

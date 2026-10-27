@@ -104,6 +104,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
           nextResults[pluginId] = result;
           nextErrors.remove(pluginId);
         } catch (error) {
+          logger.e(error);
           if (!_isSearchActive(searchVersion)) {
             return;
           }
@@ -156,6 +157,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
       nextResults[pluginId] = await _searchSingleSource(pluginId, baseEvent);
       nextErrors.remove(pluginId);
     } catch (error) {
+      logger.e(error);
       nextResults[pluginId] = const <dynamic>[];
       nextErrors[pluginId] = normalizeSearchErrorMessage(error);
     } finally {

@@ -158,7 +158,8 @@ class _InfoColumnState extends State<_InfoColumn> {
       if (foundDirectory && mounted) {
         setState(() => _storageSize = totalSize);
       }
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // ignore errors
     }
   }
@@ -187,7 +188,8 @@ class _InfoColumnState extends State<_InfoColumn> {
             encodePath(path: comicId),
           ),
         );
-      } catch (_) {
+      } catch (e, st) {
+        logger.e(e, stackTrace: st);
         // Rust 编码服务尚未就绪时，仍继续统计历史目录。
       }
 

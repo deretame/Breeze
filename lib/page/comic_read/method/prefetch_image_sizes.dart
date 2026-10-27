@@ -5,6 +5,7 @@ import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_j
 import 'package:zephyr/page/comic_read/method/image_header_size.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/main.dart';
 
 /// 后台预解析章节图片尺寸并写入 [ImageSizeCubit]。
 ///
@@ -54,7 +55,8 @@ Future<void> prefetchChapterImageSizes({
       // 与 ImageDisplay 上报保持一致：存渲染宽度 + 等比高度。
       final displayHeight = contentWidth * (rawSize.height / rawSize.width);
       imageSizeCubit.updateSize(cacheIndex, Size(contentWidth, displayHeight));
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // 单张失败不影响其余图片。
     }
   }

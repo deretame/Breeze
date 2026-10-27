@@ -138,6 +138,7 @@ Future<void> installApk(String apkUrl) async {
 
       OpenFile.open(apkFilePath);
     } catch (e) {
+      logger.e(e);
       showErrorToast(t.update.apkDownloadFailed);
     }
   } else {
@@ -196,7 +197,6 @@ Future<void> checkUpdate(BuildContext context) async {
       }
     }
   } catch (e) {
-    logger.e(e);
     return;
   }
 

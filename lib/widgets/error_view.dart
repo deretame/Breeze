@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 class ErrorView extends StatelessWidget {
   final String errorMessage;
@@ -26,12 +28,27 @@ class ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(
-            errorMessage,
-            maxLines: 5,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 20),
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SelectableText(
+                  errorMessage,
+                  maxLines: 5,
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              IconButton(
+                tooltip: t.common.copy,
+                icon: const Icon(Icons.copy_outlined),
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: errorMessage));
+                  showSuccessToast(t.common.copy);
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           if (loginPluginId.isNotEmpty)

@@ -15,6 +15,7 @@ import 'package:zephyr/page/comic_read/widgets/modes/read_mode_utils.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_adapter.dart';
 import 'package:zephyr/page/download/adapters/download_chapter_matcher.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/main.dart';
 
 /// 边界解析动作的结果。
 ///
@@ -718,7 +719,8 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
       if (isVisible) {
         _setTransitionStatus(order, SeamlessTransitionStatus.ready);
       }
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       if (isVisible) {
         _setTransitionStatus(order, SeamlessTransitionStatus.error);
       }
@@ -787,7 +789,8 @@ class ReaderSeamlessCubit extends Cubit<ReaderSeamlessState> {
         );
       }
       return const SeamlessBoundaryResult(didLoad: true);
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       _setTransitionStatus(nextOrder, SeamlessTransitionStatus.error);
       return const SeamlessBoundaryResult();
     } finally {

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart' show navigatorKey;
+import 'package:zephyr/main.dart';
 
 /// 墨水屏整屏刷新。
 ///

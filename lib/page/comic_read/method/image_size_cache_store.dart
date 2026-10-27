@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/main.dart';
 
 class ImageSizeCacheStore {
   static const List<int> _magic = <int>[0x50, 0x53, 0x48, 0x31]; // PSH1
@@ -143,7 +144,8 @@ class ImageSizeCacheStore {
       final bytes = await file.readAsBytes();
       final payload = await _decodePayload(bytes);
       if (payload != null) return payload;
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // ignore
     }
     await _safeDelete(file);
@@ -155,7 +157,8 @@ class ImageSizeCacheStore {
       if (await file.exists()) {
         await file.delete();
       }
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // ignore
     }
   }

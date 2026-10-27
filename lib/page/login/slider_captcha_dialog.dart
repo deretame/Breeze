@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/main.dart';
 
 /// 拼图滑块题目（插件 createFnPath 返回）。
 class SliderChallenge {
@@ -215,6 +216,7 @@ class _SliderCaptchaDialogState extends State<SliderCaptchaDialog> {
         _track.clear();
       });
     } catch (e) {
+      logger.e(e);
       if (!mounted) return;
       setState(() {
         _phase = _SliderPhase.failed;
@@ -336,6 +338,7 @@ class _SliderCaptchaDialogState extends State<SliderCaptchaDialog> {
       if (!mounted) return;
       Navigator.of(context).pop(pass);
     } catch (e) {
+      logger.e(e);
       if (!mounted) return;
       // 一次一题：失败即换新题（旧 token 已作废）。
       setState(() {

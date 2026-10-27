@@ -5,6 +5,7 @@ import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/main.dart';
 
 /// Discover 页状态：插件列表 + 全局 info 快照引用 + 开关状态。
 ///
@@ -126,6 +127,7 @@ class DiscoverCubit extends Cubit<DiscoverState> {
     try {
       await _service.setEnabled(uuid, enabled);
     } catch (e) {
+      logger.e(e);
       showErrorToast(
         enabled
             ? t.discover.pluginEnableFailed(error: e)

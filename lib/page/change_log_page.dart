@@ -6,10 +6,10 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/network/http/wind_http.dart';
 import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/service/update/json/github_release_json.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/main.dart';
 
 const _proxyReleasesApiUrl = '$breezeGithubApi/repos/deretame/Breeze/releases';
 const _githubReleasesApiUrl =
@@ -88,7 +88,8 @@ class _ChangelogPageState extends State<ChangelogPage> {
             newData = githubReleaseJsonFromJson(response.text);
             break;
           }
-        } catch (_) {
+        } catch (e, st) {
+          logger.e(e, stackTrace: st);
           // 当前请求失败时继续尝试下一个地址。
         }
       }
@@ -117,6 +118,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
         throw Exception('所有更新日志请求地址均失败');
       }
     } catch (e) {
+      logger.e(e);
       if (mounted) {
         // 如果是首次加载出错，显示全屏错误页面
         if (_releases.isEmpty && refresh) {

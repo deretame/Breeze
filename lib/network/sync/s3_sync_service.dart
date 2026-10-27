@@ -5,6 +5,7 @@ import 'package:minio/minio.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 
 import 'package:zephyr/network/sync/comic_sync_core.dart';
+import 'package:zephyr/main.dart';
 
 class S3SyncService implements ComicSyncRemoteAdapter {
   S3SyncService(this._settings) : _minio = _createMinio(_settings) {
@@ -52,6 +53,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
           return value;
         }
       } on MinioS3Error catch (e) {
+        logger.e(e);
         final code = e.error?.code;
         if (code == 'NoSuchKey' ||
             code == 'NotFound' ||
@@ -148,6 +150,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
       try {
         await _minio.removeObject(_settings.syncSetting.s3Setting.bucket, path);
       } on MinioS3Error catch (e) {
+        logger.e(e);
         final code = e.error?.code;
         if (code == 'NoSuchKey' ||
             code == 'NotFound' ||

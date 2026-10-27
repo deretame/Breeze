@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:zephyr/main.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -44,7 +45,8 @@ class MyTaskHandler extends TaskHandler {
             notificationText: message,
           );
         }
-      } catch (_) {
+      } catch (e, st) {
+        logger.e(e, stackTrace: st);
         // 忽略解析失败的异常数据
       }
     }

@@ -602,7 +602,8 @@ Map<String, dynamic> _buildDownloadRecordJson(Map<String, dynamic> args) {
           jsonDecode(existingRaw['cover'] as String) as Map,
         ),
       );
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       // 旧记录封面 JSON 损坏时继续使用当前详情的空封面。
     }
   }

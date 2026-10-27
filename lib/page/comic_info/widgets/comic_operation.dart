@@ -13,6 +13,7 @@ import 'package:zephyr/i18n/strings.g.dart';
 
 import 'package:zephyr/widgets/dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/main.dart';
 
 class ComicOperationWidget extends StatefulWidget {
   final NormalComicAllInfo normalInfo;
@@ -199,6 +200,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         showSuccessToast(t.comicInfo.removedFromCollection);
       }
     } catch (error) {
+      logger.e(error);
       if (!mounted) {
         return;
       }
@@ -243,6 +245,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             : t.comicInfo.cloudUncollectSuccess,
       );
     } on FavoriteWorkflowUnsupportedException catch (error) {
+      logger.e(error);
       if (mounted) {
         final reason = error.reason.trim();
         showInfoToast(
@@ -250,12 +253,14 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         );
       }
     } on FavoriteWorkflowIncompleteException catch (error) {
+      logger.e(error);
       if (mounted) {
         showInfoToast(
           error.result.message ?? t.comicInfo.cloudCollectIncomplete,
         );
       }
     } catch (error) {
+      logger.e(error);
       if (!mounted) {
         return;
       }
@@ -312,6 +317,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         next ? t.comicInfo.likeSuccess : t.comicInfo.unlikeSuccess,
       );
     } catch (error) {
+      logger.e(error);
       if (!mounted) {
         return;
       }

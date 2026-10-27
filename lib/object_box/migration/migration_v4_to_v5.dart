@@ -5,6 +5,7 @@ import 'package:zephyr/main.dart' hide objectbox;
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/worker_isolate.dart';
+import 'package:zephyr/main.dart';
 
 Future<void> migrateV4ToV5() async {
   final dbRootPath = await getDbPath();

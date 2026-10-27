@@ -10,6 +10,7 @@ import 'package:zephyr/page/plugin_home/plugin_home_bundle.dart';
 import 'package:zephyr/page/plugin_home/plugin_home_memory.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/main.dart';
 
 /// 插件首页 / 云端收藏 bundle 加载 cubit。
 ///
@@ -152,6 +153,7 @@ class PluginHomeCubit extends Cubit<PluginHomeState> {
           ),
         );
       } catch (e) {
+        logger.e(e);
         if (isClosed) {
           return;
         }
@@ -235,6 +237,7 @@ class PluginHomeCubit extends Cubit<PluginHomeState> {
         ),
       );
     } catch (e) {
+      logger.e(e);
       if (isClosed) {
         return;
       }

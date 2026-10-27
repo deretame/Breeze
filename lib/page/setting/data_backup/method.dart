@@ -129,6 +129,7 @@ Future<BackupConfig> readBackupConfig(
       zipPath: cacheZipFile.path,
     );
   } catch (e) {
+    logger.e(e);
     showErrorToast('${t.dataBackup.importFailed}：$e');
     // 失败时清理全部临时目录，避免残留
     try {

@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_device_id.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/main.dart';
 
 const String kComicFolderRootPath = '';
 

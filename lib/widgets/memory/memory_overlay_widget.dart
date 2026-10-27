@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:zephyr/util/memory/simple_memory_monitor.dart';
+import 'package:zephyr/main.dart';
 
 /// 内存监控悬浮窗组件
 ///
@@ -119,6 +120,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
         _updateOverlay();
       }
     } catch (e) {
+      logger.e(e);
       // 忽略错误
     }
   }

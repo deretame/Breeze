@@ -67,7 +67,8 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
     String? taskKey;
     try {
       taskKey = task.taskInfo?.taskKey;
-    } catch (_) {
+    } catch (e, st) {
+      logger.e(e, stackTrace: st);
       taskKey = null;
     }
     // 先排空在途后台写再删，防止旧写复活已删除的任务。

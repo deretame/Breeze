@@ -85,6 +85,7 @@ class _AboutPageState extends State<AboutPage> {
         });
       }
     } catch (e) {
+      logger.e(e);
       if (mounted) {
         setState(() {
           _contributorsError = t.about.networkError;

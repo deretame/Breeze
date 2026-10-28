@@ -9,6 +9,19 @@
 
 同时感谢 **[Aidoku](https://github.com/Aidoku/Aidoku)** 项目，本项目在 iOS / macOS 图片超分实现上参考了 Aidoku 的思路与模型处理方式。
 
+### ☕ 个人赞助（爱发电）
+
+☕ 感谢每一位愿意赞助的朋友，你们的支持是持续维护下去的重要动力。
+
+👉 **[前往爱发电赞助作者：afdian.com/a/deretame](https://afdian.com/a/deretame)**
+
+<img src="asset/aifadian.jpg" alt="爱发电赞助二维码" width="260" />
+
+> - 赞助不能兑换具体权益，比如指定开发某个功能、要求优先修复问题，所有的需求和反馈都会按正常流程处理，不会因为赞助而区别对待。
+> - 项目的发展方向、功能规划和更新节奏由作者综合决定，赞助不附带决策权，还请理解。
+> - 赞助是出于自愿的赠与，请根据自身情况量力而行，赞助后无法退还。
+> - 最后，作者会尽力保持维护，但无法承诺永远不断更。如果某天更新放缓，还请多包涵；你的支持一定会让更新更有动力。
+
 ## 项目开发指南
 
 插件开发相关文档请参阅：<https://deretame.github.io/plugin-dev-docs/>
@@ -19,7 +32,9 @@
 <summary>当前已收录插件（点击展开）</summary>
 
 <!-- PLUGIN-LIST-START -->
+
 包子漫画 Plus 禁漫天堂 漫画柜 NoyAcg 如漫画 蛙漫3 包子漫画 哔咔漫画 拷贝漫画 e-hentai hitomi JJ漫画 Komiic nhentai 绅士漫画 WEBTOON 再漫画 拷贝漫画 Copy4000 코사이트 MangaDex WeebCentral zero搬运网 Hanime1 iKun 资源 禁漫天堂(mumushu0501-boop) Toomics
+
 <!-- PLUGIN-LIST-END -->
 
 </details>

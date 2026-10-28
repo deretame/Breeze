@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_list/cubit/comic_list_cubit.dart';
 import 'package:zephyr/page/discover/service/discover_router.dart';
@@ -9,7 +10,7 @@ import 'package:zephyr/page/plugin_home/cubit/plugin_home_cubit.dart';
 import 'package:zephyr/page/plugin_home/plugin_home_bundle.dart';
 import 'package:zephyr/page/plugin_home/view/plugin_home_tab_body.dart';
 import 'package:zephyr/page/plugin_home/view/plugin_selector_dialog.dart';
-import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 插件通用 TabView 骨架：标题位即 TabBar（可横滑）+ 右上随 tab 切换 + 左侧图标切插件。
@@ -185,9 +186,16 @@ class _PluginHomeScaffoldState extends State<PluginHomeScaffold>
                         ],
                       ),
                     ),
-              actions: activeTab == null
-                  ? const []
-                  : _buildActions(context, state, activeTab, activeIndex),
+              actions: [
+                if (activeTab != null)
+                  ..._buildActions(context, state, activeTab, activeIndex),
+                IconButton(
+                  tooltip: t.discover.search,
+                  icon: const Icon(Icons.search),
+                  onPressed: () => _search(context, state),
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
             body: _buildBody(context, state),
             floatingActionButton: FloatingActionButton(
@@ -247,6 +255,20 @@ class _PluginHomeScaffoldState extends State<PluginHomeScaffold>
           ),
         ),
     ];
+  }
+
+  void _search(BuildContext context, PluginHomeState state) {
+    final source = state.pluginId;
+    if (source.isEmpty) {
+      showErrorToast(t.discover.noPluginForSearch);
+      return;
+    }
+    context.pushRoute(
+      SearchRoute(
+        searchState: SearchStates.initial().copyWith(from: source),
+        aggregateMode: true,
+      ),
+    );
   }
 
   IconData _iconForAction(Map<String, dynamic> action) {

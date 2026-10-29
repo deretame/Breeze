@@ -3,21 +3,20 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_guard/permission_guard.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/network/utils/github_proxy.dart';
+import 'package:zephyr/service/update/json/github_release_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/network/utils/github_proxy.dart';
-import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/widgets/toast.dart';
-
-import 'package:zephyr/main.dart';
-import 'package:zephyr/service/update/json/github_release_json.dart';
 
 Future<String> getAppVersion() async {
   String version = 'Unknown';
@@ -212,7 +211,7 @@ Future<void> checkUpdate(BuildContext context) async {
         return AlertDialog(
           title: Text(t.update.newVersion),
           content: SingleChildScrollView(
-            child: MarkdownBlock(data: '# $cloudVersion\n$releaseNotes'),
+            child: MarkdownBlock(data: releaseNotes),
           ),
           actions: [
             TextButton(

@@ -75,10 +75,23 @@ pub(crate) fn setup_log_to_console(enabled: bool) {
             not(target_os = "macos")
         ))]
         {
+            use crate::api::logger::ChunkedStdoutMakeWriter;
+
+            // Windows 上 `flutter run` 通过异步管道抓子进程 stdout/stderr，
+            // Rust std 对异步 handle 的同步写在返回 PENDING 时直接 rtabort
+            // ("I/O error: operation failed to complete synchronously", #81357)。
+            // `BoxedFormatter` 把整个 7 行盒子拼成一个字符串一次 `write!`，
+            // 巨型单行（base64 dataURL）下单次 `NtWriteFile` 远超管道缓冲，
+            // 风暴时必 abort。Dart 侧 `logger` 是逐行小写入所以从不触发。
+            // 本 writer 输出字节与原来完全一致（格式、内容一字不落），
+            // 只是业务线程把整盒推入队列就返回，唯一的后台写线程按 4KB
+            // 分块写 stdout，每块都能同步完成（见 ChunkedStdoutMakeWriter）。
             init_subscriber(
-                tracing_subscriber::registry()
-                    .with(filter)
-                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true })),
+                tracing_subscriber::registry().with(filter).with(
+                    fmt::layer()
+                        .with_writer(ChunkedStdoutMakeWriter)
+                        .event_format(BoxedFormatter { with_ansi: true }),
+                ),
                 "Desktop",
             );
             tracing::info!("Tracing initialized (Desktop)");

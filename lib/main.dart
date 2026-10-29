@@ -211,6 +211,11 @@ Future<void> main(List<String> args) async {
       // 附加线程信息和堆栈，增强原生层（Rust/C++）错误分析
       options.attachThreads = true;
       options.attachStacktrace = true;
+
+      // 插件常把 `data:` URL（整张 base64 图）当 URL 传给 fetch：
+      // 失败后巨型 base64 会污染异常文本、面包屑与附件。展示层清洗，
+      // 原始异常与重试判定不受影响。
+      options.beforeSend = sanitizeSentryEvent;
     },
     appRunner: () async {
       try {

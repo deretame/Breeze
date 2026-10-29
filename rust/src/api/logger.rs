@@ -12,6 +12,85 @@ use tracing_subscriber::registry::LookupSpan;
 static LAST_LOG_TIME: OnceLock<Mutex<Instant>> = OnceLock::new();
 pub static FLUTTER_KDEBUGMOD: AtomicBool = AtomicBool::new(false);
 
+/// Windows `flutter run` 管道写保护：`flutter tool` 用异步管道抓子进程
+/// stdout/stderr，而 Rust std 在 Windows 上对异步 handle 的同步写会直接
+/// rtabort（`handle.rs:283,332` "operation failed to complete synchronously",
+/// #81357）。单次 `NtWriteFile` 越大越容易返回 PENDING——而 `BoxedFormatter`
+/// 把整个 7 行盒子（含 base64 dataURL 巨型单行）拼成一个字符串一次 `write!`，
+/// 远超管道缓冲，一打风暴就 abort。Dart 侧 `logger`/`debugPrint` 是逐行小写入
+///（且 debug 下走 VM Service 通道），每次都同步完成，所以从不触发。
+/// 本 writer 把整盒原样推入队列就返回（业务线程零阻塞），唯一的后台写线程
+/// 按 4KB 分块写 stdout：输出字节与原来完全一致（格式、内容一字不落），
+/// 只是拆成多次小系统调用，每块都能同步完成，不触发 abort；单线程天然保序，
+/// 多线程盒子不交错。
+pub struct ChunkedStdoutMakeWriter;
+
+pub struct ChunkedStdoutWriter {
+    buffer: Vec<u8>,
+}
+
+type LogQueue = std::sync::mpsc::SyncSender<Vec<u8>>;
+const STDOUT_CHUNK_BYTES: usize = 4096;
+/// 有界防爆：风暴时队列满则丢弃该盒，保证业务线程永远不阻塞。
+const LOG_QUEUE_CAP: usize = 1024;
+
+fn log_queue() -> &'static LogQueue {
+    static QUEUE: std::sync::OnceLock<LogQueue> = std::sync::OnceLock::new();
+    QUEUE.get_or_init(|| {
+        let (tx, rx) = std::sync::mpsc::sync_channel::<Vec<u8>>(LOG_QUEUE_CAP);
+        std::thread::Builder::new()
+            .name("windcore-stdout-drain".to_string())
+            .spawn(move || {
+                let stdout = std::io::stdout();
+                // 锁的粒度是“一个盒子”：写完即放。抱着锁过 `recv` 会把
+                // `stdout.lock()` 永久占住，连测试框架自己的输出都被堵死。
+                for boxed in rx {
+                    let mut handle = stdout.lock();
+                    for chunk in boxed.chunks(STDOUT_CHUNK_BYTES) {
+                        if std::io::Write::write_all(&mut handle, chunk).is_err() {
+                            return;
+                        }
+                    }
+                    let _ = std::io::Write::flush(&mut handle);
+                }
+            })
+            .expect("failed to spawn stdout drain thread");
+        tx
+    })
+}
+
+impl<'a> MakeWriter<'a> for ChunkedStdoutMakeWriter {
+    type Writer = ChunkedStdoutWriter;
+
+    fn make_writer(&'a self) -> Self::Writer {
+        ChunkedStdoutWriter { buffer: Vec::new() }
+    }
+
+    fn make_writer_for(&'a self, _meta: &tracing::Metadata<'_>) -> Self::Writer {
+        ChunkedStdoutWriter { buffer: Vec::new() }
+    }
+}
+
+impl std::io::Write for ChunkedStdoutWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.buffer.extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+impl Drop for ChunkedStdoutWriter {
+    fn drop(&mut self) {
+        if self.buffer.is_empty() {
+            return;
+        }
+        let _ = log_queue().try_send(std::mem::take(&mut self.buffer));
+    }
+}
+
 pub struct BoxedFormatter {
     pub with_ansi: bool,
 }

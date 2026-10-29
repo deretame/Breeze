@@ -126,11 +126,67 @@ class TersePrettyPrinter extends PrettyPrinter {
   }
 }
 
+/// release + 配了日志转发（logAddress）时，Rust 会下发完整 JS 堆栈供远端诊断，
+/// 本地展示只取 `Error:` 一行（见 [simplifyPluginErrorText]）；
+/// debug 下原样展示方便调试。默认关闭，由 main 启动时按环境设置。
+bool _simplifyPluginErrorDisplay = false;
+
+/// 设置插件错误展示是否精简堆栈。登录解析永远走原文，不受此开关影响。
+void setSimplifyPluginErrorDisplay({required bool enabled}) {
+  _simplifyPluginErrorDisplay = enabled;
+}
+
+/// 从插件调用错误原文中提取展示用的一行。
+///
+/// JS 抛错（常见）：取 `[stack-hook] Error: ...` 行 `Error:` 起的内容，
+/// 丢掉首行 `[bundle:...]` 作用域前缀与后续 `at ...` 堆栈；
+/// Rust 侧抛错（少见、无堆栈）：取首个非空非 `at` 行，去掉 `[bundle:...]` 前缀。
+/// 只给 UI 展示用；登录解析与重试判定仍用原文。
+String simplifyPluginErrorText(String raw) {
+  var fallback = '';
+  for (final line in raw.split('\n')) {
+    final text = line.trim();
+    if (text.isEmpty) {
+      continue;
+    }
+    final hookIndex = text.indexOf('[stack-hook]');
+    if (hookIndex >= 0) {
+      final rest = text.substring(hookIndex + '[stack-hook]'.length).trim();
+      if (rest.isNotEmpty) {
+        return rest;
+      }
+      continue;
+    }
+    if (text.startsWith('at ')) {
+      continue;
+    }
+    if (fallback.isEmpty) {
+      fallback = _stripPluginErrorScope(text);
+    }
+  }
+  return fallback.isEmpty ? raw.trim() : fallback;
+}
+
+/// 去掉行首 `[bundle:... fn:... ...]` 作用域前缀；不像作用域则原样返回。
+String _stripPluginErrorScope(String text) {
+  // 作用域里 args 常带 `args:[{...}]`，内部就有 `]`；
+  // 用贪婪匹配吃到最后一个 `]`，保证整个前缀一次剥掉。
+  final match = RegExp(r'^\[(?:bundle:|source:|fn:).*\]\s*').firstMatch(text);
+  if (match == null) {
+    return text;
+  }
+  final rest = text.substring(match.end).trim();
+  return rest.isEmpty ? text : rest;
+}
+
 String normalizeSearchErrorMessage(Object error) {
-  final message = switch (error) {
-    AnyhowException(message: final message) => message.trim(),
-    _ => error.toString().trim(),
-  };
+  final raw = switch (error) {
+    AnyhowException(message: final message) => message,
+    _ => error.toString(),
+  }.trim();
+  final message = _simplifyPluginErrorDisplay
+      ? simplifyPluginErrorText(raw)
+      : raw;
   // Dart 侧 StateError.toString() 会带上 `Bad state: ` 前缀，直接展示会让用户困惑；
   // 与 plugin_cloud_download_utils 的 _rawPluginErrorText 保持一致，展示前剥掉。
   var result = message;

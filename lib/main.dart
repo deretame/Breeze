@@ -263,10 +263,14 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
+    // debug 下展示原样，方便调试；精简开关默认关闭。
+    setSimplifyPluginErrorDisplay(enabled: false);
     // 配置http代理，方便开发测试
     await _tryApplyHttpProxyFromEnv();
   } else {
     setQjsErrorStackEnabled(enabled: false);
+    // release 下 logAddress 已知后才决定是否精简，见下方日志转发分支。
+    setSimplifyPluginErrorDisplay(enabled: false);
   }
 
   // 初始化前台任务
@@ -349,7 +353,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 设置日志转发（包含flutter和qjs的日志）
   final logAddress = globalSettingCubit.state.logAddress;
 
-  if (logAddress.isNotEmpty) {
+  if (logAddress.trim().isNotEmpty) {
     if (!kDebugMode) {
       logger = Logger(
         printer: TersePrettyPrinter(),
@@ -359,6 +363,12 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     }
     setLogHttpForward(url: logAddress);
     setQjsErrorStackEnabled(enabled: true);
+    // release + 配了日志转发：Rust 下发完整堆栈供远端诊断，
+    // 本地展示精简为 Error: 一行；debug 下保持原样。
+    // 调试页改动 logAddress 后重启生效。
+    if (!kDebugMode) {
+      setSimplifyPluginErrorDisplay(enabled: true);
+    }
   }
 
   // 关掉缓存定时清理(rust端)

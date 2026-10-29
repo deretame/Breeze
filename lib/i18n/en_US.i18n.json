@@ -1152,6 +1152,7 @@
     "updatedMinutesAgo": "Checked $minutes min ago",
     "updatedHoursAgo": "Checked $hours h ago",
     "updatedDaysAgo": "Checked $days d ago",
+    "lastReadJustNow": "Just read",
     "lastReadMinutesAgo": "Read $minutes min ago",
     "lastReadHoursAgo": "Read $hours h ago",
     "lastReadDaysAgo": "Read $days d ago",

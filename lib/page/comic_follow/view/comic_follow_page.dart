@@ -722,7 +722,7 @@ class _FollowCard extends StatelessWidget {
     }
     final diff = DateTime.now().toLocal().difference(lastRead.toLocal());
     if (diff.inMinutes < 1) {
-      return t.comicFollow.updatedJustNow;
+      return t.comicFollow.lastReadJustNow;
     }
     if (diff.inHours < 1) {
       return t.comicFollow.lastReadMinutesAgo(minutes: diff.inMinutes);

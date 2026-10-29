@@ -3611,6 +3611,9 @@ class Translations$comicFollow$zh_CN {
 	/// zh-CN: '$days 天前检测'
 	String updatedDaysAgo({required Object days}) => '${days} 天前检测';
 
+	/// zh-CN: '刚刚读过'
+	String get lastReadJustNow => '刚刚读过';
+
 	/// zh-CN: '$minutes 分钟前读过'
 	String lastReadMinutesAgo({required Object minutes}) => '${minutes} 分钟前读过';
 
@@ -5189,6 +5192,7 @@ extension on Translations {
 			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前检测',
 			'comicFollow.updatedHoursAgo' => ({required Object hours}) => '${hours} 小时前检测',
 			'comicFollow.updatedDaysAgo' => ({required Object days}) => '${days} 天前检测',
+			'comicFollow.lastReadJustNow' => '刚刚读过',
 			'comicFollow.lastReadMinutesAgo' => ({required Object minutes}) => '${minutes} 分钟前读过',
 			'comicFollow.lastReadHoursAgo' => ({required Object hours}) => '${hours} 小时前读过',
 			'comicFollow.lastReadDaysAgo' => ({required Object days}) => '${days} 天前读过',

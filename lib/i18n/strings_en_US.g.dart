@@ -1394,6 +1394,7 @@ class _Translations$comicFollow$en_US extends Translations$comicFollow$zh_CN {
 	@override String updatedMinutesAgo({required Object minutes}) => 'Checked ${minutes} min ago';
 	@override String updatedHoursAgo({required Object hours}) => 'Checked ${hours} h ago';
 	@override String updatedDaysAgo({required Object days}) => 'Checked ${days} d ago';
+	@override String get lastReadJustNow => 'Just read';
 	@override String lastReadMinutesAgo({required Object minutes}) => 'Read ${minutes} min ago';
 	@override String lastReadHoursAgo({required Object hours}) => 'Read ${hours} h ago';
 	@override String lastReadDaysAgo({required Object days}) => 'Read ${days} d ago';
@@ -2726,6 +2727,7 @@ extension on TranslationsEnUs {
 			'comicFollow.updatedMinutesAgo' => ({required Object minutes}) => 'Checked ${minutes} min ago',
 			'comicFollow.updatedHoursAgo' => ({required Object hours}) => 'Checked ${hours} h ago',
 			'comicFollow.updatedDaysAgo' => ({required Object days}) => 'Checked ${days} d ago',
+			'comicFollow.lastReadJustNow' => 'Just read',
 			'comicFollow.lastReadMinutesAgo' => ({required Object minutes}) => 'Read ${minutes} min ago',
 			'comicFollow.lastReadHoursAgo' => ({required Object hours}) => 'Read ${hours} h ago',
 			'comicFollow.lastReadDaysAgo' => ({required Object days}) => 'Read ${days} d ago',

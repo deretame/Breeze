@@ -1153,6 +1153,7 @@
     "updatedMinutesAgo": "$minutes 分钟前检测",
     "updatedHoursAgo": "$hours 小时前检测",
     "updatedDaysAgo": "$days 天前检测",
+    "lastReadJustNow": "刚刚读过",
     "lastReadMinutesAgo": "$minutes 分钟前读过",
     "lastReadHoursAgo": "$hours 小时前读过",
     "lastReadDaysAgo": "$days 天前读过",

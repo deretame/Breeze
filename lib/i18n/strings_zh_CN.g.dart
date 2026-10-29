@@ -458,6 +458,18 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后预留安全区，避免内容遮挡'
 	String get notchAdaptationSubtitle => '开启后预留安全区，避免内容遮挡';
 
+	/// zh-CN: '显示插件首页'
+	String get showPluginHome => '显示插件首页';
+
+	/// zh-CN: '关闭后隐藏底部导航的首页页签'
+	String get showPluginHomeSubtitle => '关闭后隐藏底部导航的首页页签';
+
+	/// zh-CN: '显示云收藏'
+	String get showPluginCloudFavorite => '显示云收藏';
+
+	/// zh-CN: '关闭后隐藏底部导航的云收藏页签'
+	String get showPluginCloudFavoriteSubtitle => '关闭后隐藏底部导航的云收藏页签';
+
 	/// zh-CN: '内容与网络'
 	String get contentAndNetwork => '内容与网络';
 
@@ -4182,6 +4194,10 @@ extension on Translations {
 			'settings.amoledSubtitle' => '开启后使用纯黑背景，适配 AMOLED',
 			'settings.notchAdaptation' => '异形屏适配',
 			'settings.notchAdaptationSubtitle' => '开启后预留安全区，避免内容遮挡',
+			'settings.showPluginHome' => '显示插件首页',
+			'settings.showPluginHomeSubtitle' => '关闭后隐藏底部导航的首页页签',
+			'settings.showPluginCloudFavorite' => '显示云收藏',
+			'settings.showPluginCloudFavoriteSubtitle' => '关闭后隐藏底部导航的云收藏页签',
 			'settings.contentAndNetwork' => '内容与网络',
 			'settings.content' => '内容',
 			'settings.network' => '网络',
@@ -4575,12 +4591,12 @@ extension on Translations {
 			'reader.networkStatus' => '网络状态',
 			'reader.networkStatusSubtitle' => 'Linux 下可能不准确',
 			'reader.battery' => '电量',
+			_ => null,
+		} ?? switch (path) {
 			'reader.time' => '时间',
 			'reader.verticalPositionTop' => '顶部',
 			'reader.verticalPositionBottom' => '底部',
 			'reader.horizontalPositionLeft' => '左侧',
-			_ => null,
-		} ?? switch (path) {
 			'reader.horizontalPositionCenter' => '居中',
 			'reader.horizontalPositionRight' => '右侧',
 			'reader.readingDirectionLtr' => '从左到右',
@@ -5089,12 +5105,12 @@ extension on Translations {
 			'discover.browseInstall' => '浏览安装',
 			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
+			_ => null,
+		} ?? switch (path) {
 			'discover.pluginCapability' => '插件能力',
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => '插件调试加载失败，已回退数据库: ${error}',
 			'searchResult.enterPageNumber' => '输入页数',

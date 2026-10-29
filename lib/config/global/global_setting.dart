@@ -130,6 +130,8 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @LocaleConverter() @Default(Locale('zh', 'CN')) Locale locale,
     @Default(true) bool localeFollowsSystem,
     @Default(0) int welcomePageNum,
+    @Default(true) bool showPluginHome,
+    @Default(true) bool showPluginCloudFavorite,
     @Default(SyncSettingState()) SyncSettingState syncSetting,
     @Default([]) List<String> maskedKeywords,
     @Default(true) bool socks5ProxyEnabled,

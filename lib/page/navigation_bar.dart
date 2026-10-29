@@ -41,10 +41,11 @@ class NavigationBar extends StatefulWidget {
 }
 
 class _NavigationBarState extends State<NavigationBar> {
-  // _controller 用于控制手机底部导航栏和页面切换
+  // _controller 用于控制手机底部导航栏和页面切换（下标为过滤后的可见位置）
   late PersistentTabController _controller;
-  // _selectedIndex 用于控制平板侧边导航栏和页面切换
-  int _selectedIndex = 0;
+  // _selectedBaseIndex 为规范 tab 序号：0 首页，1 云收藏，2 书架，3 发现，4 更多；
+  // 前两项可隐藏，实际位置由可见列表换算，切换开关时保持指向同一页面。
+  int _selectedBaseIndex = 0;
   final debouncer = Debouncer(milliseconds: 100);
   DateTime? _lastLoginNavigateAt;
   String? _lastLoginPluginId;
@@ -72,13 +73,13 @@ class _NavigationBarState extends State<NavigationBar> {
       }
     });
     final globalSetting = objectbox.userSettingBox.get(1)!.globalSetting;
-    final configuredIndex = globalSetting.welcomePageNum;
-    final initialIndex = _normalizeWelcomePageIndex(
-      configuredIndex,
-      _buildPageList().length,
+    _selectedBaseIndex = _normalizeBaseIndex(
+      globalSetting.welcomePageNum,
+      globalSetting,
     );
-    _controller = PersistentTabController(initialIndex: initialIndex);
-    _selectedIndex = initialIndex;
+    _controller = PersistentTabController(
+      initialIndex: _visibleIndexOf(_selectedBaseIndex, globalSetting),
+    );
     ForegroundTaskService.instance.init();
 
     initializeNotificationsOnce();
@@ -116,17 +117,23 @@ class _NavigationBarState extends State<NavigationBar> {
     // 开关仅在 Android 展示；同时限制实际行为，避免同步设置后影响其他平台。
     final backPressExitEnabled =
         Platform.isAndroid && globalSettingState.backPressExitEnabled;
-    final pageList = _buildPageList();
-    final navBarItems = _navBarItems();
-    final navRailDestinations = _navRailDestinations();
-    final normalizedIndex = _normalizeWelcomePageIndex(
-      _selectedIndex,
-      pageList.length,
+    // 隐藏中的当前页可能是被开关关掉的 tab，这里把它挪到最近的可见页，
+    // 可见位置由规范序号换算，确保开关切换时仍停留在同一页面。
+    _selectedBaseIndex = _normalizeBaseIndex(
+      _selectedBaseIndex,
+      globalSettingState,
     );
-    if (normalizedIndex != _selectedIndex) {
-      _selectedIndex = normalizedIndex;
-      _controller.index = normalizedIndex;
+    final visibleBaseIndexes = _visibleBaseIndexes(globalSettingState);
+    final visibleIndex = _visibleIndexOf(
+      _selectedBaseIndex,
+      globalSettingState,
+    );
+    if (_controller.index != visibleIndex) {
+      _controller.index = visibleIndex;
     }
+    final pageList = _buildPageList(globalSettingState);
+    final navBarItems = _navBarItems(globalSettingState);
+    final navRailDestinations = _navRailDestinations(globalSettingState);
     return MemoryOverlayWidget(
       enabled: globalSettingState.enableMemoryDebug,
       updateInterval: Duration(seconds: 1),
@@ -139,12 +146,14 @@ class _NavigationBarState extends State<NavigationBar> {
             return _buildTabletLayout(
               pageList: pageList,
               navRailDestinations: navRailDestinations,
+              visibleBaseIndexes: visibleBaseIndexes,
             );
           } else {
             return _buildMobileLayout(
               pageList: pageList,
               navBarItems: navBarItems,
               backPressExitEnabled: backPressExitEnabled,
+              visibleBaseIndexes: visibleBaseIndexes,
             );
           }
         },
@@ -156,6 +165,7 @@ class _NavigationBarState extends State<NavigationBar> {
     required List<Widget> pageList,
     required List<PersistentBottomNavBarItem> navBarItems,
     required bool backPressExitEnabled,
+    required List<int> visibleBaseIndexes,
   }) {
     return PersistentTabView(
       context,
@@ -173,7 +183,7 @@ class _NavigationBarState extends State<NavigationBar> {
       navBarStyle: NavBarStyle.style3,
       onItemSelected: (index) {
         setState(() {
-          _selectedIndex = index;
+          _selectedBaseIndex = visibleBaseIndexes[index];
         });
       },
     );
@@ -181,10 +191,11 @@ class _NavigationBarState extends State<NavigationBar> {
 
   Future<bool> _handleExitOnBack(BuildContext? _) async {
     // 子页面仍由 PersistentTabView 的内部 Navigator 正常返回；只有当前 tab
-    // 已无子页面时才会调用这里。
-    if (_controller.index != 0) {
+    // 已无子页面时才会调用这里。首页隐藏时第一个可见页即视为首页。
+    final globalSetting = context.read<GlobalSettingCubit>().state;
+    if (_visibleIndexOf(_selectedBaseIndex, globalSetting) != 0) {
       setState(() {
-        _selectedIndex = 0;
+        _selectedBaseIndex = _visibleBaseIndexes(globalSetting).first;
       });
       _controller.jumpToTab(0);
       return false;
@@ -199,7 +210,10 @@ class _NavigationBarState extends State<NavigationBar> {
   Widget _buildTabletLayout({
     required List<Widget> pageList,
     required List<NavigationRailDestination> navRailDestinations,
+    required List<int> visibleBaseIndexes,
   }) {
+    final visibleIndex = visibleBaseIndexes.indexOf(_selectedBaseIndex);
+    final selectedIndex = visibleIndex < 0 ? 0 : visibleIndex;
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: Row(
@@ -208,10 +222,10 @@ class _NavigationBarState extends State<NavigationBar> {
             children: [
               Expanded(
                 child: NavigationRail(
-                  selectedIndex: _selectedIndex,
+                  selectedIndex: selectedIndex,
                   onDestinationSelected: (int index) {
                     setState(() {
-                      _selectedIndex = index;
+                      _selectedBaseIndex = visibleBaseIndexes[index];
                       _controller.index = index;
                     });
                   },
@@ -239,62 +253,99 @@ class _NavigationBarState extends State<NavigationBar> {
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: IndexedStack(index: _selectedIndex, children: pageList),
+            child: IndexedStack(index: selectedIndex, children: pageList),
           ),
         ],
       ),
     );
   }
 
-  // 底部导航栏的配置项
-  List<PersistentBottomNavBarItem> _navBarItems() {
+  // 底部导航栏的配置项（按开关过滤，只保留可见 tab）
+  List<PersistentBottomNavBarItem> _navBarItems(GlobalSettingState state) {
     final activeColor = context.theme.colorScheme.primary;
     final inactiveColor = context.textColor;
 
+    final homeItem = PersistentBottomNavBarItem(
+      icon: Icon(Icons.home_outlined),
+      title: t.navigation.home,
+      activeColorPrimary: activeColor,
+      inactiveColorPrimary: inactiveColor,
+    );
+    final cloudFavoriteItem = PersistentBottomNavBarItem(
+      icon: Icon(Icons.cloud_outlined),
+      title: t.oldHome.cloudFavorite,
+      activeColorPrimary: activeColor,
+      inactiveColorPrimary: inactiveColor,
+    );
+    final bookshelfItem = PersistentBottomNavBarItem(
+      icon: Icon(Icons.menu_book_sharp),
+      title: t.navigation.bookshelf,
+      activeColorPrimary: activeColor,
+      inactiveColorPrimary: inactiveColor,
+    );
+    final discoverItem = PersistentBottomNavBarItem(
+      icon: Icon(Icons.explore_outlined),
+      title: t.navigation.discover,
+      activeColorPrimary: activeColor,
+      inactiveColorPrimary: inactiveColor,
+    );
+    final moreItem = PersistentBottomNavBarItem(
+      icon: Icon(Icons.apps_outlined),
+      title: t.navigation.more,
+      activeColorPrimary: activeColor,
+      inactiveColorPrimary: inactiveColor,
+    );
+    return _pickVisible(state, [
+      homeItem,
+      cloudFavoriteItem,
+      bookshelfItem,
+      discoverItem,
+      moreItem,
+    ]);
+  }
+
+  /// 规范序号转可见位置；隐藏中的序号回退到最近的可见页。
+  int _visibleIndexOf(int baseIndex, GlobalSettingState state) {
+    final visible = _visibleBaseIndexes(state);
+    final position = visible.indexOf(baseIndex);
+    if (position >= 0) return position;
+    // 向前找最近可见，找不到则取第一个可见（至少书架/发现/更多常驻）。
+    for (var candidate = baseIndex - 1; candidate >= 0; candidate--) {
+      final fallback = visible.indexOf(candidate);
+      if (fallback >= 0) return fallback;
+    }
+    return 0;
+  }
+
+  /// 规范序号归一化：越界钳制，隐藏中的序号挪到最近可见页。
+  int _normalizeBaseIndex(int rawIndex, GlobalSettingState state) {
+    final visible = _visibleBaseIndexes(state);
+    if (visible.isEmpty) return 2;
+    if (visible.contains(rawIndex)) return rawIndex;
+    return visible[_visibleIndexOf(rawIndex, state)];
+  }
+
+  /// 当前可见 tab 的规范序号列表，顺序与页面列表一致。
+  List<int> _visibleBaseIndexes(GlobalSettingState state) {
     return [
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.home_outlined),
-        title: t.navigation.home,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.cloud_outlined),
-        title: t.oldHome.cloudFavorite,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.menu_book_sharp),
-        title: t.navigation.bookshelf,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.explore_outlined),
-        title: t.navigation.discover,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.apps_outlined),
-        title: t.navigation.more,
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
+      if (state.showPluginHome) 0,
+      if (state.showPluginCloudFavorite) 1,
+      2,
+      3,
+      4,
     ];
   }
 
-  int _normalizeWelcomePageIndex(int rawIndex, int pageCount) {
-    if (pageCount <= 0) {
-      return 0;
-    }
-    return rawIndex.clamp(0, pageCount - 1);
+  List<T> _pickVisible<T>(GlobalSettingState state, List<T> all) {
+    final visible = _visibleBaseIndexes(state);
+    return [for (final baseIndex in visible) all[baseIndex]];
   }
 
-  // 为平板侧边导航栏生成 NavigationRailDestination
-  List<NavigationRailDestination> _navRailDestinations() {
-    return [
+  // 为平板侧边导航栏生成 NavigationRailDestination（按开关过滤）
+  List<NavigationRailDestination> _navRailDestinations(
+    GlobalSettingState state,
+  ) {
+    final all = [
       NavigationRailDestination(
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
@@ -321,16 +372,18 @@ class _NavigationBarState extends State<NavigationBar> {
         label: Text(t.navigation.more),
       ),
     ];
+    return _pickVisible(state, all);
   }
 
-  List<Widget> _buildPageList() {
-    return const [
+  List<Widget> _buildPageList(GlobalSettingState state) {
+    const all = [
       PluginHomePage(),
       PluginCloudFavoritePage(),
       BookshelfPage(),
       DiscoverPage(),
       MorePage(),
     ];
+    return _pickVisible(state, all);
   }
 
   Future<void> _autoSync({bool force = false}) async {

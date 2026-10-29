@@ -654,6 +654,8 @@ Map<String, Map<String, dynamic>> _extractSyncableSettingsBlocks(
       'isAMOLED': json['isAMOLED'],
       'seedColor': json['seedColor'],
       'locale': json['locale'],
+      'showPluginHome': json['showPluginHome'],
+      'showPluginCloudFavorite': json['showPluginCloudFavorite'],
       'welcomePageNum': json['welcomePageNum'],
     },
     _libraryBlockName: <String, dynamic>{

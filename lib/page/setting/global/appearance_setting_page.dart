@@ -36,7 +36,8 @@ class AppearanceSettingPage extends StatelessWidget {
           _comicReadTopContainer(state, cubit),
           _isAMOLED(state, cubit),
           _detailLayout(state, cubit),
-          _reverseChapters(state, cubit),
+          _showPluginHome(state, cubit),
+          _showPluginCloudFavorite(state, cubit),
           _fontSettings(context),
         ],
       ),
@@ -179,18 +180,33 @@ class AppearanceSettingPage extends StatelessWidget {
     );
   }
 
-  Widget _reverseChapters(GlobalSettingState state, GlobalSettingCubit cubit) {
+  Widget _showPluginHome(GlobalSettingState state, GlobalSettingCubit cubit) {
     return SwitchListTile(
-      secondary: const Icon(Icons.swap_vert_outlined),
-      title: Text(t.settings.reverseChapters),
-      subtitle: Text(t.settings.reverseChaptersSubtitle),
+      secondary: const Icon(Icons.home_outlined),
+      title: Text(t.settings.showPluginHome),
+      subtitle: Text(t.settings.showPluginHomeSubtitle),
       thumbIcon: kSettingSwitchThumbIcon,
-      value: state.bookshelfSetting.reverseChapters,
+      value: state.showPluginHome,
       onChanged: (bool value) {
-        cubit.updateBookshelfSetting(
-          (current) => current.copyWith(reverseChapters: value),
+        cubit.updateState((current) => current.copyWith(showPluginHome: value));
+      },
+    );
+  }
+
+  Widget _showPluginCloudFavorite(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.cloud_outlined),
+      title: Text(t.settings.showPluginCloudFavorite),
+      subtitle: Text(t.settings.showPluginCloudFavoriteSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.showPluginCloudFavorite,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(showPluginCloudFavorite: value),
         );
-        showSuccessToast(t.common.settingSaved);
       },
     );
   }

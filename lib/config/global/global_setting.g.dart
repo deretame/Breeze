@@ -23,6 +23,8 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
       : const LocaleConverter().fromJson(json['locale'] as String),
   localeFollowsSystem: json['localeFollowsSystem'] as bool? ?? true,
   welcomePageNum: (json['welcomePageNum'] as num?)?.toInt() ?? 0,
+  showPluginHome: json['showPluginHome'] as bool? ?? true,
+  showPluginCloudFavorite: json['showPluginCloudFavorite'] as bool? ?? true,
   syncSetting: json['syncSetting'] == null
       ? const SyncSettingState()
       : SyncSettingState.fromJson(json['syncSetting'] as Map<String, dynamic>),
@@ -102,6 +104,8 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'locale': const LocaleConverter().toJson(instance.locale),
       'localeFollowsSystem': instance.localeFollowsSystem,
       'welcomePageNum': instance.welcomePageNum,
+      'showPluginHome': instance.showPluginHome,
+      'showPluginCloudFavorite': instance.showPluginCloudFavorite,
       'syncSetting': instance.syncSetting.toJson(),
       'maskedKeywords': instance.maskedKeywords,
       'socks5ProxyEnabled': instance.socks5ProxyEnabled,

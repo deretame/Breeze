@@ -24,23 +24,28 @@ class AppBehaviorSettingPage extends StatefulWidget {
 class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
   DesktopCloseBehavior _desktopCloseBehavior = DesktopCloseBehavior.ask;
 
-  List<String> _splashPageList() {
+  List<String> _splashPageList(GlobalSettingState state) {
     return [
-      t.navigation.home,
-      t.oldHome.cloudFavorite,
+      if (state.showPluginHome) t.navigation.home,
+      if (state.showPluginCloudFavorite) t.oldHome.cloudFavorite,
       t.navigation.bookshelf,
       t.navigation.discover,
       t.navigation.more,
     ];
   }
 
-  Map<String, int> _splashPageMap() {
+  Map<String, int> _splashPageMap(GlobalSettingState state) {
+    final labels = _splashPageList(state);
+    final visibleBaseIndexes = [
+      if (state.showPluginHome) 0,
+      if (state.showPluginCloudFavorite) 1,
+      2,
+      3,
+      4,
+    ];
+    assert(labels.length == visibleBaseIndexes.length);
     return {
-      t.navigation.home: 0,
-      t.oldHome.cloudFavorite: 1,
-      t.navigation.bookshelf: 2,
-      t.navigation.discover: 3,
-      t.navigation.more: 4,
+      for (var i = 0; i < labels.length; i++) labels[i]: visibleBaseIndexes[i],
     };
   }
 
@@ -86,11 +91,14 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
   }
 
   Widget _splashPage(GlobalSettingState state, GlobalSettingCubit cubit) {
-    final splashPageList = _splashPageList();
-    final splashPage = _splashPageMap();
-    final selectedIndex = splashPageList.isEmpty
-        ? 0
-        : state.welcomePageNum.clamp(0, splashPageList.length - 1);
+    final splashPageList = _splashPageList(state);
+    final splashPage = _splashPageMap(state);
+    // welcomePageNum 存的是规范序号；隐藏中的序号回退到第一个可见页。
+    final selectedBaseIndex = splashPage.containsValue(state.welcomePageNum)
+        ? state.welcomePageNum
+        : splashPage.values.first;
+    final selectedLabel =
+        splashPageList[splashPage.values.toList().indexOf(selectedBaseIndex)];
 
     final splashPageItems = {for (final page in splashPageList) page: page};
 
@@ -99,11 +107,11 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
       title: Text(t.settings.splashPage),
       subtitle: Text(t.settings.splashPageSubtitle),
       trailing: FluentDropdown<String>(
-        value: splashPageList[selectedIndex],
-        displayValue: splashPageList[selectedIndex],
+        value: selectedLabel,
+        displayValue: selectedLabel,
         items: splashPageItems,
         onChanged: (String value) {
-          if (value == splashPageList[selectedIndex]) return;
+          if (value == selectedLabel) return;
           showSuccessToast(t.common.restartToTakeEffect);
           cubit.updateState(
             (current) => current.copyWith(welcomePageNum: splashPage[value]!),

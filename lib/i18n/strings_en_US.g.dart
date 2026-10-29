@@ -224,6 +224,10 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get amoledSubtitle => 'Use pure black background for AMOLED screens';
 	@override String get notchAdaptation => 'Notch adaptation';
 	@override String get notchAdaptationSubtitle => 'Reserve safe area to avoid content being obscured';
+	@override String get showPluginHome => 'Show plugin home';
+	@override String get showPluginHomeSubtitle => 'Hide the home tab in the bottom navigation when off';
+	@override String get showPluginCloudFavorite => 'Show cloud favorites';
+	@override String get showPluginCloudFavoriteSubtitle => 'Hide the cloud favorites tab in the bottom navigation when off';
 	@override String get contentAndNetwork => 'Content & Network';
 	@override String get content => 'Content';
 	@override String get network => 'Network';
@@ -1728,6 +1732,10 @@ extension on TranslationsEnUs {
 			'settings.amoledSubtitle' => 'Use pure black background for AMOLED screens',
 			'settings.notchAdaptation' => 'Notch adaptation',
 			'settings.notchAdaptationSubtitle' => 'Reserve safe area to avoid content being obscured',
+			'settings.showPluginHome' => 'Show plugin home',
+			'settings.showPluginHomeSubtitle' => 'Hide the home tab in the bottom navigation when off',
+			'settings.showPluginCloudFavorite' => 'Show cloud favorites',
+			'settings.showPluginCloudFavoriteSubtitle' => 'Hide the cloud favorites tab in the bottom navigation when off',
 			'settings.contentAndNetwork' => 'Content & Network',
 			'settings.content' => 'Content',
 			'settings.network' => 'Network',
@@ -2121,12 +2129,12 @@ extension on TranslationsEnUs {
 			'reader.networkStatus' => 'Network status',
 			'reader.networkStatusSubtitle' => 'May be inaccurate on Linux',
 			'reader.battery' => 'Battery',
+			_ => null,
+		} ?? switch (path) {
 			'reader.time' => 'Time',
 			'reader.verticalPositionTop' => 'Top',
 			'reader.verticalPositionBottom' => 'Bottom',
 			'reader.horizontalPositionLeft' => 'Left',
-			_ => null,
-		} ?? switch (path) {
 			'reader.horizontalPositionCenter' => 'Center',
 			'reader.horizontalPositionRight' => 'Right',
 			'reader.readingDirectionLtr' => 'Left to right',
@@ -2635,12 +2643,12 @@ extension on TranslationsEnUs {
 			'discover.noPluginForSearch' => 'No plugins available, cannot search',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
 			'discover.pluginCapability' => 'Plugin Capability',
+			_ => null,
+		} ?? switch (path) {
 			'discover.disabled' => 'Disabled',
 			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
 			'searchResult.enterPageNumber' => 'Enter page number',
 			'searchResult.pleaseEnterNumber' => 'Please enter a number',

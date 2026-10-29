@@ -82,6 +82,7 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
           if (Platform.isAndroid) _backPressExit(state, cubit),
           _appLockSetting(state, cubit),
           _autoFollowOnCollect(state, cubit),
+          _autoCloudCollectOnLocalFavorite(state, cubit),
           _leftHandMode(state, cubit),
           _clickCoverToStartReading(state, cubit),
           const SizedBox(height: 32),
@@ -134,6 +135,25 @@ class _AppBehaviorSettingPageState extends State<AppBehaviorSettingPage> {
       onChanged: (bool value) {
         cubit.updateState(
           (current) => current.copyWith(autoFollowOnCollect: value),
+        );
+        showSuccessToast(t.common.settingSaved);
+      },
+    );
+  }
+
+  Widget _autoCloudCollectOnLocalFavorite(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.cloud_sync_outlined),
+      title: Text(t.settings.autoCloudCollectOnLocalFavorite),
+      subtitle: Text(t.settings.autoCloudCollectOnLocalFavoriteSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.autoCloudCollectOnLocalFavorite,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(autoCloudCollectOnLocalFavorite: value),
         );
         showSuccessToast(t.common.settingSaved);
       },

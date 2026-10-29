@@ -668,6 +668,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '开启后收藏漫画时将自动加入追更列表'
 	String get autoFollowOnCollectSubtitle => '开启后收藏漫画时将自动加入追更列表';
 
+	/// zh-CN: '本地收藏自动云收藏'
+	String get autoCloudCollectOnLocalFavorite => '本地收藏自动云收藏';
+
+	/// zh-CN: '开启后本地收藏成功、且云端未收藏时自动触发一次云收藏'
+	String get autoCloudCollectOnLocalFavoriteSubtitle => '开启后本地收藏成功、且云端未收藏时自动触发一次云收藏';
+
 	/// zh-CN: '左手优化'
 	String get leftHandMode => '左手优化';
 
@@ -1417,6 +1423,9 @@ class Translations$comicInfo$zh_CN {
 
 	/// zh-CN: '禁止评论'
 	String get commentForbiddenTitle => '禁止评论';
+
+	/// zh-CN: '选择本地收藏文件夹'
+	String get chooseLocalFavoriteFolders => '选择本地收藏文件夹';
 
 	/// zh-CN: '返回'
 	String get back => '返回';
@@ -4267,6 +4276,8 @@ extension on Translations {
 			'settings.appLockSubtitle' => '开启后进入应用需要验证',
 			'settings.autoFollowOnCollect' => '收藏自动追更',
 			'settings.autoFollowOnCollectSubtitle' => '开启后收藏漫画时将自动加入追更列表',
+			'settings.autoCloudCollectOnLocalFavorite' => '本地收藏自动云收藏',
+			'settings.autoCloudCollectOnLocalFavoriteSubtitle' => '开启后本地收藏成功、且云端未收藏时自动触发一次云收藏',
 			'settings.leftHandMode' => '左手优化',
 			'settings.leftHandModeSubtitle' => '开启后将悬浮按钮等操作按钮移到屏幕左侧',
 			'settings.clickCoverToStartReading' => '点击封面开始阅读',
@@ -4511,6 +4522,7 @@ extension on Translations {
 			'comicInfo.confirmUncollectContent' => '此项操作会删除该漫画在所有文件夹的记录，是否确认删除？',
 			'comicInfo.commentForbidden' => '该插件暂不支持此功能',
 			'comicInfo.commentForbiddenTitle' => '禁止评论',
+			'comicInfo.chooseLocalFavoriteFolders' => '选择本地收藏文件夹',
 			'comicInfo.back' => '返回',
 			'comicInfo.exportTitle' => '选择导出方式',
 			'comicInfo.exportSubtitle' => '请选择将漫画导出为压缩包还是文件夹：',
@@ -4591,11 +4603,11 @@ extension on Translations {
 			'reader.infoDisplay' => '信息项显示',
 			'reader.pageNumber' => '页数',
 			'reader.pageNumberSubtitle' => '显示当前页/总页数',
+			_ => null,
+		} ?? switch (path) {
 			'reader.networkStatus' => '网络状态',
 			'reader.networkStatusSubtitle' => 'Linux 下可能不准确',
 			'reader.battery' => '电量',
-			_ => null,
-		} ?? switch (path) {
 			'reader.time' => '时间',
 			'reader.verticalPositionTop' => '顶部',
 			'reader.verticalPositionBottom' => '底部',
@@ -5105,11 +5117,11 @@ extension on Translations {
 			'discover.resetOrder' => '恢复默认顺序',
 			'discover.noPlugins' => '暂无可用插件，去插件商店安装一个吧~',
 			'discover.pluginStore' => '插件商店',
+			_ => null,
+		} ?? switch (path) {
 			'discover.browseInstall' => '浏览安装',
 			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
-			_ => null,
-		} ?? switch (path) {
 			'discover.pluginCapability' => '插件能力',
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',

@@ -21,6 +21,7 @@ import 'package:zephyr/page/bookshelf/method/method.dart';
 import 'package:zephyr/page/bookshelf/models/models.dart';
 import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/page/bookshelf/widgets/folder_target_picker.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_empty_view.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_grid_shimmer.dart';
 import 'package:zephyr/page/bookshelf/widgets/bookshelf_loading_view.dart';
@@ -537,10 +538,11 @@ class _FolderShelfPageContentState extends State<_FolderShelfPageContent>
             }
 
             final comicType = _comicEntryTypeOf(state.mode);
-            final folderSyncIdMap = _buildSyncIdMap(state.mode);
+            final folderSyncIdMap = buildFolderSyncIdMap(
+              _folderTypeOf(state.mode),
+            );
             String folderPathOf(ComicFolder f) =>
                 ComicFolderService.folderPath(f, syncIdMap: folderSyncIdMap);
-
             final listPadding = EdgeInsets.fromLTRB(
               10,
               state.selectionMode ? 10 : (state.isRoot ? 10 : 64),
@@ -1035,11 +1037,11 @@ Future<void> _showTargetFolderDialog(
   required ValueChanged<Set<String>> onConfirmed,
 }) async {
   final state = context.read<FolderShelfBloc>().state;
+  final mode = state.mode;
   final sourceFolderPaths = selectedFolderPaths ?? state.selectedFolderPaths;
-  final allFolders = ComicFolderService.listAllFolders(
-    _folderTypeOf(state.mode),
-  );
-  final syncIdMap = _buildSyncIdMap(state.mode);
+  final type = _folderTypeOf(mode);
+  final allFolders = ComicFolderService.listAllFolders(type);
+  final syncIdMap = buildFolderSyncIdMap(type);
   final pathMap = {
     for (final folder in allFolders)
       folder.syncId: ComicFolderService.folderPath(
@@ -1047,8 +1049,6 @@ Future<void> _showTargetFolderDialog(
         syncIdMap: syncIdMap,
       ),
   };
-  final forest = _buildFolderForest(allFolders, pathMap);
-
   // 排除当前所在文件夹（仅自身）、被选中的文件夹及其子树
   final forbiddenSyncIds = <String>{};
   for (final path in sourceFolderPaths) {
@@ -1056,217 +1056,25 @@ Future<void> _showTargetFolderDialog(
       (f) => pathMap[f.syncId] == path,
     );
     if (folder != null) {
-      _collectForbiddenSyncIds(folder.syncId, allFolders, forbiddenSyncIds);
+      collectForbiddenSyncIds(folder.syncId, allFolders, forbiddenSyncIds);
     }
   }
   final currentPath = state.currentPath;
-  final isRoot = currentPath.isEmpty;
-  final currentFolder = isRoot
+  final currentFolder = currentPath.isEmpty
       ? null
       : allFolders.firstWhereOrNull((f) => pathMap[f.syncId] == currentPath);
-  final currentSyncId = currentFolder?.syncId;
 
-  final selectedPaths = <String>{};
-
-  await showDialog<void>(
-    context: context,
-    builder: (dialogContext) {
-      final expandedPaths = <String>{};
-      return StatefulBuilder(
-        builder: (ctx, setState) {
-          void togglePath(String path) {
-            setState(() {
-              if (selectedPaths.contains(path)) {
-                selectedPaths.remove(path);
-              } else {
-                selectedPaths.add(path);
-              }
-            });
-          }
-
-          return AlertDialog(
-            title: Text(t.bookshelf.selectTargetFolder),
-            content: SizedBox(
-              width: 380,
-              height: 400,
-              child: ListView(
-                children: [
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const SizedBox(width: 48),
-                    title: Text(t.common.root),
-                    trailing: Checkbox(
-                      value: selectedPaths.contains(kComicFolderRootPath),
-                      onChanged: isRoot
-                          ? null
-                          : (_) => togglePath(kComicFolderRootPath),
-                    ),
-                    onTap: isRoot
-                        ? null
-                        : () => togglePath(kComicFolderRootPath),
-                  ),
-                  const Divider(),
-                  ...forest.map(
-                    (node) => _buildFolderTreeTile(
-                      context: ctx,
-                      node: node,
-                      pathMap: pathMap,
-                      expandedPaths: expandedPaths,
-                      forbiddenSyncIds: forbiddenSyncIds,
-                      currentSyncId: currentSyncId,
-                      selectedPaths: selectedPaths,
-                      onToggleExpand: (path) => setState(() {
-                        if (expandedPaths.contains(path)) {
-                          expandedPaths.remove(path);
-                        } else {
-                          expandedPaths.add(path);
-                        }
-                      }),
-                      onSelect: togglePath,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(t.common.cancel),
-              ),
-              FilledButton(
-                onPressed: selectedPaths.isEmpty
-                    ? null
-                    : () {
-                        Navigator.of(dialogContext).pop();
-                        onConfirmed(selectedPaths);
-                      },
-                child: Text(t.common.ok),
-              ),
-            ],
-          );
-        },
-      );
-    },
+  // 根目录下移动/复制时禁用根目录目标（留在原地无意义）。
+  final picked = await showFolderTargetPicker(
+    context,
+    type: type,
+    allowCreateFolder: false,
+    disabledSyncIds: forbiddenSyncIds,
+    rootEnabled: currentPath.isNotEmpty,
+    currentSyncId: currentFolder?.syncId,
   );
-}
-
-class _FolderNode {
-  final ComicFolder folder;
-  final List<_FolderNode> children;
-
-  _FolderNode(this.folder) : children = [];
-}
-
-List<_FolderNode> _buildFolderForest(
-  List<ComicFolder> folders,
-  Map<String, String> pathMap,
-) {
-  final sorted = folders.toList()
-    ..sort(
-      (a, b) => (pathMap[a.syncId] ?? '').compareTo(pathMap[b.syncId] ?? ''),
-    );
-  final map = <String, _FolderNode>{};
-  final roots = <_FolderNode>[];
-  for (final folder in sorted) {
-    final node = _FolderNode(folder);
-    map[folder.syncId] = node;
-    final parentSyncId = folder.parentSyncId;
-    if (parentSyncId == null || parentSyncId.isEmpty) {
-      roots.add(node);
-    } else {
-      map[parentSyncId]?.children.add(node);
-    }
-  }
-  return roots;
-}
-
-Map<String, ComicFolder> _buildSyncIdMap(ShelfPageMode mode) {
-  final allFolders = ComicFolderService.listAllFolders(_folderTypeOf(mode));
-  return {for (final folder in allFolders) folder.syncId: folder};
-}
-
-void _collectForbiddenSyncIds(
-  String syncId,
-  List<ComicFolder> allFolders,
-  Set<String> result,
-) {
-  if (!result.add(syncId)) return;
-  for (final child in allFolders) {
-    if (child.parentSyncId == syncId) {
-      _collectForbiddenSyncIds(child.syncId, allFolders, result);
-    }
-  }
-}
-
-Widget _buildFolderTreeTile({
-  required BuildContext context,
-  required _FolderNode node,
-  required Map<String, String> pathMap,
-  required Set<String> expandedPaths,
-  required Set<String> forbiddenSyncIds,
-  required String? currentSyncId,
-  required Set<String> selectedPaths,
-  required ValueChanged<String> onToggleExpand,
-  required ValueChanged<String> onSelect,
-}) {
-  final path = pathMap[node.folder.syncId] ?? '/${node.folder.name}';
-  final syncId = node.folder.syncId;
-  final isExpanded = expandedPaths.contains(path);
-  final isCurrentPath = currentSyncId != null && syncId == currentSyncId;
-  final isForbidden = isCurrentPath || forbiddenSyncIds.contains(syncId);
-  final hasChildren = node.children.isNotEmpty;
-  final theme = Theme.of(context);
-  final isSelected = selectedPaths.contains(path) && !isForbidden;
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      ListTile(
-        dense: true,
-        contentPadding: EdgeInsets.zero,
-        leading: hasChildren
-            ? IconButton(
-                icon: Icon(
-                  isExpanded ? Icons.expand_more : Icons.chevron_right,
-                ),
-                onPressed: () => onToggleExpand(path),
-              )
-            : const SizedBox(width: 48),
-        title: Text(
-          node.folder.name,
-          style: isForbidden ? TextStyle(color: theme.disabledColor) : null,
-        ),
-        trailing: Checkbox(
-          value: isSelected,
-          onChanged: isForbidden ? null : (_) => onSelect(path),
-        ),
-        onTap: isForbidden ? null : () => onSelect(path),
-      ),
-      if (isExpanded)
-        Padding(
-          padding: const EdgeInsets.only(left: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: node.children
-                .map(
-                  (child) => _buildFolderTreeTile(
-                    context: context,
-                    node: child,
-                    pathMap: pathMap,
-                    expandedPaths: expandedPaths,
-                    forbiddenSyncIds: forbiddenSyncIds,
-                    currentSyncId: currentSyncId,
-                    selectedPaths: selectedPaths,
-                    onToggleExpand: onToggleExpand,
-                    onSelect: onSelect,
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-    ],
-  );
+  if (picked == null || picked.isEmpty) return;
+  onConfirmed(picked);
 }
 
 ComicFolderType _folderTypeOf(ShelfPageMode mode) {

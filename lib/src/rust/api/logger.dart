@@ -6,8 +6,9 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `BoxedFormatter`, `LogHttpWriter`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `drop`, `flush`, `fmt`, `format_event`, `make_writer_for`, `make_writer`, `write`
+// These functions are ignored because they are not marked as `pub`: `log_queue`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `BoxedFormatter`, `ChunkedStdoutMakeWriter`, `ChunkedStdoutWriter`, `LogHttpWriter`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `drop`, `drop`, `flush`, `flush`, `fmt`, `format_event`, `make_writer_for`, `make_writer_for`, `make_writer`, `make_writer`, `write`, `write`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<LogHttpMakeWriter>>
 abstract class LogHttpMakeWriter implements RustOpaqueInterface {

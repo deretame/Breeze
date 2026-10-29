@@ -6,6 +6,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/service/comic_link_service.dart';
+import 'package:zephyr/page/bookshelf/service/comic_folder_service.dart';
 import 'package:zephyr/util/json/json_sanitize.dart';
 import 'package:zephyr/util/path_util.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
@@ -35,9 +36,8 @@ Future<bool> toggleLocalComicFavorite({
   required NormalComicAllInfo normalInfo,
   bool showToast = true,
 }) async {
-  final comicInfo = normalInfo.comicInfo;
   final pluginId = (from).trim();
-  final key = '$pluginId:${comicInfo.id}';
+  final key = '$pluginId:${normalInfo.comicInfo.id}';
   final now = DateTime.now().toUtc();
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
@@ -53,6 +53,37 @@ Future<bool> toggleLocalComicFavorite({
       // showSuccessToast('已取消本地收藏');
     }
     return false;
+  }
+
+  _ensureLocalFavoriteRecord(pluginId: pluginId, normalInfo: normalInfo);
+
+  // 新收藏默认添加一条根目录链接
+  ComicLinkService.addComic(key, null, ComicFolderType.favorite);
+
+  if (showToast) {
+    // showSuccessToast('成功收藏到本地');
+  }
+  return true;
+}
+
+/// 确保本地收藏本体记录存在且未删除，返回 uniqueKey。
+///
+/// 已收藏时直接返回；从未收藏或曾取消时重建记录（复活保留 createdAt）。
+/// 只负责本体记录，不动文件夹链接，调用方自行决定链接去向。
+String _ensureLocalFavoriteRecord({
+  required String pluginId,
+  required NormalComicAllInfo normalInfo,
+}) {
+  final comicInfo = normalInfo.comicInfo;
+  final key = '$pluginId:${comicInfo.id}';
+  final now = DateTime.now().toUtc();
+  final unified = objectbox.unifiedFavoriteBox
+      .query(UnifiedComicFavorite_.uniqueKey.equals(key))
+      .build()
+      .findFirst();
+
+  if (unified != null && unified.deleted == false) {
+    return key;
   }
 
   final createdAt = unified?.createdAt ?? now;
@@ -76,12 +107,88 @@ Future<bool> toggleLocalComicFavorite({
       schemaVersion: 2,
     ),
   );
+  return key;
+}
 
-  // 新收藏默认添加一条根目录链接
-  ComicLinkService.addComic(key, null, ComicFolderType.favorite);
+/// 该漫画当前所在的本地收藏文件夹路径集合（含根目录 [kComicFolderRootPath]）。
+Set<String> localComicFavoriteFolderPaths({
+  required String from,
+  required String comicId,
+}) {
+  final key = '${(from).trim()}:$comicId';
+  final links = ComicLinkService.linksOfComic(key, ComicFolderType.favorite);
+  if (links.isEmpty) return <String>{};
+  final pathMap = _favoriteFolderPathMap();
+  final paths = <String>{};
+  for (final link in links) {
+    final folderSyncId = link.folderSyncId;
+    if (folderSyncId == null || folderSyncId.isEmpty) {
+      paths.add(kComicFolderRootPath);
+      continue;
+    }
+    final path = pathMap[folderSyncId];
+    // 文件夹已被彻底删除的孤儿链接：不纳入也不清理，保守保留。
+    if (path != null) paths.add(path);
+  }
+  return paths;
+}
 
-  if (showToast) {
-    // showSuccessToast('成功收藏到本地');
+Map<String, String> _favoriteFolderPathMap() {
+  final folders = ComicFolderService.listAllFolders(ComicFolderType.favorite);
+  final syncIdMap = {for (final folder in folders) folder.syncId: folder};
+  return {
+    for (final folder in folders)
+      folder.syncId: ComicFolderService.folderPath(
+        folder,
+        syncIdMap: syncIdMap,
+      ),
+  };
+}
+
+/// 长按选文件夹：把本地收藏的文件夹归属设置为 [targetPaths]。
+///
+/// 未收藏时先建本体再挂链接；已收藏时先加后删，避免中间零链接误删本体。
+/// 空集合不做任何改动并返回当前状态（调用方应禁用空确认，取消收藏走点按）。
+Future<bool> setLocalComicFavoriteFolders({
+  required String from,
+  required NormalComicAllInfo normalInfo,
+  required Set<String> targetPaths,
+}) async {
+  final pluginId = (from).trim();
+  final key = _ensureLocalFavoriteRecord(
+    pluginId: pluginId,
+    normalInfo: normalInfo,
+  );
+  if (targetPaths.isEmpty) {
+    return isLocalComicCollected(from: from, comicId: normalInfo.comicInfo.id);
+  }
+
+  // 先加后删：即使全不相交也不会出现零链接中间态。
+  for (final path in targetPaths) {
+    ComicLinkService.addComic(
+      key,
+      path.isEmpty ? null : path,
+      ComicFolderType.favorite,
+    );
+  }
+  final currentPaths = <String, String?>{};
+  final pathMap = _favoriteFolderPathMap();
+  for (final link in ComicLinkService.linksOfComic(
+    key,
+    ComicFolderType.favorite,
+  )) {
+    final folderSyncId = link.folderSyncId;
+    if (folderSyncId == null || folderSyncId.isEmpty) {
+      currentPaths[kComicFolderRootPath] = null;
+      continue;
+    }
+    final path = pathMap[folderSyncId];
+    if (path != null) currentPaths[path] = path;
+  }
+  for (final entry in currentPaths.entries) {
+    if (!targetPaths.contains(entry.key)) {
+      ComicLinkService.removeComic(key, entry.value, ComicFolderType.favorite);
+    }
   }
   return true;
 }

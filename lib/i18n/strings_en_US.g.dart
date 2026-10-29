@@ -294,6 +294,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get appLockSubtitle => 'Require verification when entering the app';
 	@override String get autoFollowOnCollect => 'Auto-follow on collect';
 	@override String get autoFollowOnCollectSubtitle => 'Automatically add comics to the follow list when favorited';
+	@override String get autoCloudCollectOnLocalFavorite => 'Auto cloud collect on local favorite';
+	@override String get autoCloudCollectOnLocalFavoriteSubtitle => 'After a successful local favorite, automatically trigger one cloud collect when not cloud-collected yet';
 	@override String get leftHandMode => 'Left-hand mode';
 	@override String get leftHandModeSubtitle => 'Move floating action buttons and other controls to the left side';
 	@override String get clickCoverToStartReading => 'Tap cover to start reading';
@@ -556,6 +558,7 @@ class _Translations$comicInfo$en_US extends Translations$comicInfo$zh_CN {
 	@override String get confirmUncollectContent => 'This will delete the comic from all folders. Continue?';
 	@override String get commentForbidden => 'This plugin does not support this feature';
 	@override String get commentForbiddenTitle => 'Comments disabled';
+	@override String get chooseLocalFavoriteFolders => 'Choose local favorite folders';
 	@override String get back => 'Back';
 	@override String get exportTitle => 'Choose export format';
 	@override String get exportSubtitle => 'Export as folder or zip archive:';
@@ -1803,6 +1806,8 @@ extension on TranslationsEnUs {
 			'settings.appLockSubtitle' => 'Require verification when entering the app',
 			'settings.autoFollowOnCollect' => 'Auto-follow on collect',
 			'settings.autoFollowOnCollectSubtitle' => 'Automatically add comics to the follow list when favorited',
+			'settings.autoCloudCollectOnLocalFavorite' => 'Auto cloud collect on local favorite',
+			'settings.autoCloudCollectOnLocalFavoriteSubtitle' => 'After a successful local favorite, automatically trigger one cloud collect when not cloud-collected yet',
 			'settings.leftHandMode' => 'Left-hand mode',
 			'settings.leftHandModeSubtitle' => 'Move floating action buttons and other controls to the left side',
 			'settings.clickCoverToStartReading' => 'Tap cover to start reading',
@@ -2047,6 +2052,7 @@ extension on TranslationsEnUs {
 			'comicInfo.confirmUncollectContent' => 'This will delete the comic from all folders. Continue?',
 			'comicInfo.commentForbidden' => 'This plugin does not support this feature',
 			'comicInfo.commentForbiddenTitle' => 'Comments disabled',
+			'comicInfo.chooseLocalFavoriteFolders' => 'Choose local favorite folders',
 			'comicInfo.back' => 'Back',
 			'comicInfo.exportTitle' => 'Choose export format',
 			'comicInfo.exportSubtitle' => 'Export as folder or zip archive:',
@@ -2127,11 +2133,11 @@ extension on TranslationsEnUs {
 			'reader.infoDisplay' => 'Info display',
 			'reader.pageNumber' => 'Page number',
 			'reader.pageNumberSubtitle' => 'Show current/total page count',
+			_ => null,
+		} ?? switch (path) {
 			'reader.networkStatus' => 'Network status',
 			'reader.networkStatusSubtitle' => 'May be inaccurate on Linux',
 			'reader.battery' => 'Battery',
-			_ => null,
-		} ?? switch (path) {
 			'reader.time' => 'Time',
 			'reader.verticalPositionTop' => 'Top',
 			'reader.verticalPositionBottom' => 'Bottom',
@@ -2641,11 +2647,11 @@ extension on TranslationsEnUs {
 			'discover.noPlugins' => 'No plugins available. Go to the plugin store to install one~',
 			'discover.pluginStore' => 'Plugin Store',
 			'discover.browseInstall' => 'Browse & Install',
+			_ => null,
+		} ?? switch (path) {
 			'discover.noPluginForSearch' => 'No plugins available, cannot search',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
 			'discover.pluginCapability' => 'Plugin Capability',
-			_ => null,
-		} ?? switch (path) {
 			'discover.disabled' => 'Disabled',
 			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',

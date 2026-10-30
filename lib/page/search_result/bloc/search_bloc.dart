@@ -172,6 +172,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             page: blocState.pagesCount,
             searchStates: event.searchStates.copyWith(
               pluginExtern: blocState.pluginExtern,
+              // 一次性标志：跳转成功即复位，后续翻页不再带。
+              isSearchAggregate: false,
             ),
           ),
         ),

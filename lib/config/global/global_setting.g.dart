@@ -61,6 +61,8 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
       : ProxySettingState.fromJson(
           json['proxySetting'] as Map<String, dynamic>,
         ),
+  searchBookmarkProbePages:
+      (json['searchBookmarkProbePages'] as num?)?.toInt() ?? 3,
   windowWidth: (json['windowWidth'] as num?)?.toDouble() ?? 1280.0,
   windowHeight: (json['windowHeight'] as num?)?.toDouble() ?? 720.0,
   windowX: (json['windowX'] as num?)?.toDouble() ?? 0,
@@ -130,6 +132,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(
   'clickCoverToStartReading': instance.clickCoverToStartReading,
   'searchHistory': instance.searchHistory,
   'proxySetting': instance.proxySetting.toJson(),
+  'searchBookmarkProbePages': instance.searchBookmarkProbePages,
   'windowWidth': instance.windowWidth,
   'windowHeight': instance.windowHeight,
   'windowX': instance.windowX,

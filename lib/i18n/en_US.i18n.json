@@ -1096,6 +1096,8 @@
     "deselectAll": "Deselect all",
     "jumped": "Jumped to page $page",
     "anchorMissing": "Anchor not on this page, located at page $page",
+    "probePages": "Probe pages forward",
+    "probePagesSubtitle": "When the anchor is not on the landed page, probe at most N pages forward (then 1 page backward)",
     "deleted": "Bookmark deleted"
   },
   "comicList": {

@@ -153,6 +153,8 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool clickCoverToStartReading,
     @Default([]) List<String> searchHistory,
     @Default(ProxySettingState()) ProxySettingState proxySetting,
+    // 搜索书签邻页找回：向后最多探测页数（0=只找本页）；向前固定 1 页。
+    @Default(3) int searchBookmarkProbePages,
     @Default(1280.0) double windowWidth,
     @Default(720.0) double windowHeight,
     @Default(0) double windowX,

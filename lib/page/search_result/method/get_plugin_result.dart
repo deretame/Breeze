@@ -17,7 +17,12 @@ Future<BlocState> getPluginSearchResult(
   final response = await callUnifiedComicPlugin(
     pluginId: pluginId,
     fnPath: 'searchComic',
-    core: {'keyword': event.searchStates.searchKeyword, 'page': event.page},
+    // 标志只走 payload 顶层（core），不进 extern，避免响应 echo 回来污染翻页。
+    core: {
+      'keyword': event.searchStates.searchKeyword,
+      'page': event.page,
+      'isSearchAggregate': event.searchStates.isSearchAggregate,
+    },
     extern: extern,
   );
   final parsed = UnifiedPluginSearchResponse.fromMap(response);

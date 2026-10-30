@@ -26,8 +26,8 @@ class ContentNetworkSettingPage extends StatelessWidget {
             icon: Icons.filter_alt_outlined,
           ),
           editMaskedKeywords(context),
+          _searchBookmarkProbePages(state, cubit),
           _chineseConvertMode(state, cubit),
-
           const SizedBox(height: 8),
           const Divider(height: 1, thickness: 0.3),
           settingSectionTitle(
@@ -56,6 +56,31 @@ class ContentNetworkSettingPage extends StatelessWidget {
           // _updateAccelerate(state, cubit),
           const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+
+  Widget _searchBookmarkProbePages(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    const options = [0, 1, 2, 3, 5];
+    final current = options.contains(state.searchBookmarkProbePages)
+        ? state.searchBookmarkProbePages
+        : 3;
+    return ListTile(
+      leading: const Icon(Icons.manage_search_outlined),
+      title: Text(t.searchBookmark.probePages),
+      subtitle: Text(t.searchBookmark.probePagesSubtitle),
+      trailing: FluentDropdown<int>(
+        value: current,
+        displayValue: '$current',
+        items: {for (final v in options) v: '$v'},
+        onChanged: (int value) {
+          cubit.updateState(
+            (current) => current.copyWith(searchBookmarkProbePages: value),
+          );
+        },
       ),
     );
   }

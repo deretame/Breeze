@@ -3438,6 +3438,12 @@ class Translations$searchBookmark$zh_CN {
 	/// zh-CN: '锚点不在该页，已定位到第 $page 页'
 	String anchorMissing({required Object page}) => '锚点不在该页，已定位到第 ${page} 页';
 
+	/// zh-CN: '向后找回页数'
+	String get probePages => '向后找回页数';
+
+	/// zh-CN: '跳转后锚点不在本页时，向后最多翻几页找（再向前找 1 页）'
+	String get probePagesSubtitle => '跳转后锚点不在本页时，向后最多翻几页找（再向前找 1 页）';
+
 	/// zh-CN: '书签已删除'
 	String get deleted => '书签已删除';
 }
@@ -5162,6 +5168,8 @@ extension on Translations {
 			'searchBookmark.deselectAll' => '取消全选',
 			'searchBookmark.jumped' => ({required Object page}) => '已跳转到第 ${page} 页',
 			'searchBookmark.anchorMissing' => ({required Object page}) => '锚点不在该页，已定位到第 ${page} 页',
+			'searchBookmark.probePages' => '向后找回页数',
+			'searchBookmark.probePagesSubtitle' => '跳转后锚点不在本页时，向后最多翻几页找（再向前找 1 页）',
 			'searchBookmark.deleted' => '书签已删除',
 			'comicList.defaultTitle' => '漫画列表',
 			'comicList.missingSource' => '缺少插件来源，无法加载列表',

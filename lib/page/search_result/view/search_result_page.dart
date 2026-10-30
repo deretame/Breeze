@@ -70,11 +70,14 @@ class _SearchResultPageState extends State<_SearchResultPage>
   String? _pickedComicId;
   // 书签跳转落地后待揭示的书签（成功回调里消费一次）。
   SearchBookmark? _pendingRevealBookmark;
-  // 揭示时滚动空间不足，已触发加载更多，等下一个 success 重试。
-  SearchBookmark? _revealRetryBookmark;
+  // 邻页找回中：待找书签 + 已向后探测次数 + 是否已试过向前。
+  SearchBookmark? _probeBookmark;
+  int _probeForwardCount = 0;
+  bool _probeTriedBackward = false;
   // 跳转后需要描边高亮的锚点条目。
   String? _highlightComicId;
-  int pagesCount = 0;
+  // 揭示时滚动空间不足，已触发加载更多，等下一个 success 重试。
+  SearchBookmark? _revealRetryBookmark;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
   @override
@@ -268,6 +271,12 @@ class _SearchResultPageState extends State<_SearchResultPage>
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _revealAnchorAfterJump(pending);
               });
+            } else if (_probeBookmark != null) {
+              // 找回中的后续页：继续在本页找，找不到自动翻下一邻页。
+              final probing = _probeBookmark!;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _revealAnchorAfterJump(probing);
+              });
             }
             final retry = _revealRetryBookmark;
             if (retry != null) {
@@ -391,35 +400,104 @@ class _SearchResultPageState extends State<_SearchResultPage>
   /// 3. 精定：按 ValueKey(id) 找条目 context，ensureVisible 对齐到顶。
   void _revealAnchorAfterJump(SearchBookmark bookmark) {
     if (!mounted) return;
-    final comics = context.read<SearchBloc>().state.comics;
-    // 页内条目：同 anchorPage 的才是本页（落地页即目标页）。
-    final pageItems = comics
-        .where((item) => item.buildNumber == bookmark.anchorPage)
-        .toList();
-    // 序号优先，越界/老数据回退 id 查找。
-    var localIndex = bookmark.anchorIndex;
-    if (localIndex < 0 ||
-        localIndex >= pageItems.length ||
-        pageItems[localIndex].comic.id != bookmark.anchorComicId) {
-      localIndex = pageItems.indexWhere(
-        (item) => item.comic.id == bookmark.anchorComicId,
-      );
-    }
-    if (localIndex < 0) {
-      showWarningToast(t.searchBookmark.anchorMissing(page: searchEvent.page));
+    final found = _findAnchorLocalIndex(bookmark);
+    if (found != null) {
+      _probeBookmark = null;
+      _revealAt(found.$1, found.$2, bookmark.anchorComicId);
       return;
     }
-    final anchorId = bookmark.anchorComicId;
+    // 本页没有：进邻页找回（向后 N 次 → 向前 1 次）。
+    // 已在找回中则保持计数（success 回调连击），只在首次进入时重置。
+    if (!identical(_probeBookmark, bookmark)) {
+      _probeBookmark = bookmark;
+      _probeForwardCount = 0;
+      _probeTriedBackward = false;
+    }
+    _probeNextPage();
+  }
+
+  /// 全量 comics 里按 id 找锚点，返回（页内序号，同页条目数）。
+  /// 落地页即目标页时等价于旧的 anchorPage 过滤；找回翻页后页码会变，
+  /// 所以不限定页，只认 id。
+  (int, int)? _findAnchorLocalIndex(SearchBookmark bookmark) {
+    final comics = context.read<SearchBloc>().state.comics;
+    final index = comics.indexWhere(
+      (item) => item.comic.id == bookmark.anchorComicId,
+    );
+    if (index < 0) return null;
+    final page = comics[index].buildNumber;
+    final pageItems = comics.where((item) => item.buildNumber == page).toList();
+    final localIndex = pageItems.indexWhere(
+      (item) => item.comic.id == bookmark.anchorComicId,
+    );
+    if (localIndex < 0) return null;
+    return (localIndex, pageItems.length);
+  }
+
+  void _revealAt(int localIndex, int pageItemCount, String anchorId) {
     final detailed = context
         .read<GlobalSettingCubit>()
         .state
         .bookshelfSetting
         .detailLayout;
     if (detailed) {
-      _revealDetailed(anchorId, localIndex, pageItems.length);
+      _revealDetailed(anchorId, localIndex, pageItemCount);
       return;
     }
     _revealGrid(anchorId, localIndex);
+  }
+
+  /// 邻页找回下一步：优先向后（nextUrl 链，最多 N 页），再向前 1 次（prevUrl）。
+  /// 每次都是独立 initial 搜索（复用跳转标志直抓），成功后回到 success 回调继续找。
+  void _probeNextPage() {
+    if (!mounted) return;
+    final bookmark = _probeBookmark;
+    if (bookmark == null) return;
+    final maxForward = context
+        .read<GlobalSettingCubit>()
+        .state
+        .searchBookmarkProbePages
+        .clamp(0, 10);
+    final extern = Map<String, dynamic>.from(
+      searchEvent.searchStates.pluginExtern,
+    );
+    if (_probeForwardCount < maxForward) {
+      final nextUrl = (extern['nextUrl']?.toString() ?? '').trim();
+      if (nextUrl.isEmpty) {
+        _probeForwardCount = maxForward;
+      } else {
+        _probeForwardCount++;
+        _probeFetch(nextUrl);
+        return;
+      }
+    }
+    if (!_probeTriedBackward) {
+      _probeTriedBackward = true;
+      final prevUrl = (extern['prevUrl']?.toString() ?? '').trim();
+      if (prevUrl.isNotEmpty) {
+        _probeFetch(prevUrl);
+        return;
+      }
+    }
+    // 都找完还没有：停在当前页，提示即可。
+    _probeBookmark = null;
+    showWarningToast(t.searchBookmark.anchorMissing(page: searchEvent.page));
+  }
+
+  /// 以指定 URL 为 currentUrl 发一次跳转式独立搜索。
+  void _probeFetch(String url) {
+    final extern = Map<String, dynamic>.from(
+      searchEvent.searchStates.pluginExtern,
+    )..['currentUrl'] = url;
+    context.read<SearchBloc>().add(
+      searchEvent.copyWith(
+        status: SearchStatus.initial,
+        searchStates: searchEvent.searchStates.copyWith(
+          pluginExtern: extern,
+          isSearchAggregate: true,
+        ),
+      ),
+    );
   }
 
   /// 网格揭示：列数精确可算，行 = 序号 ~/ 列数。

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:zephyr/config/router/router.gr.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -98,10 +99,18 @@ class _SearchBookmarkView extends StatelessWidget {
         initialSources: cubit.state.selectedSources,
         availableSources: cubit.state.availableSources,
         sourceNames: names,
+        initialProbePages: context
+            .read<GlobalSettingCubit>()
+            .state
+            .searchBookmarkProbePages,
       ),
     );
-    if (result == null) return;
+    if (result == null || !context.mounted) return;
     cubit.applyFilter(sources: result.sources, ascending: result.ascending);
+    context.read<GlobalSettingCubit>().updateState(
+      (current) =>
+          current.copyWith(searchBookmarkProbePages: result.probePages),
+    );
   }
 }
 
@@ -112,12 +121,14 @@ class _BookmarkFilterDialog extends StatefulWidget {
     required this.initialSources,
     required this.availableSources,
     required this.sourceNames,
+    required this.initialProbePages,
   });
 
   final bool initialAscending;
   final Set<String> initialSources;
   final List<String> availableSources;
   final Map<String, String> sourceNames;
+  final int initialProbePages;
 
   @override
   State<_BookmarkFilterDialog> createState() => _BookmarkFilterDialogState();
@@ -126,12 +137,14 @@ class _BookmarkFilterDialog extends StatefulWidget {
 class _BookmarkFilterDialogState extends State<_BookmarkFilterDialog> {
   late bool _ascending;
   late Set<String> _selectedSources;
+  late int _probePages;
 
   @override
   void initState() {
     super.initState();
     _ascending = widget.initialAscending;
     _selectedSources = Set<String>.from(widget.initialSources);
+    _probePages = widget.initialProbePages;
   }
 
   String _nameOf(String source) {
@@ -221,6 +234,25 @@ class _BookmarkFilterDialogState extends State<_BookmarkFilterDialog> {
                     ),
                 ],
               ),
+              const SizedBox(height: 16),
+              Text(
+                t.searchBookmark.probePages,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final v in const [0, 1, 2, 3, 5])
+                    ChoiceChip(
+                      showCheckmark: false,
+                      label: Text('$v'),
+                      selected: _probePages == v,
+                      onSelected: (_) => setState(() => _probePages = v),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
@@ -235,6 +267,7 @@ class _BookmarkFilterDialogState extends State<_BookmarkFilterDialog> {
             _BookmarkFilterResult(
               sources: _selectedSources,
               ascending: _ascending,
+              probePages: _probePages,
             ),
           ),
           child: Text(t.common.apply),
@@ -245,11 +278,15 @@ class _BookmarkFilterDialogState extends State<_BookmarkFilterDialog> {
 }
 
 class _BookmarkFilterResult {
-  _BookmarkFilterResult({required Set<String> sources, required this.ascending})
-    : sources = Set<String>.from(sources);
+  _BookmarkFilterResult({
+    required Set<String> sources,
+    required this.ascending,
+    required this.probePages,
+  }) : sources = Set<String>.from(sources);
 
   final Set<String> sources;
   final bool ascending;
+  final int probePages;
 }
 
 class _BookmarkList extends StatelessWidget {
@@ -262,7 +299,6 @@ class _BookmarkList extends StatelessWidget {
         switch (state.status) {
           case SearchBookmarkStatus.initial:
           case SearchBookmarkStatus.loading:
-            return const Center(child: CircularProgressIndicator());
           case SearchBookmarkStatus.failure:
             return ErrorView(
               errorMessage: state.result,
@@ -278,7 +314,8 @@ class _BookmarkList extends StatelessWidget {
               itemCount: visible.length,
               separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                return _BookmarkRow(item: visible[index]);
+                final item = visible[index];
+                return _BookmarkRow(key: ValueKey(item.uniqueKey), item: item);
               },
             );
         }
@@ -384,7 +421,7 @@ class _BookmarkSourceLine extends StatelessWidget {
 }
 
 class _BookmarkRow extends StatelessWidget {
-  const _BookmarkRow({required this.item});
+  const _BookmarkRow({super.key, required this.item});
 
   final SearchBookmark item;
 
@@ -478,10 +515,13 @@ class _BookmarkRow extends StatelessWidget {
   }
 
   void _jump(BuildContext context) {
+    // 书签跳转回放：这一次请求带 isSearchAggregate=true，插件直抓
+    // extern 里记下的 currentUrl；成功后 bloc 复位，后续翻页走正常逻辑。
     final newStates = SearchStates.initial().copyWith(
       from: item.source,
       searchKeyword: item.keyword,
       pluginExtern: Map<String, dynamic>.from(item.extern),
+      isSearchAggregate: true,
     );
     final page = item.anchorPage < 1 ? 1 : item.anchorPage;
     SearchBookmarkReveal.request(item);

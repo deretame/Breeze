@@ -1325,6 +1325,8 @@ class _Translations$searchBookmark$en_US extends Translations$searchBookmark$zh_
 	@override String get deselectAll => 'Deselect all';
 	@override String jumped({required Object page}) => 'Jumped to page ${page}';
 	@override String anchorMissing({required Object page}) => 'Anchor not on this page, located at page ${page}';
+	@override String get probePages => 'Probe pages forward';
+	@override String get probePagesSubtitle => 'When the anchor is not on the landed page, probe at most N pages forward (then 1 page backward)';
 	@override String get deleted => 'Bookmark deleted';
 }
 
@@ -2689,6 +2691,8 @@ extension on TranslationsEnUs {
 			'searchBookmark.deselectAll' => 'Deselect all',
 			'searchBookmark.jumped' => ({required Object page}) => 'Jumped to page ${page}',
 			'searchBookmark.anchorMissing' => ({required Object page}) => 'Anchor not on this page, located at page ${page}',
+			'searchBookmark.probePages' => 'Probe pages forward',
+			'searchBookmark.probePagesSubtitle' => 'When the anchor is not on the landed page, probe at most N pages forward (then 1 page backward)',
 			'searchBookmark.deleted' => 'Bookmark deleted',
 			'comicList.defaultTitle' => 'Comic List',
 			'comicList.missingSource' => 'Missing plugin source, cannot load list',

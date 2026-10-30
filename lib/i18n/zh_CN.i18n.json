@@ -1097,6 +1097,8 @@
     "deselectAll": "取消全选",
     "jumped": "已跳转到第 $page 页",
     "anchorMissing": "锚点不在该页，已定位到第 $page 页",
+    "probePages": "向后找回页数",
+    "probePagesSubtitle": "跳转后锚点不在本页时，向后最多翻几页找（再向前找 1 页）",
     "deleted": "书签已删除"
   },
   "comicList": {

@@ -18,6 +18,7 @@ _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as bool),
           ) ??
           const <String, bool>{},
+      isSearchAggregate: json['isSearchAggregate'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>

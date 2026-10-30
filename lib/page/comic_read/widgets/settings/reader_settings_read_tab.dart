@@ -55,8 +55,9 @@ class _ReadModeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final isMobilePlatform =
-        !kIsWeb && (Platform.isAndroid || Platform.isIOS) && !isTablet(context);
+    final isDesktopPlatform =
+        !kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
     // 本漫 tab 读有效值：无覆盖时显示的即全局值，不搞特殊状态；
     // 点选即写覆盖（点当前高亮的值 = 再确认一次，无变化不写库）。
     final effective = context.watchTargetReadSetting();
@@ -115,7 +116,7 @@ class _ReadModeSection extends StatelessWidget {
           ],
         ),
         // 横屏阅读是设备级开关，只写全局；本漫 tab 里隐藏。
-        if (isMobilePlatform &&
+        if (!isDesktopPlatform &&
             onLandscapeChanged != null &&
             !context.isEditingPerComic)
           _SettingsSwitchTile(
@@ -127,6 +128,17 @@ class _ReadModeSection extends StatelessWidget {
                 (current) => current.copyWith(landscapeReader: value),
               );
               onLandscapeChanged!(value);
+            },
+          ),
+        if (!isDesktopPlatform)
+          _SettingsSwitchTile(
+            title: t.reader.showStatusBar,
+            subtitle: t.reader.showStatusBarSubtitle,
+            value: effective.showStatusBar,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(showStatusBar: value),
+              );
             },
           ),
         _SettingsSwitchTile(

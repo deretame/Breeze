@@ -285,6 +285,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(3) int preloadImageCount,
     @Default(1) int preloadChapterCount,
     @Default(false) bool landscapeReader,
+    @Default(false) bool showStatusBar,
     @Default(false) bool doublePageMode,
     @Default(false) bool doublePageSeamless,
     @Default(false) bool doublePageLeadingBlank,

@@ -109,8 +109,8 @@ class ReaderLifecycleController {
     _menuVisibleSubscription = readerCubit.stream
         .map((state) => state.isMenuVisible)
         .distinct()
-        .listen((isMenuVisible) {
-          systemUiController.applyVisibility(isMenuVisible);
+        .listen((_) {
+          onSyncSystemUi();
         });
   }
 
@@ -127,7 +127,7 @@ class ReaderLifecycleController {
       await Future.delayed(const Duration(milliseconds: 200));
       if (!_mounted) return;
       readerCubit.updateMenuVisible(visible: false);
-      await systemUiController.applyVisibility(false, force: true);
+      onSyncSystemUi(force: true);
       if (!context.mounted) return;
       final readSetting = context.readEffectiveReadSetting();
       volumeController.sync(readSetting, readerCubit.state.isMenuVisible);

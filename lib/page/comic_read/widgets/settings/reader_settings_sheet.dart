@@ -9,7 +9,6 @@ import 'package:zephyr/cubit/comic_read_preference_cubit.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/fluent_dropdown.dart';
 
 part 'reader_settings_gesture_tab.dart';

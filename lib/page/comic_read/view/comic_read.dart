@@ -176,12 +176,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
       TransformationController();
   StreamSubscription<bool>? _volumeKeyPageTurnSubscription;
   StreamSubscription<dynamic>? _perComicVolumeKeySubscription;
+  StreamSubscription<bool>? _showStatusBarSubscription;
+  StreamSubscription<dynamic>? _perComicShowStatusBarSubscription;
   StreamSubscription<ReaderState>? _einkRefreshSubscription;
   int _einkLastSlot = -1;
   int _einkTurnCount = 0;
   bool _isScrollLockedByMultiTouch = false;
   bool _isUserScrollActive = false; // 用户是否正在拖拽/惯性滚动列表
-
   bool get _isHistory =>
       _type == ComicEntryType.history ||
       _type == ComicEntryType.historyAndDownload;
@@ -206,6 +207,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _inputController.setActionController(_actionController);
     _inputController.init();
     _initVolumeKeyPageTurnSubscription();
+    _initShowStatusBarSubscription();
     _initEinkAutoRefresh();
 
     WidgetsBinding.instance.addObserver(this);
@@ -235,6 +237,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
     unawaited(_lifecycleController.dispose());
     _volumeKeyPageTurnSubscription?.cancel();
     _perComicVolumeKeySubscription?.cancel();
+    _showStatusBarSubscription?.cancel();
+    _perComicShowStatusBarSubscription?.cancel();
     _einkRefreshSubscription?.cancel();
     _inputController.dispose();
     _imagePrefetchController.dispose();

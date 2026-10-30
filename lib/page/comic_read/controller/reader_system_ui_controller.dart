@@ -14,8 +14,16 @@ class ReaderSystemUiController {
     Duration delay = const Duration(milliseconds: 24),
   }) => _service.scheduleSync(syncFn, delay: delay);
 
-  Future<void> applyVisibility(bool isMenuVisible, {bool force = false}) async {
-    await _service.applyVisibility(isMenuVisible, force: force);
+  Future<void> applyVisibility(
+    bool isMenuVisible, {
+    bool force = false,
+    bool keepStatusBar = false,
+  }) async {
+    await _service.applyVisibility(
+      isMenuVisible,
+      force: force,
+      keepStatusBar: keepStatusBar,
+    );
   }
 
   Future<void> restoreSystemBars() async => _service.restoreSystemBars();

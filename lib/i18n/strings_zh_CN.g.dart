@@ -1746,6 +1746,12 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '阅读时切换为横屏，离开后恢复原来的方向'
 	String get landscapeReaderSubtitle => '阅读时切换为横屏，离开后恢复原来的方向';
 
+	/// zh-CN: '显示状态栏'
+	String get showStatusBar => '显示状态栏';
+
+	/// zh-CN: '阅读时保留顶部状态栏，仅隐藏底部导航栏'
+	String get showStatusBarSubtitle => '阅读时保留顶部状态栏，仅隐藏底部导航栏';
+
 	/// zh-CN: '系统模式'
 	String get themeMode => '系统模式';
 
@@ -1875,8 +1881,8 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '横向在中间时，边缘间距不会生效。'
 	String get edgePaddingDisabled => '横向在中间时，边缘间距不会生效。';
 
-	/// zh-CN: '阅读设置'
-	String get settings => '阅读设置';
+	/// zh-CN: '阅读'
+	String get settings => '阅读';
 
 	/// zh-CN: '上一章'
 	String get previousChapter => '上一章';
@@ -4635,6 +4641,8 @@ extension on Translations {
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.landscapeReader' => '横屏阅读',
 			'reader.landscapeReaderSubtitle' => '阅读时切换为横屏，离开后恢复原来的方向',
+			'reader.showStatusBar' => '显示状态栏',
+			'reader.showStatusBarSubtitle' => '阅读时保留顶部状态栏，仅隐藏底部导航栏',
 			'reader.themeMode' => '系统模式',
 			'reader.autoRead' => '自动阅读',
 			'reader.autoReadSubtitle' => '开启后自动滚动',
@@ -4678,7 +4686,7 @@ extension on Translations {
 			'reader.fontSize' => '字体大小',
 			'reader.allHiddenNotice' => '当前已全部关闭，阅读页中的信息条会完全隐藏。',
 			'reader.edgePaddingDisabled' => '横向在中间时，边缘间距不会生效。',
-			'reader.settings' => '阅读设置',
+			'reader.settings' => '阅读',
 			'reader.previousChapter' => '上一章',
 			'reader.nextChapter' => '下一章',
 			'reader.backToHome' => '返回首页',
@@ -5122,10 +5130,10 @@ extension on Translations {
 			'discover.browseInstall' => '浏览安装',
 			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
-			'discover.pluginCapability' => '插件能力',
-			'discover.disabled' => '已关闭',
 			_ => null,
 		} ?? switch (path) {
+			'discover.pluginCapability' => '插件能力',
+			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',

@@ -79,6 +79,28 @@ extension _ComicReadInitPart on _ComicReadPageState {
         });
   }
 
+  /// 显示状态栏开关变化时重应用系统栏（全局+本漫覆盖）。
+  void _initShowStatusBarSubscription() {
+    _showStatusBarSubscription = context
+        .read<GlobalSettingCubit>()
+        .stream
+        .map((state) => state.readSetting.showStatusBar)
+        .distinct()
+        .listen((_) {
+          if (!mounted) return;
+          _syncSystemUi(force: true);
+        });
+    _perComicShowStatusBarSubscription = context
+        .read<ComicReadPreferenceCubit>()
+        .stream
+        .map((state) => state.override?.setting.showStatusBar)
+        .distinct()
+        .listen((_) {
+          if (!mounted) return;
+          _syncSystemUi(force: true);
+        });
+  }
+
   // 初始化历史记录控制器，处理进度恢复与落盘。
   void _initHistoryController() {
     // 周期性保存的回调可能在 widget 卸载后仍被触发一次，

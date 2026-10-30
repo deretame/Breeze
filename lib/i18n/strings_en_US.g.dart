@@ -672,6 +672,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
 	@override String get landscapeReader => 'Landscape reading';
 	@override String get landscapeReaderSubtitle => 'Switch to landscape while reading and restore the previous direction when you leave';
+	@override String get showStatusBar => 'Show status bar';
+	@override String get showStatusBarSubtitle => 'Keep the top status bar while reading, hide only the bottom navigation bar';
 	@override String get themeMode => 'Theme mode';
 	@override String get autoRead => 'Auto read';
 	@override String get autoReadSubtitle => 'Automatically scroll the reader';
@@ -1249,7 +1251,7 @@ class _Translations$search$en_US extends Translations$search$zh_CN {
 	@override String get fuzzySearchDesc => 'Show results containing any keyword';
 	@override String get selectCategory => 'Select Category';
 	@override String get dataSource => 'Data Source';
-	@override String get selectSourceTooltip => 'Select source';
+	@override String get settings => 'Reading';
 	@override String get hasResults => 'With results';
 	@override String get showErrors => 'Show errors';
 	@override String resultCount({required Object count}) => '${count} results';
@@ -2167,6 +2169,8 @@ extension on TranslationsEnUs {
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.landscapeReader' => 'Landscape reading',
 			'reader.landscapeReaderSubtitle' => 'Switch to landscape while reading and restore the previous direction when you leave',
+			'reader.showStatusBar' => 'Show status bar',
+			'reader.showStatusBarSubtitle' => 'Keep the top status bar while reading, hide only the bottom navigation bar',
 			'reader.themeMode' => 'Theme mode',
 			'reader.autoRead' => 'Auto read',
 			'reader.autoReadSubtitle' => 'Automatically scroll the reader',
@@ -2636,7 +2640,7 @@ extension on TranslationsEnUs {
 			'search.fuzzySearchDesc' => 'Show results containing any keyword',
 			'search.selectCategory' => 'Select Category',
 			'search.dataSource' => 'Data Source',
-			'search.selectSourceTooltip' => 'Select source',
+			'search.settings' => 'Reading',
 			'search.hasResults' => 'With results',
 			'search.showErrors' => 'Show errors',
 			'search.resultCount' => ({required Object count}) => '${count} results',
@@ -2654,10 +2658,10 @@ extension on TranslationsEnUs {
 			'discover.noPluginForSearch' => 'No plugins available, cannot search',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
 			'discover.pluginCapability' => 'Plugin Capability',
-			'discover.disabled' => 'Disabled',
-			'discover.unnamed' => 'Unnamed',
 			_ => null,
 		} ?? switch (path) {
+			'discover.disabled' => 'Disabled',
+			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',

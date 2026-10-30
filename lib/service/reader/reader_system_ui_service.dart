@@ -16,8 +16,12 @@ class ReaderSystemUiService {
 
   Timer? _syncTimer;
   bool? _lastMenuVisible;
+  bool? _lastKeepStatusBar;
 
   bool get _isAndroid => !kIsWeb && Platform.isAndroid;
+  bool get _isMobile =>
+      !kIsWeb &&
+      !(Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
   /// 延迟同步系统栏显隐。
   void scheduleSync(
@@ -29,14 +33,26 @@ class ReaderSystemUiService {
   }
 
   /// 应用与菜单状态对应的系统栏显隐。
-  Future<void> applyVisibility(bool isMenuVisible, {bool force = false}) async {
-    if (!force && _lastMenuVisible == isMenuVisible) return;
+  ///
+  /// [keepStatusBar] 仅移动端有效：隐藏时保留顶部状态栏，只隐底部导航栏。
+  Future<void> applyVisibility(
+    bool isMenuVisible, {
+    bool force = false,
+    bool keepStatusBar = false,
+  }) async {
+    final effectiveKeep = keepStatusBar && _isMobile;
+    if (!force &&
+        _lastMenuVisible == isMenuVisible &&
+        _lastKeepStatusBar == effectiveKeep) {
+      return;
+    }
     _lastMenuVisible = isMenuVisible;
+    _lastKeepStatusBar = effectiveKeep;
 
     if (isMenuVisible) {
       await _showSystemBars();
     } else {
-      await _hideSystemBars();
+      await _hideSystemBars(keepStatusBar: effectiveKeep);
     }
   }
 
@@ -56,9 +72,18 @@ class ReaderSystemUiService {
     );
   }
 
-  Future<void> _hideSystemBars() async {
+  Future<void> _hideSystemBars({bool keepStatusBar = false}) async {
     if (_isAndroid) {
-      await _systemUiChannel.invokeMethod('hideSystemBars');
+      await _systemUiChannel.invokeMethod(
+        keepStatusBar ? 'hideNavigationBarOnly' : 'hideSystemBars',
+      );
+      return;
+    }
+    if (keepStatusBar && _isMobile) {
+      await SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top],
+      );
       return;
     }
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);

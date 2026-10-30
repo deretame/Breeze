@@ -5,7 +5,6 @@ abstract class SearchStates with _$SearchStates {
   const factory SearchStates({
     @Default('') String from,
     @Default("") String searchKeyword,
-    @Default(1) int sortBy,
     @Default(<String, dynamic>{}) Map<String, dynamic> pluginExtern,
     @Default(<String, bool>{}) Map<String, bool> aggregateSources,
   }) = _SearchStates;

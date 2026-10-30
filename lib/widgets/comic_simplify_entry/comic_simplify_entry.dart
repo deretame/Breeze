@@ -266,6 +266,7 @@ class ComicSimplifyEntry extends StatelessWidget {
         width: width,
         isSelected: isSelected,
         selectionMode: selectionMode,
+        isHighlighted: isHighlighted,
       ),
     );
   }
@@ -559,12 +560,14 @@ class _DetailedRowBody extends StatelessWidget {
     required this.width,
     required this.isSelected,
     required this.selectionMode,
+    this.isHighlighted = false,
   });
 
   final ComicSimplifyEntryInfo info;
   final double width;
   final bool isSelected;
   final bool selectionMode;
+  final bool isHighlighted;
 
   @override
   Widget build(BuildContext context) {
@@ -597,9 +600,12 @@ class _DetailedRowBody extends StatelessWidget {
           ),
           // 选中边框常驻（透明/主色切换）+ 隐式动画：进入多选模式时
           // 边框层本来就存在，只是颜色从透明变过来，不闪。
+          // 书签揭示的高亮走同一层（网格模式同逻辑）。
           foregroundDecoration: BoxDecoration(
             border: Border.all(
-              color: isSelected && selectionMode ? primary : Colors.transparent,
+              color: (isSelected && selectionMode) || isHighlighted
+                  ? primary
+                  : Colors.transparent,
               width: 2,
             ),
             borderRadius: BorderRadius.circular(8),

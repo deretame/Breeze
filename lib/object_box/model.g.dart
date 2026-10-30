@@ -742,3 +742,35 @@ Map<String, dynamic> _$ComicReadPreferenceToJson(
   'updatedAt': instance.updatedAt.toIso8601String(),
   'deleted': instance.deleted,
 };
+
+SearchBookmark _$SearchBookmarkFromJson(Map<String, dynamic> json) =>
+    SearchBookmark(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      uniqueKey: json['uniqueKey'] as String,
+      source: json['source'] as String,
+      keyword: json['keyword'] as String,
+      externJson: json['externJson'] as String,
+      anchorComicId: json['anchorComicId'] as String,
+      anchorTitle: json['anchorTitle'] as String,
+      anchorCover: json['anchorCover'] as String,
+      anchorPage: (json['anchorPage'] as num).toInt(),
+      anchorIndex: (json['anchorIndex'] as num?)?.toInt() ?? 0,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+    );
+
+Map<String, dynamic> _$SearchBookmarkToJson(SearchBookmark instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'uniqueKey': instance.uniqueKey,
+      'source': instance.source,
+      'keyword': instance.keyword,
+      'externJson': instance.externJson,
+      'anchorComicId': instance.anchorComicId,
+      'anchorTitle': instance.anchorTitle,
+      'anchorCover': instance.anchorCover,
+      'anchorPage': instance.anchorPage,
+      'anchorIndex': instance.anchorIndex,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+    };

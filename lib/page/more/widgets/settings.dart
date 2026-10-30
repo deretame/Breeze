@@ -45,6 +45,12 @@ class SettingsWidget extends StatelessWidget {
           },
         ),
         ListTile(
+          leading: const Icon(Icons.bookmark_outline),
+          title: Text(t.searchBookmark.title),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => context.pushRoute(const SearchBookmarkRoute()),
+        ),
+        ListTile(
           leading: const Icon(Icons.settings_outlined),
           title: Text(t.settings.globalTitle),
           trailing: const Icon(Icons.chevron_right),

@@ -66,6 +66,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$search$zh_CN search = Translations$search$zh_CN.internal(_root);
 	late final Translations$discover$zh_CN discover = Translations$discover$zh_CN.internal(_root);
 	late final Translations$searchResult$zh_CN searchResult = Translations$searchResult$zh_CN.internal(_root);
+	late final Translations$searchBookmark$zh_CN searchBookmark = Translations$searchBookmark$zh_CN.internal(_root);
 	late final Translations$comicList$zh_CN comicList = Translations$comicList$zh_CN.internal(_root);
 	late final Translations$comicEntry$zh_CN comicEntry = Translations$comicEntry$zh_CN.internal(_root);
 	late final Translations$comicFollow$zh_CN comicFollow = Translations$comicFollow$zh_CN.internal(_root);
@@ -3263,21 +3264,6 @@ class Translations$search$zh_CN {
 	/// zh-CN: '数据来源'
 	String get dataSource => '数据来源';
 
-	/// zh-CN: '排序方式'
-	String get sortBy => '排序方式';
-
-	/// zh-CN: '从新到旧'
-	String get newestToOldest => '从新到旧';
-
-	/// zh-CN: '从旧到新'
-	String get oldestToNewest => '从旧到新';
-
-	/// zh-CN: '最多点赞'
-	String get mostLikes => '最多点赞';
-
-	/// zh-CN: '最多观看'
-	String get mostViews => '最多观看';
-
 	/// zh-CN: '选择漫画源'
 	String get selectSourceTooltip => '选择漫画源';
 
@@ -3383,50 +3369,71 @@ class Translations$searchResult$zh_CN {
 	/// zh-CN: '点击重试'
 	String get retry => '点击重试';
 
-	/// zh-CN: '搜索游标（实验性）'
-	String get cursorSectionTitle => '搜索游标（实验性）';
+	/// zh-CN: '添加书签'
+	String get bookmarkAdd => '添加书签';
 
-	/// zh-CN: '添加游标'
-	String get cursorAdd => '添加游标';
+	/// zh-CN: '点击一个封面作为书签位置（滑动已暂停）'
+	String get bookmarkPickBanner => '点击一个封面作为书签位置（滑动已暂停）';
 
-	/// zh-CN: '点击一个封面作为游标位置（滑动已暂停）'
-	String get cursorPickBanner => '点击一个封面作为游标位置（滑动已暂停）';
-
-	/// zh-CN: '游标已添加'
-	String get cursorAdded => '游标已添加';
-
-	/// zh-CN: '暂无游标'
-	String get cursorEmpty => '暂无游标';
-
-	/// zh-CN: '游标仅支持“从新到旧”排序'
-	String get cursorOnlyNewestSort => '游标仅支持“从新到旧”排序';
-
-	/// zh-CN: '正在定位游标…'
-	String get cursorLocating => '正在定位游标…';
-
-	/// zh-CN: '已定位游标，跳转到第 $page 页'
-	String cursorJumpedSuccess({required Object page}) => '已定位游标，跳转到第 ${page} 页';
-
-	/// zh-CN: '未能精确命中游标，已就近定位到第 $page 页'
-	String cursorJumpApproximate({required Object page}) => '未能精确命中游标，已就近定位到第 ${page} 页';
-
-	/// zh-CN: '游标定位失败，请稍后重试'
-	String get cursorJumpFailed => '游标定位失败，请稍后重试';
-
-	/// zh-CN: '定位探测预算'
-	String get cursorProbeBudget => '定位探测预算';
+	/// zh-CN: '书签已添加'
+	String get bookmarkAdded => '书签已添加';
 
 	/// zh-CN: '请先点击一个封面'
-	String get cursorPickNone => '请先点击一个封面';
+	String get bookmarkPickNone => '请先点击一个封面';
 
-	/// zh-CN: '当前没有搜索结果，无法添加游标'
-	String get cursorPickNoResult => '当前没有搜索结果，无法添加游标';
+	/// zh-CN: '当前没有搜索结果，无法添加书签'
+	String get bookmarkPickNoResult => '当前没有搜索结果，无法添加书签';
+}
 
-	/// zh-CN: '$title'
-	String cursorAnchorSubtitle({required Object title}) => '${title}';
+// Path: searchBookmark
+class Translations$searchBookmark$zh_CN {
+	Translations$searchBookmark$zh_CN.internal(this._root);
 
-	/// zh-CN: '游标仅支持普通关键词搜索'
-	String get cursorPlainKeywordOnly => '游标仅支持普通关键词搜索';
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh-CN: '搜索书签'
+	String get title => '搜索书签';
+
+	/// zh-CN: '暂无搜索书签'
+	String get empty => '暂无搜索书签';
+
+	/// zh-CN: '去搜索结果页点右下角按钮添加一个吧'
+	String get emptyHint => '去搜索结果页点右下角按钮添加一个吧';
+
+	/// zh-CN: '筛选条件下暂无书签'
+	String get filteredEmpty => '筛选条件下暂无书签';
+
+	/// zh-CN: '换个筛选条件试试，或去搜索结果页添加'
+	String get filteredEmptyHint => '换个筛选条件试试，或去搜索结果页添加';
+
+	/// zh-CN: '筛选'
+	String get filter => '筛选';
+
+	/// zh-CN: '排序'
+	String get sort => '排序';
+
+	/// zh-CN: '图源'
+	String get source => '图源';
+
+	/// zh-CN: '最新在前'
+	String get sortNewest => '最新在前';
+
+	/// zh-CN: '最早在前'
+	String get sortOldest => '最早在前';
+
+	/// zh-CN: '取消全选'
+	String get deselectAll => '取消全选';
+
+	/// zh-CN: '已跳转到第 $page 页'
+	String jumped({required Object page}) => '已跳转到第 ${page} 页';
+
+	/// zh-CN: '锚点不在该页，已定位到第 $page 页'
+	String anchorMissing({required Object page}) => '锚点不在该页，已定位到第 ${page} 页';
+
+	/// zh-CN: '书签已删除'
+	String get deleted => '书签已删除';
 }
 
 // Path: comicList
@@ -5098,11 +5105,6 @@ extension on Translations {
 			'search.fuzzySearchDesc' => '显示包含任意一个关键词的结果',
 			'search.selectCategory' => '选择分类',
 			'search.dataSource' => '数据来源',
-			'search.sortBy' => '排序方式',
-			'search.newestToOldest' => '从新到旧',
-			'search.oldestToNewest' => '从旧到新',
-			'search.mostLikes' => '最多点赞',
-			'search.mostViews' => '最多观看',
 			'search.selectSourceTooltip' => '选择漫画源',
 			'search.hasResults' => '有结果',
 			'search.showErrors' => '显示错误',
@@ -5117,13 +5119,13 @@ extension on Translations {
 			'discover.resetOrder' => '恢复默认顺序',
 			'discover.noPlugins' => '暂无可用插件，去插件商店安装一个吧~',
 			'discover.pluginStore' => '插件商店',
-			_ => null,
-		} ?? switch (path) {
 			'discover.browseInstall' => '浏览安装',
 			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
 			'discover.pluginCapability' => '插件能力',
 			'discover.disabled' => '已关闭',
+			_ => null,
+		} ?? switch (path) {
 			'discover.unnamed' => '未命名',
 			'discover.pluginEnableFailed' => ({required Object error}) => '插件启用失败: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => '插件关闭失败: ${error}',
@@ -5134,21 +5136,25 @@ extension on Translations {
 			'searchResult.jumpToPage' => '跳转页面',
 			'searchResult.jump' => '跳转',
 			'searchResult.retry' => '点击重试',
-			'searchResult.cursorSectionTitle' => '搜索游标（实验性）',
-			'searchResult.cursorAdd' => '添加游标',
-			'searchResult.cursorPickBanner' => '点击一个封面作为游标位置（滑动已暂停）',
-			'searchResult.cursorAdded' => '游标已添加',
-			'searchResult.cursorEmpty' => '暂无游标',
-			'searchResult.cursorOnlyNewestSort' => '游标仅支持“从新到旧”排序',
-			'searchResult.cursorLocating' => '正在定位游标…',
-			'searchResult.cursorJumpedSuccess' => ({required Object page}) => '已定位游标，跳转到第 ${page} 页',
-			'searchResult.cursorJumpApproximate' => ({required Object page}) => '未能精确命中游标，已就近定位到第 ${page} 页',
-			'searchResult.cursorJumpFailed' => '游标定位失败，请稍后重试',
-			'searchResult.cursorProbeBudget' => '定位探测预算',
-			'searchResult.cursorPickNone' => '请先点击一个封面',
-			'searchResult.cursorPickNoResult' => '当前没有搜索结果，无法添加游标',
-			'searchResult.cursorAnchorSubtitle' => ({required Object title}) => '${title}',
-			'searchResult.cursorPlainKeywordOnly' => '游标仅支持普通关键词搜索',
+			'searchResult.bookmarkAdd' => '添加书签',
+			'searchResult.bookmarkPickBanner' => '点击一个封面作为书签位置（滑动已暂停）',
+			'searchResult.bookmarkAdded' => '书签已添加',
+			'searchResult.bookmarkPickNone' => '请先点击一个封面',
+			'searchResult.bookmarkPickNoResult' => '当前没有搜索结果，无法添加书签',
+			'searchBookmark.title' => '搜索书签',
+			'searchBookmark.empty' => '暂无搜索书签',
+			'searchBookmark.emptyHint' => '去搜索结果页点右下角按钮添加一个吧',
+			'searchBookmark.filteredEmpty' => '筛选条件下暂无书签',
+			'searchBookmark.filteredEmptyHint' => '换个筛选条件试试，或去搜索结果页添加',
+			'searchBookmark.filter' => '筛选',
+			'searchBookmark.sort' => '排序',
+			'searchBookmark.source' => '图源',
+			'searchBookmark.sortNewest' => '最新在前',
+			'searchBookmark.sortOldest' => '最早在前',
+			'searchBookmark.deselectAll' => '取消全选',
+			'searchBookmark.jumped' => ({required Object page}) => '已跳转到第 ${page} 页',
+			'searchBookmark.anchorMissing' => ({required Object page}) => '锚点不在该页，已定位到第 ${page} 页',
+			'searchBookmark.deleted' => '书签已删除',
 			'comicList.defaultTitle' => '漫画列表',
 			'comicList.missingSource' => '缺少插件来源，无法加载列表',
 			'comicList.reload' => '重新加载',

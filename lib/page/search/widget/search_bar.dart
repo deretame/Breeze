@@ -2,18 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
-import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
 import 'package:zephyr/page/search/widget/history.dart';
 import 'package:zephyr/page/search/widget/search_input_dialog.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
-import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/page/search_result/search_cursor/search_cursor.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/i18n/strings.g.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -176,38 +172,6 @@ class _SearchBarState extends State<SearchBar> {
     );
 
     if (result == null || !context.mounted) return;
-    final jumpRecord = result.cursorToJump;
-    if (jumpRecord != null) {
-      logger.d('search page cursor jump: ${jumpRecord.keyword}');
-      final located = await locateCursorWithProgress(context, jumpRecord);
-      logger.d('search page cursor located: $located');
-      if (located == null || !context.mounted) return;
-      final searchCubit = context.read<SearchCubit>();
-      final newStates = searchCubit.state.copyWith(
-        from: jumpRecord.pluginId,
-        searchKeyword: jumpRecord.keyword,
-        sortBy: jumpRecord.sortBy,
-        // 复现记录游标时的完整 extern（含 Bika 分类筛选等）。
-        pluginExtern: Map<String, dynamic>.from(jumpRecord.extern),
-      );
-      searchCubit.update(newStates);
-      logger.d(
-        'search page cursor push SearchResultRoute page=${located.page}',
-      );
-      if (located.found) {
-        SearchCursorReveal.request(jumpRecord.anchorComicId);
-      }
-      context.pushRoute(
-        SearchResultRoute(
-          searchEvent: SearchEvent().copyWith(
-            searchStates: newStates,
-            page: located.page,
-          ),
-          searchCubit: searchCubit,
-        ),
-      );
-      return;
-    }
     searchCubit.update(result.states);
   }
 
@@ -286,12 +250,11 @@ class _AdvancedSearchScheme {
   final Map<String, dynamic> values;
 }
 
-/// 搜索页高级搜索对话框的返回：应用筛选，或请求跳转某个游标。
+/// 搜索页高级搜索对话框的返回：应用筛选。
 class _SearchDialogResult {
-  const _SearchDialogResult({required this.states, this.cursorToJump});
+  const _SearchDialogResult({required this.states});
 
   final SearchStates states;
-  final SearchCursorRecord? cursorToJump;
 }
 
 class _PluginAdvancedSearchDialog extends StatefulWidget {
@@ -312,16 +275,10 @@ class _PluginAdvancedSearchDialogState
     extends State<_PluginAdvancedSearchDialog> {
   late final Map<String, dynamic> _values;
 
-  bool get _cursorSupported {
-    final from = widget.initialState.from.trim();
-    return from.isEmpty || searchCursorPlugins.containsKey(from);
-  }
-
   @override
   void initState() {
     super.initState();
     _values = Map<String, dynamic>.from(widget.scheme.values);
-    _values['sortBy'] = _values['sortBy'] ?? widget.initialState.sortBy;
   }
 
   @override
@@ -334,16 +291,6 @@ class _PluginAdvancedSearchDialogState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...widget.scheme.fields.map((field) => _buildField(context, field)),
-          if (_cursorSupported)
-            SearchCursorSection(
-              pluginId: widget.initialState.from.trim(),
-              onJump: (record) => Navigator.of(context).pop(
-                _SearchDialogResult(
-                  states: widget.initialState,
-                  cursorToJump: record,
-                ),
-              ),
-            ),
         ],
       ),
       actions: [
@@ -353,9 +300,6 @@ class _PluginAdvancedSearchDialogState
         ),
         FilledButton(
           onPressed: () {
-            final sortBy =
-                int.tryParse(_values['sortBy']?.toString() ?? '') ??
-                widget.initialState.sortBy;
             final nextExtern = <String, dynamic>{
               ...widget.initialState.pluginExtern,
             };
@@ -375,10 +319,7 @@ class _PluginAdvancedSearchDialogState
             }
             Navigator.of(context).pop(
               _SearchDialogResult(
-                states: widget.initialState.copyWith(
-                  sortBy: sortBy,
-                  pluginExtern: nextExtern,
-                ),
+                states: widget.initialState.copyWith(pluginExtern: nextExtern),
               ),
             );
           },

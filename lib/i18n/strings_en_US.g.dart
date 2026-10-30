@@ -61,6 +61,7 @@ class TranslationsEnUs extends Translations with BaseTranslations<AppLocale, Tra
 	@override late final _Translations$search$en_US search = _Translations$search$en_US._(_root);
 	@override late final _Translations$discover$en_US discover = _Translations$discover$en_US._(_root);
 	@override late final _Translations$searchResult$en_US searchResult = _Translations$searchResult$en_US._(_root);
+	@override late final _Translations$searchBookmark$en_US searchBookmark = _Translations$searchBookmark$en_US._(_root);
 	@override late final _Translations$comicList$en_US comicList = _Translations$comicList$en_US._(_root);
 	@override late final _Translations$comicEntry$en_US comicEntry = _Translations$comicEntry$en_US._(_root);
 	@override late final _Translations$comicFollow$en_US comicFollow = _Translations$comicFollow$en_US._(_root);
@@ -1248,11 +1249,6 @@ class _Translations$search$en_US extends Translations$search$zh_CN {
 	@override String get fuzzySearchDesc => 'Show results containing any keyword';
 	@override String get selectCategory => 'Select Category';
 	@override String get dataSource => 'Data Source';
-	@override String get sortBy => 'Sort By';
-	@override String get newestToOldest => 'Newest to oldest';
-	@override String get oldestToNewest => 'Oldest to newest';
-	@override String get mostLikes => 'Most likes';
-	@override String get mostViews => 'Most views';
 	@override String get selectSourceTooltip => 'Select source';
 	@override String get hasResults => 'With results';
 	@override String get showErrors => 'Show errors';
@@ -1300,21 +1296,34 @@ class _Translations$searchResult$en_US extends Translations$searchResult$zh_CN {
 	@override String get jumpToPage => 'Jump to page';
 	@override String get jump => 'Jump';
 	@override String get retry => 'Tap to retry';
-	@override String get cursorSectionTitle => 'Search cursors (experimental)';
-	@override String get cursorAdd => 'Add cursor';
-	@override String get cursorPickBanner => 'Tap a cover to mark the cursor position (scrolling paused)';
-	@override String get cursorAdded => 'Cursor added';
-	@override String get cursorEmpty => 'No cursors yet';
-	@override String get cursorOnlyNewestSort => 'Cursors only support the \'Newest first\' sort';
-	@override String get cursorLocating => 'Locating cursor…';
-	@override String cursorJumpedSuccess({required Object page}) => 'Cursor located, jumped to page ${page}';
-	@override String cursorJumpApproximate({required Object page}) => 'Cursor not matched exactly, jumped near page ${page}';
-	@override String get cursorJumpFailed => 'Failed to locate the cursor, try again later';
-	@override String get cursorProbeBudget => 'Locate probe budget';
-	@override String get cursorPickNone => 'Tap a cover first';
-	@override String get cursorPickNoResult => 'No search results to anchor a cursor';
-	@override String cursorAnchorSubtitle({required Object title}) => '${title}';
-	@override String get cursorPlainKeywordOnly => 'Cursors only support plain keyword searches';
+	@override String get bookmarkAdd => 'Add bookmark';
+	@override String get bookmarkPickBanner => 'Tap a cover to mark the bookmark position (scrolling paused)';
+	@override String get bookmarkAdded => 'Bookmark added';
+	@override String get bookmarkPickNone => 'Tap a cover first';
+	@override String get bookmarkPickNoResult => 'No search results to anchor a bookmark';
+}
+
+// Path: searchBookmark
+class _Translations$searchBookmark$en_US extends Translations$searchBookmark$zh_CN {
+	_Translations$searchBookmark$en_US._(TranslationsEnUs root) : this._root = root, super.internal(root);
+
+	final TranslationsEnUs _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Search bookmarks';
+	@override String get empty => 'No search bookmarks yet';
+	@override String get emptyHint => 'Add one from the search result page via the bottom-right button';
+	@override String get filteredEmpty => 'No bookmarks under current filter';
+	@override String get filteredEmptyHint => 'Try another filter, or add one from the search result page';
+	@override String get filter => 'Filter';
+	@override String get sort => 'Sort';
+	@override String get source => 'Source';
+	@override String get sortNewest => 'Newest first';
+	@override String get sortOldest => 'Oldest first';
+	@override String get deselectAll => 'Deselect all';
+	@override String jumped({required Object page}) => 'Jumped to page ${page}';
+	@override String anchorMissing({required Object page}) => 'Anchor not on this page, located at page ${page}';
+	@override String get deleted => 'Bookmark deleted';
 }
 
 // Path: comicList
@@ -2627,11 +2636,6 @@ extension on TranslationsEnUs {
 			'search.fuzzySearchDesc' => 'Show results containing any keyword',
 			'search.selectCategory' => 'Select Category',
 			'search.dataSource' => 'Data Source',
-			'search.sortBy' => 'Sort By',
-			'search.newestToOldest' => 'Newest to oldest',
-			'search.oldestToNewest' => 'Oldest to newest',
-			'search.mostLikes' => 'Most likes',
-			'search.mostViews' => 'Most views',
 			'search.selectSourceTooltip' => 'Select source',
 			'search.hasResults' => 'With results',
 			'search.showErrors' => 'Show errors',
@@ -2647,13 +2651,13 @@ extension on TranslationsEnUs {
 			'discover.noPlugins' => 'No plugins available. Go to the plugin store to install one~',
 			'discover.pluginStore' => 'Plugin Store',
 			'discover.browseInstall' => 'Browse & Install',
-			_ => null,
-		} ?? switch (path) {
 			'discover.noPluginForSearch' => 'No plugins available, cannot search',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
 			'discover.pluginCapability' => 'Plugin Capability',
 			'discover.disabled' => 'Disabled',
 			'discover.unnamed' => 'Unnamed',
+			_ => null,
+		} ?? switch (path) {
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',
 			'discover.pluginCloseFailed' => ({required Object error}) => 'Failed to disable plugin: ${error}',
 			'discover.pluginDebugLoadFailed' => ({required Object error}) => 'Plugin debug load failed, reverted to database: ${error}',
@@ -2663,21 +2667,25 @@ extension on TranslationsEnUs {
 			'searchResult.jumpToPage' => 'Jump to page',
 			'searchResult.jump' => 'Jump',
 			'searchResult.retry' => 'Tap to retry',
-			'searchResult.cursorSectionTitle' => 'Search cursors (experimental)',
-			'searchResult.cursorAdd' => 'Add cursor',
-			'searchResult.cursorPickBanner' => 'Tap a cover to mark the cursor position (scrolling paused)',
-			'searchResult.cursorAdded' => 'Cursor added',
-			'searchResult.cursorEmpty' => 'No cursors yet',
-			'searchResult.cursorOnlyNewestSort' => 'Cursors only support the \'Newest first\' sort',
-			'searchResult.cursorLocating' => 'Locating cursor…',
-			'searchResult.cursorJumpedSuccess' => ({required Object page}) => 'Cursor located, jumped to page ${page}',
-			'searchResult.cursorJumpApproximate' => ({required Object page}) => 'Cursor not matched exactly, jumped near page ${page}',
-			'searchResult.cursorJumpFailed' => 'Failed to locate the cursor, try again later',
-			'searchResult.cursorProbeBudget' => 'Locate probe budget',
-			'searchResult.cursorPickNone' => 'Tap a cover first',
-			'searchResult.cursorPickNoResult' => 'No search results to anchor a cursor',
-			'searchResult.cursorAnchorSubtitle' => ({required Object title}) => '${title}',
-			'searchResult.cursorPlainKeywordOnly' => 'Cursors only support plain keyword searches',
+			'searchResult.bookmarkAdd' => 'Add bookmark',
+			'searchResult.bookmarkPickBanner' => 'Tap a cover to mark the bookmark position (scrolling paused)',
+			'searchResult.bookmarkAdded' => 'Bookmark added',
+			'searchResult.bookmarkPickNone' => 'Tap a cover first',
+			'searchResult.bookmarkPickNoResult' => 'No search results to anchor a bookmark',
+			'searchBookmark.title' => 'Search bookmarks',
+			'searchBookmark.empty' => 'No search bookmarks yet',
+			'searchBookmark.emptyHint' => 'Add one from the search result page via the bottom-right button',
+			'searchBookmark.filteredEmpty' => 'No bookmarks under current filter',
+			'searchBookmark.filteredEmptyHint' => 'Try another filter, or add one from the search result page',
+			'searchBookmark.filter' => 'Filter',
+			'searchBookmark.sort' => 'Sort',
+			'searchBookmark.source' => 'Source',
+			'searchBookmark.sortNewest' => 'Newest first',
+			'searchBookmark.sortOldest' => 'Oldest first',
+			'searchBookmark.deselectAll' => 'Deselect all',
+			'searchBookmark.jumped' => ({required Object page}) => 'Jumped to page ${page}',
+			'searchBookmark.anchorMissing' => ({required Object page}) => 'Anchor not on this page, located at page ${page}',
+			'searchBookmark.deleted' => 'Bookmark deleted',
 			'comicList.defaultTitle' => 'Comic List',
 			'comicList.missingSource' => 'Missing plugin source, cannot load list',
 			'comicList.reload' => 'Reload',

@@ -1263,6 +1263,98 @@ class ComicReadPreference {
   }
 }
 
+/// 搜索书签：记录一次搜索现场 + 锚点漫画，跳转时参数重放直达记录页。
+///
+/// 不做排序键提取、不做定位探测，无需插件声明：快照只是搜索参数重放。
+/// [uniqueKey] 复合唯一：`$source|$keyword|$anchorComicId`。
+@Entity()
+@JsonSerializable()
+class SearchBookmark {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  /// 插件 uuid。
+  String source;
+
+  /// 搜索关键词（trim 后）。
+  String keyword;
+
+  /// 记录时的完整搜索 extern JSON（含分类筛选等，排序也在里面）。
+  String externJson;
+
+  /// 锚点漫画 id。
+  String anchorComicId;
+
+  /// 锚点漫画标题（列表展示用）。
+  String anchorTitle;
+
+  /// 锚点漫画封面 JSON（UnifiedComicCover.toJson，可空）。
+  String anchorCover;
+
+  /// 记录时锚点所在的页码（跳转目标）。
+  int anchorPage;
+
+  /// 记录时锚点在页内的序号（从 0 起，用于精确定位）。
+  /// 老数据缺省为 0，揭示时回退 id 查找。
+  @JsonKey(defaultValue: 0)
+  int anchorIndex;
+
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+
+  SearchBookmark({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.source,
+    required this.keyword,
+    required this.externJson,
+    required this.anchorComicId,
+    required this.anchorTitle,
+    required this.anchorCover,
+    required this.anchorPage,
+    this.anchorIndex = 0,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  /// 记录时的完整搜索 extern（解析失败回退空 map）。
+  @Transient()
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Map<String, dynamic> get extern {
+    try {
+      final decoded = jsonDecode(externJson);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {}
+    return const <String, dynamic>{};
+  }
+
+  Map<String, dynamic> toJson() => _$SearchBookmarkToJson(this);
+
+  factory SearchBookmark.fromJson(Map<String, dynamic> json) =>
+      _$SearchBookmarkFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+/// 搜索书签复合唯一键：`$source|$keyword|$anchorComicId`。
+String searchBookmarkUniqueKey(
+  String source,
+  String keyword,
+  String anchorComicId,
+) {
+  return '${source.trim()}|${keyword.trim()}|${anchorComicId.trim()}';
+}
+
 /// 只保留 `ReadSettingState` 认识的 key，脏 key（旧版本残留/手改）直接丢弃。
 ///
 /// 白名单与类型都从 `ReadSettingState` 自身派生：以后加字段零改动，

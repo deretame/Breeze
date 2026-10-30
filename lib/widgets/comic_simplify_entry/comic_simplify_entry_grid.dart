@@ -35,6 +35,9 @@ class BaseComicGridSliver extends StatelessWidget {
   final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
   final bool selectionMode;
   final String? highlightEntryId;
+
+  /// 高亮时是否压暗其它条目。书签揭示只要锚点描边，不压暗全屏。
+  final bool dimOthers;
   final bool roundedCorner;
   final EdgeInsetsGeometry padding;
   final bool detailed;
@@ -53,6 +56,7 @@ class BaseComicGridSliver extends StatelessWidget {
     this.isEntrySelected,
     this.selectionMode = false,
     this.highlightEntryId,
+    this.dimOthers = true,
     this.roundedCorner = true,
     this.padding = const EdgeInsets.all(10),
     this.detailed = false,
@@ -97,7 +101,10 @@ class BaseComicGridSliver extends StatelessWidget {
       isSelected: isEntrySelected?.call(entries[index]) ?? false,
       selectionMode: selectionMode,
       isHighlighted: entries[index].id == highlightEntryId,
-      dimmed: highlightEntryId != null && entries[index].id != highlightEntryId,
+      dimmed:
+          dimOthers &&
+          highlightEntryId != null &&
+          entries[index].id != highlightEntryId,
       roundedCorner: roundedCorner,
       detailed: detailed,
       collectionTargetId: collectionTargetId,

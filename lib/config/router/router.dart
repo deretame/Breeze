@@ -73,6 +73,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: BookshelfSettingRoute.page),
     AutoRoute(page: DataBackupRoute.page),
     AutoRoute(page: ComicFollowRoute.page),
+    AutoRoute(page: SearchBookmarkRoute.page),
   ];
 
   @override

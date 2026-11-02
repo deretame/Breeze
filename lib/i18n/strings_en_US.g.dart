@@ -776,7 +776,7 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get searchHint => 'Search plugin name or author...';
 	@override String get localInstall => 'Local install';
 	@override String get networkInstall => 'Network install';
-	@override String get cloudComponents => 'Cloud components';
+	@override String get cloudPlugins => 'Cloud plugins';
 	@override String get loginSuccess => 'Please complete login in the browser, the host will sync cookies automatically';
 	@override String get chromiumFallbackUnsupported => 'External Chromium auto-login fallback is not supported on this platform';
 	@override String get switchingToExternalBrowser => 'Built-in WebView login is limited, switching to external browser...';
@@ -819,10 +819,10 @@ class _Translations$plugin$en_US extends Translations$plugin$zh_CN {
 	@override String get githubRepo => 'GitHub Repo';
 	@override String get download => 'Download';
 	@override String get downloadUpdate => 'Download update';
-	@override String get noCloudPlugins => 'No cloud components';
+	@override String get noCloudPlugins => 'No cloud plugins';
 	@override String get noMatchingPlugins => 'No matching plugins';
 	@override String get networkInstallHint => 'Enter plugin script URL';
-	@override String cloudPluginsLoadFailed({required Object error}) => 'Failed to load cloud components: ${error}';
+	@override String cloudPluginsLoadFailed({required Object error}) => 'Failed to load cloud plugins: ${error}';
 	@override String installingFromCloud({required Object name}) => 'Downloading and installing ${name}...';
 	@override String get installingFromLocal => 'Installing local plugin...';
 	@override String get installingFromNetwork => 'Downloading network plugin...';
@@ -2268,7 +2268,7 @@ extension on TranslationsEnUs {
 			'plugin.searchHint' => 'Search plugin name or author...',
 			'plugin.localInstall' => 'Local install',
 			'plugin.networkInstall' => 'Network install',
-			'plugin.cloudComponents' => 'Cloud components',
+			'plugin.cloudPlugins' => 'Cloud plugins',
 			'plugin.loginSuccess' => 'Please complete login in the browser, the host will sync cookies automatically',
 			'plugin.chromiumFallbackUnsupported' => 'External Chromium auto-login fallback is not supported on this platform',
 			'plugin.switchingToExternalBrowser' => 'Built-in WebView login is limited, switching to external browser...',
@@ -2311,10 +2311,10 @@ extension on TranslationsEnUs {
 			'plugin.githubRepo' => 'GitHub Repo',
 			'plugin.download' => 'Download',
 			'plugin.downloadUpdate' => 'Download update',
-			'plugin.noCloudPlugins' => 'No cloud components',
+			'plugin.noCloudPlugins' => 'No cloud plugins',
 			'plugin.noMatchingPlugins' => 'No matching plugins',
 			'plugin.networkInstallHint' => 'Enter plugin script URL',
-			'plugin.cloudPluginsLoadFailed' => ({required Object error}) => 'Failed to load cloud components: ${error}',
+			'plugin.cloudPluginsLoadFailed' => ({required Object error}) => 'Failed to load cloud plugins: ${error}',
 			'plugin.installingFromCloud' => ({required Object name}) => 'Downloading and installing ${name}...',
 			'plugin.installingFromLocal' => 'Installing local plugin...',
 			'plugin.installingFromNetwork' => 'Downloading network plugin...',

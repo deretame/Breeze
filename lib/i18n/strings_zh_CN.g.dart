@@ -2040,8 +2040,8 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '网络安装'
 	String get networkInstall => '网络安装';
 
-	/// zh-CN: '云端组件'
-	String get cloudComponents => '云端组件';
+	/// zh-CN: '云端插件'
+	String get cloudPlugins => '云端插件';
 
 	/// zh-CN: '请在网页中完成登录，宿主会自动同步 Cookie'
 	String get loginSuccess => '请在网页中完成登录，宿主会自动同步 Cookie';
@@ -2172,8 +2172,8 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '下载更新'
 	String get downloadUpdate => '下载更新';
 
-	/// zh-CN: '暂无云端组件'
-	String get noCloudPlugins => '暂无云端组件';
+	/// zh-CN: '暂无云端插件'
+	String get noCloudPlugins => '暂无云端插件';
 
 	/// zh-CN: '没有匹配的插件'
 	String get noMatchingPlugins => '没有匹配的插件';
@@ -2181,8 +2181,8 @@ class Translations$plugin$zh_CN {
 	/// zh-CN: '请输入插件脚本 URL'
 	String get networkInstallHint => '请输入插件脚本 URL';
 
-	/// zh-CN: '云端组件列表加载失败: $error'
-	String cloudPluginsLoadFailed({required Object error}) => '云端组件列表加载失败: ${error}';
+	/// zh-CN: '云端插件列表加载失败: $error'
+	String cloudPluginsLoadFailed({required Object error}) => '云端插件列表加载失败: ${error}';
 
 	/// zh-CN: '正在下载并安装 $name...'
 	String installingFromCloud({required Object name}) => '正在下载并安装 ${name}...';
@@ -4748,7 +4748,7 @@ extension on Translations {
 			'plugin.searchHint' => '搜索插件名称或作者...',
 			'plugin.localInstall' => '本地安装',
 			'plugin.networkInstall' => '网络安装',
-			'plugin.cloudComponents' => '云端组件',
+			'plugin.cloudPlugins' => '云端插件',
 			'plugin.loginSuccess' => '请在网页中完成登录，宿主会自动同步 Cookie',
 			'plugin.chromiumFallbackUnsupported' => '当前平台不支持外部 Chromium 自动登录回退',
 			'plugin.switchingToExternalBrowser' => '内置 WebView 登录受限，正在切换外部浏览器...',
@@ -4792,10 +4792,10 @@ extension on Translations {
 			'plugin.githubRepo' => 'GitHub 仓库',
 			'plugin.download' => '下载',
 			'plugin.downloadUpdate' => '下载更新',
-			'plugin.noCloudPlugins' => '暂无云端组件',
+			'plugin.noCloudPlugins' => '暂无云端插件',
 			'plugin.noMatchingPlugins' => '没有匹配的插件',
 			'plugin.networkInstallHint' => '请输入插件脚本 URL',
-			'plugin.cloudPluginsLoadFailed' => ({required Object error}) => '云端组件列表加载失败: ${error}',
+			'plugin.cloudPluginsLoadFailed' => ({required Object error}) => '云端插件列表加载失败: ${error}',
 			'plugin.installingFromCloud' => ({required Object name}) => '正在下载并安装 ${name}...',
 			'plugin.installingFromLocal' => '正在安装本地插件...',
 			'plugin.installingFromNetwork' => '正在下载网络插件...',

@@ -111,9 +111,9 @@ breeze
 sudo apt remove breeze
 ```
 
-#### 方式 2：安装 Flatpak
+#### 方式 2：安装 Flatpak（推荐，支持一键安装与更新）
 
-Flatpak 版本通过 Flatpak 分发，以确保在不同发行版上的兼容性。
+Flatpak 版本通过自建软件源分发，以确保在不同发行版上的兼容性。添加一次软件源，之后即可用 `flatpak update` 跟随 Release 更新。
 
 #### 1. 准备环境
 
@@ -121,21 +121,26 @@ Flatpak 版本通过 Flatpak 分发，以确保在不同发行版上的兼容性
 
 > **加速建议**：中国大陆用户建议配置 [CERNET 镜像源](https://help.mirrors.cernet.edu.cn/flathub/) 以提升下载速度。
 
-#### 2. 安装运行时 (Runtime)
-
-本项目基于 GNOME 50 Runtime 构建。在安装应用前，请确保系统中存在对应的运行时环境：
+#### 2. 一键安装
 
 ```shell
-flatpak install flathub org.gnome.Platform//50
+curl -fsSL https://raw.githubusercontent.com/deretame/flathub/main/install.sh | bash
 ```
 
-#### 3. 安装应用
-
-下载 Release 界面的 `breeze.flatpak` 文件，在终端执行：
+或手动添加软件源后安装：
 
 ```shell
-# 安装至用户目录下
-flatpak install --user breeze.flatpak
+flatpak remote-add --user --if-not-exists breeze \
+  https://raw.githubusercontent.com/deretame/flathub/main/breeze.flatpakrepo
+flatpak install --user -y breeze io.github.windy.breeze
+```
+
+> GNOME 50 Runtime 会随安装自动拉取，无需手动安装。
+
+#### 3. 更新应用
+
+```shell
+flatpak update --user io.github.windy.breeze
 ```
 
 #### 4. 运行程序
@@ -145,6 +150,8 @@ flatpak install --user breeze.flatpak
 ```shell
 flatpak run io.github.windy.breeze
 ```
+
+> 旧的单文件 `breeze-*.flatpak` 仍可在 Release 页面下载手动安装，但无法通过 `flatpak update` 更新，建议改用上面的软件源方式。
 
 ### 💻 macOS
 

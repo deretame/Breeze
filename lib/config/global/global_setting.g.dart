@@ -25,6 +25,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   welcomePageNum: (json['welcomePageNum'] as num?)?.toInt() ?? 0,
   showPluginHome: json['showPluginHome'] as bool? ?? true,
   showPluginCloudFavorite: json['showPluginCloudFavorite'] as bool? ?? true,
+  showSearchBookmark: json['showSearchBookmark'] as bool? ?? true,
   syncSetting: json['syncSetting'] == null
       ? const SyncSettingState()
       : SyncSettingState.fromJson(json['syncSetting'] as Map<String, dynamic>),
@@ -111,6 +112,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(
   'welcomePageNum': instance.welcomePageNum,
   'showPluginHome': instance.showPluginHome,
   'showPluginCloudFavorite': instance.showPluginCloudFavorite,
+  'showSearchBookmark': instance.showSearchBookmark,
   'syncSetting': instance.syncSetting.toJson(),
   'maskedKeywords': instance.maskedKeywords,
   'socks5ProxyEnabled': instance.socks5ProxyEnabled,

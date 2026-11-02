@@ -26,7 +26,7 @@ class ContentNetworkSettingPage extends StatelessWidget {
             icon: Icons.filter_alt_outlined,
           ),
           editMaskedKeywords(context),
-          _searchBookmarkProbePages(state, cubit),
+          if (state.showSearchBookmark) _searchBookmarkProbePages(state, cubit),
           _chineseConvertMode(state, cubit),
           const SizedBox(height: 8),
           const Divider(height: 1, thickness: 0.3),

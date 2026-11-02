@@ -126,6 +126,8 @@
     "showPluginHomeSubtitle": "关闭后隐藏底部导航的首页页签",
     "showPluginCloudFavorite": "显示云收藏",
     "showPluginCloudFavoriteSubtitle": "关闭后隐藏底部导航的云收藏页签",
+    "showSearchBookmark": "显示搜索书签",
+    "showSearchBookmarkSubtitle": "关闭后隐藏更多页搜索书签入口与搜索结果页添加按钮",
     "contentAndNetwork": "内容与网络",
     "content": "内容",
     "network": "网络",

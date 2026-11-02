@@ -471,6 +471,12 @@ class Translations$settings$zh_CN {
 	/// zh-CN: '关闭后隐藏底部导航的云收藏页签'
 	String get showPluginCloudFavoriteSubtitle => '关闭后隐藏底部导航的云收藏页签';
 
+	/// zh-CN: '显示搜索书签'
+	String get showSearchBookmark => '显示搜索书签';
+
+	/// zh-CN: '关闭后隐藏更多页搜索书签入口与搜索结果页添加按钮'
+	String get showSearchBookmarkSubtitle => '关闭后隐藏更多页搜索书签入口与搜索结果页添加按钮';
+
 	/// zh-CN: '内容与网络'
 	String get contentAndNetwork => '内容与网络';
 
@@ -4229,6 +4235,8 @@ extension on Translations {
 			'settings.showPluginHomeSubtitle' => '关闭后隐藏底部导航的首页页签',
 			'settings.showPluginCloudFavorite' => '显示云收藏',
 			'settings.showPluginCloudFavoriteSubtitle' => '关闭后隐藏底部导航的云收藏页签',
+			'settings.showSearchBookmark' => '显示搜索书签',
+			'settings.showSearchBookmarkSubtitle' => '关闭后隐藏更多页搜索书签入口与搜索结果页添加按钮',
 			'settings.contentAndNetwork' => '内容与网络',
 			'settings.content' => '内容',
 			'settings.network' => '网络',
@@ -4620,10 +4628,10 @@ extension on Translations {
 			'reader.perComicGlobalIs' => '全局为',
 			'reader.perComicThisComic' => '本漫',
 			'reader.infoDisplay' => '信息项显示',
-			'reader.pageNumber' => '页数',
-			'reader.pageNumberSubtitle' => '显示当前页/总页数',
 			_ => null,
 		} ?? switch (path) {
+			'reader.pageNumber' => '页数',
+			'reader.pageNumberSubtitle' => '显示当前页/总页数',
 			'reader.networkStatus' => '网络状态',
 			'reader.networkStatusSubtitle' => 'Linux 下可能不准确',
 			'reader.battery' => '电量',
@@ -5134,10 +5142,10 @@ extension on Translations {
 			'discover.noPlugins' => '暂无可用插件，去插件商店安装一个吧~',
 			'discover.pluginStore' => '插件商店',
 			'discover.browseInstall' => '浏览安装',
-			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
-			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
 			_ => null,
 		} ?? switch (path) {
+			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
+			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
 			'discover.pluginCapability' => '插件能力',
 			'discover.disabled' => '已关闭',
 			'discover.unnamed' => '未命名',

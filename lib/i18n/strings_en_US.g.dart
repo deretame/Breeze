@@ -229,6 +229,8 @@ class _Translations$settings$en_US extends Translations$settings$zh_CN {
 	@override String get showPluginHomeSubtitle => 'Hide the home tab in the bottom navigation when off';
 	@override String get showPluginCloudFavorite => 'Show cloud favorites';
 	@override String get showPluginCloudFavoriteSubtitle => 'Hide the cloud favorites tab in the bottom navigation when off';
+	@override String get showSearchBookmark => 'Show search bookmarks';
+	@override String get showSearchBookmarkSubtitle => 'Hide the search bookmarks entry in More and the add button in search results when off';
 	@override String get contentAndNetwork => 'Content & Network';
 	@override String get content => 'Content';
 	@override String get network => 'Network';
@@ -1753,6 +1755,8 @@ extension on TranslationsEnUs {
 			'settings.showPluginHomeSubtitle' => 'Hide the home tab in the bottom navigation when off',
 			'settings.showPluginCloudFavorite' => 'Show cloud favorites',
 			'settings.showPluginCloudFavoriteSubtitle' => 'Hide the cloud favorites tab in the bottom navigation when off',
+			'settings.showSearchBookmark' => 'Show search bookmarks',
+			'settings.showSearchBookmarkSubtitle' => 'Hide the search bookmarks entry in More and the add button in search results when off',
 			'settings.contentAndNetwork' => 'Content & Network',
 			'settings.content' => 'Content',
 			'settings.network' => 'Network',
@@ -2144,10 +2148,10 @@ extension on TranslationsEnUs {
 			'reader.perComicGlobalIs' => 'Global is',
 			'reader.perComicThisComic' => 'This comic',
 			'reader.infoDisplay' => 'Info display',
-			'reader.pageNumber' => 'Page number',
-			'reader.pageNumberSubtitle' => 'Show current/total page count',
 			_ => null,
 		} ?? switch (path) {
+			'reader.pageNumber' => 'Page number',
+			'reader.pageNumberSubtitle' => 'Show current/total page count',
 			'reader.networkStatus' => 'Network status',
 			'reader.networkStatusSubtitle' => 'May be inaccurate on Linux',
 			'reader.battery' => 'Battery',
@@ -2658,10 +2662,10 @@ extension on TranslationsEnUs {
 			'discover.pluginStore' => 'Plugin Store',
 			'discover.browseInstall' => 'Browse & Install',
 			'discover.noPluginForSearch' => 'No plugins available, cannot search',
-			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
-			'discover.pluginCapability' => 'Plugin Capability',
 			_ => null,
 		} ?? switch (path) {
+			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
+			'discover.pluginCapability' => 'Plugin Capability',
 			'discover.disabled' => 'Disabled',
 			'discover.unnamed' => 'Unnamed',
 			'discover.pluginEnableFailed' => ({required Object error}) => 'Failed to enable plugin: ${error}',

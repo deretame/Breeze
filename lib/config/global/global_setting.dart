@@ -132,6 +132,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(0) int welcomePageNum,
     @Default(true) bool showPluginHome,
     @Default(true) bool showPluginCloudFavorite,
+    @Default(true) bool showSearchBookmark,
     @Default(SyncSettingState()) SyncSettingState syncSetting,
     @Default([]) List<String> maskedKeywords,
     @Default(true) bool socks5ProxyEnabled,

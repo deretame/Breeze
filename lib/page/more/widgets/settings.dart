@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/router/router.gr.dart';
 import 'package:zephyr/i18n/strings.g.dart';
 import 'package:zephyr/page/comic_follow/cubit/comic_follow_cubit.dart';
@@ -44,11 +45,19 @@ class SettingsWidget extends StatelessWidget {
             );
           },
         ),
-        ListTile(
-          leading: const Icon(Icons.bookmark_outline),
-          title: Text(t.searchBookmark.title),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.pushRoute(const SearchBookmarkRoute()),
+        BlocSelector<GlobalSettingCubit, GlobalSettingState, bool>(
+          selector: (state) => state.showSearchBookmark,
+          builder: (context, showSearchBookmark) {
+            if (!showSearchBookmark) {
+              return const SizedBox.shrink();
+            }
+            return ListTile(
+              leading: const Icon(Icons.bookmark_outline),
+              title: Text(t.searchBookmark.title),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.pushRoute(const SearchBookmarkRoute()),
+            );
+          },
         ),
         ListTile(
           leading: const Icon(Icons.settings_outlined),

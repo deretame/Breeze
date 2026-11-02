@@ -139,13 +139,21 @@ class _SearchResultPageState extends State<_SearchResultPage>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final settingState = context.watch<GlobalSettingCubit>().state;
+    final showSearchBookmark = settingState.showSearchBookmark;
+    // 开关可能在书签选点期间经设置同步关闭：立即退出选点态。
+    if (!showSearchBookmark && _bookmarkPickMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _exitBookmarkPick();
+      });
+    }
     // 搜索书签无需插件声明：快照只是搜索参数重放，全插件可用。
     return Scaffold(
       appBar: const SearchResultBar(),
       body: Stack(
         children: [
           Positioned.fill(child: _bloc()),
-          if (_bookmarkPickMode)
+          if (_bookmarkPickMode && showSearchBookmark)
             Positioned(
               top: 0,
               left: 0,
@@ -154,8 +162,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
             ),
         ],
       ),
-      floatingActionButtonLocation:
-          context.watch<GlobalSettingCubit>().state.leftHandModeEnabled
+      floatingActionButtonLocation: settingState.leftHandModeEnabled
           ? FloatingActionButtonLocation.startFloat
           : FloatingActionButtonLocation.endFloat,
       floatingActionButton: _bookmarkPickMode
@@ -219,16 +226,17 @@ class _SearchResultPageState extends State<_SearchResultPage>
                     },
                   ),
                   // 无需插件声明，全插件可用。
-                  SpeedDialChild(
-                    child: const Icon(Icons.bookmark_add_outlined),
-                    label: t.searchResult.bookmarkAdd,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  if (showSearchBookmark)
+                    SpeedDialChild(
+                      child: const Icon(Icons.bookmark_add_outlined),
+                      label: t.searchResult.bookmarkAdd,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: colorScheme.secondaryContainer,
+                      foregroundColor: colorScheme.onSecondaryContainer,
+                      onTap: _startBookmarkPick,
                     ),
-                    backgroundColor: colorScheme.secondaryContainer,
-                    foregroundColor: colorScheme.onSecondaryContainer,
-                    onTap: _startBookmarkPick,
-                  ),
                 ],
               ),
             ),
@@ -377,6 +385,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
   }
 
   void _startBookmarkPick() {
+    if (!context.read<GlobalSettingCubit>().state.showSearchBookmark) {
+      return;
+    }
     setState(() {
       _bookmarkPickMode = true;
       _pickedComicId = null;

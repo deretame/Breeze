@@ -38,6 +38,7 @@ class AppearanceSettingPage extends StatelessWidget {
           _detailLayout(state, cubit),
           _showPluginHome(state, cubit),
           _showPluginCloudFavorite(state, cubit),
+          _showSearchBookmark(state, cubit),
           _fontSettings(context),
         ],
       ),
@@ -206,6 +207,24 @@ class AppearanceSettingPage extends StatelessWidget {
       onChanged: (bool value) {
         cubit.updateState(
           (current) => current.copyWith(showPluginCloudFavorite: value),
+        );
+      },
+    );
+  }
+
+  Widget _showSearchBookmark(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.bookmark_outline),
+      title: Text(t.settings.showSearchBookmark),
+      subtitle: Text(t.settings.showSearchBookmarkSubtitle),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.showSearchBookmark,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(showSearchBookmark: value),
         );
       },
     );

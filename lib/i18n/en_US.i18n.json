@@ -126,6 +126,8 @@
     "showPluginHomeSubtitle": "Hide the home tab in the bottom navigation when off",
     "showPluginCloudFavorite": "Show cloud favorites",
     "showPluginCloudFavoriteSubtitle": "Hide the cloud favorites tab in the bottom navigation when off",
+    "showSearchBookmark": "Show search bookmarks",
+    "showSearchBookmarkSubtitle": "Hide the search bookmarks entry in More and the add button in search results when off",
     "contentAndNetwork": "Content & Network",
     "content": "Content",
     "network": "Network",

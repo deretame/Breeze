@@ -749,3 +749,18 @@ jobs:
           fi
           git commit -m "Update macOS Cask to ${{ github.event.inputs.version }} and clean up placeholders"
           git push
+  # ══════════════════════════════════════════
+  # 8. 触发 Flatpak 软件源同步 (Breeze-flathub)
+  # ══════════════════════════════════════════
+  update-flathub:
+    needs: [ publish ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 触发 Breeze-flathub 同步
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          gh api repos/deretame/Breeze-flathub/actions/workflows/sync.yml/dispatches \
+            -f ref=main \
+            -f "inputs[version]=$VERSION"

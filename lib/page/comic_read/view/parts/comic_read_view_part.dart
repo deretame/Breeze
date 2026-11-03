@@ -102,6 +102,7 @@ extension _ComicReadViewPart on _ComicReadPageState {
       from: widget.from,
       jumpChapter: _jumpChapter,
       onLandscapeChanged: _setReaderLandscape,
+      onDoublePageModeChanged: _handleDoublePageModeChanged,
     );
   }
 }

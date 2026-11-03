@@ -67,6 +67,18 @@ int getStoredHistoryPageIndex({
       1;
 }
 
+/// 切换单页/双页后的粗定位槽位。
+///
+/// 双页切单页：当前双页槽位 ×2；单页切双页：当前单页槽位 ÷2 向下取整。
+/// 不做章节边界和首页留白的精细换算。
+int mapSlotForDoublePageToggle({
+  required int currentSlot,
+  required bool toDoublePage,
+}) {
+  final slot = currentSlot < 0 ? 0 : currentSlot;
+  return toDoublePage ? slot ~/ 2 : slot * 2;
+}
+
 int getSlotIndexFromStoredHistoryPage({
   required int storedHistoryPage,
   required bool enableDoublePage,

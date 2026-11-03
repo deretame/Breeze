@@ -674,6 +674,8 @@ class _Translations$reader$en_US extends Translations$reader$zh_CN {
 	@override String get doublePageLeadingBlankSubtitle => 'Insert a blank page at the start of each chapter to shift page pairing';
 	@override String get landscapeReader => 'Landscape reading';
 	@override String get landscapeReaderSubtitle => 'Switch to landscape while reading and restore the previous direction when you leave';
+	@override String get autoDoublePage => 'Auto double page in landscape';
+	@override String get autoDoublePageSubtitle => 'Switch to double page in landscape and back to single page in portrait';
 	@override String get showStatusBar => 'Show status bar';
 	@override String get showStatusBarSubtitle => 'Keep the top status bar while reading, hide only the bottom navigation bar';
 	@override String get themeMode => 'Theme mode';
@@ -2175,6 +2177,8 @@ extension on TranslationsEnUs {
 			'reader.doublePageLeadingBlankSubtitle' => 'Insert a blank page at the start of each chapter to shift page pairing',
 			'reader.landscapeReader' => 'Landscape reading',
 			'reader.landscapeReaderSubtitle' => 'Switch to landscape while reading and restore the previous direction when you leave',
+			'reader.autoDoublePage' => 'Auto double page in landscape',
+			'reader.autoDoublePageSubtitle' => 'Switch to double page in landscape and back to single page in portrait',
 			'reader.showStatusBar' => 'Show status bar',
 			'reader.showStatusBarSubtitle' => 'Keep the top status bar while reading, hide only the bottom navigation bar',
 			'reader.themeMode' => 'Theme mode',
@@ -2660,10 +2664,10 @@ extension on TranslationsEnUs {
 			'discover.resetOrder' => 'Reset order',
 			'discover.noPlugins' => 'No plugins available. Go to the plugin store to install one~',
 			'discover.pluginStore' => 'Plugin Store',
-			'discover.browseInstall' => 'Browse & Install',
-			'discover.noPluginForSearch' => 'No plugins available, cannot search',
 			_ => null,
 		} ?? switch (path) {
+			'discover.browseInstall' => 'Browse & Install',
+			'discover.noPluginForSearch' => 'No plugins available, cannot search',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => 'Failed to load plugin info: ${error}',
 			'discover.pluginCapability' => 'Plugin Capability',
 			'discover.disabled' => 'Disabled',

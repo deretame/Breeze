@@ -4,6 +4,9 @@ extension _ComicReadInitPart on _ComicReadPageState {
   bool get _isDesktopPlatform =>
       !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
+  bool get _isMobilePlatform =>
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
   // 初始化输入控制器：键盘、手势、缩放。
   void _initInputController() {
     _inputController = ReaderInputController(
@@ -99,6 +102,81 @@ extension _ComicReadInitPart on _ComicReadPageState {
           if (!mounted) return;
           _syncSystemUi(force: true);
         });
+  }
+
+  /// 进入阅读页时按当前屏幕方向同步一次自动双页模式（不跳页）。
+  void _syncAutoDoublePageOnEntry() {
+    if (!_isMobilePlatform || !mounted) return;
+    final setting = context.readEffectiveReadSetting();
+    if (!setting.autoDoublePageInLandscape) return;
+    if (setting.doublePageMode == _lastLandscape) return;
+    _setAutoDoublePageMode(_lastLandscape);
+  }
+
+  /// 开关打开时立即按当前方向生效；关闭时保留当前模式。
+  void _initAutoDoublePageSubscription() {
+    _autoDoublePageSubscription = context
+        .read<GlobalSettingCubit>()
+        .stream
+        .map((state) => state.readSetting.autoDoublePageInLandscape)
+        .distinct()
+        .listen((enabled) {
+          if (!mounted || !enabled || !_isMobilePlatform) return;
+          unawaited(_applyAutoDoublePage(_lastLandscape, jump: true));
+        });
+  }
+
+  /// 屏幕方向翻转：自动双页开启时切换模式并粗略保持阅读位置。
+  void _handleOrientationMetrics() {
+    if (!_isMobilePlatform) return;
+    final landscape = isLandscapeWithOutContext();
+    if (landscape == _lastLandscape) return;
+    _lastLandscape = landscape;
+    if (!mounted) return;
+    if (!context.readEffectiveReadSetting().autoDoublePageInLandscape) return;
+    unawaited(_applyAutoDoublePage(landscape, jump: true));
+  }
+
+  Future<void> _applyAutoDoublePage(bool enable, {required bool jump}) async {
+    if (!_isMobilePlatform || !mounted) return;
+    final setting = context.readEffectiveReadSetting();
+    if (!setting.autoDoublePageInLandscape) return;
+    if (setting.doublePageMode == enable) return;
+
+    final currentSlot = context.read<ReaderCubit>().state.currentSlot;
+    final canJump = jump && context.read<ReaderCubit>().state.totalSlots > 0;
+
+    _setAutoDoublePageMode(enable);
+    if (!mounted) return;
+    // 本漫覆盖钉死了双页模式时，自动切换不生效，也不能按新模式换算槽位。
+    if (context.readEffectiveReadSetting().doublePageMode != enable) return;
+    if (!canJump) return;
+    await _jumpToGlobalSlot(
+      mapSlotForDoublePageToggle(
+        currentSlot: currentSlot,
+        toDoublePage: enable,
+      ),
+    );
+  }
+
+  void _setAutoDoublePageMode(bool enable) {
+    if (!mounted) return;
+    context.read<GlobalSettingCubit>().updateReadSetting(
+      (current) => current.copyWith(doublePageMode: enable),
+    );
+  }
+
+  /// 设置面板手动切换双页后，按新模式的槽位语义重新定位。
+  void _handleDoublePageModeChanged(bool enable) {
+    final currentSlot = context.read<ReaderCubit>().state.currentSlot;
+    unawaited(
+      _jumpToGlobalSlot(
+        mapSlotForDoublePageToggle(
+          currentSlot: currentSlot,
+          toDoublePage: enable,
+        ),
+      ),
+    );
   }
 
   // 初始化历史记录控制器，处理进度恢复与落盘。

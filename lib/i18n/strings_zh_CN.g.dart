@@ -1752,6 +1752,12 @@ class Translations$reader$zh_CN {
 	/// zh-CN: '阅读时切换为横屏，离开后恢复原来的方向'
 	String get landscapeReaderSubtitle => '阅读时切换为横屏，离开后恢复原来的方向';
 
+	/// zh-CN: '横屏自动双页'
+	String get autoDoublePage => '横屏自动双页';
+
+	/// zh-CN: '横屏时自动切换为双页，竖屏时自动切换回单页'
+	String get autoDoublePageSubtitle => '横屏时自动切换为双页，竖屏时自动切换回单页';
+
 	/// zh-CN: '显示状态栏'
 	String get showStatusBar => '显示状态栏';
 
@@ -4655,6 +4661,8 @@ extension on Translations {
 			'reader.doublePageLeadingBlankSubtitle' => '在每章最前插入一页空白，使配对整体错一位',
 			'reader.landscapeReader' => '横屏阅读',
 			'reader.landscapeReaderSubtitle' => '阅读时切换为横屏，离开后恢复原来的方向',
+			'reader.autoDoublePage' => '横屏自动双页',
+			'reader.autoDoublePageSubtitle' => '横屏时自动切换为双页，竖屏时自动切换回单页',
 			'reader.showStatusBar' => '显示状态栏',
 			'reader.showStatusBarSubtitle' => '阅读时保留顶部状态栏，仅隐藏底部导航栏',
 			'reader.themeMode' => '系统模式',
@@ -5140,10 +5148,10 @@ extension on Translations {
 			'discover.customOrder' => '自定义插件顺序',
 			'discover.resetOrder' => '恢复默认顺序',
 			'discover.noPlugins' => '暂无可用插件，去插件商店安装一个吧~',
-			'discover.pluginStore' => '插件商店',
-			'discover.browseInstall' => '浏览安装',
 			_ => null,
 		} ?? switch (path) {
+			'discover.pluginStore' => '插件商店',
+			'discover.browseInstall' => '浏览安装',
 			'discover.noPluginForSearch' => '暂无可用插件，无法搜索',
 			'discover.pluginInfoLoadFailed' => ({required Object error}) => '插件信息加载失败: ${error}',
 			'discover.pluginCapability' => '插件能力',

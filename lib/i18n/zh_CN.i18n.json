@@ -550,6 +550,8 @@
     "doublePageLeadingBlankSubtitle": "在每章最前插入一页空白，使配对整体错一位",
     "landscapeReader": "横屏阅读",
     "landscapeReaderSubtitle": "阅读时切换为横屏，离开后恢复原来的方向",
+    "autoDoublePage": "横屏自动双页",
+    "autoDoublePageSubtitle": "横屏时自动切换为双页，竖屏时自动切换回单页",
     "showStatusBar": "显示状态栏",
     "showStatusBarSubtitle": "阅读时保留顶部状态栏，仅隐藏底部导航栏",
     "themeMode": "系统模式",

@@ -324,6 +324,8 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
       preloadChapterCount: (json['preloadChapterCount'] as num?)?.toInt() ?? 1,
       landscapeReader: json['landscapeReader'] as bool? ?? false,
       showStatusBar: json['showStatusBar'] as bool? ?? false,
+      autoDoublePageInLandscape:
+          json['autoDoublePageInLandscape'] as bool? ?? false,
       doublePageMode: json['doublePageMode'] as bool? ?? false,
       doublePageSeamless: json['doublePageSeamless'] as bool? ?? false,
       doublePageLeadingBlank: json['doublePageLeadingBlank'] as bool? ?? false,
@@ -382,6 +384,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'preloadChapterCount': instance.preloadChapterCount,
   'landscapeReader': instance.landscapeReader,
   'showStatusBar': instance.showStatusBar,
+  'autoDoublePageInLandscape': instance.autoDoublePageInLandscape,
   'doublePageMode': instance.doublePageMode,
   'doublePageSeamless': instance.doublePageSeamless,
   'doublePageLeadingBlank': instance.doublePageLeadingBlank,

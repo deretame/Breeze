@@ -22,6 +22,7 @@ import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/type/chapter_extern.dart';
 import 'package:zephyr/platform/eink/eink_refresh.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/type/enum.dart';
 
 // 自动阅读相关：计时器、暂停/继续、悬浮按钮。
@@ -178,7 +179,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
   StreamSubscription<dynamic>? _perComicVolumeKeySubscription;
   StreamSubscription<bool>? _showStatusBarSubscription;
   StreamSubscription<dynamic>? _perComicShowStatusBarSubscription;
+  StreamSubscription<bool>? _autoDoublePageSubscription;
   StreamSubscription<ReaderState>? _einkRefreshSubscription;
+  bool _lastLandscape = false;
   int _einkLastSlot = -1;
   int _einkTurnCount = 0;
   bool _isScrollLockedByMultiTouch = false;
@@ -195,6 +198,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
     // 绑定本漫独立阅读设置（仅 readMode），供有效值计算使用。
     context.read<ComicReadPreferenceCubit>().bind(widget.from, widget.comicId);
 
+    _lastLandscape = isLandscapeWithOutContext();
+    _syncAutoDoublePageOnEntry();
+
     _initAutoReadController();
     _initSystemUiController();
     _initHistoryController();
@@ -208,6 +214,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _inputController.init();
     _initVolumeKeyPageTurnSubscription();
     _initShowStatusBarSubscription();
+    _initAutoDoublePageSubscription();
     _initEinkAutoRefresh();
 
     WidgetsBinding.instance.addObserver(this);
@@ -239,6 +246,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _perComicVolumeKeySubscription?.cancel();
     _showStatusBarSubscription?.cancel();
     _perComicShowStatusBarSubscription?.cancel();
+    _autoDoublePageSubscription?.cancel();
     _einkRefreshSubscription?.cancel();
     _inputController.dispose();
     _imagePrefetchController.dispose();
@@ -335,6 +343,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   );
   @override
   void didChangeMetrics() {
+    _handleOrientationMetrics();
     _lifecycleController.didChangeMetrics();
   }
 

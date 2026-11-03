@@ -3,12 +3,14 @@ part of 'reader_settings_sheet.dart';
 class _ReaderSettingsReadTab extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final ValueChanged<bool>? onDoublePageModeChanged;
   final String source;
   final String comicId;
 
   const _ReaderSettingsReadTab({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.onDoublePageModeChanged,
     this.source = '',
     this.comicId = '',
   });
@@ -22,6 +24,7 @@ class _ReaderSettingsReadTab extends StatelessWidget {
           _ReadModeSection(
             changePageIndex: changePageIndex,
             onLandscapeChanged: onLandscapeChanged,
+            onDoublePageModeChanged: onDoublePageModeChanged,
           ),
           const SizedBox(height: 18),
           const _ThemeModeSection(),
@@ -46,18 +49,20 @@ class _ReaderSettingsReadTab extends StatelessWidget {
 class _ReadModeSection extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final ValueChanged<bool>? onDoublePageModeChanged;
 
   const _ReadModeSection({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.onDoublePageModeChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     final isDesktopPlatform =
-        !kIsWeb &&
-        (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+        !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+    final isMobilePlatform = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
     // 本漫 tab 读有效值：无覆盖时显示的即全局值，不搞特殊状态；
     // 点选即写覆盖（点当前高亮的值 = 再确认一次，无变化不写库）。
     final effective = context.watchTargetReadSetting();
@@ -145,15 +150,31 @@ class _ReadModeSection extends StatelessWidget {
           title: t.reader.doublePage,
           subtitle: t.reader.doublePageSubtitle,
           value: effective.doublePageMode,
-          onChanged: (value) {
+          onChanged: (value) async {
             HapticFeedback.selectionClick();
-            context.updateEffectiveReadSetting(
+            await context.updateEffectiveReadSetting(
               effective,
               (current) => current.copyWith(doublePageMode: value),
             );
-            changePageIndex(0);
+            if (onDoublePageModeChanged != null) {
+              onDoublePageModeChanged!(value);
+            } else {
+              changePageIndex(0);
+            }
           },
         ),
+        if (isMobilePlatform && !context.isEditingPerComic)
+          _SettingsSwitchTile(
+            title: t.reader.autoDoublePage,
+            subtitle: t.reader.autoDoublePageSubtitle,
+            value: effective.autoDoublePageInLandscape,
+            onChanged: (value) {
+              HapticFeedback.selectionClick();
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(autoDoublePageInLandscape: value),
+              );
+            },
+          ),
         if (effective.doublePageMode && effective.readMode != 0)
           _SettingsSwitchTile(
             title: t.reader.doublePageSeamless,

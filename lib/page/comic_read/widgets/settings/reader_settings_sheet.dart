@@ -20,6 +20,7 @@ Future<void> showReaderSettingsSheet(
   BuildContext context, {
   ValueChanged<int>? changePageIndex,
   ValueChanged<bool>? onLandscapeChanged,
+  ValueChanged<bool>? onDoublePageModeChanged,
   String source = '',
   String comicId = '',
 }) {
@@ -38,6 +39,7 @@ Future<void> showReaderSettingsSheet(
         child: _ReaderSettingsSheet(
           changePageIndex: changePageIndex ?? (_) {},
           onLandscapeChanged: onLandscapeChanged,
+          onDoublePageModeChanged: onDoublePageModeChanged,
           source: source,
           comicId: comicId,
         ),
@@ -49,12 +51,14 @@ Future<void> showReaderSettingsSheet(
 class _ReaderSettingsSheet extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final ValueChanged<bool>? onDoublePageModeChanged;
   final String source;
   final String comicId;
 
   const _ReaderSettingsSheet({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.onDoublePageModeChanged,
     this.source = '',
     this.comicId = '',
   });
@@ -90,6 +94,7 @@ class _ReaderSettingsSheet extends StatelessWidget {
                     changePageIndex: changePageIndex,
                     isAndroidPhone: isAndroidPhone,
                     onLandscapeChanged: onLandscapeChanged,
+                    onDoublePageModeChanged: onDoublePageModeChanged,
                     source: source,
                     comicId: comicId,
                   ),
@@ -107,6 +112,7 @@ class _ReaderSettingsCard extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final bool isAndroidPhone;
   final ValueChanged<bool>? onLandscapeChanged;
+  final ValueChanged<bool>? onDoublePageModeChanged;
   final String source;
   final String comicId;
 
@@ -114,6 +120,7 @@ class _ReaderSettingsCard extends StatelessWidget {
     required this.changePageIndex,
     required this.isAndroidPhone,
     this.onLandscapeChanged,
+    this.onDoublePageModeChanged,
     this.source = '',
     this.comicId = '',
   });
@@ -145,6 +152,7 @@ class _ReaderSettingsCard extends StatelessWidget {
                   _ReaderSettingsReadTab(
                     changePageIndex: changePageIndex,
                     onLandscapeChanged: onLandscapeChanged,
+                    onDoublePageModeChanged: onDoublePageModeChanged,
                     source: source,
                     comicId: comicId,
                   ),
@@ -154,6 +162,7 @@ class _ReaderSettingsCard extends StatelessWidget {
                     _ReaderSettingsPerComicTab(
                       changePageIndex: changePageIndex,
                       onLandscapeChanged: onLandscapeChanged,
+                      onDoublePageModeChanged: onDoublePageModeChanged,
                       source: source,
                       comicId: comicId,
                       isAndroidPhone: isAndroidPhone,

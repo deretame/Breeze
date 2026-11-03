@@ -11,6 +11,7 @@ part of 'reader_settings_sheet.dart';
 class _ReaderSettingsPerComicTab extends StatelessWidget {
   final ValueChanged<int> changePageIndex;
   final ValueChanged<bool>? onLandscapeChanged;
+  final ValueChanged<bool>? onDoublePageModeChanged;
   final String source;
   final String comicId;
   final bool isAndroidPhone;
@@ -18,6 +19,7 @@ class _ReaderSettingsPerComicTab extends StatelessWidget {
   const _ReaderSettingsPerComicTab({
     required this.changePageIndex,
     this.onLandscapeChanged,
+    this.onDoublePageModeChanged,
     required this.source,
     required this.comicId,
     required this.isAndroidPhone,
@@ -34,6 +36,7 @@ class _ReaderSettingsPerComicTab extends StatelessWidget {
             _ReadModeSection(
               changePageIndex: changePageIndex,
               onLandscapeChanged: onLandscapeChanged,
+              onDoublePageModeChanged: onDoublePageModeChanged,
             ),
             const SizedBox(height: 18),
             const _AutoReadSection(),

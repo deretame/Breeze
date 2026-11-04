@@ -6,6 +6,11 @@ edition = "2024"
 [features]
 default = ["host-fs"]
 host-fs = []
+# 域名前置（IP 直连 / SNI 绕过）。默认关闭。
+# web_runtime.rs 里注册 __http_set/get/clear_front_hosts 三个全局函数的
+# `#[cfg(feature = "host-fronting")]` 就落在这个 crate，所以 feature 必须
+# 声明在这里；windcore 通过 `host-fronting = ["rquickjs_playground/host-fronting"]` 转发。
+host-fronting = []
 
 [dependencies]
 rquickjs = { version = "0.12.0", features = ["bindgen", "futures", "parallel", "loader", "macro"] }

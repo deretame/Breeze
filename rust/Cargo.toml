@@ -110,4 +110,7 @@ rquickjs-sys = { git = "https://github.com/deretame/rquickjs.git", branch = "fix
 # 三个全局函数；关闭时这三个函数不会被注册，插件探测到缺失即视为「宿主不支持」，
 # 与未打补丁的行为完全一致，不会有任何 IP 改写发生。
 [features]
-host-fronting = []
+# 注意：真正的 `#[cfg(feature = "host-fronting")]` 门控在 rquickjs_playground crate 里，
+# 所以这里必须**转发**该 feature，而不是只声明一个空 feature——否则 feature 打开后
+# 门控代码仍不会被编译，三个全局函数不会注册。
+host-fronting = ["rquickjs_playground/host-fronting"]

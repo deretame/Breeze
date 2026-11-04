@@ -506,15 +506,27 @@ async fn http_request_inner_async(
 ) -> AnyResult<String> {
     let method =
         Method::from_bytes(method.as_bytes()).context(crate::tr!("failed-to-parse-http-method"))?;
-    ensure_http_target_allowed(&url).await?;
+
+    // 域名前置：命中前置表的请求会被改写成「连真实 IP + 不发 SNI + 带 Host 头」。
+    // 必须在校验目标之前完成改写，否则会先对墙内解析不到的域名做一次 DNS 查询。
+    let front_target = super::fronting::resolve_front_target(&url)?;
+    let request_url = match &front_target {
+        Some(target) => super::fronting::front_url_with_ip(&url, &target.ip)?,
+        None => url.clone(),
+    };
+
+    ensure_http_target_allowed(&request_url).await?;
     let mut headers_map = Map::new();
     let headers_value: Value = serde_json::from_str(&headers_json)
         .context(crate::tr!("failed-to-parse-http-headers-json"))?;
-    let client = http_client()?;
+    let client = match &front_target {
+        Some(_) => super::fronting::cached_front_client(&worker_http_config())?,
+        None => http_client()?,
+    };
     let mut formdata_body = false;
     let mut plain_headers: Vec<(String, String)> = Vec::new();
 
-    let mut builder = client.request(method, &url);
+    let mut builder = client.request(method, &request_url);
 
     if let Value::Object(obj) = headers_value {
         for (key, value) in obj {
@@ -528,11 +540,26 @@ async fn http_request_inner_async(
         }
     }
 
+    // 调用方是否已经显式带了 `Host` 头。必须在这里先算：`plain_headers`
+    // 下面的 `for` 循环会按值消费掉它，之后就不能再借用了。
+    let has_host_header = plain_headers
+        .iter()
+        .any(|(key, _)| key.eq_ignore_ascii_case("host"));
+
     for (key, value) in plain_headers {
         if formdata_body && key.eq_ignore_ascii_case("content-type") {
             continue;
         }
         builder = builder.header(&key, value);
+    }
+
+    // 前置请求必须带 `Host` 头（域名），否则服务端不知道该路由到哪个站点。
+    // 只有调用方没有显式设置时才注入，尊重调用方。
+    if let Some(target) = &front_target {
+        if !has_host_header {
+            let host_value = front_host_header_value(&target.host, &request_url);
+            builder = builder.header("Host", host_value);
+        }
     }
 
     if formdata_body {
@@ -553,12 +580,24 @@ async fn http_request_inner_async(
         builder = builder.body(content);
     }
 
-    let response = builder
-        .send()
-        .await
-        .context(crate::tr!("failed-to-send-http-request"))?;
+    // 连接级失败才把 IP 标记为不健康：4xx/5xx 说明这个 IP 活着，
+    // 只是请求被站点拒绝（风控 / 限流），换 IP 也未必有用。
+    let response = match builder.send().await {
+        Ok(response) => response,
+        Err(error) => {
+            if let Some(target) = &front_target {
+                super::fronting::mark_front_host_unhealthy(&target.ip);
+            }
+            return Err(error).context(crate::tr!("failed-to-send-http-request"));
+        }
+    };
     let status = response.status();
-    let final_url = response.url().to_string();
+    // 回报给 JS 的 URL 始终是原始域名 URL：插件要按域名做缓存 / 去重 /
+    // 重定向判定，不应该看到直连 IP。实际 IP 另附在 frontHost / frontIp 字段里。
+    let final_url = match &front_target {
+        Some(_) => url.clone(),
+        None => response.url().to_string(),
+    };
 
     for (name, value) in response.headers() {
         let value_text = value
@@ -593,7 +632,7 @@ async fn http_request_inner_async(
         );
     }
 
-    Ok(json!({
+    let mut payload = json!({
         "ok": true,
         "status": status.as_u16(),
         "statusText": status.canonical_reason().unwrap_or(""),
@@ -603,8 +642,36 @@ async fn http_request_inner_async(
         "offloaded": true,
         "nativeBufferId": native_buffer_id,
         "offloadedBytes": body_len
-    })
-    .to_string())
+    });
+    // 调试信息：本次请求是否走了域名前置，以及实际连的哪个 IP。
+    if let Some(target) = &front_target {
+        if let Some(obj) = payload.as_object_mut() {
+            obj.insert("frontHost".to_string(), Value::String(target.host.clone()));
+            obj.insert("frontIp".to_string(), Value::String(target.ip.clone()));
+        }
+    }
+    Ok(payload.to_string())
+}
+
+/// 构造 `Host` 头的值。
+///
+/// 端口非默认时必须带上端口号（与浏览器行为一致）：
+/// `example.com` -> `example.com`，`example.com:8443` -> `example.com:8443`。
+fn front_host_header_value(host: &str, request_url: &str) -> String {
+    let is_default_port = reqwest::Url::parse(request_url)
+        .ok()
+        .and_then(|u| u.port())
+        .is_none();
+    if is_default_port {
+        return host.to_string();
+    }
+    match reqwest::Url::parse(request_url) {
+        Ok(parsed) => match parsed.port() {
+            Some(port) => format!("{host}:{port}"),
+            None => host.to_string(),
+        },
+        Err(_) => host.to_string(),
+    }
 }
 
 async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {

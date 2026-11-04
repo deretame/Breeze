@@ -46,6 +46,7 @@ mod bridge;
 mod bridge_crypto;
 mod crypto_ops;
 mod fs_ops;
+mod fronting;
 mod http;
 mod intl;
 mod native_buffer;
@@ -58,6 +59,7 @@ pub use self::bridge::{
     register_bridge_route_async_handler, register_bridge_route_blocking_handler,
     register_bridge_route_sync_handler, unregister_bridge_route_handler,
 };
+pub use self::fronting::{clear_front_hosts, get_front_hosts, set_front_hosts};
 pub use self::http::{
     BuildHttpClientOptions, HttpClientConfig, build_http_client, build_http_client_ex,
     configure_http_client, current_http_client_config, http_promise_cancel_senders_len,
@@ -203,6 +205,16 @@ pub fn install_host_bindings(
         Function::new(ctx.clone(), http_request_promise)?,
     )?;
     globals.set("__http_request_cancel", Func::from(http_request_cancel))?;
+    // 域名前置（IP 直连）能力：插件把 host -> IP 表下发给宿主，
+    // 宿主据此把请求改写为「连 IP + 不发 SNI + Host 头 + 强制 HTTP/1.1」。
+    // 通过 cargo feature `host-fronting` 控制（默认关闭）；关闭时不注册这三个全局函数，
+    // 插件探测到缺失即视为「宿主不支持」，与未打补丁的行为完全一致。
+    #[cfg(feature = "host-fronting")]
+    globals.set("__http_set_front_hosts", Func::from(set_front_hosts))?;
+    #[cfg(feature = "host-fronting")]
+    globals.set("__http_get_front_hosts", Func::from(get_front_hosts))?;
+    #[cfg(feature = "host-fronting")]
+    globals.set("__http_clear_front_hosts", Func::from(clear_front_hosts))?;
     globals.set("__urlsp_rewrite", Func::from(urlsp_rewrite))?;
     globals.set("__urlsp_query", Func::from(urlsp_query))?;
     globals.set("__headers_rewrite", Func::from(headers_rewrite))?;

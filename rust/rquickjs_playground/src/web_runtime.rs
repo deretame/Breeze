@@ -46,6 +46,8 @@ mod bridge;
 mod bridge_crypto;
 mod crypto_ops;
 mod fs_ops;
+// feature 关闭时 http 热路径不会调用本模块的解析函数，显式关掉 dead_code 告警。
+#[cfg_attr(not(feature = "host-fronting"), allow(dead_code))]
 mod fronting;
 mod http;
 mod intl;

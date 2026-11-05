@@ -21,9 +21,36 @@ void main(List<String> args) async {
           ? BuildMode.release
           : BuildMode.debug,
       assetName: 'src/rust/frb_generated.dart',
+      features: _cargoFeatures(),
       extraCargoEnvironmentVariables: extraCargoEnvironmentVariables,
     ).run(input: input, output: output);
   });
+}
+
+/// cargo feature 开关：域名前置（`host-fronting`）默认编译进产物。
+///
+/// 默认开启只是「让宿主具备该能力」：插件不调用 `__http_set_front_hosts`
+/// 时前置表为空，所有请求仍走原链路。真正的启用/关闭由插件侧设置决定。
+///
+/// 需要排查网络问题时可显式关闭：
+///
+/// ```bash
+/// BREEZE_HOST_FRONTING=0 flutter run
+/// ```
+///
+/// 关闭后宿主不注册 `__http_set_front_hosts` 等全局函数，插件探测不到会
+/// 静默降级，行为与未打补丁时一致。
+///
+/// 注意：native assets 的构建缓存不跟踪环境变量，切换该开关后需要
+/// `flutter clean`（或删除 `.dart_tool` 里的 hook 缓存）才会重新编译。
+List<String> _cargoFeatures() {
+  final value = Platform.environment['BREEZE_HOST_FRONTING']
+      ?.trim()
+      .toLowerCase();
+  if (value == '0' || value == 'false' || value == 'no' || value == 'off') {
+    return const [];
+  }
+  return const ['host-fronting'];
 }
 
 Map<String, String> _extraCargoEnvironmentVariables(

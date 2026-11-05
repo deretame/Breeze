@@ -312,6 +312,38 @@ fn normalize_socks5_proxy_url(raw: &str) -> String {
     format!("socks5h://{value}")
 }
 
+/// 把当前代理配置应用到 `ClientBuilder`。
+///
+/// 规则：HTTP 代理优先；`use_http_proxy` 为真但没填地址时允许回落到 SOCKS5。
+/// 普通客户端与域名前置客户端共用这份逻辑，避免两边行为不一致。
+pub(crate) fn apply_proxy_config(
+    builder: reqwest::ClientBuilder,
+    config: &HttpClientConfig,
+) -> AnyResult<reqwest::ClientBuilder> {
+    if config.use_http_proxy {
+        if let Some(proxy_raw) = config.http_proxy.as_deref() {
+            let proxy_url = normalize_http_proxy_url(proxy_raw);
+            let proxy = Proxy::all(&proxy_url).with_context(|| {
+                crate::tr!("failed-to-parse-http-proxy-address", proxy_url = proxy_url)
+            })?;
+            return Ok(builder.proxy(proxy));
+        }
+    }
+    if config.use_socks5_proxy {
+        if let Some(proxy_raw) = config.socks5_proxy.as_deref() {
+            let proxy_url = normalize_socks5_proxy_url(proxy_raw);
+            let proxy = Proxy::all(&proxy_url).with_context(|| {
+                crate::tr!(
+                    "failed-to-parse-socks5-proxy-address",
+                    proxy_url = proxy_url
+                )
+            })?;
+            return Ok(builder.proxy(proxy));
+        }
+    }
+    Ok(builder)
+}
+
 /// 创建 `reqwest::Client` 时的额外选项（超时 / 直连 / 重定向 / UA）。
 #[derive(Debug, Clone, Default)]
 pub struct BuildHttpClientOptions {
@@ -342,36 +374,8 @@ pub fn build_http_client_ex(
 
     if options.no_proxy {
         builder = builder.no_proxy();
-    } else if config.use_http_proxy {
-        if let Some(proxy_raw) = config.http_proxy.as_deref() {
-            let proxy_url = normalize_http_proxy_url(proxy_raw);
-            let proxy = Proxy::all(&proxy_url).with_context(|| {
-                crate::tr!("failed-to-parse-http-proxy-address", proxy_url = proxy_url)
-            })?;
-            builder = builder.proxy(proxy);
-        } else if config.use_socks5_proxy {
-            if let Some(proxy_raw) = config.socks5_proxy.as_deref() {
-                let proxy_url = normalize_socks5_proxy_url(proxy_raw);
-                let proxy = Proxy::all(&proxy_url).with_context(|| {
-                    crate::tr!(
-                        "failed-to-parse-socks5-proxy-address",
-                        proxy_url = proxy_url
-                    )
-                })?;
-                builder = builder.proxy(proxy);
-            }
-        }
-    } else if config.use_socks5_proxy {
-        if let Some(proxy_raw) = config.socks5_proxy.as_deref() {
-            let proxy_url = normalize_socks5_proxy_url(proxy_raw);
-            let proxy = Proxy::all(&proxy_url).with_context(|| {
-                crate::tr!(
-                    "failed-to-parse-socks5-proxy-address",
-                    proxy_url = proxy_url
-                )
-            })?;
-            builder = builder.proxy(proxy);
-        }
+    } else {
+        builder = apply_proxy_config(builder, config)?;
     }
 
     if config.disable_tls_verify {
@@ -509,7 +513,8 @@ async fn http_request_inner_async(
 
     // 域名前置：命中前置表的请求会被改写成「连真实 IP + 不发 SNI + 带 Host 头」。
     // 必须在校验目标之前完成改写，否则会先对墙内解析不到的域名做一次 DNS 查询。
-    let front_target = super::fronting::resolve_front_target(&url)?;
+    // feature 关闭时该调用被编译成直接返回 None，热路径没有额外开销。
+    let front_target = resolve_front_target(&url)?;
     let request_url = match &front_target {
         Some(target) => super::fronting::front_url_with_ip(&url, &target.ip)?,
         None => url.clone(),
@@ -657,21 +662,29 @@ async fn http_request_inner_async(
 ///
 /// 端口非默认时必须带上端口号（与浏览器行为一致）：
 /// `example.com` -> `example.com`，`example.com:8443` -> `example.com:8443`。
+/// `Url::port()` 对默认端口返回 `None`，所以这里不需要再判断 scheme。
 fn front_host_header_value(host: &str, request_url: &str) -> String {
-    let is_default_port = reqwest::Url::parse(request_url)
+    match reqwest::Url::parse(request_url)
         .ok()
-        .and_then(|u| u.port())
-        .is_none();
-    if is_default_port {
-        return host.to_string();
+        .and_then(|parsed| parsed.port())
+    {
+        Some(port) => format!("{host}:{port}"),
+        None => host.to_string(),
     }
-    match reqwest::Url::parse(request_url) {
-        Ok(parsed) => match parsed.port() {
-            Some(port) => format!("{host}:{port}"),
-            None => host.to_string(),
-        },
-        Err(_) => host.to_string(),
-    }
+}
+
+/// 解析本次请求的域名前置目标。
+///
+/// `host-fronting` 关闭时直接返回 `None`，避免在每次请求的热路径上做
+/// URL 解析与全局状态加锁。
+#[cfg(feature = "host-fronting")]
+fn resolve_front_target(url: &str) -> AnyResult<Option<super::fronting::FrontTarget>> {
+    super::fronting::resolve_front_target(url)
+}
+
+#[cfg(not(feature = "host-fronting"))]
+fn resolve_front_target(_url: &str) -> AnyResult<Option<super::fronting::FrontTarget>> {
+    Ok(None)
 }
 
 async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {
@@ -751,6 +764,34 @@ mod tests {
         let error = result.expect_err("blocked request should fail");
         assert!(error.is_middleware());
         assert!(error.to_string().contains("HTTP"));
+    }
+
+    #[test]
+    fn host_header_omits_default_port() {
+        assert_eq!(
+            front_host_header_value("e-hentai.org", "https://172.66.132.196/g/1/"),
+            "e-hentai.org"
+        );
+        assert_eq!(
+            front_host_header_value("e-hentai.org", "https://172.66.132.196:443/g/1/"),
+            "e-hentai.org"
+        );
+    }
+
+    #[test]
+    fn host_header_includes_custom_port() {
+        assert_eq!(
+            front_host_header_value("e-hentai.org", "https://172.66.132.196:8443/g/1/"),
+            "e-hentai.org:8443"
+        );
+    }
+
+    #[test]
+    fn host_header_falls_back_on_invalid_url() {
+        assert_eq!(
+            front_host_header_value("e-hentai.org", "not a url"),
+            "e-hentai.org"
+        );
     }
 }
 use super::*;

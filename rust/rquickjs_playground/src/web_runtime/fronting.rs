@@ -27,6 +27,22 @@
 //!   连接失败时把 IP 标记为不健康（5 分钟）。
 //!
 //! 表为空时全部请求走原链路，对既有行为零影响。
+//!
+//! # 启用方式
+//!
+//! Flutter 构建默认编译进产物（`hook/build.dart` 固定传 `--features host-fronting`），
+//! 需要关闭时设置环境变量 `BREEZE_HOST_FRONTING=0` 后重新构建。
+//! 直接跑 cargo 时用 `cargo build --features host-fronting`。
+//! 未启用时三个全局函数不注册，插件探测到缺失会静默降级。
+//!
+//! 注意：默认开启只是让宿主「具备能力」；插件不调用 `__http_set_front_hosts`
+//! 时前置表为空，所有请求仍走原链路。
+//!
+//! # 信任模型
+//!
+//! 前置表是**进程级全局状态**，任意插件都能写入 / 清空；宿主只校验 IP 是公网
+//! 地址，不校验 host 白名单（白名单由插件维护）。因此该能力默认关闭，只应在
+//! 可信插件组合下启用。
 
 use std::collections::HashMap;
 use std::net::IpAddr;
@@ -35,12 +51,12 @@ use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use anyhow::{Context as _, Result as AnyResult, anyhow};
-use reqwest::redirect::Policy;
 use reqwest::Client;
+use reqwest::redirect::Policy;
 use reqwest_middleware::ClientWithMiddleware;
 use serde_json::{Value, json};
 
-use super::http::{HttpClientConfig, wrap_http_client};
+use super::http::{HttpClientConfig, apply_proxy_config, wrap_http_client};
 
 /// 不健康 IP 的冷却时长：5 分钟（与 JHenTai `RoundRobinIpProvider` 的
 /// `inMinutes < 5` 判定一致）。
@@ -142,7 +158,8 @@ fn is_rejectable_front_ip(ip: &str) -> bool {
 
 /// 下发前置表。`payload` 是 JSON 字符串：`{ "e-hentai.org": ["1.2.3.4"] }`。
 ///
-/// - 非 IP 字面量的条目静默忽略（不报错，避免一个脏值让整张表失效）。
+/// - 非 IP 字面量与保留地址段（环回 / 内网 / 链路本地等）在写入时就被拒绝，
+///   计入 `rejected`，避免它们在每次请求时再被判断。
 /// - 传空对象等于关闭前置。
 /// - 幂等：表内容没变就不动状态（保留不健康记录与轮询游标）。
 pub fn set_front_hosts(payload: String) -> String {
@@ -177,7 +194,7 @@ pub fn set_front_hosts(payload: String) -> String {
                         Some(s) => s.trim().to_string(),
                         None => continue,
                     };
-                    if !is_valid_front_ip(&ip) {
+                    if !is_valid_front_ip(&ip) || is_rejectable_front_ip(&ip) {
                         rejected += 1;
                         continue;
                     }
@@ -309,25 +326,14 @@ pub(crate) fn resolve_front_target(url: &str) -> AnyResult<Option<FrontTarget>> 
         (ips, cursor, unhealthy_ips)
     };
 
-    // 过滤掉仍在冷却期的 IP。
-    let healthy: Vec<usize> = ips
-        .iter()
-        .enumerate()
-        .filter(|(_, ip)| !unhealthy_ips.contains(ip))
-        .map(|(idx, _)| idx)
-        .collect();
-
-    // 全都不健康时退化为使用全表：宁可用一个坏 IP 反复重试，也不要直接失败。
-    let candidates: Vec<usize> = if healthy.is_empty() {
-        (0..ips.len()).collect()
-    } else {
-        healthy
-    };
-    if candidates.is_empty() {
-        return Ok(None);
-    }
-
-    let pick = candidates[cursor % candidates.len()];
+    // 从游标位置起按全表顺序找第一个健康 IP；全都不健康时退化为游标位置，
+    // 宁可用坏 IP 反复重试，也不要直接失败。游标始终按全表长度推进，
+    // 这样过滤掉部分 IP 后仍能均匀轮询。
+    let start = cursor % ips.len();
+    let pick = (0..ips.len())
+        .map(|offset| (start + offset) % ips.len())
+        .find(|idx| !unhealthy_ips.contains(&ips[*idx]))
+        .unwrap_or(start);
     let ip = ips[pick].clone();
 
     if is_rejectable_front_ip(&ip) {
@@ -335,9 +341,9 @@ pub(crate) fn resolve_front_target(url: &str) -> AnyResult<Option<FrontTarget>> 
         return Ok(None);
     }
 
-    // 推进游标（按 IP 列表长度取模，保证与表长度一致）。
+    // 推进游标：从本次选中的 IP 之后继续，保证健康 IP 之间均匀轮询。
     if let Ok(mut state) = front_host_state().lock() {
-        let next = (cursor + 1) % ips.len();
+        let next = (pick + 1) % ips.len();
         state.cursor.insert(host.clone(), next);
     }
 
@@ -381,19 +387,8 @@ fn front_http_client(config: &HttpClientConfig) -> AnyResult<ClientWithMiddlewar
         .redirect(Policy::none())
         .danger_accept_invalid_certs(true);
 
-    if config.use_http_proxy {
-        if let Some(proxy_raw) = config.http_proxy.as_deref() {
-            let proxy_url = if proxy_raw.contains("://") {
-                proxy_raw.to_string()
-            } else {
-                format!("http://{proxy_raw}")
-            };
-            let proxy = reqwest::Proxy::all(&proxy_url).with_context(|| {
-                crate::tr!("failed-to-parse-http-proxy-address", proxy_url = proxy_url)
-            })?;
-            builder = builder.proxy(proxy);
-        }
-    }
+    // 与普通客户端共用代理逻辑（HTTP 优先、可回落 SOCKS5）。
+    builder = apply_proxy_config(builder, config)?;
 
     let client = builder
         .build()
@@ -548,7 +543,139 @@ mod tests {
     fn no_fronting_when_table_is_empty() {
         with_serialized_state(|| {
             clear_front_hosts();
-            assert!(resolve_front_target("https://e-hentai.org/").unwrap().is_none());
+            assert!(
+                resolve_front_target("https://e-hentai.org/")
+                    .unwrap()
+                    .is_none()
+            );
         });
+    }
+
+    /// 只映射一个域名时，其他域名必须完全不受影响。
+    #[test]
+    fn only_mapped_hosts_are_fronted() {
+        with_serialized_state(|| {
+            set_front_hosts(
+                json!({
+                    "e-hentai.org": ["172.66.132.196"],
+                    "exhentai.org": ["178.175.128.251"],
+                })
+                .to_string(),
+            );
+
+            let eh = resolve_front_target("https://e-hentai.org/g/1/")
+                .unwrap()
+                .unwrap();
+            assert_eq!(eh.host, "e-hentai.org");
+            assert_eq!(eh.ip, "172.66.132.196");
+
+            let ex = resolve_front_target("https://exhentai.org/")
+                .unwrap()
+                .unwrap();
+            assert_eq!(ex.host, "exhentai.org");
+            assert_eq!(ex.ip, "178.175.128.251");
+
+            // 子域名跟随父域的映射。
+            let cdn = resolve_front_target("https://s.exhentai.org/x")
+                .unwrap()
+                .unwrap();
+            assert_eq!(cdn.ip, "178.175.128.251");
+
+            // 未映射的域名、相似后缀、非子域字符串后缀一律不前置。
+            for url in [
+                "https://example.com/",
+                "https://evil-e-hentai.org/",
+                "https://e-hentai.org.evil.com/",
+                "https://e-hentai.org.cn/",
+                "https://notexhentai.org/",
+            ] {
+                assert!(
+                    resolve_front_target(url).unwrap().is_none(),
+                    "{url} should not be fronted"
+                );
+            }
+
+            clear_front_hosts();
+        });
+    }
+
+    #[test]
+    fn reserved_ips_are_rejected_at_set_time() {
+        with_serialized_state(|| {
+            let result = set_front_hosts(
+                json!({ "e-hentai.org": ["127.0.0.1", "10.0.0.1", "172.66.132.196"] }).to_string(),
+            );
+            let parsed: Value = serde_json::from_str(&result).unwrap();
+            assert_eq!(parsed["ok"], json!(true));
+            assert_eq!(parsed["hosts"], json!(1));
+            assert_eq!(parsed["ips"], json!(1));
+            assert_eq!(parsed["rejected"], json!(2));
+            clear_front_hosts();
+        });
+    }
+
+    #[test]
+    fn rotation_alternates_between_healthy_ips() {
+        with_serialized_state(|| {
+            set_front_hosts(
+                json!({
+                    "e-hentai.org": ["172.66.132.196", "172.66.140.62", "178.175.128.251"],
+                })
+                .to_string(),
+            );
+            mark_front_host_unhealthy("172.66.140.62");
+
+            let picks: Vec<String> = (0..4)
+                .map(|_| {
+                    resolve_front_target("https://e-hentai.org/")
+                        .unwrap()
+                        .unwrap()
+                        .ip
+                })
+                .collect();
+            // 中间那个 IP 在冷却，剩下两个应严格交替，而不是一直命中同一个。
+            assert_eq!(picks[0], "172.66.132.196");
+            assert_eq!(picks[1], "178.175.128.251");
+            assert_eq!(picks[2], "172.66.132.196");
+            assert_eq!(picks[3], "178.175.128.251");
+
+            clear_front_hosts();
+        });
+    }
+
+    /// feature 打开时必须注册三个全局函数，否则插件会误判「宿主不支持」。
+    #[cfg(feature = "host-fronting")]
+    #[test]
+    fn globals_are_registered_with_feature_enabled() {
+        let script = r#"
+            JSON.stringify({
+              set: typeof __http_set_front_hosts,
+              get: typeof __http_get_front_hosts,
+              clear: typeof __http_clear_front_hosts,
+            })
+        "#;
+        let result = crate::tests::run_async_script(script).expect("script should run");
+        let parsed: Value = serde_json::from_str(&result).expect("result should be JSON");
+        assert_eq!(parsed["set"], json!("function"));
+        assert_eq!(parsed["get"], json!("function"));
+        assert_eq!(parsed["clear"], json!("function"));
+    }
+
+    /// 默认构建（feature 关闭）不得暴露这三个函数，保证零行为变化。
+    #[cfg(not(feature = "host-fronting"))]
+    #[test]
+    fn globals_are_absent_without_feature() {
+        let script = r#"
+            JSON.stringify({
+              set: typeof __http_set_front_hosts,
+              get: typeof __http_get_front_hosts,
+              clear: typeof __http_clear_front_hosts,
+            })
+        "#;
+        let result = crate::tests::run_async_script(script).expect("script should run");
+        let parsed: Value = serde_json::from_str(&result).expect("result should be JSON");
+        assert_eq!(parsed["set"], json!("undefined"));
+        assert_eq!(parsed["get"], json!("undefined"));
+        assert_eq!(parsed["clear"], json!("undefined"));
     }
 }

@@ -423,3 +423,5 @@ dart-callback-timed-out-timeout_ms = { $function_name_for_timeout } Dart callbac
 opencc-requires-a-json-argument = opencc requires a JSON argument
 cache-delete-argument-invalid-missing-key = cache.delete argument invalid: missing key
 task-cancelled-2 = Task cancelled
+failed-to-parse-front-hosts-json = Failed to parse front hosts JSON: { $e }
+front-host-state-lock-is-poisoned = Front host state lock is poisoned

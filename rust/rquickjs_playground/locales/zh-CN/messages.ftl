@@ -423,3 +423,5 @@ dart-callback-timed-out-timeout_ms = { $function_name_for_timeout } Dart 回调�
 opencc-requires-a-json-argument = opencc 需要一个 JSON 参数
 cache-delete-argument-invalid-missing-key = cache.delete 参数无效: 缺少 key
 task-cancelled-2 = 任务已取消
+failed-to-parse-front-hosts-json = 解析前置 IP 表 JSON 失败: { $e }
+front-host-state-lock-is-poisoned = 前置 IP 表状态锁已损坏

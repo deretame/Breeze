@@ -301,22 +301,37 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 缓存 Rust/Tauri 构建产物
+      - name: 缓存 Rust 构建产物
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
             rust
-            windows-installer/src-tauri
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
-      - name: 设置 Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
+      - name: 安装 Inno Setup 7
+        shell: pwsh
+        run: |
+          $isccCandidates = @(
+            "C:\Program Files\Inno Setup 7\ISCC.exe",
+            "C:\Program Files (x86)\Inno Setup 7\ISCC.exe"
+          )
+          if ($isccCandidates | Where-Object { Test-Path $_ }) {
+            Write-Host "Inno Setup 7 已安装"
+            exit 0
+          }
+          $installer = Join-Path $env:RUNNER_TEMP "innosetup-7.1.1-x64.exe"
+          Invoke-WebRequest -Uri "https://github.com/jrsoftware/issrc/releases/download/is-7_1_1/innosetup-7.1.1-x64.exe" -OutFile $installer
+          $expected = "8A5A6711C3766A6E5FB74F280BA0E3551E719CE94538D901FDBD1F8F9920B3F0"
+          if ((Get-FileHash $installer -Algorithm SHA256).Hash -ne $expected) {
+            throw "Inno Setup 安装包 SHA256 校验失败"
+          }
+          Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-' -Wait
+          $deadline = (Get-Date).AddSeconds(120)
+          while (-not ($isccCandidates | Where-Object { Test-Path $_ }) -and ((Get-Date) -lt $deadline)) {
+            Start-Sleep -Seconds 2
+          }
+          if (-not ($isccCandidates | Where-Object { Test-Path $_ })) {
+            throw "Inno Setup 7 安装失败"
+          }
 
       - name: 运行 Windows 构建脚本
         run: |
@@ -327,7 +342,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: windows-exe
-          path: windows-installer/src-tauri/target/release/windows-installer.exe
+          path: build/windows/installer/windows-installer.exe
 
       # - name: 运行 Windows 构建脚本
       #   run: |
@@ -368,7 +383,7 @@ jobs:
       #   uses: actions/upload-artifact@v6
       #   with:
       #     name: windows-installer-exe
-      #     path: windows-installer/src-tauri/target/release/windows-installer.exe
+      #     path: build/windows/installer/windows-installer.exe
 
       # - name: SignPath 签名 Windows 安装器
       #   id: sign-installer
@@ -386,13 +401,13 @@ jobs:
       # - name: 回灌已签名 Windows 安装器
       #   shell: pwsh
       #   run: |
-      #     Copy-Item -Force "${{ runner.temp }}\signed-installer\windows-installer.exe" "windows-installer/src-tauri/target/release/windows-installer.exe"
+      #     Copy-Item -Force "${{ runner.temp }}\signed-installer\windows-installer.exe" "build/windows/installer/windows-installer.exe"
 
       # - name: 上传已签名 Windows 安装器
       #   uses: actions/upload-artifact@v6
       #   with:
       #     name: windows-installer-signed
-      #     path: windows-installer/src-tauri/target/release/windows-installer.exe
+      #     path: build/windows/installer/windows-installer.exe
 
   # ══════════════════════════════════════════
   # 4. macOS 构建

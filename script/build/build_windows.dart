@@ -28,13 +28,14 @@ Future<int> _runCommand(
   String executable,
   List<String> arguments, {
   String? workingDirectory,
+  bool runInShell = true,
 }) async {
   _printColor('> $executable ${arguments.join(' ')}', _magenta);
   final process = await Process.start(
     executable,
     arguments,
     workingDirectory: workingDirectory,
-    runInShell: true,
+    runInShell: runInShell,
   );
   _currentProcess = process;
 
@@ -81,91 +82,88 @@ WindowsBuildStage _parseBuildStage(List<String> args) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  7zr.exe 自动获取
+//  Inno Setup / 版本号
 // ════════════════════════════════════════════════════════════════
 
-const String _sevenZipVersion = '26.01';
-const String _sevenZipExeName = '7zr.exe';
-const String _sevenZipDownloadUrl =
-    'https://github.com/ip7z/7zip/releases/download/$_sevenZipVersion/7zr.exe';
-
-Future<String> _ensure7zExe(String binDir) async {
+/// 查找 ISCC.exe。优先级：ISCC 环境变量 → INNO_SETUP_HOME → 常见安装路径 → PATH。
+String? _findIscc() {
   final sep = Platform.pathSeparator;
-  final exePath = '$binDir$sep$_sevenZipExeName';
+  final env = Platform.environment;
 
-  if (await File(exePath).exists()) {
-    _printColor('使用本地 7zr: $exePath', _green);
-    return exePath;
+  final candidates = <String>[];
+
+  final explicit = env['ISCC']?.trim();
+  if (explicit != null && explicit.isNotEmpty) {
+    candidates.add(explicit.replaceAll('"', ''));
   }
 
-  _printColor('未找到 $_sevenZipExeName，正在自动下载...', _yellow);
-
-  final binDirObj = Directory(binDir);
-  if (!await binDirObj.exists()) {
-    await binDirObj.create(recursive: true);
+  final home = env['INNO_SETUP_HOME']?.trim();
+  if (home != null && home.isNotEmpty) {
+    candidates.add('${home.replaceAll('"', '')}${sep}ISCC.exe');
   }
 
-  // 下载 7zr.exe（仅支持 7z 格式的独立控制台版本，约 590 KB）
-  _printColor('下载: $_sevenZipDownloadUrl', _cyan);
-  final client = HttpClient();
+  final localAppData = env['LOCALAPPDATA']?.trim();
+  if (localAppData != null && localAppData.isNotEmpty) {
+    candidates.addAll([
+      '$localAppData${sep}Programs${sep}Inno Setup 7${sep}ISCC.exe',
+      '$localAppData${sep}Programs${sep}Inno Setup 6${sep}ISCC.exe',
+    ]);
+  }
+
+  candidates.addAll([
+    r'C:\Program Files\Inno Setup 7\ISCC.exe',
+    r'C:\Program Files (x86)\Inno Setup 7\ISCC.exe',
+    r'C:\Program Files\Inno Setup 6\ISCC.exe',
+    r'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+  ]);
+
+  for (final path in candidates) {
+    if (File(path).existsSync()) return path;
+  }
+
   try {
-    final request = await client.getUrl(Uri.parse(_sevenZipDownloadUrl));
-    final response = await request.close();
-
-    if (response.statusCode != 200) {
-      throw Exception('下载失败，HTTP ${response.statusCode}');
+    final result = Process.runSync('where', ['ISCC.exe'], runInShell: true);
+    if (result.exitCode == 0) {
+      for (final line in result.stdout.toString().split(RegExp(r'\r?\n'))) {
+        final path = line.trim();
+        if (path.isNotEmpty && File(path).existsSync()) return path;
+      }
     }
-
-    final file = File(exePath);
-    final sink = file.openWrite();
-    await response.pipe(sink);
-    final fileSize = await file.length();
-    _printColor('下载完成: ${(fileSize / 1024).toStringAsFixed(0)} KB', _green);
-  } finally {
-    client.close();
+  } catch (_) {
+    // 忽略，返回未找到
   }
 
-  _printColor('$_sevenZipExeName 已保存到: $exePath', _green);
-  return exePath;
+  return null;
 }
 
-// ════════════════════════════════════════════════════════════════
-//  7z 打包
-// ════════════════════════════════════════════════════════════════
-
-Future<void> _create7zArchive(
-  String sevenZipExe,
-  String dirPath,
-  String output7zPath,
-) async {
-  final dir = Directory(dirPath);
-  final parentDir = dir.parent.path;
-  final dirName = dir.path.substring(parentDir.length + 1);
-
-  // 使用独立的 7zr.exe 生成 7z 包。7zr 是 7-Zip 的精简独立控制台版本，
-  // 仅支持 7z 格式，无需外部 DLL，能正确处理 Windows 长路径，避免 tar
-  // 在 Windows/POSIX 兼容层上的各种坑。
-  final result = await Process.run(
-    sevenZipExe,
-    [
-      'a', // add to archive
-      '-t7z', // 7z format
-      '-m0=lzma2', // LZMA2 method
-      '-mx=9', // maximum compression
-      '-mfb=64', // word size
-      '-md=32m', // dictionary size
-      '-ms=on', // solid mode on
-      output7zPath,
-      dirName,
-    ],
-    workingDirectory: parentDir,
-    runInShell: true,
-  );
-
-  if (result.exitCode != 0) {
-    final stderr = result.stderr.toString().trim();
-    throw Exception('7z 打包失败${stderr.isEmpty ? "" : ": $stderr"}');
+/// 从 pubspec.yaml 读取版本号（去掉 +build 部分）。
+String _readAppVersion(String projectRoot) {
+  final sep = Platform.pathSeparator;
+  final pubspec = File('$projectRoot${sep}pubspec.yaml');
+  if (!pubspec.existsSync()) {
+    throw Exception('未找到 pubspec.yaml: ${pubspec.path}');
   }
+
+  for (final line in pubspec.readAsLinesSync()) {
+    final trimmed = line.trim();
+    if (trimmed.startsWith('version:')) {
+      final raw = trimmed.substring('version:'.length).trim();
+      final version = raw.split('+').first.trim();
+      if (version.isNotEmpty) return version;
+    }
+  }
+
+  throw Exception('pubspec.yaml 中未找到 version 字段');
+}
+
+/// Inno Setup 的 VersionInfoVersion 需要 4 段纯数字。
+String _versionQuad(String version) {
+  final numeric = RegExp(r'^\d+(?:\.\d+)*').stringMatch(version) ?? '0';
+  final parts = numeric.split('.');
+  while (parts.length < 4) {
+    parts.add('0');
+  }
+  return parts.take(4).join('.');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -180,23 +178,20 @@ Future<void> main(List<String> args) async {
   final bool shouldPackageInstaller = buildStage != WindowsBuildStage.prepare;
 
   final sep = Platform.pathSeparator;
-  // 使用 path 库（p.join）可以更优雅地处理路径，这里保持字符串拼接兼容原代码
   final String scriptPath = Platform.script.toFilePath();
   final String scriptDir = Directory(scriptPath).parent.path;
   final String projectRoot = Directory(scriptDir).parent.parent.path;
-  final String binDir = '$scriptDir${sep}bin';
 
   const String flutterExecutable = 'flutter';
 
   final String releaseDirPath =
       '$projectRoot${sep}build${sep}windows${sep}x64${sep}runner${sep}Release';
-  final String runnerDirPath =
-      '$projectRoot${sep}build${sep}windows${sep}x64${sep}runner';
-  final String installerRoot = '$projectRoot${sep}windows-installer';
-  final String resourcesDir = '$installerRoot${sep}src-tauri${sep}resources';
-
-  final String archiveOutput = '$runnerDirPath${sep}Release.7z';
-  final String archiveDestination = '$resourcesDir${sep}Release.7z';
+  final String installerScriptPath =
+      '$projectRoot${sep}windows-installer${sep}breeze.iss';
+  final String installerOutputDir =
+      '$projectRoot${sep}build${sep}windows${sep}installer';
+  final String installerExePath =
+      '$installerOutputDir${sep}windows-installer.exe';
 
   // Ctrl+C 监听器
   late final StreamSubscription<ProcessSignal> sigintSubscription;
@@ -214,19 +209,30 @@ Future<void> main(List<String> args) async {
   try {
     _printColor('═══════════════════════════════════════════', _cyan);
     _printColor('      Breeze Windows 构建脚本', _cyan);
-    _printColor('      (7zr.exe / LZMA2 极限压缩)', _cyan);
+    _printColor('      (Flutter Release + Inno Setup)', _cyan);
     _printColor('═══════════════════════════════════════════\n', _cyan);
 
     _printColor('Flutter 命令: $flutterExecutable', _green);
-    _printColor('项目根目录: $projectRoot\n', _green);
+    _printColor('项目根目录: $projectRoot', _green);
 
-    // ═══ 第 0 步：确保 7zr.exe 可用 ═══
-    _printColor('--- (0/4) 检查 7zr.exe 环境 ---', _cyan);
-    final String sevenZipExe = await _ensure7zExe(binDir);
-    _printColor('7zr.exe 就绪 (7-Zip v$_sevenZipVersion)', _green);
+    final String appVersion = _readAppVersion(projectRoot);
+    final String versionQuad = _versionQuad(appVersion);
+    _printColor('应用版本: $appVersion ($versionQuad)', _green);
+
+    String? isccPath;
+    if (shouldPackageInstaller) {
+      isccPath = _findIscc();
+      if (isccPath == null) {
+        throw Exception(
+          '未找到 ISCC.exe。请安装 Inno Setup 7，或设置环境变量 ISCC / INNO_SETUP_HOME。',
+        );
+      }
+      _printColor('Inno Setup: $isccPath', _green);
+    }
     print('');
 
     final releaseDir = Directory(releaseDirPath);
+
     if (shouldBuildFlutter) {
       final String sentryDsn = Platform.environment['SENTRY_DSN'] ?? '';
       if (sentryDsn.isEmpty) {
@@ -235,8 +241,7 @@ Future<void> main(List<String> args) async {
         _printColor('已读取 Sentry DSN (长度: ${sentryDsn.length})', _green);
       }
 
-      // ═══ 第 1 步：Flutter build ═══
-      _printColor('--- (1/4) 构建 Flutter Windows Release ---', _cyan);
+      _printColor('--- 构建 Flutter Windows Release ---', _cyan);
 
       exitCode = await _runCommand(flutterExecutable, [
         'build',
@@ -259,60 +264,45 @@ Future<void> main(List<String> args) async {
     }
 
     if (shouldPackageInstaller) {
-      // ═══ 第 2 步：7z 压缩 ═══
-      _printColor('--- (2/4) 使用 7zr.exe (LZMA2 极限) 压缩 ---', _cyan);
+      _printColor('--- 编译 Inno Setup 安装器 ---', _cyan);
 
-      final stopwatch = Stopwatch()..start();
-      await _create7zArchive(sevenZipExe, releaseDirPath, archiveOutput);
-      stopwatch.stop();
+      if (!await File(installerScriptPath).exists()) {
+        throw Exception('安装器脚本不存在: $installerScriptPath');
+      }
 
-      final archiveSize = await File(archiveOutput).length();
+      final installerDir = Directory(installerOutputDir);
+      if (!await installerDir.exists()) {
+        await installerDir.create(recursive: true);
+      }
+
+      final compileExit = await _runCommand(
+        isccPath!,
+        [
+          '-dAppVersion=$appVersion',
+          '-dVersionQuad=$versionQuad',
+          '-dStageDir=$releaseDirPath',
+          '-dOutputDir=$installerOutputDir',
+          installerScriptPath,
+        ],
+        workingDirectory: projectRoot,
+        runInShell: false,
+      );
+
+      if (compileExit != 0) {
+        throw Exception('Inno Setup 编译失败！ (Exit code: $compileExit)');
+      }
+
+      final installerFile = File(installerExePath);
+      if (!await installerFile.exists()) {
+        throw Exception('安装器未生成: $installerExePath');
+      }
+
+      final sizeMb = (await installerFile.length()) / 1024 / 1024;
       _printColor(
-        '压缩完成 ✓ '
-        '${(archiveSize / 1024 / 1024).toStringAsFixed(1)} MB '
-        '(耗时 ${stopwatch.elapsed.inSeconds}s)\n',
+        '安装器生成完成 ✓ ${sizeMb.toStringAsFixed(1)} MB',
         _green,
       );
-      _printColor('已保存: $archiveOutput', _green);
-
-      // ═══ 第 3 步：复制到安装器资源目录 ═══
-      _printColor('\n--- (3/4) 复制到安装器资源目录 ---', _cyan);
-
-      final resDirObj = Directory(resourcesDir);
-      if (!await resDirObj.exists()) {
-        await resDirObj.create(recursive: true);
-      }
-
-      for (final oldName in ['Release.tar.xz', 'Release.tar.zst']) {
-        final old = File('$resourcesDir$sep$oldName');
-        if (await old.exists()) {
-          await old.delete();
-          _printColor('已删除旧的 $oldName', _yellow);
-        }
-      }
-
-      await File(archiveOutput).copy(archiveDestination);
-      _printColor('已复制到: $archiveDestination ✓\n', _green);
-
-      // ═══ 第 4 步：Tauri 构建 ═══
-      _printColor('--- (4/4) 构建 Tauri 安装器 ---', _cyan);
-
-      _printColor('正在安装前端与 Tauri 依赖 (pnpm install)...', _cyan);
-      exitCode = await _runCommand('pnpm', [
-        'install',
-      ], workingDirectory: installerRoot);
-      if (exitCode != 0) {
-        throw Exception('pnpm install 失败！ (Exit code: $exitCode)');
-      }
-
-      exitCode = await _runCommand('pnpm', [
-        'tauri',
-        'build',
-      ], workingDirectory: installerRoot);
-      if (exitCode != 0) {
-        throw Exception('Tauri 构建失败！ (Exit code: $exitCode)');
-      }
-      _printColor('Tauri 安装器构建完成 ✓\n', _green);
+      _printColor('已保存: $installerExePath\n', _green);
     } else {
       _printColor('已跳过安装器打包阶段，等待签名回灌。', _green);
     }

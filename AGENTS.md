@@ -10,7 +10,7 @@
 
 - **Android**（APK 分发）
 - **iOS / iPadOS**（未签名 IPA，需侧载）
-- **Windows**（Tauri 安装器）
+- **Windows**（Inno Setup 安装包）
 - **macOS**（DMG / Homebrew Cask）
 - **Linux**（Flatpak）
 
@@ -25,7 +25,7 @@
 - **Dart/Flutter 应用**：`lib/`
 - **Rust FFI 库**：`rust/`（crate 名 `windcore`）
 - **QuickJS 运行时封装**：`rust/rquickjs_playground/`（独立子 crate，可整体抽离）
-- **Windows 安装器前端**：`windows-installer/`（SvelteKit + Tauri v2）
+- **Windows 安装器**：`windows-installer/breeze.iss`（Inno Setup 7）
 - **构建/发布脚本**：`script/`
 - **CI/CD**：`.github/workflows/`
 
@@ -95,7 +95,7 @@
 │   ├── build.rs                # 编译时从 CDN 下载内置插件 bundle（Bika/禁漫），失败回退缓存
 │   ├── Cargo.toml
 │   └── rquickjs_playground/    # QuickJS 宿主运行时封装 crate（独立子 crate）
-├── windows-installer/          # Windows 安装器（SvelteKit + Tauri v2）
+├── windows-installer/          # Windows 安装器（Inno Setup 7 脚本）
 ├── packages/coreml_upscale/    # CoreML 超分 Flutter 插件（iOS/macOS）
 ├── script/                       # 按作用分目录：build（平台构建）/ codegen（唯一代码生成入口 §5.1）/ android（waifu2x CLI 依赖链）/ models（超分模型转换）/ lint（静态检查）
 ├── hook/build.dart             # Dart Native Asset 构建钩子
@@ -147,6 +147,7 @@ page/comic_info/
 - **Rust Toolchain**：通过 `rustup` 安装，并添加目标平台 target（无 `rust-toolchain.toml`，跟随 stable）
 - **LLVM / Clang**：`rustqjs` 等库需要解析 C 头，Windows 推荐 `choco install llvm`
 - **Java 21**：Android / Windows / Linux 编译必需
+- **Inno Setup 7**：Windows 安装器编译（`ISCC.exe`），需在 `PATH` 中或通过 `ISCC` / `INNO_SETUP_HOME` 指定
 - **Android SDK / NDK**：NDK 版本见 `android/app/build.gradle.kts` 中的 `ndkVersion`
 
 ### 4.2 推荐环境变量
@@ -156,6 +157,8 @@ page/comic_info/
 | `JAVA_HOME` | 编译 Android / Windows / Linux 必需 | `C:\Program Files\Android\Android Studio\jbr` |
 | `ANDROID_NDK_HOME` | Rust 交叉编译 Android 库必需 | `...\Android\Sdk\ndk\29.0.14206865` |
 | `LIBCLANG_PATH` | 供 `bindgen` 生成 FFI 绑定使用 | `C:\Program Files\LLVM\bin` |
+| `ISCC` | `ISCC.exe` 完整路径（可选，优先级最高） | `C:\Program Files\Inno Setup 7\ISCC.exe` |
+| `INNO_SETUP_HOME` | Inno Setup 安装目录（可选） | `C:\Program Files\Inno Setup 7` |
 
 确保 `PATH` 中包含 `javac` 与 `clang`。
 
@@ -230,7 +233,7 @@ flutter run --dart-define=sentry_dsn=YOUR_DSN
 | Android | `dart ./script/build/build_apk.dart` | `build/app/outputs/flutter-apk/*.apk` |
 | Linux（Flatpak） | `dart ./script/build/build_linux_flatpak.dart` | `breeze.flatpak` |
 | Linux（DEB） | `dart ./script/build/build_linux_deb.dart` | `*.deb` |
-| Windows | `dart ./script/build/build_windows.dart` | `windows-installer.exe` |
+| Windows | `dart ./script/build/build_windows.dart` | `build/windows/installer/windows-installer.exe` |
 | macOS | `flutter build macos --release` + `create-dmg` | `Breeze-macOS.dmg` |
 | iOS | `flutter build ios --release --no-codesign` + 打包 | `Breeze-iOS.ipa` |
 
@@ -238,7 +241,7 @@ flutter run --dart-define=sentry_dsn=YOUR_DSN
 
 iOS 模拟器（`aarch64-apple-ios-sim`）构建时，`rquickjs-sys` 的 bindgen 会把 Rust target triple 直接传给 clang，但 clang 不识别 `-sim` 后缀。`hook/build.dart` 已针对该目标自动注入 `BINDGEN_EXTRA_CLANG_ARGS=--target=aarch64-apple-ios-simulator` 以绕过此问题。
 
-Windows 安装器打包（`script/build/build_windows.dart`）会下载 7-Zip 的独立控制台版本 `7zr.exe`（约 590 KB）到 `script/build/bin/`，并用它将 Flutter Release 目录压缩为 `Release.7z`。Rust 安装器侧通过 `sevenz-rust2` crate 解压。该方案避免了 `package:archive` 生成的不规范 tar 头以及 GNU tar 在 Windows 上的 POSIX 兼容层路径问题。
+Windows 安装器使用 Inno Setup 7 编译：`script/build/build_windows.dart` 先构建 Flutter Windows Release，再调用 `ISCC.exe` 将 `build/windows/x64/runner/Release` 直接打包为 `build/windows/installer/windows-installer.exe`。安装脚本位于 `windows-installer/breeze.iss`，采用 LZMA2 solid 压缩，并处理旧 Tauri 安装器的卸载项迁移、运行中应用的命名管道退出与旧快捷方式清理。需本机安装 Inno Setup 7（或设置 `ISCC` / `INNO_SETUP_HOME`）。
 
 RealSR 桌面端模型不再打包进安装包，首次使用需在设置页下载。模型下载后解压到 `getFilePath()/super_resolution/`，由 `RealSrSuperResolution` 自动调用。Linux / macOS 下载完成后会自动执行 `chmod +x` 授权。
 
@@ -291,7 +294,7 @@ Android 端已彻底从 JNI + ncnn 共享库方案切换到 **waifu2x CLI** 方�
 
 - **单元/widget 测试**：`test/`（`flutter test`），覆盖下载队列、同步核心、搜索框、漫画跟随/阅读、书架、设置等；`test/test_helper.dart` 为共享 fixture。`test/widget_test.dart` 仅为占位空壳。
 - **集成测试**：`integration_test/`（Android RealSR / CoreML 超分端到端验证）。
-- **安装器单测**：`windows-installer/src-tauri` 的 `sevenz_roundtrip_with_long_paths`（`cargo test --lib sevenz_roundtrip_with_long_paths`），验证长路径 7z 归档解压。
+- **安装器**：`windows-installer/breeze.iss` 通过 `ISCC.exe` 编译；本地验证需运行 `dart ./script/build/build_windows.dart` 后执行生成的安装器，覆盖全新安装、旧 Tauri 版本升级、运行中安装与卸载。
 - 新增复杂业务时沿用 `test/` 现有风格补测试；核心逻辑修改后仍需在目标平台手动运行验证。
 
 ---
@@ -300,7 +303,7 @@ Android 端已彻底从 JNI + ncnn 共享库方案切换到 **waifu2x CLI** 方�
 
 ### 8.1 CI/CD 工作流
 
-- **`.github/workflows/push-build.yml`**：每次 `push` 到 `main` 触发，并行构建 Android / Linux / Windows / macOS / iOS 产物为 artifact，**不发布 Release**。Android 构建前会安装 CMake 3.22.1，运行 `script/android/prepare_android_waifu2x_deps.py` 准备 OpenCV / libwebp 依赖，再依次运行 `script/android/build_ncnn_static_android.py` 与 `script/android/build_waifu2x_cli_android.py` 生成 `libwaifu2x_cli.so`；NCNN 模型不再随包打包，改为首次运行时下载。
+- **`.github/workflows/push-build.yml`**：每次 `push` 到 `main` 触发，并行构建 Android / Linux / Windows / macOS / iOS 产物为 artifact，**不发布 Release**。Android 构建前会安装 CMake 3.22.1，运行 `script/android/prepare_android_waifu2x_deps.py` 准备 OpenCV / libwebp 依赖，再依次运行 `script/android/build_ncnn_static_android.py` 与 `script/android/build_waifu2x_cli_android.py` 生成 `libwaifu2x_cli.so`；NCNN 模型不再随包打包，改为首次运行时下载。Windows 构建前会安装 Inno Setup 7，由 `script/build/build_windows.dart` 调用 `ISCC.exe` 生成安装包。
 - **`.github/workflows/release.yml`**：手动触发（`workflow_dispatch`），输入版本号后构建全平台产物，上传符号表到 Sentry，创建 GitHub Release，更新 Homebrew Cask，并发送 Telegram 通知。Android 构建前同样会准备 waifu2x CLI 依赖并编译 CLI。
 - **`.github/workflows/update-tag-on-release.yml`**：Release 构建成功后触发，更新 `update-tag-version/latest-release.json` 并刷新 jsDelivr CDN tag（客户端插件/资源走该 tag 拉取）。
 - **`.github/workflows/release_to_telegram.yml`**：Release `published` 时触发，向 Telegram 发送版本消息与附件。
@@ -346,7 +349,7 @@ Android 端已彻底从 JNI + ncnn 共享库方案切换到 **waifu2x CLI** 方�
 | 修改图片/下载逻辑 | `lib/service/download/`、`lib/network/http/picture/` |
 | 修改 Rust 侧能力 | `rust/src/api/`、`rust/src/qjs/`，然后运行 `dart ./script/codegen/code_generate.dart`（§5.1） |
 | 修改国际化文案 | `lib/i18n/*.i18n.json`，然后运行 `dart ./script/codegen/code_generate.dart`（§5.1） |
-| 修改 Windows 安装器 | `windows-installer/src/`、`windows-installer/src-tauri/` |
+| 修改 Windows 安装器 | `windows-installer/breeze.iss`、`script/build/build_windows.dart` |
 | 修改 RealSR 超分逻辑 | `lib/page/setting/real_sr/service/real_sr_super_resolution.dart`、`lib/page/setting/real_sr/real_sr_setting_page.dart`、`rust/src/api/simple.rs` |
 | 修改 Android RealSR 原生依赖 / waifu2x CLI | `script/android/prepare_android_waifu2x_deps.py`、`script/android/build_ncnn_static_android.py`、`script/android/build_waifu2x_cli_android.py`、`android/app/src/main/cpp/waifu2x_cli/`、`lib/page/setting/real_sr/service/real_sr_super_resolution.dart` |
 | 修改桌面端 RealSR 策略/模型选择 | `lib/page/setting/real_sr/service/desktop_ncnn_model_config.dart`、`lib/page/setting/real_sr/service/real_sr_super_resolution.dart`、`lib/page/setting/real_sr/real_sr_setting_page.dart` |

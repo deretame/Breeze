@@ -59,9 +59,6 @@ objectbox_temp/
 .crashlytics
 # .env.proxy
 
-script/build/bin/
-windows-installer/src-tauri/resources
-
 # Flatpak related
 build-flatpak/
 repo-flatpak/

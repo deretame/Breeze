@@ -79,9 +79,6 @@ Future<String> fetchNpmLatestVersion(String npmName) async {
         candidate.url,
         headers: {'Accept': 'application/json'},
       );
-      if (!response.ok) {
-        throw StateError('HTTP ${response.status}');
-      }
       final data = response.json;
       final map = data is Map
           ? Map<String, dynamic>.from(data)

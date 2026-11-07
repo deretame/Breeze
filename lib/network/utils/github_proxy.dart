@@ -66,7 +66,7 @@ Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
 
   for (String url in urls) {
     try {
-      final response = await fetch(url, headers: headers);
+      final response = await _fetchIncludingError(url, headers: headers);
 
       if (response.ok) {
         final data = response.json;
@@ -133,6 +133,18 @@ Future<Map<String, dynamic>> fetchReleaseData(String fullUrl) async {
     '所有加速通道均失效。末次错误: '
     '${firstNotFound ?? firstRateLimited ?? firstDefinitive ?? lastError}',
   );
+}
+
+/// 非 2xx 时返回响应本体，供上层按状态码与错误正文降级。
+Future<FetchResponse> _fetchIncludingError(
+  String url, {
+  required Map<String, String> headers,
+}) async {
+  try {
+    return await fetch(url, headers: headers);
+  } on FetchException catch (e) {
+    return e.response;
+  }
 }
 
 /// 从 GitHub Release 类 API 的错误正文提取 message 字段。

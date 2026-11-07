@@ -64,7 +64,7 @@ class _AboutPageState extends State<AboutPage> {
             },
             query: {'per_page': 20},
           );
-          if (response.ok && mounted) {
+          if (mounted) {
             final data = response.json;
             setState(() {
               _contributors = List<Map<String, dynamic>>.from(

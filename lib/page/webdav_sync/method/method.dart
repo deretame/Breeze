@@ -25,26 +25,32 @@ Future<void> testWebDavServer(
 
     final response = await client.fetch('/', method: 'OPTIONS');
 
-    final code = response.status;
-    if (code < 200 || code >= 300) {
-      throw Exception('WebDAV 服务返回异常状态码: ${response.status}');
+    final FetchResponse propfindResponse;
+    try {
+      propfindResponse = await client.fetch(
+        '/${appName}_$syncVersion/',
+        method: 'PROPFIND',
+        headers: {'Depth': '0'},
+      );
+    } on FetchException catch (e) {
+      // 404 表示服务可用，只是同步目录尚未创建。
+      if (e.status == 404) {
+        logger.d(
+          'WebDAV 服务可用\n支持的 HTTP 方法: ${response.header('allow') ?? response.headers['allow']}',
+        );
+        return;
+      }
+      rethrow;
     }
 
-    final propfindResponse = await client.fetch(
-      '/${appName}_$syncVersion/',
-      method: 'PROPFIND',
-      headers: {'Depth': '0'},
-    );
-
-    final propfindCode = propfindResponse.status;
-    if (propfindCode == 207 || propfindCode == 404) {
+    if (propfindResponse.status == 207) {
       logger.d(
         'WebDAV 服务可用\n支持的 HTTP 方法: ${response.header('allow') ?? response.headers['allow']}',
       );
       return;
     }
 
-    throw Exception('WebDAV PROPFIND 检查失败，状态码: $propfindCode');
+    throw Exception('WebDAV PROPFIND 检查失败，状态码: ${propfindResponse.status}');
   } catch (e) {
     throw Exception('连接失败: $e');
   }

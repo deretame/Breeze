@@ -1,15 +1,15 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/i18n/strings.g.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/utils/github_proxy.dart';
 import 'package:zephyr/service/update/json/github_release_json.dart';
 import 'package:zephyr/util/error_filter.dart';
-import 'package:zephyr/main.dart';
 
 const _proxyReleasesApiUrl = '$breezeGithubApi/repos/deretame/Breeze/releases';
 const _githubReleasesApiUrl =
@@ -84,10 +84,23 @@ class _ChangelogPageState extends State<ChangelogPage> {
             headers: {'Accept': 'application/vnd.github.v3+json'},
           );
 
-          if (response.ok) {
-            newData = githubReleaseJsonFromJson(response.text);
-            break;
+          final body = response.text;
+          try {
+            newData = githubReleaseJsonFromJson(body);
+          } catch (e, st) {
+            // 代理可能在 200 正文里塞入错误页，保留完整正文用于排查。
+            logger.e(
+              '更新日志解析失败 (HTTP ${response.status}): $body',
+              error: e,
+              stackTrace: st,
+            );
+            continue;
           }
+          break;
+        } on FetchException catch (e, st) {
+          // 代理/镜像可能返回 HTML 或错误 JSON，保留完整正文用于排查。
+          logger.e('HTTP ${e.status}: ${e.response.text}', stackTrace: st);
+          // 当前请求失败时继续尝试下一个地址。
         } catch (e, st) {
           logger.e(e, stackTrace: st);
           // 当前请求失败时继续尝试下一个地址。

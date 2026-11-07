@@ -7,14 +7,20 @@ import 'package:zephyr/src/rust/api/http.dart' as rust;
 ///
 /// 每次 `WindHttp()` / `fetch()` 都会新建底层 reqwest client（不复用全局单例）。
 ///
+/// 响应状态码非 2xx 时抛出 [FetchException]（异常携带完整响应，便于降级）。
+///
 /// ```dart
-/// final res = await fetch(
-///   'https://example.com/api',
-///   method: 'POST',
-///   headers: {'Accept': 'application/json'},
-///   body: {'q': 'hi'},
-/// );
-/// if (res.ok) print(res.json);
+/// try {
+///   final res = await fetch(
+///     'https://example.com/api',
+///     method: 'POST',
+///     headers: {'Accept': 'application/json'},
+///     body: {'q': 'hi'},
+///   );
+///   print(res.json);
+/// } on FetchException catch (e) {
+///   print('${e.status} ${e.url}: ${e.bodyPreview}');
+/// }
 /// ```
 class WindHttp {
   WindHttp._(this._client);
@@ -70,6 +76,8 @@ class WindHttp {
   Map<String, String> get defaultHeaders => _client.defaultHeaders();
 
   /// `fetch(url, { method, headers, body, query, timeout })`
+  ///
+  /// 非 2xx 响应抛出 [FetchException]。
   Future<FetchResponse> fetch(
     String url, {
     String method = 'GET',
@@ -95,7 +103,9 @@ class WindHttp {
         followRedirects: followRedirects,
       ),
     );
-    return FetchResponse._(raw);
+    final response = FetchResponse._(raw);
+    response.ensureOk();
+    return response;
   }
 
   /// 流式下载到本地文件。
@@ -145,6 +155,9 @@ class WindHttp {
 }
 
 /// 对齐浏览器 `Response`。
+///
+/// 实例本身不会因非 2xx 自动抛错；[WindHttp.fetch] 会调用 [ensureOk]。
+/// 按状态码降级时捕获 [FetchException] 并读取 [FetchException.response]。
 class FetchResponse {
   FetchResponse._(this._raw);
 
@@ -157,6 +170,13 @@ class FetchResponse {
   String get url => _raw.url;
   Map<String, String> get headers => _raw.headers;
   Uint8List get body => _raw.body;
+
+  /// 非 2xx 时抛出 [FetchException]。
+  void ensureOk() {
+    if (!ok) {
+      throw FetchException(this);
+    }
+  }
 
   String get text => utf8.decode(body, allowMalformed: true);
 
@@ -174,6 +194,37 @@ class FetchResponse {
       }
     }
     return null;
+  }
+}
+
+/// 非 2xx 响应异常。
+///
+/// [response] 保留完整响应（状态码、响应头、响应体），调用方仍可按需降级。
+class FetchException implements Exception {
+  FetchException(this.response);
+
+  final FetchResponse response;
+
+  /// 响应正文摘要：空白折叠并截断到 300 字符，便于日志输出。
+  late final String bodyPreview = _buildBodyPreview(response.text);
+
+  int get status => response.status;
+  String get statusText => response.statusText;
+  String get url => response.url;
+
+  @override
+  String toString() {
+    final reason = statusText.isEmpty ? '' : ' $statusText';
+    final body = bodyPreview.isEmpty ? '' : '\n$bodyPreview';
+    return 'FetchException: HTTP $status$reason ($url)$body';
+  }
+
+  static String _buildBodyPreview(String text) {
+    final normalized = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.length <= 300) {
+      return normalized;
+    }
+    return '${normalized.substring(0, 300)}…';
   }
 }
 

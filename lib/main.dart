@@ -54,7 +54,7 @@ import 'package:zephyr/widgets/desktop/intent.dart';
 import 'package:zephyr/main.dart';
 
 export 'package:zephyr/network/http/wind_http.dart'
-    show WindHttp, FetchResponse, fetch, fetchDirect;
+    show WindHttp, FetchResponse, FetchException, fetch, fetchDirect;
 
 ObjectBox? _objectbox;
 ObjectBox get objectbox => _objectbox!;
@@ -438,6 +438,8 @@ Future<bool> _probeProxyWithTimeout(String proxyUrl) async {
       followRedirects: false,
     ).fetch('http://www.gstatic.com/generate_204');
     return response.status >= 200 && response.status < 500;
+  } on FetchException catch (e) {
+    return e.status >= 200 && e.status < 500;
   } catch (_) {
     return false;
   }

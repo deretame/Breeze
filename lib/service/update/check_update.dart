@@ -42,7 +42,7 @@ Future<GithubReleaseJson> getCloudVersion() async {
       headers: {'Accept': 'application/json, text/plain, */*'},
     );
     final body = response.text.trim();
-    if (response.ok && body.isNotEmpty) {
+    if (body.isNotEmpty) {
       return GithubReleaseJson.fromJson(jsonDecode(body));
     }
   } catch (e, stackTrace) {
@@ -77,7 +77,7 @@ Future<GithubReleaseJson> getCloudVersion() async {
           headers: {'Accept': 'application/json, text/plain, */*'},
         );
         final body = response.text.trim();
-        if (response.ok && body.isNotEmpty) {
+        if (body.isNotEmpty) {
           return GithubReleaseJson.fromJson(jsonDecode(body));
         }
       } catch (e, stackTrace) {

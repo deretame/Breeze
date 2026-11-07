@@ -4,13 +4,10 @@ import 'package:zephyr/main.dart';
 Future<String> downloadHtmlBody(String url) async {
   try {
     final response = await fetch(url);
-
-    if (response.ok) {
-      final document = html_parser.parse(response.text);
-      return document.body?.innerHtml ?? '';
-    } else {
-      throw Exception('Failed to load page: ${response.status}');
-    }
+    final document = html_parser.parse(response.text);
+    return document.body?.innerHtml ?? '';
+  } on FetchException catch (e) {
+    throw Exception('Failed to load page: ${e.status}');
   } catch (e) {
     throw Exception('Error downloading HTML: $e');
   }

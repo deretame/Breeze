@@ -180,19 +180,20 @@ Future<String> getCachePicture({
     );
   } else {
     // 插件图标在未安装或禁用插件时也需要加载，不依赖插件运行时。
-    final response = await fetch(
-      url,
-      headers: const {'User-Agent': 'Breeze/1.0'},
-    );
-    if (!response.ok) {
+    try {
+      final response = await fetch(
+        url,
+        headers: const {'User-Agent': 'Breeze/1.0'},
+      );
+      imageData = response.body;
+    } on FetchException catch (e) {
       throw DownloadPictureHttpException(
         url,
-        response.statusText,
-        statusCode: response.status,
-        responseBodyLength: response.body.length,
+        e.statusText,
+        statusCode: e.status,
+        responseBodyLength: e.response.body.length,
       );
     }
-    imageData = response.body;
   }
 
   final shouldDeobfuscateCache = await _shouldApplyJmDeobfuscation(
